@@ -128,3 +128,55 @@ TEST(GPUMergeJoinTests, MergeJoinReorderTest)
 
     //FAIL();
 }
+
+TEST(GPUMergeJoinTests, MergeJoinNULLTest)
+{
+    // Initialize test buffers
+    const int32_t BLOCK_COUNT_A = 1;
+    const int32_t BLOCK_SIZE_A = 13;
+
+    const int32_t BLOCK_COUNT_B = 1;
+    const int32_t BLOCK_SIZE_B = 8;
+
+    ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A, true, false);
+    ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B, false, true);
+
+    auto& blockA = colA.AddBlock();
+    auto& blockB = colB.AddBlock();
+
+    std::vector<int32_t> colAData = {'b', 'c', 'g', 'c', 'd', 'a', 'e', 'a', 'e', 'c', 'f', 'g', 'c'};
+    std::vector<int32_t> colBData = {'d', 'g', 'e', 'b', 'f', 'h', 'c', 'a'};
+
+	std::vector<int8_t> colANullMask = {static_cast<int8_t>(0b01000011), static_cast<int8_t>(0b00000111)};
+
+    blockA.InsertData(colAData);
+    blockB.InsertData(colBData);
+
+	blockA.SetNullBitmask(colANullMask);
+
+    // Initialize th output buffers
+    std::vector<std::vector<int32_t>> colAJoinIndices;
+    std::vector<std::vector<int32_t>> colBJoinIndices;
+
+    // Perform the merge join
+    MergeJoin::JoinUnique(colAJoinIndices, colBJoinIndices, colA, colB);
+
+	/*
+	   5    7
+       7    7
+       3    6
+      12    6
+       4    0
+       2    1
+      11    1
+	*/
+
+
+    for (int32_t i = 0; i < colAJoinIndices[0].size(); i++)
+    {
+        printf("%4d %4d\n", colAJoinIndices[0][i], colBJoinIndices[0][i]);
+    }
+
+	FAIL();
+
+}

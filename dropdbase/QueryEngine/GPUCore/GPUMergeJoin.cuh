@@ -220,6 +220,7 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
                                                  int32_t* mergeBIndices,
                                                  T* colABlock,
                                                  T* colBBlock,
+												 int32_t* colABlockIndices,
                                                  int8_t* colABlockNullMask,
                                                  int32_t diagonalCount)
 {
@@ -231,11 +232,16 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
         // Evaluate the join predicate -> equijoin, consider the null values too
         if (colABlockNullMask)
         {
-            int8_t nullBit = (colABlockNullMask[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
-            joinPredicateMask[i] = !nullBit && (colABlock[mergeAIndices[i]] == colBBlock[mergeBIndices[i]]);
+			// Fetch the null flag
+			int32_t offset = colABlockIndices[mergeAIndices[i]] % (sizeof(int8_t) * 8);
+			int32_t nullFlag  = static_cast<int32_t>(static_cast<uint8_t>(colABlockNullMask[colABlockIndices[mergeAIndices[i]] / (sizeof(int8_t) * 8)])) >> offset & 1;
+
+			// Evaluate the join condition
+            joinPredicateMask[i] =  !nullFlag && (colABlock[mergeAIndices[i]] == colBBlock[mergeBIndices[i]]);
         }
         else
         {
+			// Evaluate the join condition
             joinPredicateMask[i] = (colABlock[mergeAIndices[i]] == colBBlock[mergeBIndices[i]]);
         }
     }
@@ -277,12 +283,23 @@ public:
         const int32_t colBBlockCapacity = colB.GetBlockSize();
         const int32_t colBBlockCount = colB.GetBlockCount();
 
+		const bool colAisNullable = colA.GetIsNullable();
+		const bool colBisNullable = colB.GetIsNullable();
+
+		const bool colAisUnique = colA.GetIsUnique();
+		const bool colBisUnique = colB.GetIsUnique();
+
         // Check for zero block capacity
         if (colABlockCapacity == 0 || colBBlockCapacity == 0)
         {
             // TODO Handle
             return;
         }
+
+		// Check for collumnt uniqueness
+		if(!colBisUnique) {
+			throw std::runtime_error("[ERROR] Column B no unique\n");
+		}
 
         // Calculate the  merge path diagonal work buffer sizes
         const int32_t W = context.getBlockDim();
@@ -372,7 +389,7 @@ public:
             GPUMemory::copyHostToDevice(colABlock.get(), colABlockList[a]->GetData(), colABlockSize);
 
             int8_t* d_colABlockNullMask = nullptr;
-            if (colABlockList[a]->GetNullBitmask())
+            if (colAisNullable && colABlockList[a]->GetNullBitmask())
             {
                 GPUMemory::copyHostToDevice(colABlockNullMask.get(),
                                             colABlockList[a]->GetNullBitmask(), 
@@ -435,7 +452,8 @@ public:
                 // Evaluate the join predicate on the merge path
                 kernel_eval_predicate_merge_path<<<context.calcGridDim(diagonalCount), W>>>(
                     joinPredicateMask.get(), mergeAIndices.get(), mergeBIndices.get(),
-                    colABlockSorted.get(), colBBlockSorted.get(), d_colABlockNullMask, diagonalCount);
+                    colABlockSorted.get(), colBBlockSorted.get(), colABlockIndicesSorted.get(), d_colABlockNullMask,
+					 diagonalCount);
                 CheckCudaError(cudaGetLastError());
 
                 // Zero the prefix sum
