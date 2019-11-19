@@ -24,7 +24,7 @@
 
 // INT ">"
 
-//Test values from integer column to be greater than constant value.
+//Test values from integer column to be greater than the constant value
 TEST(DispatcherTests, IntGtColumnConst)
 {
     Context::getInstance();
@@ -75,6 +75,7 @@ TEST(DispatcherTests, IntGtColumnConst)
     }
 }
 
+// Test constant value to be greater than the values from integer column
 TEST(DispatcherTests, IntGtConstColumn)
 {
     Context::getInstance();
@@ -124,6 +125,7 @@ TEST(DispatcherTests, IntGtConstColumn)
     }
 }
 
+// Test values from integer column to be greater than the values from another integer column
 TEST(DispatcherTests, IntGtColumnColumn)
 {
     Context::getInstance();
@@ -175,6 +177,7 @@ TEST(DispatcherTests, IntGtColumnColumn)
     }
 }
 
+// Test a bigger constant value to be greater than a smaller constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntGtConstConstTrue)
 {
     Context::getInstance();
@@ -184,7 +187,7 @@ TEST(DispatcherTests, IntGtConstConstTrue)
     int32_t filterValue1 = 10;
     int32_t filterValue2 = 5;
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " > " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
@@ -224,6 +227,7 @@ TEST(DispatcherTests, IntGtConstConstTrue)
     }
 }
 
+// Test a smaller constant value to be greater than a bigger contant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntGtConstConstFalse)
 {
     Context::getInstance();
@@ -233,7 +237,7 @@ TEST(DispatcherTests, IntGtConstConstFalse)
     int32_t filterValue1 = 5;
     int32_t filterValue2 = 10;
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " > " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
@@ -248,7 +252,7 @@ TEST(DispatcherTests, LongGtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 > 500000000;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -290,7 +294,7 @@ TEST(DispatcherTests, LongGtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 > colLong1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -332,7 +336,7 @@ TEST(DispatcherTests, LongGtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 > colLong1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -376,7 +380,7 @@ TEST(DispatcherTests, LongGtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -407,7 +411,7 @@ TEST(DispatcherTests, LongGtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -420,7 +424,7 @@ TEST(DispatcherTests, FloatGtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 > 5.5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -455,7 +459,7 @@ TEST(DispatcherTests, FloatGtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 > colFloat1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -497,7 +501,7 @@ TEST(DispatcherTests, FloatGtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat2 FROM TableA WHERE colFloat2 > colFloat1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -532,7 +536,7 @@ TEST(DispatcherTests, FloatGtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -562,7 +566,7 @@ TEST(DispatcherTests, FloatGtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -575,7 +579,7 @@ TEST(DispatcherTests, DoubleGtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 > 5.5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -617,7 +621,7 @@ TEST(DispatcherTests, DoubleGtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 > colDouble1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -659,7 +663,7 @@ TEST(DispatcherTests, DoubleGtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble2 FROM TableA WHERE colDouble2 > colDouble1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -701,7 +705,7 @@ TEST(DispatcherTests, DoubleGtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -731,7 +735,7 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -744,6 +748,8 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
 /////////////////////
 
 // INT "<"
+
+// Test values from integer column to be lower than the constant value
 TEST(DispatcherTests, IntLtColumnConst)
 {
     Context::getInstance();
@@ -793,6 +799,7 @@ TEST(DispatcherTests, IntLtColumnConst)
     }
 }
 
+// Test constant value to be lower than the values from integer column
 TEST(DispatcherTests, IntLtConstColumn)
 {
     Context::getInstance();
@@ -842,6 +849,7 @@ TEST(DispatcherTests, IntLtConstColumn)
     }
 }
 
+// Test values from integer column to be lower than the values from another integer column
 TEST(DispatcherTests, IntLtColumnColumn)
 {
     Context::getInstance();
@@ -893,6 +901,7 @@ TEST(DispatcherTests, IntLtColumnColumn)
     }
 }
 
+// Test a smaller constant value to be lower than a bigger constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntLtConstConstTrue)
 {
     Context::getInstance();
@@ -902,7 +911,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
     int32_t filterValue1 = 5;
     int32_t filterValue2 = 10;
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " < " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
@@ -942,6 +951,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
     }
 }
 
+// Test a bigger constant value to be lower than a smaller contant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntLtConstConstFalse)
 {
     Context::getInstance();
@@ -951,7 +961,7 @@ TEST(DispatcherTests, IntLtConstConstFalse)
     int32_t filterValue1 = 10;
     int32_t filterValue2 = 5;
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " < " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
@@ -966,7 +976,7 @@ TEST(DispatcherTests, LongLtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 < 500000000;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1008,7 +1018,7 @@ TEST(DispatcherTests, LongLtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 < colLong1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1050,7 +1060,7 @@ TEST(DispatcherTests, LongLtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 < colLong2;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1094,7 +1104,7 @@ TEST(DispatcherTests, LongLtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1125,7 +1135,7 @@ TEST(DispatcherTests, LongLtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1138,7 +1148,7 @@ TEST(DispatcherTests, FloatLtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 < 5.5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1180,7 +1190,7 @@ TEST(DispatcherTests, FloatLtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 < colFloat1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1222,7 +1232,7 @@ TEST(DispatcherTests, FloatLtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 < colFloat2;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1265,7 +1275,7 @@ TEST(DispatcherTests, FloatLtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1295,7 +1305,7 @@ TEST(DispatcherTests, FloatLtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1308,7 +1318,7 @@ TEST(DispatcherTests, DoubleLtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 < 5.5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1350,7 +1360,7 @@ TEST(DispatcherTests, DoubleLtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 < colDouble1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1392,7 +1402,7 @@ TEST(DispatcherTests, DoubleLtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 < colDouble2;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1434,7 +1444,7 @@ TEST(DispatcherTests, DoubleLtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1464,7 +1474,7 @@ TEST(DispatcherTests, DoubleLtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1477,163 +1487,276 @@ TEST(DispatcherTests, DoubleLtConstConstFalse)
 /////////////////////
 
 // INT ">="
+
+// Test values from integer column to be greater or equal with the constant value
 TEST(DispatcherTests, IntEqGtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 >= 5;");
-    auto resultPtr = parser.Parse();
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  columnName + " >= " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data[i] >= filterValue)
             {
-                if (j % 1024 >= 5)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+
+// Test constant value to be greater or equal with the values from integer column
 TEST(DispatcherTests, IntEqGtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 500 >= colInteger1;");
-    auto resultPtr = parser.Parse();
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " >= " + columnName + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (filterValue >= data[i])
             {
-                if (500 >= j % 1024)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if (500 >= (j % 1024) * -1)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test values from integer column to be greater or equal with the values from another integer column
 TEST(DispatcherTests, IntEqGtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger2 FROM TableA WHERE colInteger2 >= colInteger1;");
-    auto resultPtr = parser.Parse();
+    std::string tableName = "TableA";
+    std::string columnName1 = "colInteger1";
+    std::string columnName2 = "colInteger2";
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
+                                  columnName2 + " >= " + columnName1 + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName1);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data2[i] >= data[i])
             {
-                if ((j % 2048) >= (j % 1024))
-                {
-                    expectedResult.push_back(j % 2048);
-                }
-            }
-            else
-            {
-                if (((j % 2048) * -1) >= (j % 1024) * -1)
-                {
-                    (j % 2) ? expectedResult.push_back(j % 2048) : expectedResult.push_back((j % 2048) * -1);
-                }
+                expectedResult.push_back(data2[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger2");
+    auto& payloads = result->payloads().at(tableName + "." + columnName2);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a bigger constant value to be greater or equal with a smaller constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntEqGtConstConstTrue)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 10 >= 5;");
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 10;
+    int32_t filterValue2 = 5;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " >= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            (j % 2) ? expectedResult.push_back(j % 1024) : expectedResult.push_back((j % 1024) * ((-1)));
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a constant value to be greater or equal with the same constant value which will result in TRUE statement in WHERE clause
+TEST(DispatcherTests, IntEqGtConstConstTrue2)
+{
+    Context::getInstance();
+
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 10;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " >= " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
+
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
+    {
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
+        {
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
+        }
+    }
+
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
+
+    // Check, if the query result have the expected number of returned values (results)
+    ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
+    // Check the correctness of the returned values element by element
+    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+    }
+}
+
+// Test the smaller constant value to be greater or equal with a bigger constant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntEqGtConstConstFalse)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 >= 10;");
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 5;
+    int32_t filterValue2 = 10;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " >= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
+    // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
@@ -1642,7 +1765,7 @@ TEST(DispatcherTests, LongEqGtColumnConst)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 >= 500000000;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1684,7 +1807,7 @@ TEST(DispatcherTests, LongEqGtConstColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 >= colLong1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -1726,7 +1849,7 @@ TEST(DispatcherTests, LongEqGtColumnColumn)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().DispatcherObjs::GetInstance().database,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 >= colLong1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
@@ -2146,170 +2269,275 @@ TEST(DispatcherTests, DoubleEqGtConstConstFalse)
 /////////////////////
 
 // INT "<="
+
+// Test values from integer column to be lower or equal with the constant value
 TEST(DispatcherTests, IntEqLtColumnConst)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 <= 5;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  columnName + " <= " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data[i] <= filterValue)
             {
-                if ((j % 1024) <= 5)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if ((j % 1024) * -1 <= 5)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test constant value to be lower or equal with the values from integer column
 TEST(DispatcherTests, IntEqLtConstColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 500;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 500 <= colInteger1;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " <= " + columnName + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (filterValue <= data[i])
             {
-                if (500 <= j % 1024)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if (500 <= (j % 1024) * -1)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test values from integer column to be lower or equal with the values from another integer column
 TEST(DispatcherTests, IntEqLtColumnColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName1 = "colInteger1";
+    std::string columnName2 = "colInteger2";
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 <= colInteger2;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName1 + " FROM " + tableName + " WHERE " +
+                                  columnName1 + " <= " + columnName2 + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName1);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data[i] <= data2[i])
             {
-                if ((j % 1024) <= (j % 2048))
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if ((j % 1024) * -1 <= (j % 2048) * -1)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName1);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a smaller constant value to be lower or equal with a bigger constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntEqLtConstConstTrue)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 5;
+    int32_t filterValue2 = 10;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 <= 10;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " <= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            (j % 2) ? expectedResult.push_back(j % 1024) : expectedResult.push_back((j % 1024) * ((-1)));
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a constant value to be lower or equal with a the same constant value which will result in TRUE statement in WHERE clause
+TEST(DispatcherTests, IntEqLtConstConstTrue2)
+{
+    Context::getInstance();
+
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 10;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " <= " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
+
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
+    {
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
+        {
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
+        }
+    }
+
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
+
+    // Check, if the query result have the expected number of returned values (results)
+    ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
+
+    // Check the correctness of the returned values element by element
+    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
+    }
+}
+
+// Test the bigger constant value to be greater or equal with a smaller constant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntEqLtConstConstFalse)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 10;
+    int32_t filterValue2 = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 10 <= 5;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " <= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
+    // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
@@ -2830,141 +3058,225 @@ TEST(DispatcherTests, DoubleEqLtConstConstFalse)
 /////////////////////
 
 // INT "="
+
+// Test values from integer column to be equal with the constant value
 TEST(DispatcherTests, IntEqColumnConst)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 = 5;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  columnName + " = " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
-            if ((j % 1024) == 5)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
+        {
+            if (data[i] == filterValue)
             {
-                (j % 2) ? expectedResult.push_back(j % 1024) :
-                          expectedResult.push_back((j % 1024) * ((-1)));
+                expectedResult.push_back(data[i]);
             }
+        }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test constant value to be equal with the values from integer column
 TEST(DispatcherTests, IntEqConstColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 = colInteger1;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " = " + columnName + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (5 == j % 1024)
+            if (filterValue == data[i])
             {
-                (j % 2) ? expectedResult.push_back(j % 1024) :
-                          expectedResult.push_back((j % 1024) * ((-1)));
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test values from integer column to be equal with the values from another integer column
 TEST(DispatcherTests, IntEqColumnColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName1 = "colInteger1";
+    std::string columnName2 = "colInteger2";
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger2 FROM TableA WHERE colInteger2 = colInteger1;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
+                                  columnName2 + " = " + columnName1 + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName1);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if ((j % 2048) == (j % 1024))
+            if (data2[i] == data[i])
             {
-                (j % 2) ? expectedResult.push_back(j % 2048) :
-                          expectedResult.push_back((j % 1024) * ((-1)));
+                expectedResult.push_back(data2[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger2");
+    auto& payloads = result->payloads().at(tableName + "." + columnName2);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a constant value to be equal with the same constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntEqConstConstTrue)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 10;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 = 5;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " = " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            (j % 2) ? expectedResult.push_back(j % 1024) : expectedResult.push_back((j % 1024) * ((-1)));
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test constant value to be equal with another constant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntEqConstConstFalse)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 5;
+    int32_t filterValue2 = 10;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 = 10;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " = " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
+    // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
@@ -3357,159 +3669,225 @@ TEST(DispatcherTests, DoubleEqConstConstFalse)
 /////////////////////
 
 // INT "!="
+
+// Test values from integer column not to be equal with the constant value
 TEST(DispatcherTests, IntNotEqColumnConst)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 != 5;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  columnName + " != " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
-            if ((j % 1024) != 5)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
+        {
+            if (data[i] != filterValue)
             {
-                (j % 2) ? expectedResult.push_back(j % 1024) :
-                          expectedResult.push_back((j % 1024) * ((-1)));
+                expectedResult.push_back(data[i]);
             }
+        }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test constant value not to be equal with the values from integer column
 TEST(DispatcherTests, IntNotEqConstColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 500 != colInteger1;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " != " + columnName + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (filterValue != data[i])
             {
-                if (500 != j % 1024)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if (500 != (j % 1024) * -1)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test values from integer column not to be equal with the values from another integer column
 TEST(DispatcherTests, IntNotEqColumnColumn)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName1 = "colInteger1";
+    std::string columnName2 = "colInteger2";
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger2 FROM TableA WHERE colInteger2 != colInteger1;");
-    auto resultPtr = parser.Parse();
+                              "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
+                                  columnName2 + " != " + columnName1 + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName1);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data2[i] != data[i])
             {
-                if ((j % 2048) != (j % 1024))
-                {
-                    expectedResult.push_back(j % 2048);
-                }
-            }
-            else
-            {
-                if ((j % 2048) * -1 != (j % 1024) * -1)
-                {
-                    expectedResult.push_back((j % 2048) * -1);
-                }
+                expectedResult.push_back(data2[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger2");
+    auto& payloads = result->payloads().at(tableName + "." + columnName2);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    // Check the correctness of the returned values element by element
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test a bigger constant value not to be equal with a smaller constant value which will result in TRUE statement in WHERE clause
 TEST(DispatcherTests, IntNotEqConstConstTrue)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue1 = 10;
+    int32_t filterValue2 = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 10 != 5;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue1) + " != " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            (j % 2) ? expectedResult.push_back(j % 1024) : expectedResult.push_back((j % 1024) * ((-1)));
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
 }
 
+// Test constant value not to be equal with the same constant value which will result in FALSE statement in WHERE clause
 TEST(DispatcherTests, IntNotEqConstConstFalse)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = 5;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE 5 != 5;");
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  std::to_string(filterValue) + " != " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
+    // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
