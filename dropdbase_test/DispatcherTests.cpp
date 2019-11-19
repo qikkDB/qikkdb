@@ -23,43 +23,52 @@
 /////////////////////
 
 // INT ">"
+
+//Test values from integer column to be greater than constant value.
 TEST(DispatcherTests, IntGtColumnConst)
 {
     Context::getInstance();
 
+    std::string tableName = "TableA";
+    std::string columnName = "colInteger1";
+    int32_t filterValue = -1000;
+
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SELECT colInteger1 FROM TableA WHERE colInteger1 > 5;");
-    auto resultPtr = parser.Parse();
+                              "SELECT colInteger1 FROM " + tableName + " WHERE " + columnName +
+                                  " > " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<int32_t> expectedResult;
+	//Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto &colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum =
+        dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<int32_t> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
+        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
         {
-            if (j % 2)
+            if (data[i] > filterValue)
             {
-                if ((j % 1024) > 5)
-                {
-                    expectedResult.push_back(j % 1024);
-                }
-            }
-            else
-            {
-                if ((j % 1024) * -1 > 5)
-                {
-                    expectedResult.push_back((j % 1024) * -1);
-                }
+                expectedResult.push_back(data[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at("TableA.colInteger1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
+	// Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-    for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
+    for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
     }
