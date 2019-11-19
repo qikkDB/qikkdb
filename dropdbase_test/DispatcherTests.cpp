@@ -8872,7 +8872,7 @@ TEST(DispatcherTests, QueryTypes)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SHOW QUERY COLUMN TYPES SELECT (t.colInteger1 - 10) AS col1, "
-                              "t.colFloat1 AS col2, "
+                              "t.colFloat1, "
                               "colInteger1*2 AS colInteger1 FROM "
                               "TableA as t WHERE t.colInteger1 > 20;");
     auto resultPtr = parser.Parse();
@@ -8890,11 +8890,11 @@ TEST(DispatcherTests, QueryTypes)
                                                             .GetColumns()
                                                             .at("colFloat1")
                                                             .get());
-    std::vector<std::string> expectedResultsName = {"col1", "colInteger1", "col2"};
+    std::vector<std::string> expectedResultsName = {"col1", "TableA.colFloat1", "colInteger1"};
     std::vector<std::string> expectedResultsType;
     expectedResultsType.push_back(::GetStringFromColumnDataType(columnInt->GetColumnType()));
-    expectedResultsType.push_back(::GetStringFromColumnDataType(columnInt->GetColumnType()));
     expectedResultsType.push_back(::GetStringFromColumnDataType(columnFloat->GetColumnType()));
+    expectedResultsType.push_back(::GetStringFromColumnDataType(columnInt->GetColumnType()));
 
     auto& payloadsName = result->payloads().at("ColumnName");
     auto& payloadsType = result->payloads().at("TypeName");
