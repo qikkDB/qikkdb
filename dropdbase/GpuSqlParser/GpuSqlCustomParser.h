@@ -17,6 +17,10 @@ class Database;
 
 class GpuSqlJoinDispatcher;
 
+class GpuSqlListener;
+
+class CpuWhereListener;
+
 namespace ColmnarDB
 {
 namespace NetworkClient
@@ -61,6 +65,17 @@ private:
 
     std::vector<std::unique_ptr<GpuSqlDispatcher>> dispatchers_;
     std::unique_ptr<GpuSqlJoinDispatcher> joinDispatcher_;
+    void WalkSqlSelect(antlr4::tree::ParseTreeWalker& walker,
+                       GpuSqlListener& gpuSqlListener,
+                       CpuWhereListener& cpuWhereListener,
+                       GpuSqlParser::SqlSelectContext* sqlSelectContext,
+                       bool& usingWhere,
+                       bool& usingGroupBy,
+                       bool& usingOrderBy,
+                       bool& usingAggregation,
+                       bool& usingJoin,
+                       bool& usingLoad,
+                       bool& nonSelect);
 
 public:
     GpuSqlCustomParser(const std::shared_ptr<Database>& database, const std::string& query);

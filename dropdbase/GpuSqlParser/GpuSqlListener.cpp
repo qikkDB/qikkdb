@@ -1333,7 +1333,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         }
     }
 
-	dispatcher_.AddArgument<int32_t>(newNotNulls.size());
+    dispatcher_.AddArgument<int32_t>(newNotNulls.size());
     for (auto& newNotNull : newNotNulls)
     {
         dispatcher_.AddArgument<const std::string&>(newNotNull.first);
@@ -2293,4 +2293,9 @@ void GpuSqlListener::TrimReg(std::string& reg)
     {
         reg = shortColumnNames_.at(reg);
     }
+}
+
+const std::unordered_map<std::string, std::pair<DataType, std::string>>& GpuSqlListener::GetResultColumnInfo()
+{
+    return returnColumns_;
 }

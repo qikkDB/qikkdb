@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
 
 #pragma once
 
@@ -27,47 +27,47 @@ public:
     GROUPBY = 63, AS = 64, IN = 65, TO = 66, ISNULL = 67, ISNOTNULL = 68, 
     NOTNULL = 69, BETWEEN = 70, ON = 71, ORDERBY = 72, DIR = 73, LIMIT = 74, 
     OFFSET = 75, INNER = 76, FULLOUTER = 77, SHOWDB = 78, SHOWTB = 79, SHOWCL = 80, 
-    AVG_AGG = 81, SUM_AGG = 82, MIN_AGG = 83, MAX_AGG = 84, COUNT_AGG = 85, 
-    YEAR = 86, MONTH = 87, DAY = 88, HOUR = 89, MINUTE = 90, SECOND = 91, 
-    NOW = 92, PI = 93, ABS = 94, SIN = 95, COS = 96, TAN = 97, COT = 98, 
-    ASIN = 99, ACOS = 100, ATAN = 101, ATAN2 = 102, LOG10 = 103, LOG = 104, 
-    EXP = 105, POW = 106, SQRT = 107, SQUARE = 108, SIGN = 109, ROOT = 110, 
-    ROUND = 111, CEIL = 112, FLOOR = 113, LTRIM = 114, RTRIM = 115, LOWER = 116, 
-    UPPER = 117, REVERSE = 118, LEN = 119, LEFT = 120, RIGHT = 121, CONCAT = 122, 
-    CAST = 123, GEO_CONTAINS = 124, GEO_INTERSECT = 125, GEO_UNION = 126, 
-    PLUS = 127, MINUS = 128, ASTERISK = 129, DIVISION = 130, MODULO = 131, 
-    XOR = 132, EQUALS = 133, NOTEQUALS = 134, NOTEQUALS_GT_LT = 135, LPAREN = 136, 
-    RPAREN = 137, GREATER = 138, LESS = 139, GREATEREQ = 140, LESSEQ = 141, 
-    LOGICAL_NOT = 142, OR = 143, AND = 144, BIT_OR = 145, BIT_AND = 146, 
-    L_SHIFT = 147, R_SHIFT = 148, BOOLEANLIT = 149, TRUE = 150, FALSE = 151, 
-    FLOATLIT = 152, INTLIT = 153, NULLLIT = 154, ID = 155
+    SHOWQTYPES = 81, AVG_AGG = 82, SUM_AGG = 83, MIN_AGG = 84, MAX_AGG = 85, 
+    COUNT_AGG = 86, YEAR = 87, MONTH = 88, DAY = 89, HOUR = 90, MINUTE = 91, 
+    SECOND = 92, NOW = 93, PI = 94, ABS = 95, SIN = 96, COS = 97, TAN = 98, 
+    COT = 99, ASIN = 100, ACOS = 101, ATAN = 102, ATAN2 = 103, LOG10 = 104, 
+    LOG = 105, EXP = 106, POW = 107, SQRT = 108, SQUARE = 109, SIGN = 110, 
+    ROOT = 111, ROUND = 112, CEIL = 113, FLOOR = 114, LTRIM = 115, RTRIM = 116, 
+    LOWER = 117, UPPER = 118, REVERSE = 119, LEN = 120, LEFT = 121, RIGHT = 122, 
+    CONCAT = 123, CAST = 124, GEO_CONTAINS = 125, GEO_INTERSECT = 126, GEO_UNION = 127, 
+    PLUS = 128, MINUS = 129, ASTERISK = 130, DIVISION = 131, MODULO = 132, 
+    XOR = 133, EQUALS = 134, NOTEQUALS = 135, NOTEQUALS_GT_LT = 136, LPAREN = 137, 
+    RPAREN = 138, GREATER = 139, LESS = 140, GREATEREQ = 141, LESSEQ = 142, 
+    LOGICAL_NOT = 143, OR = 144, AND = 145, BIT_OR = 146, BIT_AND = 147, 
+    L_SHIFT = 148, R_SHIFT = 149, BOOLEANLIT = 150, TRUE = 151, FALSE = 152, 
+    FLOATLIT = 153, INTLIT = 154, NULLLIT = 155, ID = 156
   };
 
   enum {
     RuleSqlFile = 0, RuleStatement = 1, RuleShowStatement = 2, RuleShowDatabases = 3, 
-    RuleShowTables = 4, RuleShowColumns = 5, RuleSqlSelect = 6, RuleSqlCreateDb = 7, 
-    RuleSqlDropDb = 8, RuleSqlCreateTable = 9, RuleSqlDropTable = 10, RuleSqlAlterTable = 11, 
-    RuleSqlAlterDatabase = 12, RuleSqlCreateIndex = 13, RuleSqlInsertInto = 14, 
-    RuleNewTableEntries = 15, RuleNewTableEntry = 16, RuleAlterDatabaseEntries = 17, 
-    RuleAlterDatabaseEntry = 18, RuleRenameDatabase = 19, RuleAlterTableEntries = 20, 
-    RuleAlterTableEntry = 21, RuleAddColumn = 22, RuleDropColumn = 23, RuleAlterColumn = 24, 
-    RuleRenameColumn = 25, RuleRenameTable = 26, RuleAddConstraint = 27, 
-    RuleDropConstraint = 28, RuleRenameColumnFrom = 29, RuleRenameColumnTo = 30, 
-    RuleNewTableColumn = 31, RuleNewTableConstraint = 32, RuleSelectColumns = 33, 
-    RuleSelectColumn = 34, RuleSelectAllColumns = 35, RuleWhereClause = 36, 
-    RuleOrderByColumns = 37, RuleOrderByColumn = 38, RuleInsertIntoValues = 39, 
-    RuleInsertIntoColumns = 40, RuleIndexColumns = 41, RuleConstraintColumns = 42, 
-    RuleGroupByColumns = 43, RuleGroupByColumn = 44, RuleFromTables = 45, 
-    RuleJoinClauses = 46, RuleJoinClause = 47, RuleJoinTable = 48, RuleJoinColumnLeft = 49, 
-    RuleJoinColumnRight = 50, RuleJoinOperator = 51, RuleJoinType = 52, 
-    RuleFromTable = 53, RuleColumnId = 54, RuleTable = 55, RuleColumn = 56, 
-    RuleDatabase = 57, RuleAlias = 58, RuleIndexName = 59, RuleConstraintName = 60, 
-    RuleLimit = 61, RuleOffset = 62, RuleBlockSize = 63, RuleColumnValue = 64, 
-    RuleConstraint = 65, RuleExpression = 66, RuleDatatype = 67, RuleGeometry = 68, 
-    RulePointGeometry = 69, RuleLineStringGeometry = 70, RulePolygonGeometry = 71, 
-    RuleMultiPointGeometry = 72, RuleMultiLineStringGeometry = 73, RuleMultiPolygonGeometry = 74, 
-    RulePointOrClosedPoint = 75, RulePolygon = 76, RuleLineString = 77, 
-    RulePoint = 78
+    RuleShowTables = 4, RuleShowColumns = 5, RuleShowQueryTypes = 6, RuleSqlSelect = 7, 
+    RuleSqlCreateDb = 8, RuleSqlDropDb = 9, RuleSqlCreateTable = 10, RuleSqlDropTable = 11, 
+    RuleSqlAlterTable = 12, RuleSqlAlterDatabase = 13, RuleSqlCreateIndex = 14, 
+    RuleSqlInsertInto = 15, RuleNewTableEntries = 16, RuleNewTableEntry = 17, 
+    RuleAlterDatabaseEntries = 18, RuleAlterDatabaseEntry = 19, RuleRenameDatabase = 20, 
+    RuleAlterTableEntries = 21, RuleAlterTableEntry = 22, RuleAddColumn = 23, 
+    RuleDropColumn = 24, RuleAlterColumn = 25, RuleRenameColumn = 26, RuleRenameTable = 27, 
+    RuleAddConstraint = 28, RuleDropConstraint = 29, RuleRenameColumnFrom = 30, 
+    RuleRenameColumnTo = 31, RuleNewTableColumn = 32, RuleNewTableConstraint = 33, 
+    RuleSelectColumns = 34, RuleSelectColumn = 35, RuleSelectAllColumns = 36, 
+    RuleWhereClause = 37, RuleOrderByColumns = 38, RuleOrderByColumn = 39, 
+    RuleInsertIntoValues = 40, RuleInsertIntoColumns = 41, RuleIndexColumns = 42, 
+    RuleConstraintColumns = 43, RuleGroupByColumns = 44, RuleGroupByColumn = 45, 
+    RuleFromTables = 46, RuleJoinClauses = 47, RuleJoinClause = 48, RuleJoinTable = 49, 
+    RuleJoinColumnLeft = 50, RuleJoinColumnRight = 51, RuleJoinOperator = 52, 
+    RuleJoinType = 53, RuleFromTable = 54, RuleColumnId = 55, RuleTable = 56, 
+    RuleColumn = 57, RuleDatabase = 58, RuleAlias = 59, RuleIndexName = 60, 
+    RuleConstraintName = 61, RuleLimit = 62, RuleOffset = 63, RuleBlockSize = 64, 
+    RuleColumnValue = 65, RuleConstraint = 66, RuleExpression = 67, RuleDatatype = 68, 
+    RuleGeometry = 69, RulePointGeometry = 70, RuleLineStringGeometry = 71, 
+    RulePolygonGeometry = 72, RuleMultiPointGeometry = 73, RuleMultiLineStringGeometry = 74, 
+    RuleMultiPolygonGeometry = 75, RulePointOrClosedPoint = 76, RulePolygon = 77, 
+    RuleLineString = 78, RulePoint = 79
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -86,6 +86,7 @@ public:
   class ShowDatabasesContext;
   class ShowTablesContext;
   class ShowColumnsContext;
+  class ShowQueryTypesContext;
   class SqlSelectContext;
   class SqlCreateDbContext;
   class SqlDropDbContext;
@@ -189,6 +190,7 @@ public:
     SqlCreateIndexContext *sqlCreateIndex();
     SqlInsertIntoContext *sqlInsertInto();
     ShowStatementContext *showStatement();
+    ShowQueryTypesContext *showQueryTypes();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -262,6 +264,20 @@ public:
   };
 
   ShowColumnsContext* showColumns();
+
+  class  ShowQueryTypesContext : public antlr4::ParserRuleContext {
+  public:
+    ShowQueryTypesContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    antlr4::tree::TerminalNode *SHOWQTYPES();
+    SqlSelectContext *sqlSelect();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  ShowQueryTypesContext* showQueryTypes();
 
   class  SqlSelectContext : public antlr4::ParserRuleContext {
   public:
@@ -1202,7 +1218,7 @@ public:
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
    
-    ExpressionContext() = default;
+    ExpressionContext() : antlr4::ParserRuleContext() { }
     void copyFrom(ExpressionContext *context);
     using antlr4::ParserRuleContext::copyFrom;
 

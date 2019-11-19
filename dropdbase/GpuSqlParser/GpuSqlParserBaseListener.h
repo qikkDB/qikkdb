@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from /home/jvesely/dropdbase_instarea/dropdbase/GpuSqlParser/GpuSqlParser.g4 by ANTLR 4.7.1
 
 #pragma once
 
@@ -33,6 +33,9 @@ public:
 
   virtual void enterShowColumns(GpuSqlParser::ShowColumnsContext * /*ctx*/) override { }
   virtual void exitShowColumns(GpuSqlParser::ShowColumnsContext * /*ctx*/) override { }
+
+  virtual void enterShowQueryTypes(GpuSqlParser::ShowQueryTypesContext * /*ctx*/) override { }
+  virtual void exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext * /*ctx*/) override { }
 
   virtual void enterSqlSelect(GpuSqlParser::SqlSelectContext * /*ctx*/) override { }
   virtual void exitSqlSelect(GpuSqlParser::SqlSelectContext * /*ctx*/) override { }

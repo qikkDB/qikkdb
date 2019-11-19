@@ -85,126 +85,35 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     bool usingJoin = false;
     bool usingLoad = false;
     bool nonSelect = true;
-
     if (statement->sqlSelect())
     {
-        if (database_ == nullptr)
-        {
-            throw DatabaseNotUsedException();
-        }
-
-        int32_t columnOrder = 0;
-        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
-        std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
-
-        for (auto column : statement->sqlSelect()->selectColumns()->selectColumn())
-        {
-            if (ContainsAggregation(column))
-            {
-                aggColumns.push_back({columnOrder++, column});
-            }
-            else
-            {
-                nonAggColumns.push_back({columnOrder++, column});
-            }
-
-            if (ContainsColumnId(column))
-            {
-                usingLoad = true;
-            }
-        }
-
-        if (statement->sqlSelect()->offset())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->offset());
-        }
-
-        if (statement->sqlSelect()->limit())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->limit());
-        }
-
-        usingWhere = statement->sqlSelect()->whereClause() != nullptr;
-        usingGroupBy = statement->sqlSelect()->groupByColumns() != nullptr;
-        usingOrderBy = statement->sqlSelect()->orderByColumns() != nullptr;
-        usingAggregation = !aggColumns.empty();
-        usingJoin = statement->sqlSelect()->joinClauses() != nullptr;
-        usingLoad = usingLoad || (statement->sqlSelect()->selectColumns()->selectAllColumns().size() > 0);
-        nonSelect = false;
-
-        gpuSqlListener.SetContainsAggFunction(usingAggregation);
-
-        gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingJoin, usingLoad);
-
-        walker.walk(&gpuSqlListener, statement->sqlSelect()->fromTables());
-        walker.walk(&cpuWhereListener, statement->sqlSelect()->fromTables());
-
-        gpuSqlListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
-        gpuSqlListener.LockAliasRegisters();
-        cpuWhereListener.ExtractColumnAliasContexts(statement->sqlSelect()->selectColumns());
-
-        if (statement->sqlSelect()->joinClauses())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->joinClauses());
-            walker.walk(&cpuWhereListener, statement->sqlSelect()->joinClauses());
-            joinDispatcher_->Execute();
-        }
-
-        if (statement->sqlSelect()->whereClause())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->whereClause());
-            walker.walk(&cpuWhereListener, statement->sqlSelect()->whereClause());
-        }
-
-        if (statement->sqlSelect()->groupByColumns())
-        {
-            walker.walk(&gpuSqlListener, statement->sqlSelect()->groupByColumns());
-        }
-
-        for (auto column : statement->sqlSelect()->selectColumns()->selectAllColumns())
-        {
-            gpuSqlListener.exitSelectAllColumns(column);
-            break;
-        }
-
-        for (auto column : aggColumns)
-        {
-            gpuSqlListener.CurrentSelectColumnIndex = column.first;
-            walker.walk(&gpuSqlListener, column.second);
-        }
-
-        for (auto column : nonAggColumns)
-        {
-            gpuSqlListener.CurrentSelectColumnIndex = column.first;
-            walker.walk(&gpuSqlListener, column.second);
-        }
-
-        if (statement->sqlSelect()->orderByColumns())
-        {
-            gpuSqlListener.enterOrderByColumns(statement->sqlSelect()->orderByColumns());
-
-            // flip the order of ORDER BY columns
-            std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
-
-            for (auto orderByCol : statement->sqlSelect()->orderByColumns()->orderByColumn())
-            {
-                orderByColumns.insert(orderByColumns.begin(), orderByCol);
-            }
-
-            for (auto orderByCol : orderByColumns)
-            {
-                walker.walk(&gpuSqlListener, orderByCol);
-            }
-
-            gpuSqlListener.exitOrderByColumns(statement->sqlSelect()->orderByColumns());
-        }
-
-        gpuSqlListener.exitSelectColumns(statement->sqlSelect()->selectColumns());
+        WalkSqlSelect(walker, gpuSqlListener, cpuWhereListener, statement->sqlSelect(), usingWhere,
+                      usingGroupBy, usingOrderBy, usingAggregation, usingJoin, usingLoad, nonSelect);
     }
     else if (statement->showStatement())
     {
         isSingleGpuStatement_ = true;
         walker.walk(&gpuSqlListener, statement->showStatement());
+    }
+    else if (statement->showQueryTypes())
+    {
+        WalkSqlSelect(walker, gpuSqlListener, cpuWhereListener,
+                      statement->showQueryTypes()->sqlSelect(), usingWhere, usingGroupBy,
+                      usingOrderBy, usingAggregation, usingJoin, usingLoad, nonSelect);
+        auto& resultColInfo = gpuSqlListener.GetResultColumnInfo();
+        std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> ret =
+            std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+        ColmnarDB::NetworkClient::Message::QueryResponsePayload namePayload;
+        ColmnarDB::NetworkClient::Message::QueryResponsePayload typePayload;
+        for (auto& column : resultColInfo)
+        {
+            namePayload.mutable_stringpayload()->add_stringdata(column.second.second);
+            typePayload.mutable_stringpayload()->add_stringdata(
+                GetStringFromColumnDataType(column.second.first));
+        }
+        ret->mutable_payloads()->insert({"ColumnName", namePayload});
+        ret->mutable_payloads()->insert({"TypeName", typePayload});
+        return ret;
     }
     else if (statement->sqlInsertInto())
     {
@@ -346,6 +255,132 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     }
 
     return ret;
+}
+
+void GpuSqlCustomParser::WalkSqlSelect(antlr4::tree::ParseTreeWalker& walker,
+                                       GpuSqlListener& gpuSqlListener,
+                                       CpuWhereListener& cpuWhereListener,
+                                       GpuSqlParser::SqlSelectContext* sqlSelectContext,
+                                       bool& usingWhere,
+                                       bool& usingGroupBy,
+                                       bool& usingOrderBy,
+                                       bool& usingAggregation,
+                                       bool& usingJoin,
+                                       bool& usingLoad,
+                                       bool& nonSelect)
+{
+    if (database_ == nullptr)
+    {
+        throw DatabaseNotUsedException();
+    }
+
+    int32_t columnOrder = 0;
+    std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> aggColumns;
+    std::vector<std::pair<int32_t, GpuSqlParser::SelectColumnContext*>> nonAggColumns;
+
+    for (auto column : sqlSelectContext->selectColumns()->selectColumn())
+    {
+        if (ContainsAggregation(column))
+        {
+            aggColumns.push_back({columnOrder++, column});
+        }
+        else
+        {
+            nonAggColumns.push_back({columnOrder++, column});
+        }
+
+        if (ContainsColumnId(column))
+        {
+            usingLoad = true;
+        }
+    }
+
+    if (sqlSelectContext->offset())
+    {
+        walker.walk(&gpuSqlListener, sqlSelectContext->offset());
+    }
+
+    if (sqlSelectContext->limit())
+    {
+        walker.walk(&gpuSqlListener, sqlSelectContext->limit());
+    }
+
+    usingWhere = sqlSelectContext->whereClause() != nullptr;
+    usingGroupBy = sqlSelectContext->groupByColumns() != nullptr;
+    usingOrderBy = sqlSelectContext->orderByColumns() != nullptr;
+    usingAggregation = !aggColumns.empty();
+    usingJoin = sqlSelectContext->joinClauses() != nullptr;
+    usingLoad = usingLoad || (sqlSelectContext->selectColumns()->selectAllColumns().size() > 0);
+    nonSelect = false;
+
+    gpuSqlListener.SetContainsAggFunction(usingAggregation);
+
+    gpuSqlListener.LimitOffset(usingWhere, usingGroupBy, usingOrderBy, usingAggregation, usingJoin, usingLoad);
+
+    walker.walk(&gpuSqlListener, sqlSelectContext->fromTables());
+    walker.walk(&cpuWhereListener, sqlSelectContext->fromTables());
+
+    gpuSqlListener.ExtractColumnAliasContexts(sqlSelectContext->selectColumns());
+    gpuSqlListener.LockAliasRegisters();
+    cpuWhereListener.ExtractColumnAliasContexts(sqlSelectContext->selectColumns());
+
+    if (sqlSelectContext->joinClauses())
+    {
+        walker.walk(&gpuSqlListener, sqlSelectContext->joinClauses());
+        walker.walk(&cpuWhereListener, sqlSelectContext->joinClauses());
+        joinDispatcher_->Execute();
+    }
+
+    if (sqlSelectContext->whereClause())
+    {
+        walker.walk(&gpuSqlListener, sqlSelectContext->whereClause());
+        walker.walk(&cpuWhereListener, sqlSelectContext->whereClause());
+    }
+
+    if (sqlSelectContext->groupByColumns())
+    {
+        walker.walk(&gpuSqlListener, sqlSelectContext->groupByColumns());
+    }
+
+    for (auto column : sqlSelectContext->selectColumns()->selectAllColumns())
+    {
+        gpuSqlListener.exitSelectAllColumns(column);
+        break;
+    }
+
+    for (auto column : aggColumns)
+    {
+        gpuSqlListener.CurrentSelectColumnIndex = column.first;
+        walker.walk(&gpuSqlListener, column.second);
+    }
+
+    for (auto column : nonAggColumns)
+    {
+        gpuSqlListener.CurrentSelectColumnIndex = column.first;
+        walker.walk(&gpuSqlListener, column.second);
+    }
+
+    if (sqlSelectContext->orderByColumns())
+    {
+        gpuSqlListener.enterOrderByColumns(sqlSelectContext->orderByColumns());
+
+        // flip the order of ORDER BY columns
+        std::vector<GpuSqlParser::OrderByColumnContext*> orderByColumns;
+
+        for (auto orderByCol : sqlSelectContext->orderByColumns()->orderByColumn())
+        {
+            orderByColumns.insert(orderByColumns.begin(), orderByCol);
+        }
+
+        for (auto orderByCol : orderByColumns)
+        {
+            walker.walk(&gpuSqlListener, orderByCol);
+        }
+
+        gpuSqlListener.exitOrderByColumns(sqlSelectContext->orderByColumns());
+    }
+
+    gpuSqlListener.exitSelectColumns(sqlSelectContext->selectColumns());
 }
 
 void GpuSqlCustomParser::InterruptQueryExecution()

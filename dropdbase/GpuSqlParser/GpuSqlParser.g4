@@ -16,14 +16,17 @@ statement:
 	| sqlAlterDatabase
 	| sqlCreateIndex
 	| sqlInsertInto
-	| showStatement;
+	| showStatement
+	| showQueryTypes;
 
-showStatement: (showDatabases | showTables | showColumns);
+showStatement: ( showDatabases | showTables | showColumns);
 
 showDatabases: SHOWDB SEMICOL;
 showTables: SHOWTB ((FROM | IN) database)? SEMICOL;
 showColumns:
 	SHOWCL (FROM | IN) table ((FROM | IN) database)? SEMICOL;
+
+showQueryTypes: SHOWQTYPES sqlSelect;
 
 sqlSelect:
 	SELECT selectColumns FROM fromTables (joinClauses)? (
@@ -37,29 +40,44 @@ sqlCreateTable:
 	CREATETABLE table (blockSize)? LPAREN newTableEntries RPAREN SEMICOL;
 sqlDropTable: DROPTABLE table SEMICOL;
 sqlAlterTable: ALTERTABLE table alterTableEntries SEMICOL;
-sqlAlterDatabase: ALTERDATABASE database alterDatabaseEntries SEMICOL;
+sqlAlterDatabase:
+	ALTERDATABASE database alterDatabaseEntries SEMICOL;
 sqlCreateIndex:
 	CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto:
 	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry: (newTableColumn | newTableConstraint);
-alterDatabaseEntries: ((alterDatabaseEntry (COMMA alterDatabaseEntry)*));
+alterDatabaseEntries: (
+		(alterDatabaseEntry (COMMA alterDatabaseEntry)*)
+	);
 alterDatabaseEntry: (renameDatabase);
 renameDatabase: (RENAMETO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
-alterTableEntry: (addColumn | dropColumn | alterColumn | renameColumn | renameTable | addConstraint | dropConstraint);
+alterTableEntry: (
+		addColumn
+		| dropColumn
+		| alterColumn
+		| renameColumn
+		| renameTable
+		| addConstraint
+		| dropConstraint
+	);
 addColumn: (ADD column datatype);
 dropColumn: (DROPCOLUMN column);
 alterColumn: (ALTERCOLUMN column datatype);
 renameColumn: (RENAMECOLUMN renameColumnFrom TO renameColumnTo);
 renameTable: (RENAMETO table);
-addConstraint: (ADD constraint constraintName LPAREN constraintColumns RPAREN);
+addConstraint: (
+		ADD constraint constraintName LPAREN constraintColumns RPAREN
+	);
 dropConstraint: (DROP constraint constraintName);
 renameColumnFrom: column;
 renameColumnTo: column;
 newTableColumn: (column datatype (constraint)?);
-newTableConstraint: (constraint constraintName LPAREN constraintColumns RPAREN);
+newTableConstraint: (
+		constraint constraintName LPAREN constraintColumns RPAREN
+	);
 selectColumns: (
 		(
 			(selectColumn | selectAllColumns) (
@@ -116,11 +134,7 @@ columnValue: (
 		| DATETIMELIT
 		| BOOLEANLIT
 	);
-constraint: (
-        UNIQUE
-        | INDEX
-        | NOTNULL
-);
+constraint: ( UNIQUE | INDEX | NOTNULL);
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation
@@ -144,7 +158,7 @@ expression:
 	| op = ROUND LPAREN expression RPAREN											# unaryOperation
 	| op = FLOOR LPAREN expression RPAREN											# unaryOperation
 	| op = CEIL LPAREN expression RPAREN											# unaryOperation
-	| op = DATETYPE LPAREN expression RPAREN									    # unaryOperation
+	| op = DATETYPE LPAREN expression RPAREN										# unaryOperation
 	| op = YEAR LPAREN expression RPAREN											# unaryOperation
 	| op = MONTH LPAREN expression RPAREN											# unaryOperation
 	| op = DAY LPAREN expression RPAREN												# unaryOperation
@@ -201,7 +215,7 @@ expression:
 	| op = AVG_AGG LPAREN (expression) RPAREN										# aggregation;
 
 datatype: (
-        INTTYPE
+		INTTYPE
 		| LONGTYPE
 		| DATETYPE
 		| DETETIMETYPE
@@ -211,7 +225,7 @@ datatype: (
 		| BOOLEANTYPE
 		| POINTTYPE
 		| POLYTYPE
-);
+	);
 
 geometry: (
 		pointGeometry
