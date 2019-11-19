@@ -348,8 +348,7 @@ public:
         cuda_ptr<int32_t> colBBlockJoinIndices(diagonalCountCapacityRounded);
 
         // Calculate the null block size and alloc the null mask buffers
-        size_t colABlockNullMaskCapacity =
-            (colABlockCapacity + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t colABlockNullMaskCapacity = (colABlockCapacity + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
         cuda_ptr<int8_t> colABlockNullMask(colABlockNullMaskCapacity);
 
