@@ -3531,11 +3531,12 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
 }
 
 // DOUBLE "="
-/*TEST(DispatcherTests, DoubleEqColumnConst)
+/*
+TEST(DispatcherTests, DoubleEqColumnConst) //FIXME test is good, but kernel uses '==' which is not good enough for doubles, but this is probably imposible to fix
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE colDouble1 = 5.1111111;");
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 = 5.1111111;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -3558,13 +3559,15 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
     {
         ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
     }
-}*/
+}
+*/
 
-/*TEST(DispatcherTests, DoubleEqConstColumn)
+/*
+TEST(DispatcherTests, DoubleEqConstColumn) //FIXME test is good, but kernel uses '==' which is not good enough for doubles, but this is probably imposible to fix
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE 5.1111111 = colDouble1;");
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 = colDouble1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -3587,7 +3590,8 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
     {
         ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
     }
-}*/
+}
+*/
 
 TEST(DispatcherTests, DoubleEqColumnColumn)
 {
@@ -4202,11 +4206,12 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
 }
 
 // DOUBLE "!="
-/*TEST(DispatcherTests, DoubleNotEqColumnConst) //FIXME test je dobry, chyba je v kerneli
+/*
+TEST(DispatcherTests, DoubleNotEqColumnConst) //FIXME test is good, but kernel uses '!=' which is not good enough for doubles, but this is probably imposible to fix
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE colDouble1 != 5.1111111;");
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 != 5.1111111;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -4241,13 +4246,15 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
     {
         ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
     }
-}*/
+}
+*/
 
-/*TEST(DispatcherTests, DoubleNotEqConstColumn) //FIXME test je dobry, chyba je v kerneli
+/*
+TEST(DispatcherTests, DoubleNotEqConstColumn) //FIXME test is good, but kernel uses '!=' which is not good enough for doubles, but this is probably imposible to fix
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colDouble1 FROM TableA WHERE 5.1111111 != colDouble1;");
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 != colDouble1;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -4282,7 +4289,8 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
     {
         ASSERT_DOUBLE_EQ(expectedResult[i], payloads.doublepayload().doubledata()[i]);
     }
-}*/
+}
+*/
 
 TEST(DispatcherTests, DoubleNotEqColumnColumn)
 {
@@ -12148,20 +12156,19 @@ TEST(DispatcherTests, StringNotEqConstConst)
 
 
 // Polygon clipping tests
-/*
-// TODO: fix zero allocation, finish polygon clippin and add asserts
 TEST(DispatcherTests, PolygonClippingAndContains)
 {
+    // TODO: fix zero allocation, finish polygon clippin and add asserts
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_,
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
         "SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 }
-*/
+
 
 TEST(DispatcherTests, CreateDropDatabase)
 {
