@@ -357,13 +357,13 @@ namespace ColmnarDB.BenchmarkUtility
                                                 }
                                                 break;
                                             case "FLOAT":
-                                                if ((float)exptectedColumns[expectedColumnNames[i]][j] != (float)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                if (Math.Abs((float)exptectedColumns[expectedColumnNames[i]][j] - (float)oldResult.GetColumnData()[expectedColumnNames[i]][j]) > 0.001)
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
                                                 break;
                                             case "DOUBLE":
-                                                if ((double)exptectedColumns[expectedColumnNames[i]][j] != (double)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                if (Math.Abs((double)exptectedColumns[expectedColumnNames[i]][j] - (double)oldResult.GetColumnData()[expectedColumnNames[i]][j]) > 0.001)
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }

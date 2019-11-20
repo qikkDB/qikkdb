@@ -3536,22 +3536,40 @@ TEST(DispatcherTests, DoubleEqColumnConst) //FIXME test is good, but kernel uses
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 = 5.1111111;");
-    auto resultPtr = parser.Parse();
+    std::string tableName = "TableA";
+    std::string columnName = "colDouble1";
+    int32_t filterValue = 5.11111110000;
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT " + columnName + " FROM " + tableName + " WHERE " +
+                                  columnName + " = " + std::to_string(filterValue) + ";");
+    auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-    std::vector<double> expectedResult;
+    // Table has columns, column have blocks of data
+    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    auto& colDouble = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<double>*>(colDouble.get())->GetBlocksList();
 
-    for (int i = 0; i < 2; i++)
+    // Filter data from database on CPU manually, so we have expected results
+    std::vector<double> expectedResult;
+    for (int32_t j = 0; j < blocksNum.size(); j++)
     {
-        for (int j = 0; j < (1 << 11); j++)
-            if (std::abs((j % 1024 + 0.1111111) - 5.1111111) < 0.00000005)
+        auto data = dynamic_cast<ColumnBase<double>*>(colDouble.get())->GetBlocksList().at(j)->GetData();
+
+        auto dataLength =
+            dynamic_cast<ColumnBase<double>*>(colDouble.get())->GetBlocksList().at(j)->BlockCapacity();
+
+        for (int32_t i = 0; i < dataLength; i++)
+        {
+            if (data[i] == filterValue)
             {
-                (j % 2) ? expectedResult.push_back(j % 1024 + 0.1111111) : expectedResult.push_back((j % 1024 + 0.1111111) * ((-1)));
+                expectedResult.push_back(data[i]);
             }
+        }
     }
 
-    auto &payloads = result->payloads().at("TableA.colDouble1");
+    auto& payloads = result->payloads().at(tableName + "." + columnName);
 
     ASSERT_EQ(payloads.doublepayload().doubledata_size(), expectedResult.size());
 
