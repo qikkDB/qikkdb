@@ -233,6 +233,7 @@ namespace ColmnarDB.BenchmarkUtility
                     Console.Out.WriteLine("Benchmark queries from file '" + taxiQueriesPath + "' were loaded.");
 
                     int queryIndex = 1; //indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
+                    Dictionary<string, IList> columnData = new Dictionary<string, IList>();
 
                     while ((queryString = queryFile.ReadLine()) != null)
                     {
@@ -253,12 +254,6 @@ namespace ColmnarDB.BenchmarkUtility
                         ColumnarDataTable result = null;
                         ColumnarDataTable oldResult = null;
 
-                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
-                        {
-                            oldResult = result;
-                            resultSum += executionTimes.Values.Sum();
-                        }
-
                         //read file where the results of a particular query are saved:
                         var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + taxiDbName + "_testQuery_" + queryIndex + ".txt");
                         queryIndex++;
@@ -267,9 +262,23 @@ namespace ColmnarDB.BenchmarkUtility
                         var expectedColumnNames = queryExpectedResultFile.ReadLine().Split('|');
 
                         //read expected column data types
-                        var expectedDataTypes= queryExpectedResultFile.ReadLine().Split('|');
+                        var expectedDataTypes = queryExpectedResultFile.ReadLine().Split('|');
 
                         Dictionary<string, IList> exptectedColumns = new Dictionary<string, IList>();
+
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            oldResult = result;
+
+                            for (int i = 0; i < expectedColumnNames.Length; i++)
+                            {
+                                for (int j = 0; j < oldResult.GetColumnData()[expectedColumnNames[i]].Count; j++)
+                                {
+                                    columnData[expectedColumnNames[i]].Add(oldResult.GetColumnData()[expectedColumnNames[i]][j]);
+                                }
+                            }
+                            resultSum += executionTimes.Values.Sum();
+                        }
 
                         for (int i = 0; i < expectedColumnNames.Length; i++)
                         {
@@ -329,7 +338,7 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             try
                             {
-                                if (exptectedColumns[expectedColumnNames[i]].Count != oldResult.GetColumnData()[expectedColumnNames[i]].Count)
+                                if (exptectedColumns[expectedColumnNames[i]].Count != columnData[expectedColumnNames[i]].Count)
                                 {
                                     resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count.ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count.ToString());
                                     Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count);
@@ -345,31 +354,31 @@ namespace ColmnarDB.BenchmarkUtility
                                         switch (expectedDataTypes[i])
                                         {
                                             case "INT":
-                                                if ((int)exptectedColumns[expectedColumnNames[i]][j] != (int)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                if ((int)exptectedColumns[expectedColumnNames[i]][j] != (int)columnData[expectedColumnNames[i]][j])
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
                                                 break;
                                             case "LONG":
-                                                if ((long)exptectedColumns[expectedColumnNames[i]][j] != (long)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                if ((long)exptectedColumns[expectedColumnNames[i]][j] != (long)columnData[expectedColumnNames[i]][j])
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
                                                 break;
                                             case "FLOAT":
-                                                if (Math.Abs((float)exptectedColumns[expectedColumnNames[i]][j] - (float)oldResult.GetColumnData()[expectedColumnNames[i]][j]) > 0.001)
+                                                if (Math.Abs((float)exptectedColumns[expectedColumnNames[i]][j] - (float)columnData[expectedColumnNames[i]][j]) > 0.001)
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
                                                 break;
                                             case "DOUBLE":
-                                                if (Math.Abs((double)exptectedColumns[expectedColumnNames[i]][j] - (double)oldResult.GetColumnData()[expectedColumnNames[i]][j]) > 0.001)
+                                                if (Math.Abs((double)exptectedColumns[expectedColumnNames[i]][j] - (double)columnData[expectedColumnNames[i]][j]) > 0.001)
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
                                                 break;
                                             case "STRING":
-                                                if ((string)exptectedColumns[expectedColumnNames[i]][j] != (string)oldResult.GetColumnData()[expectedColumnNames[i]][j])
+                                                if ((string)exptectedColumns[expectedColumnNames[i]][j] != (string)columnData[expectedColumnNames[i]][j])
                                                 {
                                                     tempCorrectResultsPassed = false;
                                                 }
