@@ -265,11 +265,12 @@ namespace ColmnarDB.BenchmarkUtility
 
                         Dictionary<string, IList> exptectedColumns = new Dictionary<string, IList>();
 
-                        bool firstPacket = true;
+                        bool firstPart = true;
 
                         while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                         {
-                            if (firstPacket)
+                            // long results are divided into multiple parts
+                            if (firstPart)
                             {
                                 columnData = result.GetColumnData();
                             }
@@ -285,7 +286,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }
 
                             resultSum += executionTimes.Values.Sum();
-                            firstPacket = false;
+                            firstPart = false;
                         }
 
                         for (int i = 0; i < expectedColumnNames.Length; i++)
