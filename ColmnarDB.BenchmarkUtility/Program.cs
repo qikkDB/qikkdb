@@ -385,10 +385,11 @@ namespace ColmnarDB.BenchmarkUtility
                                     }
                                 }
                             }
-                            catch (System.Collections.Generic.KeyNotFoundException)
+                            catch (System.Collections.Generic.KeyNotFoundException e)
                             {
-                                resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]].ToString() + " / System.Collections.Generic.KeyNotFoundException was thrown.");
-                                Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]] + " / System.Collections.Generic.KeyNotFoundException was thrown.");
+                                
+                                resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]].ToString() + " / System.Collections.Generic.KeyNotFoundException was thrown: " + e.Message);
+                                Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]] + " / System.Collections.Generic.KeyNotFoundException was thrown: " + e.Message);
                                 correctResultsPassed = false;
                             }
                         }

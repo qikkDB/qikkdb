@@ -1,4 +1,4 @@
-trips.passenger_count|trips.pickup_year|COUNT(*)
+trips.passenger_count|pickup_year|COUNT(*)
 INT|INT|LONG
 0|2010|35640
 1|2010|115776104
