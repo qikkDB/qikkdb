@@ -24,6 +24,7 @@ namespace ColmnarDB.BenchmarkUtility
         public static readonly string geoQueriesPath = "../../../ColmnarDB.BenchmarkUtility/geo_queries.sql";
 
         public static readonly string taxiDbName = "TaxiRides";
+        public static readonly string ciQueriesPath = "../../../ColmnarDB.BenchmarkUtility/ci_queries.sql";
         public static readonly string taxiQueriesPath = "../../../ColmnarDB.BenchmarkUtility/taxi_queries.sql";
 
         public static readonly string stcsDbName = "stcs";
@@ -226,11 +227,59 @@ namespace ColmnarDB.BenchmarkUtility
                 {
                     //test taxi queries:
                     use.Use(taxiDbName, client);
-            
+
                     client.UseDatabase(taxiDbName);
 
                     var queryFile = new System.IO.StreamReader(taxiQueriesPath);
                     Console.Out.WriteLine("Benchmark queries from file '" + taxiQueriesPath + "' were loaded.");
+
+                    while ((queryString = queryFile.ReadLine()) != null)
+                    {
+                        Console.Out.WriteLine("Executing benchmark query: " + queryString);
+                        resultFile.WriteLine(queryString);
+
+                        //execute query first time (no cache):
+                        float resultSum = 0;
+                        client.Query(queryString);
+                        Dictionary<string, float> executionTimes = null;
+                        ColumnarDataTable result = null;
+
+                        while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                        {
+                            resultSum += executionTimes.Values.Sum();
+                        }
+
+                        //save query result to a file:
+                        resultFile.WriteLine((resultSum).ToString() + " (first run)");
+                        Console.Out.WriteLine((resultSum).ToString() + " (first run)");
+
+                        //execute query N times (used cache):
+                        for (int i = 0; i < numberOfQueryExec; i++)
+                        {
+                            client.Query(queryString);
+
+                            while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
+                            {
+                                resultSum += executionTimes.Values.Sum();
+                            }
+                        }
+
+                        //save query result to a file:
+                        resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
+                        Console.Out.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
+                    }
+                    queryFile.Close();
+                }
+
+                if (String.Equals(arg, "-a") || String.Equals(arg, "--ci"))
+                {
+                    //test taxi queries:
+                    use.Use(taxiDbName, client);
+            
+                    client.UseDatabase(taxiDbName);
+
+                    var queryFile = new System.IO.StreamReader(ciQueriesPath);
+                    Console.Out.WriteLine("Benchmark queries from file '" + ciQueriesPath + "' were loaded.");
 
                     int queryIndex = 1; //indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
                     Dictionary<string, IList> columnData = null;
