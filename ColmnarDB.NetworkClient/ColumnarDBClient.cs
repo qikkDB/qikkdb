@@ -371,6 +371,54 @@ namespace ColmnarDB.NetworkClient
         }
 
         /// <summary>
+        /// Fetches data type corresponding to query result columns
+        /// </summary>
+        /// <param name="query">SQL query to describe</param>
+
+        public ColumnarDataTable DescribeQuery(string query)
+        {
+            Query(query);
+            var result = GetNextQueryResult();
+            var data = result.Item1;
+            ColumnarDataTable typeTable = new ColumnarDataTable();
+            var columnNames = data.GetColumnData()["ColumnName"] as List<string>;
+            var columnTypes = data.GetColumnData()["TypeName"] as List<string>;
+
+            for(int i = 0; i < data.GetSize(); i++)
+            {
+                switch(columnTypes[i])
+                {
+                       
+                case "INT":
+                    typeTable.AddColumn(columnNames[i],typeof(int));
+                    break;
+                case "LONG":
+                    typeTable.AddColumn(columnNames[i],typeof(long));
+                    break;
+                case "FLOAT":
+                    typeTable.AddColumn(columnNames[i],typeof(float));
+                    break;
+                case "DOUBLE":
+                    typeTable.AddColumn(columnNames[i],typeof(double));
+                    break;
+                case "POINT":
+                    typeTable.AddColumn(columnNames[i],typeof(Point));
+                    break;
+                case "POLYGON":
+                    typeTable.AddColumn(columnNames[i],typeof(ComplexPolygon));
+                    break;
+                case "STRING":
+                    typeTable.AddColumn(columnNames[i],typeof(string));
+                    break;
+                case "BOOL":
+                    typeTable.AddColumn(columnNames[i],typeof(bool));
+                    break;
+                }
+            }
+            return typeTable;
+        }
+
+        /// <summary>
         /// Executes given SQL query on the server
         /// </summary>
         /// <param name="query">SQL query to execute</param>
