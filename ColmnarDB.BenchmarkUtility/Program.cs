@@ -83,7 +83,7 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
-                        float resultSum = 0;
+                        double resultSum = 0;
                         try
                         {
                             client.Query(queryString);
@@ -99,6 +99,8 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultSum += executionTimes.Values.Sum();
                         }
+
+                        resultSum = Math.Round(resultSum);
 
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
@@ -122,7 +124,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
-                        double avgQueryExec = resultSum / numberOfQueryExec;
+                        double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
                         //save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
@@ -161,7 +163,7 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
-                        float resultSum = 0;
+                        double resultSum = 0;
                         try
                         {
                             client.Query(queryString);
@@ -177,7 +179,9 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultSum += executionTimes.Values.Sum();
                         }
-                
+
+                        resultSum = Math.Round(resultSum);
+
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
@@ -200,7 +204,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
-                        double avgQueryExec = resultSum / numberOfQueryExec;
+                        double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
                         //save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
@@ -239,7 +243,7 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
-                        float resultSum = 0;
+                        double resultSum = 0;
                         client.Query(queryString);
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
@@ -248,6 +252,8 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultSum += executionTimes.Values.Sum();
                         }
+
+                        resultSum = Math.Round(resultSum);
 
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
@@ -290,7 +296,7 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
-                        float resultSum = 0;
+                        double resultSum = 0;
                         try
                         {
                             client.Query(queryString);
@@ -460,7 +466,9 @@ namespace ColmnarDB.BenchmarkUtility
                                 correctResultsPassed = false;
                             }
                         }
-                
+
+                        resultSum = Math.Round(resultSum);
+
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
@@ -483,7 +491,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
-                        double avgQueryExec = resultSum / numberOfQueryExec;
+                        double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
                         //save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
@@ -491,6 +499,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                         //check if query execution time is acceptable and save the result:
                         int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
+
                         if (avgQueryExec < queryExpectedExecTime)
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
@@ -521,7 +530,7 @@ namespace ColmnarDB.BenchmarkUtility
                         resultFile.WriteLine(queryString);
 
                         //execute query first time (no cache):
-                        float resultSum = 0;
+                        double resultSum = 0;
                         try
                         {
                             client.Query(queryString);
@@ -537,7 +546,9 @@ namespace ColmnarDB.BenchmarkUtility
                         {
                             resultSum += executionTimes.Values.Sum();
                         }
-                
+
+                        resultSum = Math.Round(resultSum);
+
                         //save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.Out.WriteLine((resultSum).ToString() + " (first run)"); 
@@ -560,7 +571,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }                   
                         }
 
-                        double avgQueryExec = resultSum / numberOfQueryExec;
+                        double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
                         //save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
