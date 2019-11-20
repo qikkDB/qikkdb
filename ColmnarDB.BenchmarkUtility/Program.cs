@@ -233,7 +233,7 @@ namespace ColmnarDB.BenchmarkUtility
                     Console.Out.WriteLine("Benchmark queries from file '" + taxiQueriesPath + "' were loaded.");
 
                     int queryIndex = 1; //indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
-                    Dictionary<string, IList> columnData = new Dictionary<string, IList>();
+                    Dictionary<string, IList> columnData = null;
 
                     while ((queryString = queryFile.ReadLine()) != null)
                     {
@@ -252,7 +252,6 @@ namespace ColmnarDB.BenchmarkUtility
                         }
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
-                        ColumnarDataTable oldResult = null;
 
                         //read file where the results of a particular query are saved:
                         var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + taxiDbName + "_testQuery_" + queryIndex + ".txt");
@@ -266,18 +265,27 @@ namespace ColmnarDB.BenchmarkUtility
 
                         Dictionary<string, IList> exptectedColumns = new Dictionary<string, IList>();
 
+                        bool firstPacket = true;
+
                         while (((result, executionTimes) = client.GetNextQueryResult()).result != null)
                         {
-                            oldResult = result;
-
-                            for (int i = 0; i < expectedColumnNames.Length; i++)
+                            if (firstPacket)
                             {
-                                for (int j = 0; j < oldResult.GetColumnData()[expectedColumnNames[i]].Count; j++)
+                                columnData = result.GetColumnData();
+                            }
+                            else
+                            {
+                                for (int i = 0; i < expectedColumnNames.Length; i++)
                                 {
-                                    columnData[expectedColumnNames[i]].Add(oldResult.GetColumnData()[expectedColumnNames[i]][j]);
+                                    for (int j = 0; j < result.GetColumnData()[expectedColumnNames[i]].Count; j++)
+                                    {
+                                        columnData[expectedColumnNames[i]].Add(result.GetColumnData()[expectedColumnNames[i]][j]);
+                                    }
                                 }
                             }
+
                             resultSum += executionTimes.Values.Sum();
+                            firstPacket = false;
                         }
 
                         for (int i = 0; i < expectedColumnNames.Length; i++)
@@ -340,8 +348,8 @@ namespace ColmnarDB.BenchmarkUtility
                             {
                                 if (exptectedColumns[expectedColumnNames[i]].Count != columnData[expectedColumnNames[i]].Count)
                                 {
-                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count.ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count.ToString());
-                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count + " / " + oldResult.GetColumnData()[expectedColumnNames[i]].Count);
+                                    resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count.ToString() + " / " + columnData[expectedColumnNames[i]].Count.ToString());
+                                    Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual count of result entries: " + exptectedColumns[expectedColumnNames[i]].Count + " / " + columnData[expectedColumnNames[i]].Count);
                                     correctResultsPassed = false;
                                 }
                                 else
@@ -387,8 +395,8 @@ namespace ColmnarDB.BenchmarkUtility
 
                                         if (!tempCorrectResultsPassed)
                                         {
-                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j].ToString());
-                                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + oldResult.GetColumnData()[expectedColumnNames[i]][j]);
+                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + columnData[expectedColumnNames[i]][j].ToString());
+                                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + columnData[expectedColumnNames[i]][j]);
                                             correctResultsPassed = false;
                                         }
                                     }
