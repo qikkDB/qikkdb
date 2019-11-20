@@ -254,7 +254,7 @@ namespace ColmnarDB.BenchmarkUtility
                         ColumnarDataTable result = null;
 
                         //read file where the results of a particular query are saved:
-                        var queryExpectedResultFile = new System.IO.StreamReader("../../../ColmnarDB.BenchmarkUtility/" + taxiDbName + "_testQuery_" + queryIndex + ".txt");
+                        var queryExpectedResultFile = new StreamReader("../../../ColmnarDB.BenchmarkUtility/" + taxiDbName + "_testQuery_" + queryIndex + ".txt");
                         queryIndex++;
 
                         //read the file header
@@ -395,7 +395,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                                         if (!tempCorrectResultsPassed)
                                         {
-                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + columnData[expectedColumnNames[i]][j].ToString());
+                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + columnData[expectedColumnNames[i]][j].ToString());
                                             Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + columnData[expectedColumnNames[i]][j]);
                                             correctResultsPassed = false;
                                         }
