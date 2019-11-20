@@ -354,11 +354,11 @@ namespace ColmnarDB.BenchmarkUtility
                                 }
                                 else
                                 {
-                                    bool tempCorrectResultsPassed = true;
-
                                     //check each element in result's lists
                                     for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
                                     {
+                                        bool tempCorrectResultsPassed = true;
+
                                         switch (expectedDataTypes[i])
                                         {
                                             case "INT":
@@ -395,8 +395,8 @@ namespace ColmnarDB.BenchmarkUtility
 
                                         if (!tempCorrectResultsPassed)
                                         {
-                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + columnData[expectedColumnNames[i]][j].ToString());
-                                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected / Actual returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + columnData[expectedColumnNames[i]][j]);
+                                            resultFile.WriteLine("The query '" + queryString + "' has FAILED the correct results test. Expected[" + expectedColumnNames[i].ToString() + "][" + j.ToString() + "] / Actual[" + j.ToString() + "] returned value: " + exptectedColumns[expectedColumnNames[i]][j].ToString() + " / " + columnData[expectedColumnNames[i]][j].ToString());
+                                            Console.Out.WriteLine("The query '" + queryString + "' has FAILED the correct results test.  Expected[" + expectedColumnNames[i].ToString() + "][" + j + "] / Actual[" + j + "] returned value: " + exptectedColumns[expectedColumnNames[i]][j] + " / " + columnData[expectedColumnNames[i]][j]);
                                             correctResultsPassed = false;
                                         }
                                     }
@@ -444,7 +444,6 @@ namespace ColmnarDB.BenchmarkUtility
                         if (avgQueryExec < queryExpectedExecTime)
                         {
                             resultFile.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime.ToString() + " / " + avgQueryExec.ToString());
-                            Console.Out.WriteLine("The query '" + queryString + "' has passed the execution time test. Expected / Actual average query execution time: " + queryExpectedExecTime + " / " + avgQueryExec);
                         }
                         else
                         {
