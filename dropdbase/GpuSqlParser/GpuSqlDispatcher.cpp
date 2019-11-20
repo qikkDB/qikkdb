@@ -1187,7 +1187,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& s
     std::vector<std::string> strings(size, str);
     std::string name = "constString" + std::to_string(constStringCounter_);
     constStringCounter_++;
-    return InsertString(database_->GetName(), name, strings.data(), 1);
+    return InsertString(database_->GetName(), name, strings.data(), size);
 }
 
 /// Clears all allocated buffers
