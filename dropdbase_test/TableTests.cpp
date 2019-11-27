@@ -1414,6 +1414,7 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     auto castedColumnIntB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
 
     castedColumnIntA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnIntA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<int32_t> dataIntA({2, 4, -6});
@@ -1602,7 +1603,6 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB6[0]->GetData()[4], 21);
     ASSERT_EQ(blockIntB6[0]->GetData()[5], -61);
 
-    ASSERT_EQ(blockIntA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockIntB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
@@ -1648,7 +1648,6 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockIntB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockIntA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -64);
 }
 
@@ -1797,6 +1796,7 @@ TEST(TableTests, InsertIntoIsUnique_Long)
     auto castedColumnB = dynamic_cast<ColumnBase<int64_t>*>(columnB.get());
 
     castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<int64_t> dataA({489889498840, 489889498841, 489889498842});
@@ -1983,7 +1983,6 @@ TEST(TableTests, InsertIntoIsUnique_Long)
     ASSERT_EQ(blockB6[0]->GetData()[4], 489889498843);
     ASSERT_EQ(blockB6[0]->GetData()[5], 489889498845);
 
-    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
@@ -2029,7 +2028,6 @@ TEST(TableTests, InsertIntoIsUnique_Long)
     ASSERT_EQ(blockB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
@@ -2049,6 +2047,7 @@ TEST(TableTests, InsertIntoIsUnique_Float)
     auto castedColumnB = dynamic_cast<ColumnBase<float>*>(columnB.get());
 
     castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<float> dataA({456.2, 56.2, 45.62});
@@ -2224,7 +2223,6 @@ TEST(TableTests, InsertIntoIsUnique_Float)
     ASSERT_FLOAT_EQ(blockB6[0]->GetData()[4], 56.2f);
     ASSERT_FLOAT_EQ(blockB6[0]->GetData()[5], 15.62f);
 
-    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
@@ -2268,7 +2266,6 @@ TEST(TableTests, InsertIntoIsUnique_Float)
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[6], 1.0f);
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[7], 8.0f);
 
-    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
@@ -2288,6 +2285,7 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     auto castedColumnB = dynamic_cast<ColumnBase<double>*>(columnB.get());
 
     castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<double> dataA({456.211111, 56.211111, 45.6211111});
@@ -2463,7 +2461,6 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[4], 56.211111);
     ASSERT_DOUBLE_EQ(blockB6[0]->GetData()[5], 15.6211111);
 
-    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
@@ -2483,6 +2480,7 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     nullMask1.insert({"ColumnB", vectorMaskB1});
 
     table.InsertData(data7, false, nullMask1);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     auto blockA7 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB7 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2507,7 +2505,6 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[6], 1.0);
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[7], 8.0);
 
-    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
@@ -2527,6 +2524,7 @@ TEST(TableTests, InsertIntoIsUnique_String)
     auto castedColumnB = dynamic_cast<ColumnBase<std::string>*>(columnB.get());
 
     castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<std::string> dataA({"A", "B", "c"});
@@ -2715,7 +2713,6 @@ TEST(TableTests, InsertIntoIsUnique_String)
     ASSERT_EQ(blockB6[0]->GetData()[4], "d");
     ASSERT_EQ(blockB6[0]->GetData()[5], "D");
 
-    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
@@ -2761,7 +2758,6 @@ TEST(TableTests, InsertIntoIsUnique_String)
     ASSERT_EQ(blockB7[0]->GetData()[6], "w");
     ASSERT_EQ(blockB7[0]->GetData()[7], "q");
 
-    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
@@ -2781,6 +2777,7 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnB.get());
 
     castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
     std::vector<ColmnarDB::Types::Point> dataA;
@@ -2951,15 +2948,17 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[3]), "POINT(14.11 11.1)");
     ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[4]), "POINT(14.11 11.1)");
     ASSERT_EQ(PointFactory::WktFromPoint(blockB5[0]->GetData()[5]), "POINT(13.11 11.1)");
-    /*
-    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
-    std::unordered_map<ColmnarDB::Types::Point, std::any> data6;
-    std::vector<ColmnarDB::Types::Point> dataA6({"r", "t"});
-    std::vector<ColmnarDB::Types::Point> dataB6({"w", "q"});
-    data6.insert({"ColumnA", dataA6});
-    data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<ColmnarDB::Types::Point, std::vector<int8_t>> nullMask;
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<ColmnarDB::Types::Point> dataA6;
+    dataA6.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
+    dataA6.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
+    std::vector<ColmnarDB::Types::Point> dataB6;
+    dataB6.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
+    dataB6.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
     std::vector<int8_t> vectorMaskA;
     std::vector<int8_t> vectorMaskB;
     vectorMaskA.push_back(3);
@@ -2976,32 +2975,35 @@ TEST(TableTests, InsertIntoIsUnique_Point)
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA6[0]->GetSize(), 6);
-    ASSERT_EQ(blockA6[0]->GetData()[0], "A");
-    ASSERT_EQ(blockA6[0]->GetData()[1], "B");
-    ASSERT_EQ(blockA6[0]->GetData()[2], "c");
-    ASSERT_EQ(blockA6[0]->GetData()[3], "d");
-    ASSERT_EQ(blockA6[0]->GetData()[4], "e");
-    ASSERT_EQ(blockA6[0]->GetData()[5], "F");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[5]), "POINT(131.11 11.1)");
 
     ASSERT_EQ(blockB6[0]->GetSize(), 6);
-    ASSERT_EQ(blockB6[0]->GetData()[0], "d");
-    ASSERT_EQ(blockB6[0]->GetData()[1], "E");
-    ASSERT_EQ(blockB6[0]->GetData()[2], "f");
-    ASSERT_EQ(blockB6[0]->GetData()[3], "d");
-    ASSERT_EQ(blockB6[0]->GetData()[4], "d");
-    ASSERT_EQ(blockB6[0]->GetData()[5], "D");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB6[0]->GetData()[5]), "POINT(13.11 11.1)");
 
-    ASSERT_EQ(blockA6[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
 
     // insert only to unique column - null value should be inserted in non unique column
-    std::unordered_map<ColmnarDB::Types::Point, std::any> data7;
-    std::vector<ColmnarDB::Types::Point> dataA7({"r", "t"});
-    std::vector<ColmnarDB::Types::Point> dataB7({"w", "q"});
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<ColmnarDB::Types::Point> dataA7;
+    dataA7.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
+    dataA7.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
+    std::vector<ColmnarDB::Types::Point> dataB7;
+    dataB7.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
+    dataB7.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<ColmnarDB::Types::Point, std::vector<int8_t>> nullMask1;
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
     std::vector<int8_t> vectorMaskA1;
     std::vector<int8_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
@@ -3018,25 +3020,348 @@ TEST(TableTests, InsertIntoIsUnique_Point)
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA7[0]->GetSize(), 8);
-    ASSERT_EQ(blockA7[0]->GetData()[0], "A");
-    ASSERT_EQ(blockA7[0]->GetData()[1], "B");
-    ASSERT_EQ(blockA7[0]->GetData()[2], "c");
-    ASSERT_EQ(blockA7[0]->GetData()[3], "d");
-    ASSERT_EQ(blockA7[0]->GetData()[4], "e");
-    ASSERT_EQ(blockA7[0]->GetData()[5], "F");
-    ASSERT_EQ(blockA7[0]->GetData()[6], "r");
-    ASSERT_EQ(blockA7[0]->GetData()[7], "t");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[1]), "POINT(12.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[2]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[3]), "POINT(11.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[4]), "POINT(1.11 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[5]), "POINT(131.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[6]), "POINT(919.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[7]), "POINT(7.11 11.12)");
 
     ASSERT_EQ(blockB7[0]->GetSize(), 8);
-    ASSERT_EQ(blockB7[0]->GetData()[0], "d");
-    ASSERT_EQ(blockB7[0]->GetData()[1], "E");
-    ASSERT_EQ(blockB7[0]->GetData()[2], "f");
-    ASSERT_EQ(blockB7[0]->GetData()[3], "d");
-    ASSERT_EQ(blockB7[0]->GetData()[4], "d");
-    ASSERT_EQ(blockB7[0]->GetData()[5], "D");
-    ASSERT_EQ(blockB7[0]->GetData()[6], "w");
-    ASSERT_EQ(blockB7[0]->GetData()[7], "q");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[0]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[1]), "POINT(15.11 12.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[2]), "POINT(16.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[3]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[4]), "POINT(14.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[5]), "POINT(13.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[6]), "POINT(719.11 11.12)");
+    ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[7]), "POINT(6.11 11.12)");
 
-    ASSERT_EQ(blockA7[0]->GetNullBitmask()[0], 0);
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
-*/}
+}
+
+TEST(TableTests, InsertIntoIsUnique_Polygon)
+{
+    std::vector<std::string> resultA;
+    std::vector<std::string> resultB;
+
+    // insert unique values into both columns - one isUnique and one is not
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnA", COLUMN_POLYGON);
+    table.CreateColumn("ColumnB", COLUMN_POLYGON);
+
+    auto& columnA = table.GetColumns().at("ColumnA");
+    auto& columnB = table.GetColumns().at("ColumnB");
+
+    auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnB.get());
+
+    castedColumnA->SetIsUnique(true);
+    ASSERT_FALSE(castedColumnA->GetIsNullable());
+
+    resultA.push_back("POLYGON((21 30, 35.55 36, 30.11 20.26, 21 30))");
+    resultA.push_back("POLYGON((22 30, 35.55 36, 30.11 20.26, 22 30))");
+    resultA.push_back("POLYGON((23 30, 35.55 36, 30.11 20.26, 23 30))");
+
+    resultB.push_back("POLYGON((21 30, 35.55 36, 37.11 20.26, 21 30))");
+    resultB.push_back("POLYGON((21 32, 35.55 36, 37.11 20.26, 21 32))");
+    resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA;
+    dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[0]));
+    dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[1]));
+    dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[2]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB;
+    dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[0]));
+    dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[1]));
+    dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[2]));
+
+    data.insert({"ColumnA", dataA});
+    data.insert({"ColumnB", dataB});
+
+    table.InsertData(data);
+
+    auto blockA =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA[0]->GetSize(), 3);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA[0]->GetData()[2]), resultA[2]);
+
+    ASSERT_EQ(blockB[0]->GetSize(), 3);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB[0]->GetData()[2]), resultB[2]);
+
+    // trying to insert unique values into isUnique column and non unique values into non unique column
+    resultA.push_back("POLYGON((24 30, 35.55 36, 30.11 20.26, 24 30))");
+    resultA.push_back("POLYGON((25 30, 35.55 36, 30.11 20.26, 25 30))");
+    resultA.push_back("POLYGON((26 30, 35.55 36, 30.11 20.26, 26 30))");
+
+    resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
+    resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
+    resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
+
+    std::unordered_map<std::string, std::any> data2;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA2;
+    dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[3]));
+    dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[4]));
+    dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB2;
+    dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[3]));
+    dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[4]));
+    dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[5]));
+
+    data2.insert({"ColumnA", dataA2});
+    data2.insert({"ColumnB", dataB2});
+
+    table.InsertData(data2);
+
+    auto blockA2 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB2 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA2[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA2[0]->GetData()[5]), resultA[5]);
+
+    ASSERT_EQ(blockB2[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB2[0]->GetData()[5]), resultB[5]);
+
+    // trying to insert non unique values into isUnique column and unique values into non unique column
+    std::unordered_map<std::string, std::any> data3;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA3;
+    dataA3.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB3;
+    dataB3.push_back(
+        ComplexPolygonFactory::FromWkt("POLYGON((29 39, 12.51 36.5, 14.11 20.26, 29 39))"));
+
+    data3.insert({"ColumnA", dataA3});
+    data3.insert({"ColumnB", dataB3});
+
+    ASSERT_THROW(table.InsertData(data3), std::length_error);
+
+    auto blockA3 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB3 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA3[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA3[0]->GetData()[5]), resultA[5]);
+
+    ASSERT_EQ(blockB3[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB3[0]->GetData()[5]), resultB[5]);
+
+    // trying to insert non unique values into isUnique column and non unique values into non unique column
+    std::unordered_map<std::string, std::any> data4;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA4;
+    dataA4.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB4;
+    dataB4.push_back(ComplexPolygonFactory::FromWkt(resultB[5]));
+
+    data4.insert({"ColumnA", dataA4});
+    data4.insert({"ColumnB", dataB4});
+
+    ASSERT_THROW(table.InsertData(data4), std::length_error);
+
+    auto blockA4 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB4 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA4[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA4[0]->GetData()[5]), resultA[5]);
+
+    ASSERT_EQ(blockB4[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB4[0]->GetData()[5]), resultB[5]);
+
+    // trynig to insert non unique values - these duplicity values is within one insert
+    std::unordered_map<std::string, std::any> data5;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA5;
+    dataA5.push_back(
+        ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 120.11 20.26, 240 30))"));
+    dataA5.push_back(
+        ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 12000.11 20.26, 240 30))"));
+    dataA5.push_back(
+        ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 120.11 20.26, 240 30))"));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB5;
+    dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((1 30, 35 37, 1 20.26, 1 30))"));
+    dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((2 30, 35 37, 1 20.26, 2 30))"));
+    dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((3 30, 35 37, 1 20.26, 3 30))"));
+
+    data5.insert({"ColumnA", dataA5});
+    data5.insert({"ColumnB", dataB5});
+
+    ASSERT_THROW(table.InsertData(data5), std::length_error);
+
+    auto blockA5 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB5 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA5[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA5[0]->GetData()[5]), resultA[5]);
+
+    ASSERT_EQ(blockB5[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB5[0]->GetData()[5]), resultB[5]);
+
+    // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
+    resultA.push_back("POLYGON((1 30, 35 37, 1 20.26, 1 30))");
+    resultA.push_back("POLYGON((2 30, 35 37, 1 20.26, 2 30))");
+
+    resultB.push_back("POLYGON((4 30, 35 37, 1 20.26, 4 30))");
+    resultB.push_back("POLYGON((5 30, 35 37, 1 20.26, 5 30))");
+
+    std::unordered_map<std::string, std::any> data6;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA6;
+    dataA6.push_back(ComplexPolygonFactory::FromWkt(resultA[6]));
+    dataA6.push_back(ComplexPolygonFactory::FromWkt(resultA[7]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB6;
+    dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[6]));
+    dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[7]));
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::vector<int8_t> vectorMaskA;
+    std::vector<int8_t> vectorMaskB;
+    vectorMaskA.push_back(3);
+    vectorMaskB.push_back(0);
+
+    nullMask.insert({"ColumnA", vectorMaskA});
+    nullMask.insert({"ColumnB", vectorMaskB});
+
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::length_error);
+
+    auto blockA6 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB6 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA6[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA6[0]->GetData()[5]), resultA[5]);
+
+    ASSERT_EQ(blockB6[0]->GetSize(), 6);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB6[0]->GetData()[5]), resultB[5]);
+
+    ASSERT_EQ(blockB6[0]->GetNullBitmask()[0], 0);
+
+    // insert only to unique column - null value should be inserted in non unique column
+    std::unordered_map<std::string, std::any> data7;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataA7;
+    dataA7.push_back(ComplexPolygonFactory::FromWkt(resultA[6]));
+    dataA7.push_back(ComplexPolygonFactory::FromWkt(resultA[7]));
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataB7;
+    dataB7.push_back(ComplexPolygonFactory::FromWkt(resultB[6]));
+    dataB7.push_back(ComplexPolygonFactory::FromWkt(resultB[7]));
+    data7.insert({"ColumnA", dataA7});
+    data7.insert({"ColumnB", dataB7});
+
+    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
+    std::vector<int8_t> vectorMaskA1;
+    std::vector<int8_t> vectorMaskB1;
+    vectorMaskA1.push_back(0);
+    vectorMaskB1.push_back(3);
+
+    nullMask1.insert({"ColumnA", vectorMaskA1});
+    nullMask1.insert({"ColumnB", vectorMaskB1});
+
+    table.InsertData(data7, false, nullMask1);
+
+    auto blockA7 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+            ->GetBlocksList();
+    auto blockB7 =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+            ->GetBlocksList();
+
+    ASSERT_EQ(blockA7[0]->GetSize(), 8);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[0]), resultA[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[1]), resultA[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[2]), resultA[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[3]), resultA[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[4]), resultA[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[5]), resultA[5]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[6]), resultA[6]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockA7[0]->GetData()[7]), resultA[7]);
+
+    ASSERT_EQ(blockB7[0]->GetSize(), 8);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[0]), resultB[0]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[1]), resultB[1]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[2]), resultB[2]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[3]), resultB[3]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[4]), resultB[4]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[5]), resultB[5]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[6]), resultB[6]);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[7]), resultB[7]);
+
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}

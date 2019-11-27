@@ -202,6 +202,7 @@ public:
         isUnique_ = isUnique;
         if (isUnique)
         {
+            isNullable_ = false;
             BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
         }
         else
