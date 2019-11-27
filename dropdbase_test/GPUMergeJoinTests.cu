@@ -17,8 +17,8 @@ TEST(GPUMergeJoinTests, MergeJoinTest)
 	const int32_t BLOCK_COUNT_B = 1;
     const int32_t BLOCK_SIZE_B = 8;	
 
-	ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
-	ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
+	ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A, false, false);
+    ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B, false, true);
 
     auto& blockA = colA.AddBlock();
     auto& blockB = colB.AddBlock();
@@ -66,8 +66,8 @@ TEST(GPUMergeJoinTests, MergeJoinReorderTest)
     const int32_t BLOCK_COUNT_B = 10;
     const int32_t BLOCK_SIZE_B = 1 << 10;
 
-    ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A);
-    ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B);
+    ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A, false, false);
+    ColumnBase<int32_t> colB("ColB", BLOCK_SIZE_B, false, true);
 
     for (int32_t i = 0; i < BLOCK_COUNT_A; i++)
     {
@@ -161,22 +161,17 @@ TEST(GPUMergeJoinTests, MergeJoinNULLTest)
     // Perform the merge join
     MergeJoin::JoinUnique(colAJoinIndices, colBJoinIndices, colA, colB);
 
-	/*
-	   5    7
-       7    7
-       3    6
-      12    6
-       4    0
-       2    1
-      11    1
-	*/
+    std::vector<int32_t> colAJoinIndicesCorrect = {5, 7, 3, 12, 4, 2, 11};
+    std::vector<int32_t> colBJoinIndicesCorrect = {7, 7, 6, 6, 0, 1, 1};
 
-
+	ASSERT_EQ(colAJoinIndicesCorrect.size(), colAJoinIndices[0].size());
+    ASSERT_EQ(colBJoinIndicesCorrect.size(), colBJoinIndices[0].size());
     for (int32_t i = 0; i < colAJoinIndices[0].size(); i++)
     {
-        printf("%4d %4d\n", colAJoinIndices[0][i], colBJoinIndices[0][i]);
+        ASSERT_EQ(colAJoinIndicesCorrect[i], colAJoinIndices[0][i]);
+        ASSERT_EQ(colBJoinIndicesCorrect[i], colBJoinIndices[0][i]);
     }
 
-	FAIL();
+	//FAIL();
 
 }
