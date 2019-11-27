@@ -1135,6 +1135,30 @@ void Table::SetSortingColumns(std::vector<std::string> columns)
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
+void Table::AddSortingColumn(const std::string& sortingColumn)
+{
+    if (std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn) == sortingColumns.end())
+    {
+        sortingColumns.push_back(sortingColumn);
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Attempt to insert duplicate sorting column.";
+    }
+}
+
+void Table::RemoveSortingColumn(const std::string& sortingColumn)
+{
+    if (std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn) != sortingColumns.end())
+    {
+        sortingColumns.erase(std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn));
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(debug) << "Attempt to erase non-existing sorting column.";
+    }
+}
+
 bool Table::GetSaveNecessary() const
 {
     return saveNecesarry_;

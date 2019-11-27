@@ -1225,74 +1225,44 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
             std::vector<std::string> constraintColumns;
 
-            if (newConstraintContext->constraint()->INDEX())
+            for (auto& column : newConstraintContext->constraintColumns()->column())
             {
-                for (auto& column : newConstraintContext->constraintColumns()->column())
+                std::string constraintColumnName = column->getText();
+                TrimDelimitedIdentifier(constraintColumnName);
+
+                if (newColumns.find(constraintColumnName) == newColumns.end())
                 {
-                    std::string constraintColumnName = column->getText();
-                    TrimDelimitedIdentifier(constraintColumnName);
+                    throw ColumnNotFoundException(constraintColumnName);
+                }
 
-                    if (newColumns.find(constraintColumnName) == newColumns.end())
-                    {
-                        throw ColumnNotFoundException(constraintColumnName);
-                    }
-
+                if (newConstraintContext->constraint()->INDEX())
+                {
                     DataType indexColumnDataType = newColumns.at(constraintColumnName);
 
                     if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
                     {
                         throw IndexColumnDataTypeException(constraintColumnName, indexColumnDataType);
                     }
-
-                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
-                                  constraintColumnName) != constraintColumns.end())
-                    {
-                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
-                    }
-                    constraintColumns.push_back(constraintColumnName);
                 }
+
+                if (std::find(constraintColumns.begin(), constraintColumns.end(), constraintColumnName) !=
+                    constraintColumns.end())
+                {
+                    throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                }
+                constraintColumns.push_back(constraintColumnName);
+            }
+
+            if (newConstraintContext->constraint()->INDEX())
+            {
                 newIndices.insert({constraintName, constraintColumns});
             }
             else if (newConstraintContext->constraint()->UNIQUE())
             {
-                for (auto& column : newConstraintContext->constraintColumns()->column())
-                {
-                    std::string constraintColumnName = column->getText();
-                    TrimDelimitedIdentifier(constraintColumnName);
-
-                    if (newColumns.find(constraintColumnName) == newColumns.end())
-                    {
-                        throw ColumnNotFoundException(constraintColumnName);
-                    }
-
-                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
-                                  constraintColumnName) != constraintColumns.end())
-                    {
-                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
-                    }
-                    constraintColumns.push_back(constraintColumnName);
-                }
                 newUniques.insert({constraintName, constraintColumns});
             }
             else if (newConstraintContext->constraint()->NOTNULL())
             {
-                for (auto& column : newConstraintContext->constraintColumns()->column())
-                {
-                    std::string constraintColumnName = column->getText();
-                    TrimDelimitedIdentifier(constraintColumnName);
-
-                    if (newColumns.find(constraintColumnName) == newColumns.end())
-                    {
-                        throw ColumnNotFoundException(constraintColumnName);
-                    }
-
-                    if (std::find(constraintColumns.begin(), constraintColumns.end(),
-                                  constraintColumnName) != constraintColumns.end())
-                    {
-                        throw ColumnAlreadyExistsInIndexException(constraintColumnName);
-                    }
-                    constraintColumns.push_back(constraintColumnName);
-                }
                 newNotNulls.insert({constraintName, constraintColumns});
             }
         }
@@ -1374,6 +1344,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_map<std::string, DataType> alterColumns;
     std::unordered_map<std::string, std::string> renameColumns;
     std::unordered_set<std::string> renameColumnToNames;
+    std::unordered_set<std::string> newConstraintColumns;
+    std::unordered_map<std::string, std::vector<std::string>> newIndices;
+    std::unordered_map<std::string, std::vector<std::string>> newUniques;
+    std::unordered_map<std::string, std::vector<std::string>> newNotNulls;
     std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
@@ -1467,6 +1441,49 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw TableAlreadyExistsException(newTableName);
             }
         }
+        else if (entry->addConstraint())
+        {
+            auto addConstraintContext = entry->addConstraint();
+            std::string newConstraintName = addConstraintContext->constraintName()->getText();
+
+            std::vector<std::string> newConstraintColumns;
+
+            for (auto& column : addConstraintContext->constraintColumns()->column())
+            {
+                std::string constraintColumnName = column->getText();
+                TrimDelimitedIdentifier(constraintColumnName);
+
+                if (database_->GetTables().at(tableName).GetColumns().find(constraintColumnName) ==
+                    database_->GetTables().at(tableName).GetColumns().end())
+                {
+                    throw ColumnNotFoundException(constraintColumnName);
+                }
+
+                if (std::find(newConstraintColumns.begin(), newConstraintColumns.end(),
+                              constraintColumnName) != newConstraintColumns.end())
+                {
+                    throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                }
+                newConstraintColumns.push_back(constraintColumnName);
+            }
+
+            if (addConstraintContext->constraint()->INDEX())
+            {
+                newIndices.insert({newConstraintName, newConstraintColumns});
+            }
+            else if (addConstraintContext->constraint()->UNIQUE())
+            {
+                newUniques.insert({newConstraintName, newConstraintColumns});
+            }
+            else if (addConstraintContext->constraint()->NOTNULL())
+            {
+                newNotNulls.insert({newConstraintName, newConstraintColumns});
+            }
+        }
+        else if (entry->dropConstraint())
+        {
+            auto dropConstraintContext = entry->dropConstraint();
+        }
     }
 
     dispatcher_.AddAlterTableFunction();
@@ -1503,6 +1520,39 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     if (!newTableName.empty())
     {
         dispatcher_.AddArgument<const std::string&>(newTableName);
+    }
+
+	dispatcher_.AddArgument<int32_t>(newIndices.size());
+    for (auto& newIndex : newIndices)
+    {
+        dispatcher_.AddArgument<const std::string&>(newIndex.first);
+        dispatcher_.AddArgument<int32_t>(newIndex.second.size());
+        for (auto& indexColumn : newIndex.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(indexColumn);
+        }
+    }
+
+    dispatcher_.AddArgument<int32_t>(newUniques.size());
+    for (auto& newUnique : newUniques)
+    {
+        dispatcher_.AddArgument<const std::string&>(newUnique.first);
+        dispatcher_.AddArgument<int32_t>(newUnique.second.size());
+        for (auto& uniqueColumn : newUnique.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(uniqueColumn);
+        }
+    }
+
+    dispatcher_.AddArgument<int32_t>(newNotNulls.size());
+    for (auto& newNotNull : newNotNulls)
+    {
+        dispatcher_.AddArgument<const std::string&>(newNotNull.first);
+        dispatcher_.AddArgument<int32_t>(newNotNull.second.size());
+        for (auto& notNullColumn : newNotNull.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(notNullColumn);
+        }
     }
 }
 

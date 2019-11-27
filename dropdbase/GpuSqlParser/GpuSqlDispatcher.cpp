@@ -1620,6 +1620,45 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         database_->RenameTable(tableName, newTableName);
     }
 
+    int32_t newIndexCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newIndexCount; i++)
+    {
+        std::string newIndexName = arguments_.Read<std::string>();
+        int32_t newIndexColumnCount = arguments_.Read<int32_t>();
+
+        for (int32_t j = 0; j < newIndexColumnCount; j++)
+        {
+            std::string newIndexColumn = arguments_.Read<std::string>();
+            database_->GetTables().at(tableName).AddSortingColumn(newIndexColumn);
+        }
+    }
+
+    int32_t newUniqueCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newUniqueCount; i++)
+    {
+        std::string newUniqueName = arguments_.Read<std::string>();
+        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
+
+        for (int32_t j = 0; j < newUniqueColumnCount; j++)
+        {
+            std::string newUniqueColumn = arguments_.Read<std::string>();
+            database_->GetTables().at(tableName).GetColumns().at(newUniqueColumn)->SetIsUnique(true);
+        }
+    }
+
+    int32_t newNotNullCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newNotNullCount; i++)
+    {
+        std::string newNotNullName = arguments_.Read<std::string>();
+        int32_t newNotNullColumnCount = arguments_.Read<int32_t>();
+
+        for (int32_t j = 0; j < newNotNullColumnCount; j++)
+        {
+            std::string newNotNullColumn = arguments_.Read<std::string>();
+            database_->GetTables().at(tableName).GetColumns().at(newNotNullColumn)->SetIsNullable(true);
+        }
+    }
+
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter table completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
