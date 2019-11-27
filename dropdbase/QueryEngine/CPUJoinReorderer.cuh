@@ -34,23 +34,22 @@ public:
         std::vector<std::thread> reorderThreads;
         for (int32_t idx = 0; idx < threadCount; idx++)
         {
-            reorderThreads.push_back(
-                std::thread{[](std::vector<T>& outBlock, const ColumnBase<T>& inCol, int32_t inBlockIdx,
-                               const std::vector<std::vector<int32_t>>& inColJoinIndices,
-                               const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
-                                for (int32_t i = threadId; i < inColJoinIndices[inBlockIdx].size(); i += threadCount)
-                                {
-                                    const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i] / blockSize;
-                                    const int32_t columnRowId = inColJoinIndices[inBlockIdx][i] % blockSize;
+            reorderThreads.push_back(std::thread{
+                [](std::vector<T>& outBlock, const ColumnBase<T>& inCol, int32_t inBlockIdx,
+                   const std::vector<std::vector<int32_t>>& inColJoinIndices,
+                   const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
+                    for (int32_t i = threadId; i < inColJoinIndices[inBlockIdx].size(); i += threadCount)
+                    {
+                        const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i] / blockSize;
+                        const int32_t columnRowId = inColJoinIndices[inBlockIdx][i] % blockSize;
 
-                                    const T val = inCol.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
-                                    outBlock[i] = val;
-                                }
-                            },
-                            std::ref(outBlock), std::ref(inCol), inBlockIdx,
-                            std::ref(inColJoinIndices), blockSize, idx, threadCount});
-
-		}
+                        const T val = inCol.GetBlocksList()[columnBlockId]->GetData()[columnRowId];
+                        outBlock[i] = val;
+                    }
+                },
+                std::ref(outBlock), std::ref(inCol), inBlockIdx, std::ref(inColJoinIndices),
+                blockSize, idx, threadCount});
+        }
 
         for (auto& thread : reorderThreads)
         {
@@ -85,10 +84,11 @@ public:
                                              const int32_t blockSize)
     {
         // Alloc an output CPU vector
-		outNullBlockSize = (inColJoinIndices[inBlockIdx].size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        outNullBlockSize =
+            (inColJoinIndices[inBlockIdx].size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
         std::vector<int8_t> outNullBlockVector(outNullBlockSize);
 
-		// Fetch the core count
+        // Fetch the core count
         unsigned int threadCount = std::thread::hardware_concurrency();
         if (threadCount == 0)
         {
@@ -99,35 +99,37 @@ public:
         std::vector<std::thread> reorderNullThreads;
         for (int32_t idx = 0; idx < threadCount; idx++)
         {
-            reorderNullThreads.push_back(
-                std::thread{[](std::vector<int8_t>& outNullBlockVector, const ColumnBase<T>& inCol, int32_t inBlockIdx,
-								const std::vector<std::vector<int32_t>>& inColJoinIndices,
-								const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
+            reorderNullThreads.push_back(std::thread{
+                [](std::vector<int8_t>& outNullBlockVector, const ColumnBase<T>& inCol,
+                   int32_t inBlockIdx, const std::vector<std::vector<int32_t>>& inColJoinIndices,
+                   const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
+                    for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
+                    {
+                        // Avodid write conflicts by assigning 8 rows to one core
+                        for (int32_t j = 0; j < 8; j++)
+                        {
+                            const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
+                            const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
 
-								for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
-								{
-									// Avodid write conflicts by assigning 8 rows to one core
-									for(int32_t j = 0; j < 8; j++) {
-										const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
-										const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
+                            const int8_t nullBit =
+                                (inCol.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >>
+                                 (columnRowId % (sizeof(int8_t) * 8))) &
+                                1;
 
-										const int8_t nullBit = (inCol.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >> (columnRowId % (sizeof(int8_t) * 8))) & 1;
-                                
-										outNullBlockVector[(i + j) / 8] |= (nullBit << j);
-									}
-								}
-                            },
-                            std::ref(outNullBlockVector), std::ref(inCol), inBlockIdx,
-                            std::ref(inColJoinIndices), blockSize, idx, threadCount});
-
-		}
+                            outNullBlockVector[(i + j) / 8] |= (nullBit << j);
+                        }
+                    }
+                },
+                std::ref(outNullBlockVector), std::ref(inCol), inBlockIdx,
+                std::ref(inColJoinIndices), blockSize, idx, threadCount});
+        }
 
         for (auto& thread : reorderNullThreads)
         {
             thread.join();
         }
 
-		// Copy the result to the GPU
+        // Copy the result to the GPU
         GPUMemory::copyHostToDevice(outNullBlock, outNullBlockVector.data(), outNullBlockSize);
     }
 };
