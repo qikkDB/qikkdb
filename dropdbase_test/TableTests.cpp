@@ -2958,6 +2958,9 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     dataB6.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
     dataB6.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
 
+	data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
+
     std::unordered_map<std::string, std::vector<int8_t>> nullMask;
     std::vector<int8_t> vectorMaskA;
     std::vector<int8_t> vectorMaskB;
@@ -3277,6 +3280,8 @@ TEST(TableTests, InsertIntoIsUnique_Polygon)
     std::vector<ColmnarDB::Types::ComplexPolygon> dataB6;
     dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[6]));
     dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[7]));
+    data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnB", dataB6});
 
     std::unordered_map<std::string, std::vector<int8_t>> nullMask;
     std::vector<int8_t> vectorMaskA;
