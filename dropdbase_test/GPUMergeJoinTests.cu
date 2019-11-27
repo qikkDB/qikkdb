@@ -171,7 +171,4 @@ TEST(GPUMergeJoinTests, MergeJoinNULLTest)
         ASSERT_EQ(colAJoinIndicesCorrect[i], colAJoinIndices[0][i]);
         ASSERT_EQ(colBJoinIndicesCorrect[i], colBJoinIndices[0][i]);
     }
-
-	//FAIL();
-
 }
