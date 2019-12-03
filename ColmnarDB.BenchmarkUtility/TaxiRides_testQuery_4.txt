@@ -1,3 +1,5 @@
+trips.passenger_count|pickup_year|distance|the_count
+INT|INT|INT|LONG
 0|2010|86|1
 0|2010|77|1
 0|2010|76|1
@@ -4176,8 +4178,6 @@
 129|2011|2|1
 129|2011|0|1
 129|2013|0|2
-trips.passenger_count|pickup_year|distance|the_count
-INT|INT|INT|LONG
 133|2010|3|1
 137|2010|17|1
 141|2010|3|1
