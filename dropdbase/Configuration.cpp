@@ -41,6 +41,7 @@ void Configuration::LoadConfigurationFile()
     this->SetupConfigurationValue("Dir", this->dir_);
     this->SetupConfigurationValue("DatabaseDir", this->databaseDir_);
     this->SetupConfigurationValue("BlockSize", this->blockSize_);
+    this->SetupConfigurationValue("MaxBlockSize", this->maxBlockSize_);
     this->SetupConfigurationValue("BlockCount", this->blockCount_);
     this->SetupConfigurationValue("GroupByBuckets", this->groupByBuckets_);
     this->SetupConfigurationValue("ListenIP", this->listenIP_);

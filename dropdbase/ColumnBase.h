@@ -95,7 +95,7 @@ class ColumnBase : public IColumn
 private:
     std::string name_;
     int64_t size_;
-    int blockSize_;
+    int32_t blockSize_;
     std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
     std::unordered_set<T> uniqueHashmap_;
 
@@ -984,7 +984,6 @@ public:
     {
         int32_t ret = 0;
 
-        // TODO preiterovat celu mapu a zosumovat bloky
         for (auto& block : blocks_)
         {
             ret += block.second.size();

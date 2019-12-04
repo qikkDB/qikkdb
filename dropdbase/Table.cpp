@@ -1110,11 +1110,15 @@ void Table::SetBlockSize(int32_t blockSize)
 
 int32_t Table::GetBlockCount() const
 {
-    for (auto& column : columns)
+    int32_t blockCount = 0;
+
+    // If there is at least one column in a table, return the block count of this column, because each column should have the same block counts
+    if (columns.begin != columns.end)
     {
-        return column.second.get()->GetBlockCount();
+        blockCount = columns.begin.second.get()->GetBlockCount();
     }
-    return 0;
+
+    return blockCount;
 }
 
 int64_t Table::GetSize() const
@@ -1708,7 +1712,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             InsertValuesOnSpecificPosition(data, blockIndex, indexInBlock, i, nullMasks);
         }
     }
-
     else
     {
         for (const auto& column : columns)
@@ -1902,6 +1905,168 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             }
         }
     }
+
+    /* Automatically change block size (multiply it by factor 2), when there are more blocks than GPU cards and
+       the block size has not reached its maximum value defined in configuration file */
+    if (GetBlockCount() >= 2 * Context::getInstance().getDeviceCount() &&
+        blockSize_ * 2 <= Configuration::GetInstance().GetMaxBlockSize())
+    {
+        //TODO blockSize_ *= 2; !!!!!!!!!!!!!!!!!!!!!!!!
+
+        for (auto& column : columns)
+        {
+            auto type = column.second.get()->GetColumnType();
+
+            switch (type)
+            {
+            case COLUMN_POLYGON:
+            {
+                auto castedColumn =
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_POINT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_STRING:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_INT8_T:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int8_t>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_INT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_LONG:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_FLOAT:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<float>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+
+            case COLUMN_DOUBLE:
+            {
+                auto castedColumn = dynamic_cast<ColumnBase<double>*>(column.second.get());
+
+                auto& blocks = castedColumn->GetBlocksList();
+
+                for (int32_t i = 0; i < blocks.size(); i++)
+                {
+                    // TODO add merging pais of blocks together here !!!!!!!!!!!!!!!!!!!!!!
+
+                    if (castedColumn->GetIsNullable())
+                    {
+                        // TODO nullBit masks if isNullable_ is true. There is padding in nullBit masks
+                    }
+                }
+            }
+            break;
+            }
+        }
+    }
+
     saveNecesarry_ = true;
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }

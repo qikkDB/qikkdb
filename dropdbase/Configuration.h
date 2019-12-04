@@ -31,14 +31,15 @@ private:
     bool usingCompression_ = true;
     std::string dir_ = "./";
     std::string databaseDir_ = "../databases/";
-    int blockSize_ = 1024;
-    int blockCount_ = 1024;
-    int groupByBuckets_ = 262144;
+    int32_t blockSize_ = 1024;
+    int32_t maxBlockSize_ = 134217728; // This is used when the block size is automatically changed (streamming data - Apache Kafka)
+    int32_t blockCount_ = 1024;
+    int32_t groupByBuckets_ = 262144;
     std::string listenIP_ = "127.0.0.1";
     short listenPort_ = 12345;
-    int timeout_ = 5000;
-    int GPUCachePercent_ = 73;
-    int DBSaveInterval_ = 300;
+    int32_t timeout_ = 5000;
+    int32_t GPUCachePercent_ = 73;
+    int32_t DBSaveInterval_ = 300;
 
     void LoadConfigurationFile();
 
@@ -100,17 +101,22 @@ public:
         return databaseDir_;
     }
 
-    int GetBlockSize() const
+    int32_t GetBlockSize() const
     {
         return blockSize_;
     }
 
-    int GetBlockCount() const
+	int32_t GetMaxBlockSize() const
+    {
+        return maxBlockSize_;
+    }
+
+    int32_t GetBlockCount() const
     {
         return blockCount_;
     }
 
-    int GetGroupByBuckets() const
+    int32_t GetGroupByBuckets() const
     {
         return groupByBuckets_;
     }
@@ -125,17 +131,17 @@ public:
         return listenPort_;
     }
 
-    int GetTimeout() const
+    int32_t GetTimeout() const
     {
         return timeout_;
     }
 
-    int GetGPUCachePercentage() const
+    int32_t GetGPUCachePercentage() const
     {
         return GPUCachePercent_;
     }
 
-    int GetDBSaveInterval() const
+    int32_t GetDBSaveInterval() const
     {
         return DBSaveInterval_;
     }
