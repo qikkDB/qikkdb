@@ -327,6 +327,12 @@ public:
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
     }
 
+	virtual void SetSaveNecessaryToTrue() override
+    {
+        saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+    }
+
     virtual void SetColumnName(std::string newName) override
     {
         name_ = newName;

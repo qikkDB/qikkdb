@@ -24,6 +24,7 @@ public:
     virtual void SetIsUnique(bool isUnique) = 0;
     virtual bool GetSaveNecessary() const = 0;
     virtual void SetSaveNecessaryToFalse() = 0;
+    virtual void SetSaveNecessaryToTrue() = 0;
     virtual void SetColumnName(std::string newName) = 0;
 
     virtual ~IColumn(){};

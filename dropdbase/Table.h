@@ -84,7 +84,7 @@ public:
     std::unordered_set<ConstraintType> GetConstraintsForColumn(const std::string& columnName);
 
     /// <summary>
-    /// Removes column from columns.
+    /// Removes column from columns (in memory).
     /// </summary>
     /// <param name="columnName">Name of column to be removed.</param>
     void EraseColumn(std::string& columnName);

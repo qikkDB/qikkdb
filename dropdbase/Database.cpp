@@ -405,7 +405,7 @@ void Database::PersistOnlyModified(const char* path)
 /// </summary>
 void Database::SaveAllToDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbMutex_);
     BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
@@ -420,7 +420,7 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbMutex_);
     BOOST_LOG_TRIVIAL(info)
         << "Saving only modified blocks and columns of the loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -438,7 +438,7 @@ void Database::SaveModifiedToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     if (boost::filesystem::exists(path))
@@ -514,7 +514,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
-    std::unique_lock<std::mutex>(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
@@ -639,6 +639,43 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
     {
         PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
     }
+}
+
+/// <summary>
+/// Changes the block size of a table and all the columns of the table will be affected - their blocks
+/// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
+/// </summary>
+/// <param name="tableName">Name of the table which have which block size will be changed.</param>
+/// <param name="newBlockSize">New block size of a table and columns of this table.</param>
+void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
+{
+    auto& table = tables_.at(tableName);
+    BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " has been changed from "
+                            << table.GetBlockSize() << " to " << newBlockSize << ".";
+    
+	// change block size to a new one
+	table.SetBlockSize(newBlockSize);
+
+	// delete .col files with old block size which are persisted on disk, if they are persisted
+    DeleteTableFromDisk(tableName);
+
+	/* TODO spravit, aby sa kazdy column z tabulky v pamati zmenil, obsah jeho dat a nullBit masky, podla noveho blocksize,
+	aj velkost nullBit masky bude ina (ulozena je v BlockBase) a este treba zmenit blockSize aj v ColumnBase!!!! */
+	/*
+	auto& columns = table.GetColumns();
+    std::vector<std::thread> threads;
+    for (auto& column : columns)
+    {
+        threads.emplace_back(&Database::DeleteColumnFromDisk, tableName, column.second.get()->GetName());
+    }
+    for (int j = 0; j < threads.size(); j++)
+    {
+        threads[j].join();
+    }
+	*/
+
+	// save all changes to disk
+    Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
 }
 
 /// <summary>

@@ -157,6 +157,14 @@ public:
     /// </summary>
     void DeleteColumnFromDisk(const char* tableName, const char* columnName);
 
+	/// <summary>
+    /// Changes the block size of a table and all the columns of the table will be affected - their blocks
+    /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
+    /// </summary>
+    /// <param name="tableName">Name of the table which have which block size will be changed.</param>
+    /// <param name="newBlockSize">New block size of a table and columns of this table.</param>
+    void ChangeTableBlockSize(const char* tableName, int32_t newBlockSize);
+
     /// <summary>
     /// Load database from disk into memory.
     /// </summary>

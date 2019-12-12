@@ -1,9 +1,10 @@
-#include "ColumnBase.h"
-#include "PointFactory.h"
-#include "Types/ComplexPolygon.pb.h"
 #include <numeric>
 #include <algorithm>
 #include <cmath>
+
+#include "ColumnBase.h"
+#include "PointFactory.h"
+#include "Types/ComplexPolygon.pb.h"
 #include "QueryEngine/NullConstants.cuh"
 
 template <>
