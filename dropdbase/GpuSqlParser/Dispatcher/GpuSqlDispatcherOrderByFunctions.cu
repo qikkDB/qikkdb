@@ -62,8 +62,14 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
         GPUMemory::GPUString reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int8_t> reorderedFilterMask(inSize);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+
+        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                 reinterpret_cast<int8_t*>(filter_), inSize);
+
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                        std::get<0>(col), inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
@@ -72,8 +78,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
-                                             reinterpret_cast<int8_t*>(filter_), inSize,
-                                             outNullData.get(), reorderedNullColumn.get());
+                                             reorderedFilterMask.get(), inSize, outNullData.get(),
+                                             reorderedNullColumn.get());
         outData->resize(outSize);
 
         GPUMemory::free(reorderedColumn);
@@ -122,8 +128,14 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int8_t> reorderedFilterMask(inSize);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+
+        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                 reinterpret_cast<int8_t*>(filter_), inSize);
+
         GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                  reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
@@ -132,7 +144,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 
         int32_t outSize;
         GPUReconstruct::ReconstructPointColToWKT(outData->getData(), &outSize, reorderedColumn.get(),
-                                                 reinterpret_cast<int8_t*>(filter_), inSize,
+                                                 reorderedFilterMask.get(), inSize,
                                                  outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
 
@@ -180,8 +192,14 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
         GPUMemory::GPUPolygon reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int8_t> reorderedFilterMask(inSize);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
+
+        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                 reinterpret_cast<int8_t*>(filter_), inSize);
+
         GPUOrderBy::ReOrderPolygonByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                         std::get<0>(col), inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
@@ -190,7 +208,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
         int32_t outSize;
         GPUReconstruct::ReconstructPolyColToWKT(outData->getData(), &outSize, reorderedColumn,
-                                                reinterpret_cast<int8_t*>(filter_), inSize,
+                                                reorderedFilterMask.get(), inSize,
                                                 outNullData.get(), reorderedNullColumn.get());
         outData->resize(outSize);
 
