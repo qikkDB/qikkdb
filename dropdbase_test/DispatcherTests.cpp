@@ -24,7 +24,7 @@
 
 // INT ">"
 
-//Test values from integer column to be greater than the constant value
+// Test values from integer column to be greater than the constant value
 TEST(DispatcherTests, IntGtColumnConst)
 {
     Context::getInstance();
@@ -39,11 +39,10 @@ TEST(DispatcherTests, IntGtColumnConst)
     auto resultPtr = parser.Parse(); // Execute query
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	//Table has columns, column have blocks of data
+    // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
-    auto &colInteger = tables.at(tableName).GetColumns().at(columnName);
-    auto blocksNum =
-        dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
+    auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
+    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
 
     // Filter data from database on CPU manually, so we have expected results
     std::vector<int32_t> expectedResult;
@@ -65,10 +64,10 @@ TEST(DispatcherTests, IntGtColumnConst)
 
     auto& payloads = result->payloads().at(tableName + "." + columnName);
 
-	// Check, if the query result have the expected number of returned values (results)
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-	// Check the correctness of the returned values element by element
+    // Check the correctness of the returned values element by element
     for (int32_t i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -80,7 +79,7 @@ TEST(DispatcherTests, IntGtConstColumn)
 {
     Context::getInstance();
 
-	std::string tableName = "TableA";
+    std::string tableName = "TableA";
     std::string columnName = "colInteger1";
     int32_t filterValue = -1000;
 
@@ -115,10 +114,10 @@ TEST(DispatcherTests, IntGtConstColumn)
 
     auto& payloads = result->payloads().at(tableName + "." + columnName);
 
-	// Check, if the query result have the expected number of returned values (results)
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-	// Check the correctness of the returned values element by element
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -906,7 +905,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
 {
     Context::getInstance();
 
-	std::string tableName = "TableA";
+    std::string tableName = "TableA";
     std::string columnName = "colInteger1";
     int32_t filterValue1 = 5;
     int32_t filterValue2 = 10;
@@ -917,7 +916,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	// Table has columns, column have blocks of data
+    // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
     auto& colInteger = tables.at(tableName).GetColumns().at(columnName);
     auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList();
@@ -934,17 +933,17 @@ TEST(DispatcherTests, IntLtConstConstTrue)
 
         for (int32_t i = 0; i < dataLength; i++)
         {
-			// There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
-			expectedResult.push_back(data[i]);
+            // There is a TRUE statement in WHERE cluase, so all the elements in the column should be returned
+            expectedResult.push_back(data[i]);
         }
     }
 
     auto& payloads = result->payloads().at(tableName + "." + columnName);
 
-	// Check, if the query result have the expected number of returned values (results)
+    // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());
 
-	// Check the correctness of the returned values element by element
+    // Check the correctness of the returned values element by element
     for (int i = 0; i < payloads.intpayload().intdata_size(); i++)
     {
         ASSERT_EQ(expectedResult[i], payloads.intpayload().intdata()[i]);
@@ -967,7 +966,7 @@ TEST(DispatcherTests, IntLtConstConstFalse)
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-	// There is FALSE statement in WHERE clause, so there should not be any results
+    // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
@@ -12180,7 +12179,8 @@ TEST(DispatcherTests, PolygonClippingAndContains)
     Context::getInstance();
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-        "SELECT colInteger1 FROM TableA WHERE GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
+                              "SELECT colInteger1 FROM TableA WHERE "
+                              "GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
@@ -12383,75 +12383,6 @@ TEST(DispatcherTests, CreateAlterNotNullConstraintsDropTable)
         DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().at("colA")->GetIsNullable());
     ASSERT_FALSE(
         DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().at("colB")->GetIsNullable());
-
-	GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE tblA;");
-    resultPtr = parser6.Parse();
-
-    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") ==
-                DispatcherObjs::GetInstance().database->GetTables().end());
-}
-
-TEST(DispatcherTests, CreateAlterUniqueConstraintsDropTable)
-{
-    Context::getInstance();
-
-    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") ==
-                DispatcherObjs::GetInstance().database->GetTables().end());
-
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "CREATE TABLE tblA (colA int, colB float);");
-    auto resultPtr = parser.Parse();
-
-    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("tblA") !=
-                DispatcherObjs::GetInstance().database->GetTables().end());
-
-    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
-                               "INSERT INTO tblA (colA, colB) VALUES (1, 2.0);");
-
-    for (int32_t i = 0; i < 5; i++)
-    {
-        resultPtr = parser2.Parse();
-    }
-
-    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
-                               "SELECT colA, colB from tblA;");
-    resultPtr = parser3.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-    std::vector<int32_t> expectedResultsColA;
-    std::vector<float> expectedResultsColB;
-
-    for (int k = 0; k < 5; k++)
-    {
-        expectedResultsColA.push_back(1);
-        expectedResultsColB.push_back(2.0);
-    }
-
-    auto& payloadsColA = result->payloads().at("tblA.colA");
-    auto& payloadsColB = result->payloads().at("tblA.colB");
-
-    ASSERT_EQ(payloadsColA.intpayload().intdata_size(), expectedResultsColA.size());
-
-    for (int i = 0; i < payloadsColA.intpayload().intdata_size(); i++)
-    {
-        ASSERT_FLOAT_EQ(expectedResultsColA[i], payloadsColA.intpayload().intdata()[i]);
-    }
-
-    ASSERT_EQ(payloadsColB.floatpayload().floatdata_size(), expectedResultsColB.size());
-
-    for (int i = 0; i < payloadsColB.floatpayload().floatdata_size(); i++)
-    {
-        ASSERT_FLOAT_EQ(expectedResultsColB[i], payloadsColB.floatpayload().floatdata()[i]);
-    }
-
-    GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database,
-                               "ALTER TABLE tblA ADD UNIQUE uniqueAB (colA, colB);");
-    resultPtr = parser4.Parse();
-
-    ASSERT_TRUE(
-        DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().at("colA")->GetIsUnique());
-    ASSERT_TRUE(
-        DispatcherObjs::GetInstance().database->GetTables().at("tblA").GetColumns().at("colB")->GetIsUnique());
 
     GpuSqlCustomParser parser6(DispatcherObjs::GetInstance().database, "DROP TABLE tblA;");
     resultPtr = parser6.Parse();

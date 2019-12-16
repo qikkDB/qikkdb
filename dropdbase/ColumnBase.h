@@ -112,10 +112,10 @@ private:
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable),
-      saveNecessary_(true)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), saveNecessary_(true)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
+        SetIsNullable(isNullable);
         SetIsUnique(isUnique);
     }
 
@@ -177,7 +177,52 @@ public:
 
     virtual void SetIsNullable(bool isNullable) override
     {
-        isNullable_ = isNullable;
+        if (isNullable_ != isNullable)
+        {
+            if (!isNullable)
+            {
+                bool isNullValue = false;
+                for (auto const& blocksId : blocks_)
+                {
+                    for (int32_t i = 0; i < blocksId.second.size() && !isNullValue; i++)
+                    {
+                        auto data = blocksId.second[i]->GetData();
+                        int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                        for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !isNullValue; j++)
+                        {
+                            int bitMaskIdx = (j / (sizeof(char) * 8));
+                            int shiftIdx = (j % (sizeof(char) * 8));
+                            int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+
+                            if (bit)
+                            {
+                                isNullValue = true;
+							}
+                        }
+                    }
+                }
+
+                if (!isNullValue)
+                {
+                    isNullable_ = false;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
+                }
+                else
+                {
+                    throw std::length_error("Could not add NOT NULL constraint on column: " + name_ +
+                                            ", column contains null values");
+                }
+            }
+
+            else
+            {
+                isNullable_ = true;
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
+            }
+        }
     }
 
     virtual bool GetIsUnique() const override

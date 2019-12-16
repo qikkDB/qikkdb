@@ -1522,7 +1522,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         dispatcher_.AddArgument<const std::string&>(newTableName);
     }
 
-	dispatcher_.AddArgument<int32_t>(newIndices.size());
+    dispatcher_.AddArgument<int32_t>(newIndices.size());
     for (auto& newIndex : newIndices)
     {
         dispatcher_.AddArgument<const std::string&>(newIndex.first);
@@ -1530,17 +1530,6 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         for (auto& indexColumn : newIndex.second)
         {
             dispatcher_.AddArgument<const std::string&>(indexColumn);
-        }
-    }
-
-    dispatcher_.AddArgument<int32_t>(newUniques.size());
-    for (auto& newUnique : newUniques)
-    {
-        dispatcher_.AddArgument<const std::string&>(newUnique.first);
-        dispatcher_.AddArgument<int32_t>(newUnique.second.size());
-        for (auto& uniqueColumn : newUnique.second)
-        {
-            dispatcher_.AddArgument<const std::string&>(uniqueColumn);
         }
     }
 
@@ -1552,6 +1541,17 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         for (auto& notNullColumn : newNotNull.second)
         {
             dispatcher_.AddArgument<const std::string&>(notNullColumn);
+        }
+    }
+
+    dispatcher_.AddArgument<int32_t>(newUniques.size());
+    for (auto& newUnique : newUniques)
+    {
+        dispatcher_.AddArgument<const std::string&>(newUnique.first);
+        dispatcher_.AddArgument<int32_t>(newUnique.second.size());
+        for (auto& uniqueColumn : newUnique.second)
+        {
+            dispatcher_.AddArgument<const std::string&>(uniqueColumn);
         }
     }
 }

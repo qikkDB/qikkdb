@@ -1633,19 +1633,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         }
     }
 
-    int32_t newUniqueCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newUniqueCount; i++)
-    {
-        std::string newUniqueName = arguments_.Read<std::string>();
-        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
-
-        for (int32_t j = 0; j < newUniqueColumnCount; j++)
-        {
-            std::string newUniqueColumn = arguments_.Read<std::string>();
-            database_->GetTables().at(tableName).GetColumns().at(newUniqueColumn)->SetIsUnique(true);
-        }
-    }
-
     int32_t newNotNullCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newNotNullCount; i++)
     {
@@ -1656,6 +1643,19 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         {
             std::string newNotNullColumn = arguments_.Read<std::string>();
             database_->GetTables().at(tableName).GetColumns().at(newNotNullColumn)->SetIsNullable(false);
+        }
+    }
+
+    int32_t newUniqueCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newUniqueCount; i++)
+    {
+        std::string newUniqueName = arguments_.Read<std::string>();
+        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
+
+        for (int32_t j = 0; j < newUniqueColumnCount; j++)
+        {
+            std::string newUniqueColumn = arguments_.Read<std::string>();
+            database_->GetTables().at(tableName).GetColumns().at(newUniqueColumn)->SetIsUnique(true);
         }
     }
 
