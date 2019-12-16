@@ -32,8 +32,8 @@ int32_t CpuSqlDispatcher::FilterStringColConst()
     case CpuFilterInterval::OUTER:
     case CpuFilterInterval::INNER:
     {
-        int8_t mask = cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
-                      cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
+        const int8_t mask = cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+                            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
 
         maskMin[0] = mask;
         maskMax[0] = mask;
@@ -88,8 +88,8 @@ int32_t CpuSqlDispatcher::FilterStringConstCol()
     case CpuFilterInterval::OUTER:
     case CpuFilterInterval::INNER:
     {
-        int8_t mask = cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
-                      cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
+        const int8_t mask = cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+                            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
 
         maskMin[0] = mask;
         maskMax[0] = mask;
