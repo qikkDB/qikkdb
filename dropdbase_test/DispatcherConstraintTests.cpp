@@ -19,7 +19,7 @@ TEST(DispatcherConstraintTests, UniqueTest)
     Context::getInstance();
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "CREATE TABLE TableConstraint (colA INT UNIQUE);");
+                              "CREATE TABLE TableConstraint (colA INT, UNIQUE colAUnique (colA), NOT NULL colANotNull(colA));");
     auto resultPtr = parser.Parse();
 
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") !=
@@ -74,8 +74,7 @@ TEST(DispatcherConstraintTests, UniqueGroupTest)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "CREATE TABLE TableConstraint (colA INT, colB STRING, UNIQUE u "
-                              "(colA, "
-                              "colB));");
+                              "(colA, colB), NOT NULL n (colA, colB));");
     auto resultPtr = parser.Parse();
 
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") !=
@@ -114,8 +113,7 @@ TEST(DispatcherConstraintTests, NotNullGroupTest)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "CREATE TABLE TableConstraint (colA INT, colB STRING, NOT NULL n "
-                              "(colA, "
-                              "colB));");
+                              "(colA, colB), NOT NULL n (colA, colB));");
     auto resultPtr = parser.Parse();
 
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") !=

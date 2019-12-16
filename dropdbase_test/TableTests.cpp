@@ -958,13 +958,28 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     auto castedColumnString = dynamic_cast<ColumnBase<std::string>*>(columnString.get());
     auto castedColumnBool = dynamic_cast<ColumnBase<int8_t>*>(columnBool.get());
 
+    castedColumnInt->SetIsNullable(false);
     castedColumnInt->SetIsUnique(true);
+
+    castedColumnLong->SetIsNullable(false);
     castedColumnLong->SetIsUnique(true);
+
+    castedColumnDouble->SetIsNullable(false);
     castedColumnDouble->SetIsUnique(true);
+
+    castedColumnFloat->SetIsNullable(false);
     castedColumnFloat->SetIsUnique(true);
+
+    castedColumnPoint->SetIsNullable(false);
     castedColumnPoint->SetIsUnique(true);
+
+    castedColumnPolygon->SetIsNullable(false);
     castedColumnPolygon->SetIsUnique(true);
+
+    castedColumnString->SetIsNullable(false);
     castedColumnString->SetIsUnique(true);
+
+    castedColumnBool->SetIsNullable(false);
     castedColumnBool->SetIsUnique(true);
 
     // Inserting unique values
@@ -1157,7 +1172,7 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     ASSERT_EQ(blockBool[0]->GetData()[2], 1);
 }
 
-TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColumns)
+TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColumns)
 {
     auto database = std::make_shared<Database>("testDatabaseUnique", 10);
     Table table(database, "testTable");
@@ -1190,13 +1205,28 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColu
     auto castedColumnString = dynamic_cast<ColumnBase<std::string>*>(columnString.get());
     auto castedColumnBool = dynamic_cast<ColumnBase<int8_t>*>(columnBool.get());
 
+    castedColumnInt->SetIsNullable(false);
     castedColumnInt->SetIsUnique(true);
+
+    castedColumnLong->SetIsNullable(false);
     castedColumnLong->SetIsUnique(true);
+
+    castedColumnDouble->SetIsNullable(false);
     castedColumnDouble->SetIsUnique(true);
+
+    castedColumnFloat->SetIsNullable(false);
     castedColumnFloat->SetIsUnique(true);
+
+    castedColumnPoint->SetIsNullable(false);
     castedColumnPoint->SetIsUnique(true);
+
+    castedColumnPolygon->SetIsNullable(false);
     castedColumnPolygon->SetIsUnique(true);
+
+    castedColumnString->SetIsNullable(false);
     castedColumnString->SetIsUnique(true);
+
+    castedColumnBool->SetIsNullable(false);
     castedColumnBool->SetIsUnique(true);
 
     // Inserting unique values
@@ -1398,7 +1428,7 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertDuplicateValuesIntoUniqueColu
     ASSERT_EQ(blockBool2[0]->GetData()[2], 1);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Int)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -1413,6 +1443,10 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     auto castedColumnIntA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get());
     auto castedColumnIntB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
 
+    // trying to make unique column without NOT NULL constraint which is not allowed
+    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), std::length_error);
+
+    castedColumnIntA->SetIsNullable(false);
     castedColumnIntA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnIntA->GetIsNullable());
 
@@ -1651,7 +1685,100 @@ TEST(TableTests, InsertIntoIsUnique_Int)
     ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Int_ThroughConsole)
+TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_NoDuplicityInData_Int)
+{
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnIntA", COLUMN_INT);
+    table.CreateColumn("ColumnIntB", COLUMN_INT);
+
+    auto& columnIntA = table.GetColumns().at("ColumnIntA");
+    auto& columnIntB = table.GetColumns().at("ColumnIntB");
+
+    auto castedColumnIntA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get());
+    auto castedColumnIntB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<int32_t> dataIntA({2, 4, -6});
+    std::vector<int32_t> dataIntB({21, 41, -61});
+
+    data.insert({"ColumnIntA", dataIntA});
+    data.insert({"ColumnIntB", dataIntB});
+
+    table.InsertData(data);
+
+    auto blockIntA =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
+    auto blockIntB =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockIntA[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[1], 4);
+    ASSERT_EQ(blockIntA[0]->GetData()[2], -6);
+
+    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[0], 21);
+    ASSERT_EQ(blockIntB[0]->GetData()[1], 41);
+    ASSERT_EQ(blockIntB[0]->GetData()[2], -61);
+
+    castedColumnIntA->SetIsNullable(false);
+    castedColumnIntB->SetIsNullable(false);
+    castedColumnIntA->SetIsUnique(true);
+    castedColumnIntB->SetIsUnique(true);
+
+    ASSERT_FALSE(castedColumnIntA->GetIsNullable());
+    ASSERT_FALSE(castedColumnIntB->GetIsNullable());
+    ASSERT_TRUE(castedColumnIntA->GetIsUnique());
+    ASSERT_TRUE(castedColumnIntB->GetIsUnique());
+}
+
+TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_DuplicityInData_Int)
+{
+    auto database = std::make_shared<Database>("testDatabaseUnique", 50);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnIntA", COLUMN_INT);
+    table.CreateColumn("ColumnIntB", COLUMN_INT);
+
+    auto& columnIntA = table.GetColumns().at("ColumnIntA");
+    auto& columnIntB = table.GetColumns().at("ColumnIntB");
+
+    auto castedColumnIntA = dynamic_cast<ColumnBase<int32_t>*>(columnIntA.get());
+    auto castedColumnIntB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
+
+    std::unordered_map<std::string, std::any> data;
+    std::vector<int32_t> dataIntA({2, 2, -6});
+    std::vector<int32_t> dataIntB({21, 21, -61});
+
+    data.insert({"ColumnIntA", dataIntA});
+    data.insert({"ColumnIntB", dataIntB});
+
+    table.InsertData(data);
+
+    auto blockIntA =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
+    auto blockIntB =
+        dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntB").get())->GetBlocksList();
+
+    ASSERT_EQ(blockIntA[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntA[0]->GetData()[0], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[1], 2);
+    ASSERT_EQ(blockIntA[0]->GetData()[2], -6);
+
+    ASSERT_EQ(blockIntB[0]->GetSize(), 3);
+    ASSERT_EQ(blockIntB[0]->GetData()[0], 21);
+    ASSERT_EQ(blockIntB[0]->GetData()[1], 21);
+    ASSERT_EQ(blockIntB[0]->GetData()[2], -61);
+
+    castedColumnIntA->SetIsNullable(false);
+    castedColumnIntB->SetIsNullable(false);
+    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), std::length_error);
+    ASSERT_THROW(castedColumnIntB->SetIsUnique(true), std::length_error);
+}
+
+TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
 {
     GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE UniqueDatabase 50;");
     auto resultPtr = parserCreateDatabase.Parse();
@@ -1660,127 +1787,214 @@ TEST(TableTests, InsertIntoIsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserCreateTable(database,
                                          "CREATE TABLE TableA (ColumnIntA INT UNIQUE, ColumnIntB "
                                          "INT);");
-    resultPtr = parserCreateTable.Parse();
+    ASSERT_THROW(parserCreateTable.Parse(), std::length_error);
+
+    GpuSqlCustomParser parserCreateTable2(database,
+                                          "CREATE TABLE TableA (ColumnIntA INT, ColumnIntB "
+                                          "INT, ColumnIntC INT, ColumnIntD INT, UNIQUE u "
+                                          "(ColumnIntA), "
+                                          "NOT NULL n (ColumnIntA));");
+
+    resultPtr = parserCreateTable2.Parse();
     auto& table = database->GetTables().at("TableA");
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsNullable());
 
     ASSERT_TRUE(table.GetColumns().at("ColumnIntA")->GetIsUnique());
     ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntC")->GetIsUnique());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntD")->GetIsUnique());
 
     GpuSqlCustomParser parser(database,
-                              "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (1, 2);");
+                              "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, ColumnIntD) "
+                              "VALUES (1, 2, 4, 6);");
     resultPtr = parser.Parse();
 
-    GpuSqlCustomParser parser1(database,
-                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (2, 3);");
+    GpuSqlCustomParser parser1(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
+                                         "ColumnIntD) "
+                                         "VALUES (2, 3, 5, 7);");
     resultPtr = parser1.Parse();
 
-    GpuSqlCustomParser parserSelect(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                              "ColumnIntD FROM TableA;");
     resultPtr = parserSelect.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 2);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 2);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 2);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 2);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
 
-    // unique value in Unique column, non unique value into non unique column
-    GpuSqlCustomParser parser2(database,
-                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 2);");
+    // unique value in Unique columnIntA, non unique value into non unique columnIntB (unique values in ColumnIntC and ColumnIntD)
+    GpuSqlCustomParser parser2(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
+                                         "ColumnIntD) "
+                                         "VALUES (3, 2, 6, 9);");
     resultPtr = parser2.Parse();
 
-    GpuSqlCustomParser parserSelect2(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect2(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect2.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 3);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[2]);
+    ASSERT_EQ(9, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[2]);
 
-    // non unique value in Unique column, non unique value into non unique column
-    GpuSqlCustomParser parser3(database,
-                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 2);");
+    // non unique value in Unique column, non unique value into non unique columns
+    GpuSqlCustomParser parser3(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
+                                         "ColumnIntD) "
+                                         "VALUES (3, 2, 6, 9);");
     ASSERT_THROW(parser3.Parse(), std::length_error);
 
-    GpuSqlCustomParser parserSelect3(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect3(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect3.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 3);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[2]);
+    ASSERT_EQ(9, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[2]);
 
-    // non unique value in Unique column, unique value into non unique column
-    GpuSqlCustomParser parser4(database,
-                               "INSERT INTO TableA (ColumnIntA, ColumnIntB) VALUES (3, 4);");
+    // non unique value in Unique column, unique value into non unique columns
+    GpuSqlCustomParser parser4(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
+                                         "ColumnIntD) VALUES (3, 4, 7, 10);");
     ASSERT_THROW(parser4.Parse(), std::length_error);
 
-    GpuSqlCustomParser parserSelect4(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect4(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect4.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 3);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[2]);
+    ASSERT_EQ(9, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[2]);
 
-    // insert only into non unique column, so null value should be inserted into unique column but this is forbidden
-    GpuSqlCustomParser parser5(database, "INSERT INTO TableA (ColumnIntB) VALUES (3);");
+    // insert only into non unique columns, so null value should be inserted into unique column but this is forbidden
+    GpuSqlCustomParser parser5(database,
+                               "INSERT INTO TableA (ColumnIntB, ColumnIntC) VALUES (3, 7);");
     ASSERT_THROW(parser5.Parse(), std::length_error);
 
-    GpuSqlCustomParser parserSelect5(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect5(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect5.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 3);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 3);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[2]);
+    ASSERT_EQ(9, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[2]);
 
-    // insert only into unique column, so null value will be inserted into non unique column
-    GpuSqlCustomParser parser6(database, "INSERT INTO TableA (ColumnIntA) VALUES (4);");
+    // insert only into unique ColumnIntA and nonUnique ColumnIntB and nonUnique ColumnIntC, so null value will be inserted into non unique columnIntD
+    GpuSqlCustomParser parser6(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC) "
+                                         "VALUES (4, 1, 1);");
     parser6.Parse();
 
-    GpuSqlCustomParser parserSelect6(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    GpuSqlCustomParser parserSelect6(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
+                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect6.Parse();
     result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 4);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 4);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntC").intpayload().intdata_size(), 4);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnIntD").intpayload().intdata_size(), 4);
     ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[0]);
+    ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[0]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[0]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[1]);
+    ASSERT_EQ(5, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[1]);
+    ASSERT_EQ(7, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[1]);
     ASSERT_EQ(3, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[2]);
     ASSERT_EQ(2, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[2]);
+    ASSERT_EQ(6, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[2]);
+    ASSERT_EQ(9, result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[2]);
     ASSERT_EQ(4, result->payloads().at("TableA.ColumnIntA").intpayload().intdata()[3]);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[3]);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnIntC").intpayload().intdata()[3]);
     ASSERT_EQ(GetNullConstant<int32_t>(),
-              result->payloads().at("TableA.ColumnIntB").intpayload().intdata()[3]);
+              result->payloads().at("TableA.ColumnIntD").intpayload().intdata()[3]);
 
     GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE UniqueDatabase;");
     resultPtr = parserDropDatabase.Parse();
+
+    // add Unique Constraint on column with no duplicity
+    GpuSqlCustomParser addUniqueNoDup(database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC);");
+    ASSERT_THROW(addUniqueNoDup.Parse(), std::length_error);
+
+    GpuSqlCustomParser addUniqueNoDupWithNotNull(
+        database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC), ADD NOT NULL n(ColumnIntC);");
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntC")->GetIsNullable());
+
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntA")->GetIsUnique());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntC")->GetIsUnique());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntD")->GetIsUnique());
 }
 
-TEST(TableTests, InsertIntoIsUnique_Long)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -1795,6 +2009,9 @@ TEST(TableTests, InsertIntoIsUnique_Long)
     auto castedColumnA = dynamic_cast<ColumnBase<int64_t>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<int64_t>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
@@ -2031,7 +2248,7 @@ TEST(TableTests, InsertIntoIsUnique_Long)
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Float)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -2046,6 +2263,9 @@ TEST(TableTests, InsertIntoIsUnique_Float)
     auto castedColumnA = dynamic_cast<ColumnBase<float>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<float>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
@@ -2269,7 +2489,7 @@ TEST(TableTests, InsertIntoIsUnique_Float)
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Double)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -2284,6 +2504,9 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     auto castedColumnA = dynamic_cast<ColumnBase<double>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<double>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
@@ -2508,7 +2731,7 @@ TEST(TableTests, InsertIntoIsUnique_Double)
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_String)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -2523,6 +2746,9 @@ TEST(TableTests, InsertIntoIsUnique_String)
     auto castedColumnA = dynamic_cast<ColumnBase<std::string>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<std::string>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
@@ -2761,7 +2987,7 @@ TEST(TableTests, InsertIntoIsUnique_String)
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Point)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 {
     // insert unique values into both columns - one isUnique and one is not
     auto database = std::make_shared<Database>("testDatabaseUnique", 50);
@@ -2776,6 +3002,9 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
@@ -2958,7 +3187,7 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     dataB6.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
     dataB6.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
 
-	data6.insert({"ColumnA", dataA6});
+    data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
     std::unordered_map<std::string, std::vector<int8_t>> nullMask;
@@ -3045,7 +3274,7 @@ TEST(TableTests, InsertIntoIsUnique_Point)
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
 }
 
-TEST(TableTests, InsertIntoIsUnique_Polygon)
+TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
 {
     std::vector<std::string> resultA;
     std::vector<std::string> resultB;
@@ -3063,6 +3292,9 @@ TEST(TableTests, InsertIntoIsUnique_Polygon)
     auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnB.get());
 
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::length_error);
+
+    castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 

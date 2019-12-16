@@ -113,9 +113,10 @@ private:
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
     : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(isNullable),
-      saveNecessary_(true), isUnique_(isUnique)
+      saveNecessary_(true)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
+        SetIsUnique(isUnique);
     }
 
     /// <summary>
@@ -186,15 +187,63 @@ public:
 
     virtual void SetIsUnique(bool isUnique) override
     {
-        isUnique_ = isUnique;
-        if (isUnique)
+
+        if (isUnique_ != isUnique)
         {
-            isNullable_ = false;
-            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
-        }
-        else
-        {
-            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+            if (isUnique)
+            {
+                if (isNullable_)
+                {
+                    throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                            ", column need to have NOT NULL constraint");
+                }
+
+                T duplicateData;
+                bool duplicateFound = false;
+                for (auto const& blocksId : blocks_)
+                {
+                    for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+                    {
+                        auto data = blocksId.second[i]->GetData();
+                        int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                        for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                        {
+                            if (!IsDuplicate(uniqueHashmap_, data[j]))
+                            {
+                                InsertIntoHashmap(data[j]);
+                            }
+                            else
+                            {
+                                duplicateFound = true;
+                                duplicateData = data[j];
+                            }
+                        }
+                    }
+                }
+
+                if (!duplicateFound)
+                {
+                    isUnique_ = true;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+                }
+                else
+                {
+                    uniqueHashmap_.clear();
+
+                    throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                            ", column contains duplicate value");
+                }
+            }
+
+            else
+            {
+                isUnique_ = false;
+                uniqueHashmap_.clear();
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+            }
         }
     }
 

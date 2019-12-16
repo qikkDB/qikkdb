@@ -1460,11 +1460,18 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
         newNotNulls.insert({newNotNullName, newNotNullColumns});
     }
 
-
-    database_
-        ->CreateTable(newColumns, newTableName.c_str(), areNullable, areUnique, newTableBlockSize)
-        .SetSortingColumns(allIndexColumns);
-
+    try
+    {
+        database_
+            ->CreateTable(newColumns, newTableName.c_str(), areNullable, areUnique, newTableBlockSize)
+            .SetSortingColumns(allIndexColumns);
+    }
+    catch (const std::length_error& e)
+    {
+        database_->GetTables().erase(newTableName.c_str());
+        database_->DeleteTableFromDisk(newTableName.c_str());
+		throw;
+    }
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create table completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
