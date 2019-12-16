@@ -177,51 +177,47 @@ public:
 
     virtual void SetIsNullable(bool isNullable) override
     {
-        if (isNullable_ != isNullable)
+        if (!isNullable)
         {
-            if (!isNullable)
+            bool isNullValue = false;
+            for (auto const& blocksId : blocks_)
             {
-                bool isNullValue = false;
-                for (auto const& blocksId : blocks_)
+                for (int32_t i = 0; i < blocksId.second.size() && !isNullValue; i++)
                 {
-                    for (int32_t i = 0; i < blocksId.second.size() && !isNullValue; i++)
+                    auto data = blocksId.second[i]->GetData();
+                    int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                    for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !isNullValue; j++)
                     {
-                        auto data = blocksId.second[i]->GetData();
-                        int8_t* mask = blocksId.second[i]->GetNullBitmask();
+                        int bitMaskIdx = (j / (sizeof(char) * 8));
+                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
 
-                        for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !isNullValue; j++)
+                        if (bit)
                         {
-                            int bitMaskIdx = (j / (sizeof(char) * 8));
-                            int shiftIdx = (j % (sizeof(char) * 8));
-                            int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-
-                            if (bit)
-                            {
-                                isNullValue = true;
-							}
+                            isNullValue = true;
                         }
                     }
                 }
-
-                if (!isNullValue)
-                {
-                    isNullable_ = false;
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
-                }
-                else
-                {
-                    throw std::length_error("Could not add NOT NULL constraint on column: " + name_ +
-                                            ", column contains null values");
-                }
             }
 
+            if (!isNullValue)
+            {
+                isNullable_ = false;
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
+            }
             else
             {
-                isNullable_ = true;
-                BOOST_LOG_TRIVIAL(debug)
-                    << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
+                throw std::length_error("Could not add NOT NULL constraint on column: " + name_ +
+                                        ", column contains null values");
             }
+        }
+
+        else
+        {
+            isNullable_ = true;
+            BOOST_LOG_TRIVIAL(debug) << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
         }
     }
 
@@ -233,62 +229,57 @@ public:
     virtual void SetIsUnique(bool isUnique) override
     {
 
-        if (isUnique_ != isUnique)
+        if (isUnique)
         {
-            if (isUnique)
+            if (isNullable_)
             {
-                if (isNullable_)
-                {
-                    throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                            ", column need to have NOT NULL constraint");
-                }
+                throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                        ", column need to have NOT NULL constraint");
+            }
 
-                T duplicateData;
-                bool duplicateFound = false;
-                for (auto const& blocksId : blocks_)
+            T duplicateData;
+            bool duplicateFound = false;
+            for (auto const& blocksId : blocks_)
+            {
+                for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
                 {
-                    for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+                    auto data = blocksId.second[i]->GetData();
+                    int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                    for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
                     {
-                        auto data = blocksId.second[i]->GetData();
-                        int8_t* mask = blocksId.second[i]->GetNullBitmask();
-
-                        for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                        if (!IsDuplicate(uniqueHashmap_, data[j]))
                         {
-                            if (!IsDuplicate(uniqueHashmap_, data[j]))
-                            {
-                                InsertIntoHashmap(data[j]);
-                            }
-                            else
-                            {
-                                duplicateFound = true;
-                                duplicateData = data[j];
-                            }
+                            InsertIntoHashmap(data[j]);
+                        }
+                        else
+                        {
+                            duplicateFound = true;
+                            duplicateData = data[j];
                         }
                     }
                 }
-
-                if (!duplicateFound)
-                {
-                    isUnique_ = true;
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
-                }
-                else
-                {
-                    uniqueHashmap_.clear();
-
-                    throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                            ", column contains duplicate value");
-                }
             }
 
+            if (!duplicateFound)
+            {
+                isUnique_ = true;
+                BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+            }
             else
             {
-                isUnique_ = false;
                 uniqueHashmap_.clear();
-                BOOST_LOG_TRIVIAL(debug)
-                    << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+
+                throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                        ", column contains duplicate value");
             }
+        }
+
+        else
+        {
+            isUnique_ = false;
+            uniqueHashmap_.clear();
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
         }
     }
 
