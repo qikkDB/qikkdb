@@ -1655,7 +1655,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         for (int32_t j = 0; j < newNotNullColumnCount; j++)
         {
             std::string newNotNullColumn = arguments_.Read<std::string>();
-            database_->GetTables().at(tableName).GetColumns().at(newNotNullColumn)->SetIsNullable(true);
+            database_->GetTables().at(tableName).GetColumns().at(newNotNullColumn)->SetIsNullable(false);
         }
     }
 
