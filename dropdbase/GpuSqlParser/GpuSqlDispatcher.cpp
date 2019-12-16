@@ -1068,7 +1068,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
 GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseName,
                                                     const std::string& colName,
                                                     const std::string* strings,
-													const size_t stringCount,
+                                                    const size_t stringCount,
                                                     bool useCache,
                                                     int8_t* nullMaskPtr)
 {
@@ -1084,7 +1084,8 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
             gpuString.stringIndices =
                 std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
                                                      blockIndex_, stringCount, loadSize_, loadOffset_));
-            gpuString.allChars = std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
+            gpuString.allChars =
+                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
                                                   stringCount, loadSize_, loadOffset_));
             FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
@@ -1092,7 +1093,8 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
         else
         {
             GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName, blockIndex_, loadSize_, loadOffset_);
+                StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName,
+                                                blockIndex_, loadSize_, loadOffset_);
             FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
         }
@@ -1239,6 +1241,21 @@ int32_t GpuSqlDispatcher::WhereEvaluation()
 int32_t GpuSqlDispatcher::Jmp()
 {
     Context& context = Context::getInstance();
+
+    // unlock GB and OB mutexes if load was skipped and block was last on device
+    if (noLoad_ == false && loadNecessary_ == 0 && isLastBlockOfDevice_)
+    {
+        {
+            std::unique_lock<std::mutex> lock(GpuSqlDispatcher::orderByMutex_);
+            GpuSqlDispatcher::IncOrderByDoneCounter();
+            GpuSqlDispatcher::orderByCV_.notify_all();
+        }
+        {
+            std::unique_lock<std::mutex> lock(GpuSqlDispatcher::groupByMutex_);
+            GpuSqlDispatcher::IncGroupByDoneCounter();
+            GpuSqlDispatcher::groupByCV_.notify_all();
+        }
+    }
 
     if (noLoad_ && loadNecessary_ != 0)
     {

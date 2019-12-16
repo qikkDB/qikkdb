@@ -106,14 +106,18 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol()
 
         cuda_ptr<T> reorderedColumn(inSize);
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(inSize);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
-		
-        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
-                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                 reinterpret_cast<int8_t*>(filter_), inSize);
+        if (filter_)
+        {
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                     reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
+        }
+
 
         GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                  reinterpret_cast<T*>(col.GpuPtr), col.ElementCount);
@@ -124,9 +128,11 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol()
         GPUOrderBy::TransformNullValsToSmallestVal(reorderedColumn.get(), reorderedNullColumn.get(), inSize);
 
         int32_t outSize;
+
         GPUReconstruct::reconstructCol(outData->getData(), &outSize, reorderedColumn.get(),
                                        reorderedFilterMask.get(), inSize, outNullData.get(),
                                        reorderedNullColumn.get());
+
         outData->resize(outSize);
 
         if (isRetColumn)

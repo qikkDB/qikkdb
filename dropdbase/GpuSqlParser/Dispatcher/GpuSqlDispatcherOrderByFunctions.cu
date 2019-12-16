@@ -62,13 +62,17 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 
         GPUMemory::GPUString reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(inSize);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
-        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
-                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                 reinterpret_cast<int8_t*>(filter_), inSize);
+        if (filter_)
+        {
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                     reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
+        }
 
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                        std::get<0>(col), inSize);
@@ -128,13 +132,17 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(inSize);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
-        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
-                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                 reinterpret_cast<int8_t*>(filter_), inSize);
+        if (filter_)
+        {
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                     reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
+        }
 
         GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                  reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
@@ -192,13 +200,17 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
 
         GPUMemory::GPUPolygon reorderedColumn;
         cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(inSize);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
-        GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
-                                 reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                 reinterpret_cast<int8_t*>(filter_), inSize);
+        if (filter_)
+        {
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
+                                     reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
+        }
 
         GPUOrderBy::ReOrderPolygonByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                         std::get<0>(col), inSize);

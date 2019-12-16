@@ -22,7 +22,8 @@ public:
 
     cuda_ptr& operator=(cuda_ptr&& other)
     {
-        pointer_ = std::move(other.pointer_);
+        pointer_.reset(other.pointer_.release());
+        return *this;
     }
 
     /// Constructor for allocation of gpu array with defined element count (data remains undefined)
@@ -47,9 +48,9 @@ public:
 
     /// Constructor for assigning raw pointer
     /// <param name="rawPointer"> raw pointer to GPU memory (VRAM) </param>
-    explicit cuda_ptr(T* rawPointer)
+    explicit cuda_ptr(T* rawPointer) : pointer_(nullptr, &GPUMemory::free)
     {
-        pointer_(rawPointer, &GPUMemory::free);
+        pointer_.reset(rawPointer);
     }
 
     /// This method returns the raw pointer
