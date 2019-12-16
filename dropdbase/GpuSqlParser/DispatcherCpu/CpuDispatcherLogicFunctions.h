@@ -32,11 +32,11 @@ int32_t CpuSqlDispatcher::FilterStringColConst()
     case CpuFilterInterval::OUTER:
     case CpuFilterInterval::INNER:
         maskMin[0] =
-            cnst >= std::string(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin)) &&
-            cnst <= std::string(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
+            cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
         maskMax[0] =
-            cnst >= std::string(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin)) &&
-            cnst <= std::string(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
+            cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
         break;
 
     case CpuFilterInterval::NONE:
@@ -87,11 +87,11 @@ int32_t CpuSqlDispatcher::FilterStringConstCol()
     case CpuFilterInterval::OUTER:
     case CpuFilterInterval::INNER:
         maskMin[0] =
-            cnst >= std::string(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin)) &&
-            cnst <= std::string(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
+            cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
         maskMax[0] =
-            cnst >= std::string(reinterpret_cast<char*>(std::get<0>(colValMin)), std::get<1>(colValMin)) &&
-            cnst <= std::string(reinterpret_cast<char*>(std::get<0>(colValMax)), std::get<1>(colValMax));
+            cnst >= reinterpret_cast<char*>(std::get<0>(colValMin)) &&
+            cnst <= reinterpret_cast<char*>(std::get<0>(colValMax));
         break;
 
     case CpuFilterInterval::NONE:
