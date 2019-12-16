@@ -4,7 +4,7 @@
 
 #include "GPUMemory.cuh"
 
-/// A class wrapper for a RAII CUDA pointer for buffer allocationand automatic deallocation
+/// A class wrapper for a RAII CUDA pointer for buffer allocation and automatic deallocation
 template <typename T>
 class cuda_ptr
 {
@@ -25,7 +25,7 @@ public:
         pointer_ = std::move(other.pointer_);
     }
 
-    /// Constructor
+    /// Constructor for allocation of gpu array with defined element count (data remains undefined)
     /// <param name="dataElementCount"> Chunk of memory of size sizeof(T) * dataElementCount </param>
     explicit cuda_ptr(size_t dataElementCount)
     : pointer_(nullptr, &GPUMemory::free) // TODO bind CudaMemAllocator for correct graphic card
@@ -35,14 +35,21 @@ public:
         pointer_.reset(rawPointer);
     }
 
-    /// Constructor
+    /// Constructor for allocation of gpu array with defined element count and intial value
     /// <param name="dataElementCount"> Chunk of memory of size sizeof(T) * dataElementCount
-    /// </param> <param name="value"> The value to pre-fill the memory with </param>
+    /// </param> <param name="value"> The value for each allocated byte to pre-fill the memory with </param>
     cuda_ptr(size_t dataElementCount, int value) : pointer_(nullptr, &GPUMemory::free)
     {
         T* rawPointer;
         GPUMemory::allocAndSet(&rawPointer, value, dataElementCount);
         pointer_.reset(rawPointer);
+    }
+
+    /// Constructor for assigning raw pointer
+    /// <param name="rawPointer"> raw pointer to GPU memory (VRAM) </param>
+    explicit cuda_ptr(T* rawPointer)
+    {
+        pointer_(rawPointer, &GPUMemory::free);
     }
 
     /// This method returns the raw pointer
