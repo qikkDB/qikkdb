@@ -727,20 +727,19 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
     {
         if (isNullable_)
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+            throw std::logic_error("Could not add UNIQUE constraint on column: " + name_ +
                                     ", column need to have NOT NULL constraint");
         }
 
         std::string duplicateData;
         bool duplicateFound = false;
-        for (auto const& blocksId : blocks_)
+        for (auto const& mapBlock : blocks_)
         {
-            for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+            for (int32_t i = 0; i < mapBlock.second.size() && !duplicateFound; i++)
             {
-                auto data = blocksId.second[i]->GetData();
-                int8_t* mask = blocksId.second[i]->GetNullBitmask();
+                auto data = mapBlock.second[i]->GetData();
 
-                for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !duplicateFound; j++)
                 {
                     if (!IsDuplicate(uniqueHashmap_, data[j]))
                     {
@@ -766,7 +765,6 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
                                     ", column contains duplicate value: " + duplicateData);
         }
     }
-
     else
     {
         isUnique_ = false;
@@ -822,7 +820,6 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
                                     ", column contains duplicate value: " + PointFactory::WktFromPoint(duplicateData));
         }
     }
-
     else
     {
         isUnique_ = false;
@@ -878,7 +875,6 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
                                     ", column contains duplicate value: " + ComplexPolygonFactory::WktFromPolygon(duplicateData));
         }
     }
-
     else
     {
         isUnique_ = false;

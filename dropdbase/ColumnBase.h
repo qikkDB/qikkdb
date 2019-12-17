@@ -189,17 +189,17 @@ public:
         if (!isNullable)
         {
             bool isNullValue = false;
-            for (auto const& blocksId : blocks_)
+            for (auto const& mapBlock : blocks_)
             {
-                for (int32_t i = 0; i < blocksId.second.size() && !isNullValue; i++)
+                for (int32_t i = 0; i < mapBlock.second.size() && !isNullValue; i++)
                 {
-                    auto data = blocksId.second[i]->GetData();
-                    int8_t* mask = blocksId.second[i]->GetNullBitmask();
+                    auto data = mapBlock.second[i]->GetData();
+                    int8_t* mask = mapBlock.second[i]->GetNullBitmask();
 
-                    for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !isNullValue; j++)
+                    for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
 
                         if (bit)
@@ -218,7 +218,7 @@ public:
             }
             else
             {
-                throw std::length_error("Could not add NOT NULL constraint on column: " + name_ +
+                throw std::logic_error("Could not add NOT NULL constraint on column: " + name_ +
                                         ", column contains null values");
             }
         }
@@ -247,7 +247,7 @@ public:
         {
             if (isNullable_)
             {
-                throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                throw std::logic_error("Could not add UNIQUE constraint on column: " + name_ +
                                         ", column need to have NOT NULL constraint");
             }
 

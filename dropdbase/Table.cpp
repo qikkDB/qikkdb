@@ -140,7 +140,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
 /// </summary>
 /// <param name="data">unordered map of columnName and data that should be inserted in this
 /// column</param> <returns>Count of rows of inserted data</returns>
-int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
+int32_t Table::GetDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data)
 {
     int size = 0;
     const auto& dataOfFirstColumn = data.begin()->second;
@@ -201,7 +201,7 @@ int32_t Table::getDataSizeOfInsertedColumns(const std::unordered_map<std::string
 /// <param name="data">unordered map of columnName and data that should be inserted in this
 /// <param name="mullMasks">unordered map of columnName and vector which represents null values
 /// <param name="dataSize">num of data in one column
-void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize)
+void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize)
 {
     bool duplicateFound = false;
     std::string nameOfUniqueColumn;
@@ -243,7 +243,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -277,7 +277,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -310,7 +310,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -342,7 +342,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -376,7 +376,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 PointFactory::WktFromPoint(duplicateData));
@@ -411,7 +411,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 ComplexPolygonFactory::WktFromPolygon(duplicateData));
@@ -444,7 +444,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn +
                                                 ", column contains duplicate value: " + duplicateData);
@@ -477,7 +477,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::length_error("Could not execute statement due to a UNIQUE "
+                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -492,7 +492,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
             // Case when column is not in inserted data so automaticaly there should be NULL inserted which is not suitable when column is Unique
             if (column.second.get()->GetIsUnique())
             {
-                throw std::length_error(
+                throw std::runtime_error(
                     "Could not execute statement due to a UNIQUE constraint failure on column: " +
                     column.first + "trying to insert NULL value");
             }
@@ -500,7 +500,7 @@ void Table::checkUniqueConstraintInData(const std::unordered_map<std::string, st
     }
 }
 
-void Table::checkNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
                                           int32_t dataSize)
 {
     bool nullValueFound = false;
@@ -516,8 +516,8 @@ void Table::checkNullableConstraintInData(const std::unordered_map<std::string, 
                 for (int i = 0; i < dataSize && !nullValueFound; i++)
                 {
                     int8_t isNullValue = false;
-                    int bitMaskIdx = (i / (sizeof(char) * 8));
-                    int shiftIdx = (i % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
                     if (nullMasks.find(column.first) != nullMasks.end())
                     {
                         isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
@@ -525,7 +525,7 @@ void Table::checkNullableConstraintInData(const std::unordered_map<std::string, 
 
                     if (isNullValue)
                     {
-                        throw std::length_error("Could not execute statement due to a NOT NULL "
+                        throw std::runtime_error("Could not execute statement due to a NOT NULL "
                                                 "constraint failure on column: " +
                                                 column.first + " trying to insert NULL value");
                     }
@@ -535,7 +535,7 @@ void Table::checkNullableConstraintInData(const std::unordered_map<std::string, 
     }
 }
 
-bool Table::getHasUniqueConstraints()
+bool Table::GetHasUniqueConstraints()
 {
     for (const auto& column : columns)
     {
@@ -547,7 +547,7 @@ bool Table::getHasUniqueConstraints()
     return false;
 }
 
-bool Table::getHasNotNullConstraints()
+bool Table::GetHasNotNullConstraints()
 {
     for (const auto& column : columns)
     {
@@ -563,7 +563,7 @@ bool Table::getHasNotNullConstraints()
 /// Gets count of rows that are already inserted in database - information is getting as count of data in first sorting column
 /// </summary>
 /// <returns>count of rows of data in database</returns>
-int32_t Table::getDataRangeInSortingColumn()
+int32_t Table::GetDataRangeInSortingColumn()
 {
     int size = 0;
 
@@ -1031,7 +1031,7 @@ std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vec
     CompareResult compareResult;
 
     int left = 0;
-    int right = getDataRangeInSortingColumn();
+    int right = GetDataRangeInSortingColumn();
 
     if (right == 0)
     {
@@ -1528,17 +1528,17 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                        bool compress,
                        const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
 {
-    int oneColumnDataSize = getDataSizeOfInsertedColumns(data);
+    int oneColumnDataSize = GetDataSizeOfInsertedColumns(data);
 
-    if (getHasNotNullConstraints())
+    if (GetHasNotNullConstraints())
     {
-        checkNullableConstraintInData(nullMasks, oneColumnDataSize);
+        CheckNullableConstraintInData(nullMasks, oneColumnDataSize);
     }
 
     // This method check UNIQUE constraints and data which should be inserted if fit this requirement
-    if (getHasUniqueConstraints())
+    if (GetHasUniqueConstraints())
     {
-        checkUniqueConstraintInData(data, oneColumnDataSize);
+        CheckUniqueConstraintInData(data, oneColumnDataSize);
     }
 
     // This block of code insert data according to set indices

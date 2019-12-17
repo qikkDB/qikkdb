@@ -39,7 +39,7 @@ private:
                                         int indexInBlock,
                                         int iterator,
                                         const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
-    int32_t getDataRangeInSortingColumn();
+    int32_t GetDataRangeInSortingColumn();
     std::tuple<std::vector<std::any>, std::vector<int8_t>>
     GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
                                    int iterator,
@@ -48,14 +48,14 @@ private:
     std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOnIndex(int index);
     CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int index);
     std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
-    int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
-    void checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
+    int32_t GetDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
+    void CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
                                      int32_t dataSize);
 #endif
-    void checkNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+    void CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
                                        int32_t dataSize);
-    bool getHasUniqueConstraints();
-    bool getHasNotNullConstraints();
+    bool GetHasUniqueConstraints();
+    bool GetHasNotNullConstraints();
 
 public:
     const std::shared_ptr<Database>& GetDatabase();
