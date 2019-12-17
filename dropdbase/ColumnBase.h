@@ -327,7 +327,7 @@ public:
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
     }
 
-	virtual void SetSaveNecessaryToTrue() override
+    virtual void SetSaveNecessaryToTrue() override
     {
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
@@ -378,6 +378,29 @@ public:
 
         return ret;
     };
+
+    /// <summary>
+    /// Resize column data blocks from source column to this column. If the source blocks are not
+    /// fully filled, after resizing, the blocks will be fully filled, just the last block does not
+    /// have to be fully filled. For this reason, the clustered indexing has to be dropped before
+    /// this operation.
+    /// </summary>
+    /// <param name="srcColumn">The column whose data will be copied (resized).</param>
+    void ResizeColumn(ColumnBase<T>& srcColumn)
+    {
+        // TODO implement general purpose resizing here
+        int32_t srcBlockSize = srcColumn->GetBlockSize(); // maximum number of rows that can be fitted into block
+
+        int32_t srcBlockIndex = 0;
+        int32_t srcRowIndex = 0;
+        int32_t dstBlockIndex = 0;
+        int32_t dstRowIndex = 0;
+
+        while (srcBlockIndex < srcBlockSize)
+        {
+			
+		}
+    }
 
     /// <summary>
     /// Add new block in column

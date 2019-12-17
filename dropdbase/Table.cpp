@@ -1621,6 +1621,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
         blockSize_ = blockSize;
     }
     saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(info) << "New table was created with block size: " << blockSize << " and table name: " << name << ".";
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 

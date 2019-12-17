@@ -28,18 +28,16 @@ private:
 
     // Configuration values (if even default config does not exists)
     bool usingGPU_ = true;
-    bool usingCompression_ = true;
+    bool usingCompression_ = false;
     std::string dir_ = "./";
     std::string databaseDir_ = "../databases/";
-    int32_t blockSize_ = 1024;
-    int32_t maxBlockSize_ = 134217728; // This is used when the block size is automatically changed (streamming data - Apache Kafka)
-    int32_t blockCount_ = 1024;
+    int32_t blockSize_ = 262144;
     int32_t groupByBuckets_ = 262144;
     std::string listenIP_ = "127.0.0.1";
     short listenPort_ = 12345;
-    int32_t timeout_ = 5000;
-    int32_t GPUCachePercent_ = 73;
-    int32_t DBSaveInterval_ = 300;
+    int32_t timeout_ = 3600000;
+    int32_t GPUCachePercent_ = 75;
+    int32_t DBSaveInterval_ = 1000;
 
     void LoadConfigurationFile();
 
@@ -104,16 +102,6 @@ public:
     int32_t GetBlockSize() const
     {
         return blockSize_;
-    }
-
-	int32_t GetMaxBlockSize() const
-    {
-        return maxBlockSize_;
-    }
-
-    int32_t GetBlockCount() const
-    {
-        return blockCount_;
     }
 
     int32_t GetGroupByBuckets() const

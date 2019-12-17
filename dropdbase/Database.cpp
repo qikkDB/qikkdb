@@ -78,6 +78,112 @@ std::vector<std::string> Database::GetDatabaseNames()
 }
 
 /// <summary>
+/// Copy block of data from the specified column of the source table and insert it in the column with the same name in the destination table.
+/// This is used when block sizes of those two tables are different.
+/// </summary>
+/// <param name="srcTable">Source table.</param>
+/// <param name="destTable">Destination table.</param>
+/// <param name="columnName">Name of the column whose data will be copied.</param>
+void Database::CopyBlocksOfColumn(Table& srcTable, Table& destTable, const std::string& columnName)
+{
+    BOOST_LOG_TRIVIAL(debug) << "Copying data (column name: " << columnName
+                             << ") from the table named: " << srcTable.GetName()
+                             << " to the table named: " << destTable.GetName() << " has started.";
+
+    auto columnType = srcTable.GetColumns().find(columnName)->second.get()->GetColumnType();
+
+    switch (columnType)
+    {
+    case COLUMN_POLYGON:
+    {
+        auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
+            *srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<ColmnarDB::Types::ComplexPolygon>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_POINT:
+    {
+        auto& column =
+            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<ColmnarDB::Types::Point>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_STRING:
+    {
+        auto& column = dynamic_cast<ColumnBase<std::string>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<std::string>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_INT8_T:
+    {
+        auto& column = dynamic_cast<ColumnBase<int8_t>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<int8_t>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_INT:
+    {
+        auto& column = dynamic_cast<ColumnBase<int32_t>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<int32_t>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_LONG:
+    {
+        auto& column = dynamic_cast<ColumnBase<int64_t>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<int64_t>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_FLOAT:
+    {
+        auto& column = dynamic_cast<ColumnBase<float>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<float>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    case COLUMN_DOUBLE:
+    {
+        auto& column = dynamic_cast<ColumnBase<double>&>(*srcTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<double>*> blocks = column.GetBlocksList();
+        for (auto& block : blocks)
+        {
+            // TODO zavolaj ResizeBlock genericku metodu z ColumnBase
+        }
+        break;
+    }
+    }
+
+    BOOST_LOG_TRIVIAL(debug) << "Copying data (column name: " << columnName
+                             << ") from the table named: " << srcTable.GetName()
+                             << " to the table named: " << destTable.GetName() << " has finished.";
+}
+
+/// <summary>
 /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
 /// </summary>
 void Database::SetSaveNecessaryToFalseForEverything()
@@ -649,33 +755,70 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 /// <param name="newBlockSize">New block size of a table and columns of this table.</param>
 void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
 {
-    auto& table = tables_.at(tableName);
-    BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " has been changed from "
-                            << table.GetBlockSize() << " to " << newBlockSize << ".";
-    
-	// change block size to a new one
-	table.SetBlockSize(newBlockSize);
-
-	// delete .col files with old block size which are persisted on disk, if they are persisted
-    DeleteTableFromDisk(tableName);
-
-	/* TODO spravit, aby sa kazdy column z tabulky v pamati zmenil, obsah jeho dat a nullBit masky, podla noveho blocksize,
-	aj velkost nullBit masky bude ina (ulozena je v BlockBase) a este treba zmenit blockSize aj v ColumnBase!!!! */
-	/*
-	auto& columns = table.GetColumns();
-    std::vector<std::thread> threads;
-    for (auto& column : columns)
+    if (newBlockSize != tables_.at(tableName).GetBlockSize())
     {
-        threads.emplace_back(&Database::DeleteColumnFromDisk, tableName, column.second.get()->GetName());
-    }
-    for (int j = 0; j < threads.size(); j++)
-    {
-        threads[j].join();
-    }
-	*/
+        auto& table = tables_.at(tableName);
+        BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " WILL BE changed from "
+                                << table.GetBlockSize() << " to " << newBlockSize << ".";
 
-	// save all changes to disk
-    Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
+        auto& database = GetDatabaseByName(name_);
+
+        // create temporary table in memory with new block size
+        tables_.emplace(std::make_pair(std::string("temp_" + std::string(tableName)),
+                                       Table(database, ("temp_" + std::string(tableName)).c_str(), newBlockSize)));
+
+        auto newTableHashMap = tables_.find(("temp_" + std::string(tableName)).c_str());
+        auto oldTableHashMap = tables_.find(tableName);
+
+        // create the same columns in the new table (same as in the old table)
+        if (newTableHashMap != tables_.end() && oldTableHashMap != tables_.end())
+        {
+            auto& newTable = newTableHashMap->second;
+            auto& oldTable = oldTableHashMap->second;
+
+            for (auto& column : oldTable.GetColumns())
+            {
+                newTable.CreateColumn(column.second->GetName().c_str(), column.second->GetColumnType(),
+                                      column.second->GetIsNullable(), column.second->GetIsUnique());
+            }
+        }
+
+        auto& columns = table.GetColumns();
+        std::vector<std::thread> threads;
+        for (auto& column : columns)
+        {
+            threads.emplace_back(&Database::CopyBlocksOfColumn, oldTableHashMap->second,
+                                 newTableHashMap->second, column.second.get()->GetName());
+        }
+        for (int j = 0; j < threads.size(); j++)
+        {
+            threads[j].join();
+        }
+
+        // delete (original) .col files with old block size which are persisted on disk, if they are persisted
+        DeleteTableFromDisk(tableName);
+
+        // copy sorting columns from old table to the new table
+        newTableHashMap->second.SetSortingColumns(oldTableHashMap->second.GetSortingColumns());
+
+        // delete original table from memory
+        database->GetTables().erase(tableName);
+
+        // rename temporary table in memory to its original name
+        newTableHashMap->second.SetTableName(tableName);
+
+        // save all changes to disk
+        Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
+
+        BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " HAS BEEN changed from "
+                                << table.GetBlockSize() << " to " << newBlockSize << ".";
+    }
+    else
+    {
+        BOOST_LOG_TRIVIAL(info)
+            << "The new block size of the table named: " << tableName
+            << " was the same as the current block size, so it has not been changed.";
+    }
 }
 
 /// <summary>

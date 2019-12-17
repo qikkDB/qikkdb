@@ -3,7 +3,6 @@ UsingGPU: true
 Dir: ../bin/
 DatabaseDir: ../databases/
 BlockSize: 262144
-BlockCount: 1024
 GroupByBuckets: 262144  # should be power of 2
 UsingCompression: false
 GPUCachePercent: 75
