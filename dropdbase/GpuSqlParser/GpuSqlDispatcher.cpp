@@ -134,62 +134,12 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             {
                 if (err == 1)
                 {
-                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks." << '\n';
+                    CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks" << '\n';
                 }
                 if (err == 2)
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Show databases completed sucessfully" << '\n';
-                }
-                if (err == 3)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Show tables completed sucessfully" << '\n';
-                }
-                if (err == 4)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Show columns completed sucessfully" << '\n';
-                }
-                if (err == 5)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Insert into completed sucessfully" << '\n';
-                }
-                if (err == 6)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Create database_ completed sucessfully" << '\n';
-                }
-                if (err == 7)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Drop database_ completed sucessfully" << '\n';
-                }
-                if (err == 8)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Create table completed sucessfully" << '\n';
-                }
-                if (err == 9)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Drop table completed sucessfully" << '\n';
-                }
-                if (err == 10)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Alter table completed sucessfully" << '\n';
-                }
-                if (err == 13)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Alter database completed sucessfully" << '\n';
-                }
-                if (err == 11)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Create index completed sucessfully" << '\n';
+                        << "Non-select query completed successfully" << '\n';
                 }
                 if (err == 12)
                 {
@@ -1313,6 +1263,7 @@ int32_t GpuSqlDispatcher::ShowDatabases()
     InsertIntoPayload(payload, outData, databases_map.size());
     MergePayloadToSelfResponse("Databases", "Databases", payload);
 
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Show databases completed sucessfully" << '\n';
     return 2;
 }
 
@@ -1338,7 +1289,8 @@ int32_t GpuSqlDispatcher::ShowTables()
     InsertIntoPayload(payload, outData, tables_map.size());
     MergePayloadToSelfResponse(db, db, payload);
 
-    return 3;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Show tables completed sucessfully" << '\n';
+    return 2;
 }
 
 /// Implementation of SHOW COLUMN operation
@@ -1371,7 +1323,9 @@ int32_t GpuSqlDispatcher::ShowColumns()
     InsertIntoPayload(payloadType, outDataType, columns_map.size());
     MergePayloadToSelfResponse(tab + "_columns", tab + "_columns", payloadName);
     MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
-    return 4;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Show columns completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::CreateDatabase()
@@ -1380,7 +1334,9 @@ int32_t GpuSqlDispatcher::CreateDatabase()
     int32_t newDbBlockSize = arguments_.Read<int32_t>();
     std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
     Database::AddToInMemoryDatabaseList(newDb);
-    return 6;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database_ completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::DropDatabase()
@@ -1388,7 +1344,9 @@ int32_t GpuSqlDispatcher::DropDatabase()
     std::string dbName = arguments_.Read<std::string>();
     Database::GetDatabaseByName(dbName)->DeleteDatabaseFromDisk();
     Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
-    return 7;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Drop database_ completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::CreateTable()
@@ -1504,7 +1462,9 @@ int32_t GpuSqlDispatcher::CreateTable()
     database_
         ->CreateTable(newColumns, newTableName.c_str(), areNullable, areUnique, newTableBlockSize)
         .SetSortingColumns(allIndexColumns);
-    return 8;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create table completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::DropTable()
@@ -1512,7 +1472,9 @@ int32_t GpuSqlDispatcher::DropTable()
     std::string tableName = arguments_.Read<std::string>();
     database_->GetTables().erase(tableName);
     database_->DeleteTableFromDisk(tableName.c_str());
-    return 9;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Drop table completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::AlterTable()
@@ -1649,7 +1611,8 @@ int32_t GpuSqlDispatcher::AlterTable()
         database_->RenameTable(tableName, newTableName);
     }
 
-    return 10;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter table completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::AlterDatabase()
@@ -1700,7 +1663,9 @@ int32_t GpuSqlDispatcher::AlterDatabase()
                    "ignore this warning) or no write access.";
         }
     }
-    return 13;
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter database completed sucessfully" << '\n';
+    return 2;
 }
 
 int32_t GpuSqlDispatcher::CreateIndex()
@@ -1726,7 +1691,8 @@ int32_t GpuSqlDispatcher::CreateIndex()
 
     database_->GetTables().at(tableName).SetSortingColumns(sortingColumns);
 
-    return 11;
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create index completed sucessfully" << '\n';
+    return 2;
 }
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
