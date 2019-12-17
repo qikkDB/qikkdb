@@ -37,7 +37,8 @@ int32_t GpuSqlDispatcher::AggregationCol()
 
     IN* reconstructOutReg = nullptr;
     int8_t* reconstructOutNullMask = nullptr;
-    if (std::is_same<OP, AggregationFunctions::count>::value) // TODO consider null values
+    constexpr bool isCount = std::is_same<OP, AggregationFunctions::count>::value;
+    if (isCount) // TODO consider null values
     {
         if (!aggAsterisk)
         {
@@ -71,16 +72,23 @@ int32_t GpuSqlDispatcher::AggregationCol()
                                                reinterpret_cast<int8_t*>(filter_),
                                                column.ElementCount, &reconstructOutNullMask,
                                                reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+        // Rewrite pointers and free old ones when needed
+        RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
+                      reconstructOutNullMask);
     }
 
-    // Rewrite pointers and free old ones when needed
-    RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize, reconstructOutNullMask);
 
     if (!IsRegisterAllocated(reg))
     {
-        // TODO: if (not COUNT operation and std::get<1>(column) == 0), set result to NaN
         OUT* result = AllocateRegister<OUT>(reg, 1);
-        GPUAggregation::col<OP, OUT, IN>(result, reinterpret_cast<IN*>(column.GpuPtr), column.ElementCount);
+        if (isCount)
+        {
+            GPUAggregation::col<OP, OUT, IN>(result, nullptr, reconstructOutSize);
+        }
+        else
+        {
+            GPUAggregation::col<OP, OUT, IN>(result, reinterpret_cast<IN*>(column.GpuPtr), column.ElementCount);
+        }
     }
     FreeColumnIfRegister<IN>(colName);
     filter_ = 0;
