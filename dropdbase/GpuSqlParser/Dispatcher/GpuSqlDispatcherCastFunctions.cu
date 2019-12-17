@@ -103,13 +103,13 @@ DISPATCHER_UNARY_ERROR(int8_t, std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::CastNumeric, int8_t, int8_t)
 END_DISPATCH_TABLE
 
-int32_t GpuSqlDispatcher::CastPolygonCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -136,10 +136,10 @@ int32_t GpuSqlDispatcher::CastPolygonCol()
         }
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::CastPolygonConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonConst()
 {
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -153,7 +153,7 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
 
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -162,16 +162,16 @@ int32_t GpuSqlDispatcher::CastPolygonConst()
         FillStringRegister(result, reg, retSize, true);
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::CastPointCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -198,10 +198,10 @@ int32_t GpuSqlDispatcher::CastPointCol()
         }
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::CastPointConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointConst()
 {
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -214,7 +214,7 @@ int32_t GpuSqlDispatcher::CastPointConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -223,5 +223,5 @@ int32_t GpuSqlDispatcher::CastPointConst()
         FillStringRegister(result, reg, retSize, true);
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

@@ -37,7 +37,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::orderByReconstructRetAllBlo
 
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std::string>()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -46,8 +46,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        int32_t loadFlag = LoadCol<std::string>(colName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -103,11 +103,11 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>()
                 std::move(outNullData));
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -116,8 +116,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -171,11 +171,11 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
                 std::move(outNullData));
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -184,8 +184,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -241,17 +241,17 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon
                 std::move(outNullData));
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::FreeOrderByTable()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FreeOrderByTable()
 {
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Freeing order by table." << '\n';
     orderByTable_.reset();
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
 {
     if (!usingGroupBy_ && isLastBlockOfDevice_)
     {
@@ -263,7 +263,7 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
             {
                 CudaLogBoost::getInstance(CudaLogBoost::warning)
                     << "Skip merging partially ordered blocks in thread: " << dispatcherThreadId_ << '\n';
-                return 13;
+                return InstructionStatus::EXCEPTION;
             }
 
             CudaLogBoost::getInstance(CudaLogBoost::debug) << "Merging partially ordered blocks." << '\n';
@@ -973,5 +973,5 @@ int32_t GpuSqlDispatcher::OrderByReconstructRetAllBlocks()
             GpuSqlDispatcher::orderByCV_.notify_all();
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

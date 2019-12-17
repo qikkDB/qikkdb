@@ -7,7 +7,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnaryCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -16,8 +16,8 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
 
     typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -72,7 +72,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
         }
     }
     FreeColumnIfRegister<T>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic unary arithmetic function dispatching given by the functor OP
@@ -80,7 +80,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnaryConst()
 {
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
@@ -93,7 +93,7 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -101,5 +101,5 @@ int32_t GpuSqlDispatcher::ArithmeticUnaryConst()
         GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(result, cnst, retSize);
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

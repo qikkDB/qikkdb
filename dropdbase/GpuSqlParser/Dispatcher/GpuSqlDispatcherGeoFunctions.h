@@ -14,7 +14,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::PointColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PointColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
@@ -23,13 +23,13 @@ int32_t GpuSqlDispatcher::PointColCol()
     CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "PointColCol: " << colNameLeft << " " << colNameRight << " " << reg << '\n';
 
-    int32_t loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -74,7 +74,7 @@ int32_t GpuSqlDispatcher::PointColCol()
 
     FreeColumnIfRegister<U>(colNameRight);
     FreeColumnIfRegister<T>(colNameLeft);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
@@ -82,7 +82,7 @@ int32_t GpuSqlDispatcher::PointColCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::PointColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PointColConst()
 {
     U cnst = arguments_.Read<U>();
     auto colNameLeft = arguments_.Read<std::string>();
@@ -90,8 +90,8 @@ int32_t GpuSqlDispatcher::PointColConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "PointColConst: " << colNameLeft << " " << reg << '\n';
 
-    int32_t loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colNameLeft);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -118,7 +118,7 @@ int32_t GpuSqlDispatcher::PointColConst()
     }
 
     FreeColumnIfRegister<T>(colNameLeft);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of POINT(a, b) operation dispatching - concatenation of two numeric attributes to single point column
@@ -126,7 +126,7 @@ int32_t GpuSqlDispatcher::PointColConst()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::PointConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PointConstCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     T cnst = arguments_.Read<T>();
@@ -134,8 +134,8 @@ int32_t GpuSqlDispatcher::PointConstCol()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "PointConstCol: " << colNameRight << " " << reg << '\n';
 
-    int32_t loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -163,7 +163,7 @@ int32_t GpuSqlDispatcher::PointConstCol()
     }
 
     FreeColumnIfRegister<U>(colNameRight);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
@@ -171,14 +171,14 @@ int32_t GpuSqlDispatcher::PointConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::ContainsColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColConst()
 {
     auto constWkt = arguments_.Read<std::string>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -209,7 +209,7 @@ int32_t GpuSqlDispatcher::ContainsColConst()
         }
         GPUPolygonContains::contains(result, polygons, retSize, pointConstPtr, 1);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
@@ -217,14 +217,14 @@ int32_t GpuSqlDispatcher::ContainsColConst()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::ContainsConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -256,7 +256,7 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
         GPUPolygonContains::contains(result, gpuPolygon, 1,
                                      reinterpret_cast<NativeGeoPoint*>(columnPoint.GpuPtr), retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
@@ -264,19 +264,19 @@ int32_t GpuSqlDispatcher::ContainsConstCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::ContainsColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
 {
     auto colNamePoint = arguments_.Read<std::string>();
     auto colNamePolygon = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colNamePoint);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNamePoint);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<T>(colNamePolygon);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -322,7 +322,7 @@ int32_t GpuSqlDispatcher::ContainsColCol()
         GPUPolygonContains::contains(result, std::get<0>(polygonCol), std::get<1>(polygonCol),
                                      reinterpret_cast<NativeGeoPoint*>(pointCol.GpuPtr), pointCol.ElementCount);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of CONTAINS(a, b) operation dispatching - point in polygon
@@ -330,7 +330,7 @@ int32_t GpuSqlDispatcher::ContainsColCol()
 /// Pops data from argument memory stream, converts geo literals to their gpu representation and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T, typename U>
-int32_t GpuSqlDispatcher::ContainsConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstConst()
 {
     // TODO : Specialize kernel for all cases.
     auto constPointWkt = arguments_.Read<std::string>();
@@ -349,14 +349,14 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
         int8_t* result = AllocateRegister<int8_t>(reg, retSize);
         GPUPolygonContains::containsConst(result, gpuPolygon, constNativeGeoPoint, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
@@ -365,14 +365,14 @@ int32_t GpuSqlDispatcher::ContainsConstConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::PolygonOperationColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColConst()
 {
     auto constWkt = arguments_.Read<std::string>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -403,7 +403,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
             FillPolygonRegister(outPolygon, reg, dataSize);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
@@ -412,14 +412,14 @@ int32_t GpuSqlDispatcher::PolygonOperationColConst()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::PolygonOperationConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto constWkt = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -450,7 +450,7 @@ int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Polygon operation: " << '\n';
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
 /// not meet this requrement) based on functor OP eg. INTRSECT(a,b), UNION(a,b) Implementation for
@@ -458,7 +458,7 @@ int32_t GpuSqlDispatcher::PolygonOperationConstCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::PolygonOperationColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
@@ -467,13 +467,13 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
     CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Polygon operation: " << colNameRight << " " << colNameLeft << " " << reg << '\n';
 
-    int32_t loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colNameLeft);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -513,7 +513,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
             FillPolygonRegister(outPolygon, reg, dataSize);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of genric polygon operation (operation which also outputs polygon - CONTAINS does
@@ -522,7 +522,7 @@ int32_t GpuSqlDispatcher::PolygonOperationColCol()
 /// representation and loads data to GPU on demand <returns name="statusCode">Finish status code of
 /// the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::PolygonOperationConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstConst()
 {
     
     auto constWktRight = arguments_.Read<std::string>();
@@ -545,5 +545,5 @@ int32_t GpuSqlDispatcher::PolygonOperationConstConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Polygon operation: " << '\n';
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

@@ -120,9 +120,9 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
 
         LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
-        int32_t err = 0;
+        InstructionStatus err = InstructionStatus::CONTINUE;
 
-        while (err == 0 && !aborted_ && !thrownException_)
+        while (err == InstructionStatus::CONTINUE && !aborted_ && !thrownException_)
         {
 
             err = (this->*dispatcherFunctions_[instructionPointer_++])();
@@ -130,31 +130,33 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             printf("tid:%d ip: %d \n", dispatcherThreadId_, instructionPointer_ - 1);
             AssertDeviceMatchesCurrentThread(dispatcherThreadId_);
 #endif
-            if (err)
+			// Print logs
+            if (err != InstructionStatus::CONTINUE)
             {
-                if (err == 1)
+                switch (err)
                 {
+                case InstructionStatus::OUT_OF_BLOCKS:
                     CudaLogBoost::getInstance(CudaLogBoost::info) << "Out of blocks" << '\n';
-                }
-                if (err == 2)
-                {
-                    CudaLogBoost::getInstance(CudaLogBoost::info)
-                        << "Non-select query completed successfully" << '\n';
-                }
-                if (err == 12)
-                {
+                    break;
+                case InstructionStatus::FINISH:
+                    // do nothing, logs are in appropriate instructions
+                    break;
+                case InstructionStatus::LOAD_SKIPPED:
                     CudaLogBoost::getInstance(CudaLogBoost::info) << "Load skipped" << '\n';
                     loadColHelper.countSkippedBlocks++;
-                    err = 0;
-                    continue;
-                }
-                if (err == 13)
-                {
+                    err = InstructionStatus::CONTINUE;
+                    break;
+                case InstructionStatus::EXCEPTION:
                     CudaLogBoost::getInstance(CudaLogBoost::error)
                         << "Abort Dispatch Execution, exception thrown in some thread"
                         << "\n";
+                    break;
                 }
-                break;
+            }
+			// Check err again because for LOAD_SKIPPED case it was changed
+            if (err != InstructionStatus::CONTINUE)
+            {
+                break;	// Stop execution
             }
         }
         result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(
@@ -920,7 +922,7 @@ void GpuSqlDispatcher::FillStringRegister(GPUMemory::GPUString& stringColumn,
                                      !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
-int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::string& colName)
 {
     if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
@@ -938,7 +940,7 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)
         {
-            return 1;
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
         if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
@@ -963,7 +965,7 @@ int32_t GpuSqlDispatcher::LoadColNullMask(std::string& colName)
 
         noLoad_ = false;
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 GPUMemory::GPUPolygon
@@ -1167,28 +1169,28 @@ void GpuSqlDispatcher::CleanUpGpuPointers()
 /// Implementation of FIL operation
 /// Marks WHERE clause result register as the filtering register
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::Fil()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Fil()
 {
     auto reg = arguments_.Read<std::string>();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << reg << '\n';
     filter_ = allocatedPointers_.at(reg).GpuPtr;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::WhereEvaluation()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::WhereEvaluation()
 {
     bool containsAggFunction = arguments_.Read<bool>();
     // loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
     loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 /// Implementation of JMP operation
 /// Determines next block index to process by this instance of dispatcher based on CUDA device count
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::Jmp()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Jmp()
 {
     Context& context = Context::getInstance();
 
@@ -1210,7 +1212,7 @@ int32_t GpuSqlDispatcher::Jmp()
     if (noLoad_ && loadNecessary_ != 0)
     {
         CleanUpGpuPointers();
-        return 0;
+        return InstructionStatus::CONTINUE;
     }
 
     if (groupByHashTableFull_)
@@ -1218,7 +1220,7 @@ int32_t GpuSqlDispatcher::Jmp()
         groupByHashTableFull_ = false;
         ResetBlocksProcessing();
         context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
-        return 0;
+        return InstructionStatus::CONTINUE;
     }
 
     if (!isLastBlockOfDevice_)
@@ -1227,28 +1229,28 @@ int32_t GpuSqlDispatcher::Jmp()
         context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
         instructionPointer_ = 0;
         CleanUpGpuPointers();
-        return 0;
+        return InstructionStatus::CONTINUE;
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Jump" << '\n';
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 /// Implementation of DONE operation
 /// Clears all allocated temporary result buffers
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::Done()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Done()
 {
     CleanUpGpuPointers();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Done" << '\n';
-    return 1;
+    return InstructionStatus::OUT_OF_BLOCKS;
 }
 
 /// Implementation of SHOW DATABASES operation
 /// Inserts database names to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::ShowDatabases()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowDatabases()
 {
     auto databases_map = Database::GetDatabaseNames();
     std::unique_ptr<std::string[]> outData(new std::string[databases_map.size()]);
@@ -1264,14 +1266,14 @@ int32_t GpuSqlDispatcher::ShowDatabases()
     MergePayloadToSelfResponse("Databases", "Databases", payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show databases completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
 
 /// Implementation of SHOW TABLES operation
 /// Inserts table names to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::ShowTables()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowTables()
 {
     std::string db = arguments_.Read<std::string>();
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
@@ -1290,13 +1292,13 @@ int32_t GpuSqlDispatcher::ShowTables()
     MergePayloadToSelfResponse(db, db, payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show tables completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
 /// Implementation of SHOW COLUMN operation
 /// Inserts column names and their types to the response message
 /// <returns name="statusCode">Finish status code of the operation</returns>
-int32_t GpuSqlDispatcher::ShowColumns()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowColumns()
 {
     std::string db = arguments_.Read<std::string>();
     std::string tab = arguments_.Read<std::string>();
@@ -1325,10 +1327,10 @@ int32_t GpuSqlDispatcher::ShowColumns()
     MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show columns completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::CreateDatabase()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateDatabase()
 {
     std::string newDbName = arguments_.Read<std::string>();
     int32_t newDbBlockSize = arguments_.Read<int32_t>();
@@ -1336,20 +1338,20 @@ int32_t GpuSqlDispatcher::CreateDatabase()
     Database::AddToInMemoryDatabaseList(newDb);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database_ completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::DropDatabase()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropDatabase()
 {
     std::string dbName = arguments_.Read<std::string>();
     Database::GetDatabaseByName(dbName)->DeleteDatabaseFromDisk();
     Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Drop database_ completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::CreateTable()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
     std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
@@ -1464,20 +1466,20 @@ int32_t GpuSqlDispatcher::CreateTable()
         .SetSortingColumns(allIndexColumns);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create table completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::DropTable()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropTable()
 {
     std::string tableName = arguments_.Read<std::string>();
     database_->GetTables().erase(tableName);
     database_->DeleteTableFromDisk(tableName.c_str());
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Drop table completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::AlterTable()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
 {
     std::string tableName = arguments_.Read<std::string>();
 
@@ -1612,10 +1614,10 @@ int32_t GpuSqlDispatcher::AlterTable()
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter table completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::AlterDatabase()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
 {
     std::string databaseName = arguments_.Read<std::string>();
 
@@ -1665,10 +1667,10 @@ int32_t GpuSqlDispatcher::AlterDatabase()
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter database completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
-int32_t GpuSqlDispatcher::CreateIndex()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
 {
     std::string indexName = arguments_.Read<std::string>();
     std::string tableName = arguments_.Read<std::string>();
@@ -1692,7 +1694,7 @@ int32_t GpuSqlDispatcher::CreateIndex()
     database_->GetTables().at(tableName).SetSortingColumns(sortingColumns);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create index completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,

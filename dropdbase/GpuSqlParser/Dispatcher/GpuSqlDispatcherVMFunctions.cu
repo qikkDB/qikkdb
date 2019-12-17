@@ -35,7 +35,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterDatabaseFunction_ = &G
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction_ = &GpuSqlDispatcher::CreateIndex;
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
 {
     if (allocatedPointers_.find(colName + "_polyPoints") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
@@ -54,7 +54,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)
         {
-            return 1;
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
         if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
@@ -70,7 +70,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
         if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
-            return 12;
+            return InstructionStatus::LOAD_SKIPPED;
         }
 
         auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
@@ -168,11 +168,11 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string&
             noLoad_ = false;
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
@@ -190,7 +190,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)
         {
-            return 1;
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
         if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
@@ -206,7 +206,7 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
         if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
-            return 12;
+            return InstructionStatus::LOAD_SKIPPED;
         }
 
         auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(
@@ -333,12 +333,12 @@ int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
             noLoad_ = false;
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
 {
     if (allocatedPointers_.find(colName + "_allChars") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
@@ -357,7 +357,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)
         {
-            return 1;
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
         if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
@@ -373,7 +373,7 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
         if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
-            return 12;
+            return InstructionStatus::LOAD_SKIPPED;
         }
 
         auto col = dynamic_cast<const ColumnBase<std::string>*>(
@@ -465,11 +465,11 @@ int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName)
             noLoad_ = false;
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
 {
     if (usingGroupBy_)
     {
@@ -480,8 +480,8 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
         auto col = arguments_.Read<std::string>();
         auto alias = arguments_.Read<std::string>();
 
-        int32_t loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(col);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(col);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -508,7 +508,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
             }
             else
             {
-                return 0;
+                return InstructionStatus::CONTINUE;
             }
         }
         else
@@ -541,11 +541,11 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
             MergePayloadToSelfResponse(alias, col, payload, nullMaskString);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
 {
     if (usingGroupBy_)
     {
@@ -556,8 +556,8 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
         auto colName = arguments_.Read<std::string>();
         auto alias = arguments_.Read<std::string>();
 
-        int32_t loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -587,7 +587,7 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             }
             else
             {
-                return 0;
+                return InstructionStatus::CONTINUE;
             }
         }
         else
@@ -623,17 +623,17 @@ int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
             MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<std::string>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
 {
     auto colName = arguments_.Read<std::string>();
     auto alias = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -698,7 +698,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
         }
         else
         {
-            return 0;
+            return InstructionStatus::CONTINUE;
         }
     }
     else
@@ -719,7 +719,7 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
             }
             else
             {
-                return 0;
+                return InstructionStatus::CONTINUE;
             }
         }
         else
@@ -752,11 +752,11 @@ int32_t GpuSqlDispatcher::RetCol<std::string>()
         InsertIntoPayload(payload, outData, outSize);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<std::string>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 {
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
@@ -764,8 +764,8 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(std::string).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -776,11 +776,11 @@ int32_t GpuSqlDispatcher::RetConst<std::string>()
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
@@ -789,8 +789,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
         << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -801,11 +801,11 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
     std::string alias = arguments_.Read<std::string>();
@@ -814,8 +814,8 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
         << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -826,18 +826,18 @@ int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::LockRegister()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LockRegister()
 {
     std::string reg = arguments_.Read<std::string>();
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Locked register: " << reg << '\n';
     registerLockList_.insert(reg);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 {
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "TableInfo: " << tableName << '\n';
 
@@ -846,7 +846,7 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
         std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
     if (blockIndex_ >= blockCount)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
     {
@@ -859,7 +859,7 @@ int32_t GpuSqlDispatcher::LoadTableBlockInfo(const std::string& tableName)
 
     noLoad_ = false;
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
@@ -870,7 +870,7 @@ size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
     }
 
     int64_t dataElementCount = 0;
-    if (LoadTableBlockInfo(loadedTableName_) != 0)
+    if (LoadTableBlockInfo(loadedTableName_) != InstructionStatus::CONTINUE)
     {
         return 0;
     }
@@ -899,7 +899,7 @@ int32_t GpuSqlDispatcher::GetBlockCount()
                database_->GetTables().at(loadedTableName_).GetColumns().begin()->second.get()->GetBlockCount();
 }
 
-int32_t GpuSqlDispatcher::GetLoadSize()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GetLoadSize()
 {
     int64_t offset = arguments_.Read<int64_t>();
     int64_t limit = arguments_.Read<int64_t>();
@@ -982,7 +982,7 @@ int32_t GpuSqlDispatcher::GetLoadSize()
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Block Load Offset: " << loadOffset_ << '\n';
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift)

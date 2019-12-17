@@ -7,7 +7,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::ArithmeticColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticColConst()
 {
     U cnst = arguments_.Read<U>();
     auto colName = arguments_.Read<std::string>();
@@ -20,8 +20,8 @@ int32_t GpuSqlDispatcher::ArithmeticColConst()
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -76,7 +76,7 @@ int32_t GpuSqlDispatcher::ArithmeticColConst()
         }
     }
     FreeColumnIfRegister<T>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic binary arithmetic function dispatching given by the functor OP
@@ -84,7 +84,7 @@ int32_t GpuSqlDispatcher::ArithmeticColConst()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::ArithmeticConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     T cnst = arguments_.Read<T>();
@@ -98,8 +98,8 @@ int32_t GpuSqlDispatcher::ArithmeticConstCol()
         bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
-    int32_t loadFlag = LoadCol<U>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -155,7 +155,7 @@ int32_t GpuSqlDispatcher::ArithmeticConstCol()
         }
     }
     FreeColumnIfRegister<U>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic binary arithmetic function dispatching given by the functor OP
@@ -163,7 +163,7 @@ int32_t GpuSqlDispatcher::ArithmeticConstCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::ArithmeticColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
@@ -176,13 +176,13 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
         typename std::conditional<std::is_floating_point<T>::value, T,
                                   typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
 
-    int32_t loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -325,7 +325,7 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
     }
     FreeColumnIfRegister<T>(colNameLeft);
     FreeColumnIfRegister<U>(colNameRight);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic binary arithmetic function dispatching given by the functor OP
@@ -333,7 +333,7 @@ int32_t GpuSqlDispatcher::ArithmeticColCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::ArithmeticConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticConstConst()
 {
     U constRight = arguments_.Read<U>();
     T constLeft = arguments_.Read<T>();
@@ -350,7 +350,7 @@ int32_t GpuSqlDispatcher::ArithmeticConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
 
     if (!IsRegisterAllocated(reg))
@@ -358,5 +358,5 @@ int32_t GpuSqlDispatcher::ArithmeticConstConst()
         ResultType* result = AllocateRegister<ResultType>(reg, retSize);
         GPUArithmetic::Arithmetic<OP, ResultType, T, U>(result, constLeft, constRight, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

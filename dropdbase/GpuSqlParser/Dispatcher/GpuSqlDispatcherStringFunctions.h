@@ -9,13 +9,13 @@
 #include "../../QueryEngine/GPUCore/GPUStringBinary.cuh"
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringUnaryCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringUnaryCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -70,11 +70,11 @@ int32_t GpuSqlDispatcher::StringUnaryCol()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringUnaryConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringUnaryConst()
 {
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -83,7 +83,7 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst, retSize);
 
@@ -93,17 +93,17 @@ int32_t GpuSqlDispatcher::StringUnaryConst()
         GPUStringUnary::StringUnary<OP>(result, gpuString, retSize);
         FillStringRegister(result, reg, retSize, true);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringUnaryNumericCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringUnaryNumericCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -145,11 +145,11 @@ int32_t GpuSqlDispatcher::StringUnaryNumericCol()
             GPUStringUnary::Col<OP>(result, std::get<0>(column), retSize);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringUnaryNumericConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringUnaryNumericConst()
 {
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -158,7 +158,7 @@ int32_t GpuSqlDispatcher::StringUnaryNumericConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst, retSize);
 
@@ -167,25 +167,25 @@ int32_t GpuSqlDispatcher::StringUnaryNumericConst()
         int32_t* result = AllocateRegister<int32_t>(reg, retSize);
         GPUStringUnary::Const<OP>(result, gpuString);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colNameLeft);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colNameLeft);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
 
     loadFlag = LoadCol<T>(colNameRight);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -283,18 +283,18 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColCol()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericColConst()
 {
     T cnst = arguments_.Read<T>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -349,18 +349,18 @@ int32_t GpuSqlDispatcher::StringBinaryNumericColConst()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -417,11 +417,11 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstCol()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP, typename T>
-int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericConstConst()
 {
     T cnstRight = arguments_.Read<T>();
     std::string cnstLeft = arguments_.Read<std::string>();
@@ -431,7 +431,7 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     GPUMemory::GPUString gpuString = InsertConstStringGpu(cnstLeft, retSize);
 
@@ -441,24 +441,24 @@ int32_t GpuSqlDispatcher::StringBinaryNumericConstConst()
         GPUStringBinary::ConstConst<OP>(result, gpuString, cnstRight, retSize);
         FillStringRegister(result, reg, retSize, true);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringBinaryColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colNameLeft);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colNameLeft);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
 
     loadFlag = LoadCol<std::string>(colNameRight);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -554,18 +554,18 @@ int32_t GpuSqlDispatcher::StringBinaryColCol()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringBinaryColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryColConst()
 {
     std::string cnst = arguments_.Read<std::string>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -622,18 +622,18 @@ int32_t GpuSqlDispatcher::StringBinaryColConst()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringBinaryConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -690,11 +690,11 @@ int32_t GpuSqlDispatcher::StringBinaryConstCol()
             }
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::StringBinaryConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryConstConst()
 {
     std::string cnstRight = arguments_.Read<std::string>();
     std::string cnstLeft = arguments_.Read<std::string>();
@@ -704,7 +704,7 @@ int32_t GpuSqlDispatcher::StringBinaryConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 0;
+        return InstructionStatus::CONTINUE;
     }
     GPUMemory::GPUString gpuStringLeft = InsertConstStringGpu(cnstLeft, retSize);
     GPUMemory::GPUString gpuStringRight = InsertConstStringGpu(cnstRight, retSize);
@@ -715,5 +715,5 @@ int32_t GpuSqlDispatcher::StringBinaryConstConst()
         GPUStringBinary::ConstConst<OP>(result, gpuStringLeft, gpuStringRight, retSize);
         FillStringRegister(result, reg, retSize, false);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

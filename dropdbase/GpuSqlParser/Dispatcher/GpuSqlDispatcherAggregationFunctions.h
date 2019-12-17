@@ -16,14 +16,15 @@
 /// If WHERE clause is present filtering is done before agreggation
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename OUT, typename IN>
-int32_t GpuSqlDispatcher::AggregationCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
     auto aggAsterisk = arguments_.Read<bool>();
 
-    int32_t loadFlag = aggAsterisk ? LoadTableBlockInfo(loadedTableName_) : LoadCol<IN>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag =
+        aggAsterisk ? LoadTableBlockInfo(loadedTableName_) : LoadCol<IN>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -92,14 +93,14 @@ int32_t GpuSqlDispatcher::AggregationCol()
     }
     FreeColumnIfRegister<IN>(colName);
     filter_ = 0;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP, typename OUT, typename IN>
-int32_t GpuSqlDispatcher::AggregationConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationConst()
 {
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggConst" << '\n';
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP, typename O, typename K, typename V>
@@ -356,7 +357,7 @@ public:
 /// and saves the result of group by
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename O, typename K, typename V>
-int32_t GpuSqlDispatcher::AggregationGroupBy()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationGroupBy()
 {
     auto colTableName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -370,8 +371,8 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
     {
         if (!aggAsterisk)
         {
-            int32_t loadFlag = LoadColNullMask(colTableName);
-            if (loadFlag)
+            GpuSqlDispatcher::InstructionStatus loadFlag = LoadColNullMask(colTableName);
+            if (loadFlag != InstructionStatus::CONTINUE)
             {
                 return loadFlag;
             }
@@ -387,8 +388,8 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
     }
     else
     {
-        int32_t loadFlag = LoadCol<V>(colTableName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<V>(colTableName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -446,7 +447,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
             }
             // if we still can increase the hash table size, do it and restart the thread
             HandleHashTableFull();
-            return 0;
+            return InstructionStatus::CONTINUE;
         }
 
         // If last block was processed, reconstruct group by table
@@ -462,7 +463,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::warning)
                         << "Skip reconstruction group by in thread: " << dispatcherThreadId_ << '\n';
-                    return 13;
+                    return InstructionStatus::EXCEPTION;
                 }
 
                 CudaLogBoost::getInstance(CudaLogBoost::debug)
@@ -484,7 +485,7 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
     }
 
     FreeColumnIfRegister<V>(colTableName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// This executes first (dor each block) when GROUP BY clause is used
@@ -492,12 +493,12 @@ int32_t GpuSqlDispatcher::AggregationGroupBy()
 /// and filters it according to WHERE clause
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::GroupByCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol()
 {
     std::string columnName = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(columnName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(columnName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -530,11 +531,11 @@ int32_t GpuSqlDispatcher::GroupByCol()
         groupByColumns_.push_back({columnName, ::GetColumnType<T>()});
     }
     usingGroupBy_ = true;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::GroupByConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByConst()
 {
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

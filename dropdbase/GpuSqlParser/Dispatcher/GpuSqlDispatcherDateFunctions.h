@@ -9,13 +9,13 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP>
-int32_t GpuSqlDispatcher::DateExtractCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateExtractCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<int64_t>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<int64_t>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -70,7 +70,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
     }
 
     FreeColumnIfRegister<int64_t>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic date part extract function dispatching given by the functor OP
@@ -78,7 +78,7 @@ int32_t GpuSqlDispatcher::DateExtractCol()
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP>
-int32_t GpuSqlDispatcher::DateExtractConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateExtractConst()
 {
     int64_t cnst = arguments_.Read<int64_t>();
     auto reg = arguments_.Read<std::string>();
@@ -87,12 +87,12 @@ int32_t GpuSqlDispatcher::DateExtractConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
         int32_t* result = AllocateRegister<int32_t>(reg, retSize);
         GPUDate::Extract<OP>(result, cnst, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

@@ -14,14 +14,14 @@
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::FilterColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterColConst()
 {
     U cnst = arguments_.Read<U>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -51,7 +51,7 @@ int32_t GpuSqlDispatcher::FilterColConst()
     }
 
     FreeColumnIfRegister<T>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic filter operation (<, >, =, ...) dispatching based on functor OP
@@ -59,14 +59,14 @@ int32_t GpuSqlDispatcher::FilterColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::FilterConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -96,7 +96,7 @@ int32_t GpuSqlDispatcher::FilterConstCol()
     }
 
     FreeColumnIfRegister<U>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic filter operation (<, >, =, ...) dispatching based on functor OP
@@ -104,19 +104,19 @@ int32_t GpuSqlDispatcher::FilterConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::FilterColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -164,7 +164,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
 
     FreeColumnIfRegister<U>(colNameRight);
     FreeColumnIfRegister<T>(colNameLeft);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of genric filter operation (<, >, =, ...) dispatching based on functor OP
@@ -172,7 +172,7 @@ int32_t GpuSqlDispatcher::FilterColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::FilterConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterConstConst()
 {
     U constRight = arguments_.Read<U>();
     T constLeft = arguments_.Read<T>();
@@ -181,25 +181,25 @@ int32_t GpuSqlDispatcher::FilterConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
         int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
         GPUFilter::Filter<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::FilterStringColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringColConst()
 {
     std::string cnst = arguments_.Read<std::string>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -228,18 +228,18 @@ int32_t GpuSqlDispatcher::FilterStringColConst()
         }
         GPUFilter::colConst<OP>(mask, std::get<0>(column), constString, nullBitMask, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::FilterStringConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -267,23 +267,23 @@ int32_t GpuSqlDispatcher::FilterStringConstCol()
         }
         GPUFilter::constCol<OP>(mask, constString, std::get<0>(column), nullBitMask, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OP>
-int32_t GpuSqlDispatcher::FilterStringColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<std::string>(colNameLeft);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -325,12 +325,12 @@ int32_t GpuSqlDispatcher::FilterStringColCol()
             GPUFilter::colCol<OP>(mask, std::get<0>(columnLeft), std::get<0>(columnRight), nullptr, retSize);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::FilterStringConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringConstConst()
 {
     std::string cnstRight = arguments_.Read<std::string>();
     std::string cnstLeft = arguments_.Read<std::string>();
@@ -341,7 +341,7 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -351,7 +351,7 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
         int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
         GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
@@ -359,14 +359,14 @@ int32_t GpuSqlDispatcher::FilterStringConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::LogicalColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalColConst()
 {
     U cnst = arguments_.Read<U>();
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -394,7 +394,7 @@ int32_t GpuSqlDispatcher::LogicalColConst()
     }
 
     FreeColumnIfRegister<T>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
@@ -402,14 +402,14 @@ int32_t GpuSqlDispatcher::LogicalColConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::LogicalConstCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalConstCol()
 {
     auto colName = arguments_.Read<std::string>();
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -437,7 +437,7 @@ int32_t GpuSqlDispatcher::LogicalConstCol()
     }
 
     FreeColumnIfRegister<U>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
@@ -445,19 +445,19 @@ int32_t GpuSqlDispatcher::LogicalConstCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::LogicalColCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalColCol()
 {
     auto colNameRight = arguments_.Read<std::string>();
     auto colNameLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<U>(colNameRight);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<U>(colNameRight);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
     loadFlag = LoadCol<T>(colNameLeft);
-    if (loadFlag)
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -506,7 +506,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
 
     FreeColumnIfRegister<U>(colNameRight);
     FreeColumnIfRegister<T>(colNameLeft);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of generic logical operation (AND, OR) dispatching based on functor OP
@@ -514,7 +514,7 @@ int32_t GpuSqlDispatcher::LogicalColCol()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename T, typename U>
-int32_t GpuSqlDispatcher::LogicalConstConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalConstConst()
 {
     U constRight = arguments_.Read<U>();
     T constLeft = arguments_.Read<T>();
@@ -522,7 +522,7 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -530,7 +530,7 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
         GPULogic::Logic<OP, T, U>(mask, constLeft, constRight, nullptr, retSize);
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of NOT operation dispatching
@@ -538,13 +538,13 @@ int32_t GpuSqlDispatcher::LogicalConstConst()
 /// Pops data from argument memory stream, and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::LogicalNotCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalNotCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -573,18 +573,18 @@ int32_t GpuSqlDispatcher::LogicalNotCol()
     }
 
     FreeColumnIfRegister<T>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::LogicalNotConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LogicalNotConst()
 {
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 
 template <typename OP>
-int32_t GpuSqlDispatcher::NullMaskCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -596,8 +596,8 @@ int32_t GpuSqlDispatcher::NullMaskCol()
         throw NullMaskOperationInvalidOperandException();
     }
 
-    int32_t loadFlag = LoadColNullMask(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadColNullMask(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -615,5 +615,5 @@ int32_t GpuSqlDispatcher::NullMaskCol()
         GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
                              nullMaskSize, columnMask.ElementCount);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

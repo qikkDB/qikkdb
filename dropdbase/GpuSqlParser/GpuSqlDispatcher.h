@@ -62,6 +62,7 @@ private:
     const std::string& str;
 };
 
+
 class GpuSqlDispatcher
 {
 private:
@@ -72,11 +73,21 @@ private:
         bool ShouldBeFreed;
         std::uintptr_t GpuNullMaskPtr;
     };
+
+    enum class InstructionStatus
+    {
+		CONTINUE = 0,
+		OUT_OF_BLOCKS,
+		FINISH,
+		LOAD_SKIPPED,
+		EXCEPTION
+    };
+
     static const std::string KEYS_SUFFIX;
     static const std::string NULL_SUFFIX;
     static const std::string RECONSTRUCTED_SUFFIX;
 
-    typedef int32_t (GpuSqlDispatcher::*DispatchFunction)();
+    typedef InstructionStatus (GpuSqlDispatcher::*DispatchFunction)();
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
     int32_t blockIndex_;
@@ -654,11 +665,11 @@ public:
     }
 
     template <typename T>
-    int32_t LoadCol(std::string& colName);
+    InstructionStatus LoadCol(std::string& colName);
 
-    int32_t LoadColNullMask(std::string& colName);
+    InstructionStatus LoadColNullMask(std::string& colName);
 
-    int32_t LoadTableBlockInfo(const std::string& tableName);
+    InstructionStatus LoadTableBlockInfo(const std::string& tableName);
 
     size_t GetBlockSize(int32_t blockIndex = -1);
 
@@ -716,67 +727,67 @@ public:
     GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
 
     template <typename T>
-    int32_t OrderByConst();
+    InstructionStatus OrderByConst();
 
     template <typename T>
-    int32_t OrderByCol();
+    InstructionStatus OrderByCol();
 
     template <typename T>
-    int32_t OrderByReconstructConst();
+    InstructionStatus OrderByReconstructConst();
 
     template <typename T>
-    int32_t OrderByReconstructCol();
+    InstructionStatus OrderByReconstructCol();
 
-    int32_t OrderByReconstructRetAllBlocks();
-
-    template <typename T>
-    int32_t RetConst();
+    InstructionStatus OrderByReconstructRetAllBlocks();
 
     template <typename T>
-    int32_t RetCol();
-
-    int32_t AggregationBegin();
-
-    int32_t AggregationDone();
-
-    int32_t GroupByBegin();
+    InstructionStatus RetConst();
 
     template <typename T>
-    int32_t GroupByDone();
+    InstructionStatus RetCol();
 
-    int32_t FreeOrderByTable();
+    InstructionStatus AggregationBegin();
 
-    int32_t LockRegister();
+    InstructionStatus AggregationDone();
 
-    int32_t GetLoadSize();
+    InstructionStatus GroupByBegin();
 
-    int32_t Fil();
+    template <typename T>
+    InstructionStatus GroupByDone();
 
-    int32_t WhereEvaluation();
+    InstructionStatus FreeOrderByTable();
 
-    int32_t Jmp();
+    InstructionStatus LockRegister();
 
-    int32_t Done();
+    InstructionStatus GetLoadSize();
 
-    int32_t ShowDatabases();
+    InstructionStatus Fil();
 
-    int32_t ShowTables();
+    InstructionStatus WhereEvaluation();
 
-    int32_t ShowColumns();
+    InstructionStatus Jmp();
 
-    int32_t CreateDatabase();
+    InstructionStatus Done();
 
-    int32_t DropDatabase();
+    InstructionStatus ShowDatabases();
 
-    int32_t CreateTable();
+    InstructionStatus ShowTables();
 
-    int32_t DropTable();
+    InstructionStatus ShowColumns();
 
-    int32_t AlterTable();
+    InstructionStatus CreateDatabase();
 
-    int32_t AlterDatabase();
+    InstructionStatus DropDatabase();
 
-    int32_t CreateIndex();
+    InstructionStatus CreateTable();
+
+    InstructionStatus DropTable();
+
+    InstructionStatus AlterTable();
+
+    InstructionStatus AlterDatabase();
+
+    InstructionStatus CreateIndex();
 
     void CleanUpGpuPointers();
 
@@ -784,203 +795,203 @@ public:
     //// FILTERS WITH FUNCTORS
 
     template <typename OP, typename T, typename U>
-    int32_t FilterColConst();
+    InstructionStatus FilterColConst();
 
     template <typename OP, typename T, typename U>
-    int32_t FilterConstCol();
+    InstructionStatus FilterConstCol();
 
     template <typename OP, typename T, typename U>
-    int32_t FilterColCol();
+    InstructionStatus FilterColCol();
 
     template <typename OP, typename T, typename U>
-    int32_t FilterConstConst();
+    InstructionStatus FilterConstConst();
 
     template <typename OP>
-    int32_t FilterStringColConst();
+    InstructionStatus FilterStringColConst();
 
     template <typename OP>
-    int32_t FilterStringConstCol();
+    InstructionStatus FilterStringConstCol();
 
     template <typename OP>
-    int32_t FilterStringColCol();
+    InstructionStatus FilterStringColCol();
 
     template <typename OP>
-    int32_t FilterStringConstConst();
+    InstructionStatus FilterStringConstConst();
 
     template <typename OP, typename T, typename U>
-    int32_t LogicalColConst();
+    InstructionStatus LogicalColConst();
 
     template <typename OP, typename T, typename U>
-    int32_t LogicalConstCol();
+    InstructionStatus LogicalConstCol();
 
     template <typename OP, typename T, typename U>
-    int32_t LogicalColCol();
+    InstructionStatus LogicalColCol();
 
     template <typename OP, typename T, typename U>
-    int32_t LogicalConstConst();
+    InstructionStatus LogicalConstConst();
 
     template <typename OP, typename T, typename U>
-    int32_t ArithmeticColConst();
+    InstructionStatus ArithmeticColConst();
 
     template <typename OP, typename T, typename U>
-    int32_t ArithmeticConstCol();
+    InstructionStatus ArithmeticConstCol();
 
     template <typename OP, typename T, typename U>
-    int32_t ArithmeticColCol();
+    InstructionStatus ArithmeticColCol();
 
     template <typename OP, typename T, typename U>
-    int32_t ArithmeticConstConst();
+    InstructionStatus ArithmeticConstConst();
 
     template <typename OP, typename T>
-    int32_t ArithmeticUnaryCol();
+    InstructionStatus ArithmeticUnaryCol();
 
     template <typename OP, typename T>
-    int32_t ArithmeticUnaryConst();
+    InstructionStatus ArithmeticUnaryConst();
 
     template <typename OP>
-    int32_t StringUnaryCol();
+    InstructionStatus StringUnaryCol();
 
     template <typename OP>
-    int32_t StringUnaryConst();
+    InstructionStatus StringUnaryConst();
 
     template <typename OP>
-    int32_t StringUnaryNumericCol();
+    InstructionStatus StringUnaryNumericCol();
 
     template <typename OP>
-    int32_t StringUnaryNumericConst();
+    InstructionStatus StringUnaryNumericConst();
 
     template <typename OP>
-    int32_t StringBinaryColCol();
+    InstructionStatus StringBinaryColCol();
 
     template <typename OP>
-    int32_t StringBinaryColConst();
+    InstructionStatus StringBinaryColConst();
 
     template <typename OP>
-    int32_t StringBinaryConstCol();
+    InstructionStatus StringBinaryConstCol();
 
     template <typename OP>
-    int32_t StringBinaryConstConst();
+    InstructionStatus StringBinaryConstConst();
 
     template <typename OP, typename T>
-    int32_t StringBinaryNumericColCol();
+    InstructionStatus StringBinaryNumericColCol();
 
     template <typename OP, typename T>
-    int32_t StringBinaryNumericColConst();
+    InstructionStatus StringBinaryNumericColConst();
 
     template <typename OP, typename T>
-    int32_t StringBinaryNumericConstCol();
+    InstructionStatus StringBinaryNumericConstCol();
 
     template <typename OP, typename T>
-    int32_t StringBinaryNumericConstConst();
+    InstructionStatus StringBinaryNumericConstConst();
 
     template <typename OP, typename R, typename T, typename U>
-    int32_t AggregationGroupBy();
+    InstructionStatus AggregationGroupBy();
 
     template <typename OP, typename OUT, typename IN>
-    int32_t AggregationCol();
+    InstructionStatus AggregationCol();
 
     template <typename OP, typename T, typename U>
-    int32_t AggregationConst();
+    InstructionStatus AggregationConst();
 
     ////
 
     // point from columns
 
     template <typename T, typename U>
-    int32_t PointColCol();
+    InstructionStatus PointColCol();
 
     template <typename T, typename U>
-    int32_t PointColConst();
+    InstructionStatus PointColConst();
 
     template <typename T, typename U>
-    int32_t PointConstCol();
+    InstructionStatus PointConstCol();
 
     // contains
 
     template <typename T, typename U>
-    int32_t ContainsColConst();
+    InstructionStatus ContainsColConst();
 
     template <typename T, typename U>
-    int32_t ContainsConstCol();
+    InstructionStatus ContainsConstCol();
 
     template <typename T, typename U>
-    int32_t ContainsColCol();
+    InstructionStatus ContainsColCol();
 
     template <typename T, typename U>
-    int32_t ContainsConstConst();
+    InstructionStatus ContainsConstConst();
 
     template <typename OP, typename T, typename U>
-    int32_t PolygonOperationColConst();
+    InstructionStatus PolygonOperationColConst();
 
     template <typename OP, typename T, typename U>
-    int32_t PolygonOperationConstCol();
+    InstructionStatus PolygonOperationConstCol();
 
     template <typename OP, typename T, typename U>
-    int32_t PolygonOperationColCol();
+    InstructionStatus PolygonOperationColCol();
 
     template <typename OP, typename T, typename U>
-    int32_t PolygonOperationConstConst();
+    InstructionStatus PolygonOperationConstConst();
 
     template <typename OUT, typename IN>
-    int32_t CastNumericCol();
+    InstructionStatus CastNumericCol();
 
     template <typename OUT, typename IN>
-    int32_t CastNumericConst();
+    InstructionStatus CastNumericConst();
 
     template <typename IN>
-    int32_t CastNumericToStringCol();
+    InstructionStatus CastNumericToStringCol();
 
     template <typename IN>
-    int32_t CastNumericToStringConst();
+    InstructionStatus CastNumericToStringConst();
 
     template <typename OUT>
-    int32_t CastStringCol();
+    InstructionStatus CastStringCol();
 
     template <typename OUT>
-    int32_t CastStringConst();
+    InstructionStatus CastStringConst();
 
-    int32_t CastPointCol();
+    InstructionStatus CastPointCol();
 
-    int32_t CastPointConst();
+    InstructionStatus CastPointConst();
 
-    int32_t CastPolygonCol();
+    InstructionStatus CastPolygonCol();
 
-    int32_t CastPolygonConst();
+    InstructionStatus CastPolygonConst();
 
-    int32_t Between();
-
-    template <typename T>
-    int32_t LogicalNotCol();
+    InstructionStatus Between();
 
     template <typename T>
-    int32_t LogicalNotConst();
+    InstructionStatus LogicalNotCol();
+
+    template <typename T>
+    InstructionStatus LogicalNotConst();
 
     template <typename OP>
-    int32_t NullMaskCol();
+    InstructionStatus NullMaskCol();
 
-    int32_t DateToStringCol();
+    InstructionStatus DateToStringCol();
 
-    int32_t DateToStringConst();
-
-    template <typename OP>
-    int32_t DateExtractCol();
+    InstructionStatus DateToStringConst();
 
     template <typename OP>
-    int32_t DateExtractConst();
+    InstructionStatus DateExtractCol();
+
+    template <typename OP>
+    InstructionStatus DateExtractConst();
 
     template <typename T>
-    int32_t GroupByCol();
+    InstructionStatus GroupByCol();
 
     template <typename T>
-    int32_t GroupByConst();
+    InstructionStatus GroupByConst();
 
     template <typename T>
-    int32_t InsertInto();
+    InstructionStatus InsertInto();
 
-    int32_t InsertIntoDone();
+    InstructionStatus InsertIntoDone();
 
     template <typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerColConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerColConst()
     {
         U cnst = arguments_.Read<U>();
         auto colName = arguments_.Read<std::string>();
@@ -989,7 +1000,7 @@ public:
     }
 
     template <typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerConstCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConstCol()
     {
         auto colName = arguments_.Read<std::string>();
         T cnst = arguments_.Read<T>();
@@ -998,7 +1009,7 @@ public:
     }
 
     template <typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerColCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerColCol()
     {
         auto colNameRight = arguments_.Read<std::string>();
         auto colNameLeft = arguments_.Read<std::string>();
@@ -1007,7 +1018,7 @@ public:
     }
 
     template <typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerConstConst()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConstConst()
     {
         U cnstRight = arguments_.Read<U>();
         T cnstLeft = arguments_.Read<T>();
@@ -1019,7 +1030,7 @@ public:
     //// FUNCTOR ERROR HANDLERS
 
     template <typename OP, typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerColConst()
+    InstructionStatus  InvalidOperandTypesErrorHandlerColConst()
     {
         U cnst = arguments_.Read<U>();
         auto colName = arguments_.Read<std::string>();
@@ -1029,7 +1040,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerConstCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConstCol()
     {
         auto colName = arguments_.Read<std::string>();
         T cnst = arguments_.Read<T>();
@@ -1039,7 +1050,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerColCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerColCol()
     {
         auto colNameRight = arguments_.Read<std::string>();
         auto colNameLeft = arguments_.Read<std::string>();
@@ -1049,7 +1060,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    int32_t InvalidOperandTypesErrorHandlerConstConst()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConstConst()
     {
         U cnstRight = arguments_.Read<U>();
         T cnstLeft = arguments_.Read<T>();
@@ -1059,7 +1070,7 @@ public:
     }
 
     template <typename OP, typename T>
-    int32_t InvalidOperandTypesErrorHandlerCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerCol()
     {
         auto colName = arguments_.Read<std::string>();
 
@@ -1067,7 +1078,7 @@ public:
     }
 
     template <typename OP, typename T>
-    int32_t InvalidOperandTypesErrorHandlerConst()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConst()
     {
         T cnst = arguments_.Read<T>();
 
@@ -1077,7 +1088,7 @@ public:
     ////
 
     template <typename T>
-    int32_t InvalidOperandTypesErrorHandlerCol()
+    InstructionStatus  InvalidOperandTypesErrorHandlerCol()
     {
         auto colName = arguments_.Read<std::string>();
 
@@ -1085,7 +1096,7 @@ public:
     }
 
     template <typename T>
-    int32_t InvalidOperandTypesErrorHandlerConst()
+    InstructionStatus  InvalidOperandTypesErrorHandlerConst()
     {
         T cnst = arguments_.Read<T>();
 
@@ -1107,46 +1118,46 @@ private:
 };
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>();
 
 template <>
-int32_t GpuSqlDispatcher::RetCol<std::string>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
 
 template <>
-int32_t GpuSqlDispatcher::RetConst<std::string>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<std::string>();
 
 template <>
-int32_t GpuSqlDispatcher::GroupByCol<std::string>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>
-int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>();
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName);
 
 template <>
-int32_t GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<std::string>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<std::string>();
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
 
 template <>
-int32_t GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();

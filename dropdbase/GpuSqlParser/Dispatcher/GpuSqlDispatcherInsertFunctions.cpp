@@ -19,7 +19,7 @@ DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int8_t)
 END_DISPATCH_TABLE
 
 template <>
-int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
 {
     std::string column = arguments_.Read<std::string>();
     std::cout << "Column name: " << column << std::endl;
@@ -42,11 +42,11 @@ int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
 
     insertIntoData_->insertIntoData.insert({column, pointVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <>
-int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string column = arguments_.Read<std::string>();
     bool hasValue = arguments_.Read<bool>();
@@ -68,10 +68,10 @@ int32_t GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
     insertIntoData_->insertIntoData.insert({column, polygonVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::InsertIntoDone()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertIntoDone()
 {
     Context& context = Context::getInstance();
 
@@ -118,5 +118,5 @@ int32_t GpuSqlDispatcher::InsertIntoDone()
     insertIntoNullMasks_.clear();
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Insert into completed sucessfully" << '\n';
-    return 2;
+    return InstructionStatus::FINISH;
 }

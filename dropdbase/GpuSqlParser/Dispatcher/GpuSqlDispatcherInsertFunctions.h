@@ -8,7 +8,7 @@
 
 #ifndef __CUDACC__
 template <typename T>
-int32_t GpuSqlDispatcher::InsertInto()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto()
 {
     std::string column = arguments_.Read<std::string>();
     bool hasValue = arguments_.Read<bool>();
@@ -19,6 +19,6 @@ int32_t GpuSqlDispatcher::InsertInto()
 
     insertIntoData_->insertIntoData.insert({column, dataVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 #endif

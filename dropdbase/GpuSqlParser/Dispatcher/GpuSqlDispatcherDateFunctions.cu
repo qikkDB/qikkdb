@@ -80,13 +80,13 @@ DISPATCHER_UNARY_ERROR(DateOperations::second, int8_t)
 END_DISPATCH_TABLE
 
 
-int32_t GpuSqlDispatcher::DateToStringCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateToStringCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<int64_t>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<int64_t>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -142,10 +142,10 @@ int32_t GpuSqlDispatcher::DateToStringCol()
         }
     }
     FreeColumnIfRegister<int64_t>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::DateToStringConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateToStringConst()
 {
     int64_t cnst = arguments_.Read<int64_t>();
     auto reg = arguments_.Read<std::string>();
@@ -154,7 +154,7 @@ int32_t GpuSqlDispatcher::DateToStringConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
@@ -162,5 +162,5 @@ int32_t GpuSqlDispatcher::DateToStringConst()
         GPUDate::DateToString(&result, cnst, retSize);
         FillStringRegister(result, reg, retSize, true);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

@@ -8,7 +8,7 @@
 #include "../../VariantArray.h"
 
 template <typename T>
-int32_t GpuSqlDispatcher::OrderByCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByCol()
 {
     auto colName = arguments_.Read<std::string>();
     OrderBy::Order order = static_cast<OrderBy::Order>(arguments_.Read<int32_t>());
@@ -16,8 +16,8 @@ int32_t GpuSqlDispatcher::OrderByCol()
 
     orderByColumns_.insert({columnIndex, {colName, order}});
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -49,7 +49,7 @@ int32_t GpuSqlDispatcher::OrderByCol()
         }
         else
         {
-            return 0;
+            return InstructionStatus::CONTINUE;
         }
     }
     else
@@ -72,17 +72,17 @@ int32_t GpuSqlDispatcher::OrderByCol()
                             reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), inSize, order);
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::OrderByConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByConst()
 {
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::OrderByReconstructCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -91,8 +91,8 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol()
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        int32_t loadFlag = LoadCol<T>(colName);
-        if (loadFlag)
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+        if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
@@ -150,11 +150,11 @@ int32_t GpuSqlDispatcher::OrderByReconstructCol()
                 std::move(outNullData));
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::OrderByReconstructConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructConst()
 {
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

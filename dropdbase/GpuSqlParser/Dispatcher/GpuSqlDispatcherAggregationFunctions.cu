@@ -321,12 +321,12 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationBeginFunction_ =
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::aggregationDoneFunction_ = &GpuSqlDispatcher::AggregationDone;
 
 template <>
-int32_t GpuSqlDispatcher::GroupByCol<std::string>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>()
 {
     std::string columnName = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(columnName);
-    if (loadFlag)
+    InstructionStatus loadFlag = LoadCol<std::string>(columnName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -355,11 +355,11 @@ int32_t GpuSqlDispatcher::GroupByCol<std::string>()
     }
     usingGroupBy_ = true;
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename T>
-int32_t GpuSqlDispatcher::GroupByDone()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByDone()
 {
     bool containsAggFunction = arguments_.Read<bool>();
     insideGroupBy_ = false;
@@ -394,7 +394,7 @@ int32_t GpuSqlDispatcher::GroupByDone()
             }
             // if we still can increase the hash table size, do it and restart the thread
             HandleHashTableFull();
-            return 0;
+            return InstructionStatus::CONTINUE;
         }
 
         if (isLastBlockOfDevice_)
@@ -409,7 +409,7 @@ int32_t GpuSqlDispatcher::GroupByDone()
                 {
                     CudaLogBoost::getInstance(CudaLogBoost::warning)
                         << "Skip reconstruction group by in thread: " << dispatcherThreadId_ << '\n';
-                    return 13;
+                    return InstructionStatus::EXCEPTION;
                 }
 
                 CudaLogBoost::getInstance(CudaLogBoost::debug)
@@ -431,24 +431,24 @@ int32_t GpuSqlDispatcher::GroupByDone()
         }
     }
 
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::GroupByBegin()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByBegin()
 {
     usingGroupBy_ = true;
     insideGroupBy_ = true;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::AggregationDone()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationDone()
 {
     insideAggregation_ = false;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
-int32_t GpuSqlDispatcher::AggregationBegin()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationBegin()
 {
     insideAggregation_ = true;
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

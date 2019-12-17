@@ -4,13 +4,13 @@
 #include "../../QueryEngine/GPUCore/GPUCast.cuh"
 
 template <typename OUT, typename IN>
-int32_t GpuSqlDispatcher::CastNumericCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<IN>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<IN>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -67,11 +67,11 @@ int32_t GpuSqlDispatcher::CastNumericCol()
     }
 
     FreeColumnIfRegister<IN>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OUT, typename IN>
-int32_t GpuSqlDispatcher::CastNumericConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericConst()
 {
     IN cnst = arguments_.Read<IN>();
     auto reg = arguments_.Read<std::string>();
@@ -85,17 +85,17 @@ int32_t GpuSqlDispatcher::CastNumericConst()
         OUT* result = AllocateRegister<OUT>(reg, retSize);
         GPUCast::CastNumeric(result, cnst, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OUT>
-int32_t GpuSqlDispatcher::CastStringCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<std::string>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -150,11 +150,11 @@ int32_t GpuSqlDispatcher::CastStringCol()
             GPUCast::CastString(result, std::get<0>(column), retSize);
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename OUT>
-int32_t GpuSqlDispatcher::CastStringConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringConst()
 {
     std::string cnst = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
@@ -165,24 +165,24 @@ int32_t GpuSqlDispatcher::CastStringConst()
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {
-        return 1;
+        return InstructionStatus::OUT_OF_BLOCKS;
     }
     if (!IsRegisterAllocated(reg))
     {
         OUT* result = AllocateRegister<OUT>(reg, retSize);
         GPUCast::CastString(result, gpuString, retSize);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename IN>
-int32_t GpuSqlDispatcher::CastNumericToStringCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<IN>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<IN>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -240,11 +240,11 @@ int32_t GpuSqlDispatcher::CastNumericToStringCol()
         }
     }
     FreeColumnIfRegister<IN>(colName);
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 template <typename IN>
-int32_t GpuSqlDispatcher::CastNumericToStringConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringConst()
 {
-    return 0;
+    return InstructionStatus::CONTINUE;
 }

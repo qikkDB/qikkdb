@@ -14,7 +14,7 @@
 #include "../../CudaLogBoost.h"
 
 template <typename T>
-int32_t GpuSqlDispatcher::RetConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
     std::string alias = arguments_.Read<std::string>();
@@ -22,8 +22,8 @@ int32_t GpuSqlDispatcher::RetConst()
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    int32_t loadFlag = LoadTableBlockInfo(loadedTableName_);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -34,7 +34,7 @@ int32_t GpuSqlDispatcher::RetConst()
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount);
     MergePayloadToSelfResponse(alias, "", payload, "");
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of column return from SELECT clause
@@ -44,13 +44,13 @@ int32_t GpuSqlDispatcher::RetConst()
 /// aggregation) If GROUP BY is present the results are only coppied from GPU and merged to response
 /// message <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::RetCol()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 {
     auto colName = arguments_.Read<std::string>();
     auto alias = arguments_.Read<std::string>();
 
-    int32_t loadFlag = LoadCol<T>(colName);
-    if (loadFlag)
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
     {
         return loadFlag;
     }
@@ -92,7 +92,7 @@ int32_t GpuSqlDispatcher::RetCol()
         }
         else
         {
-            return 0;
+            return InstructionStatus::CONTINUE;
         }
     }
     else
@@ -113,7 +113,7 @@ int32_t GpuSqlDispatcher::RetCol()
             }
             else
             {
-                return 0;
+                return InstructionStatus::CONTINUE;
             }
         }
         else
@@ -149,7 +149,7 @@ int32_t GpuSqlDispatcher::RetCol()
         InsertIntoPayload(payload, outData, outSize);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
 
 /// Implementation of the LOAD operation
@@ -157,7 +157,7 @@ int32_t GpuSqlDispatcher::RetCol()
 /// Sets the last block (for current dispatcher instance and overall) flags
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename T>
-int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
@@ -176,7 +176,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             std::min(Context::getInstance().getDeviceCount() - 1, blockCount - 1);
         if (blockIndex_ >= blockCount)
         {
-            return 1;
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
         if (blockIndex_ >= blockCount - Context::getInstance().getDeviceCount())
         {
@@ -192,7 +192,7 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
         if (loadNecessary_ == 0 || loadSize_ <= 0)
         {
             instructionPointer_ = jmpInstructionPosition_;
-            return 12;
+            return InstructionStatus::LOAD_SKIPPED;
         }
 
         const ColumnBase<T>* col = dynamic_cast<const ColumnBase<T>*>(
@@ -335,5 +335,5 @@ int32_t GpuSqlDispatcher::LoadCol(std::string& colName)
             noLoad_ = false;
         }
     }
-    return 0;
+    return InstructionStatus::CONTINUE;
 }
