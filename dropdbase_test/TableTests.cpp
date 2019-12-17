@@ -1,8 +1,11 @@
+#include <boost/filesystem.hpp>
+
 #include "gtest/gtest.h"
 #include "../dropdbase/Table.h"
 #include "../dropdbase/Database.h"
 #include "../dropdbase/DataType.h"
 #include "../dropdbase/ColumnBase.h"
+#include "../dropdbase/Configuration.h"
 #include "../dropdbase/PointFactory.h"
 #include "../dropdbase/ComplexPolygonFactory.h"
 #include "../dropdbase/GpuSqlParser/GpuSqlCustomParser.h"
@@ -1428,6 +1431,7 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     ASSERT_EQ(blockBool2[0]->GetData()[2], 1);
 }
 
+
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
 {
     // insert unique values into both columns - one isUnique and one is not
@@ -1999,7 +2003,8 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     ASSERT_THROW(addUniqueDup.Parse(), std::length_error);
 
     // add Unique Constraint on column with null value
-    GpuSqlCustomParser addUniqueDupNullValue(database, "ALTER TABLE TableA ADD NOT NULL n(ColumnIntD);");
+    GpuSqlCustomParser addUniqueDupNullValue(database,
+                                             "ALTER TABLE TableA ADD NOT NULL n(ColumnIntD);");
     ASSERT_THROW(addUniqueDupNullValue.Parse(), std::length_error);
 }
 
@@ -3610,4 +3615,57 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[7]), resultB[7]);
 
     ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+}
+
+TEST(TableTests, SetIsNullable)
+{
+    GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE NullableDb 50;");
+    auto resultPtr = parserCreateDatabase.Parse();
+    auto database = Database::GetDatabaseByName("NullableDb");
+
+    GpuSqlCustomParser parserCreateTable(database,
+                                         "CREATE TABLE TableA (ColumnA INT NOT NULL, ColumnB "
+                                         "INT, ColumnC INT);");
+
+    resultPtr = parserCreateTable.Parse();
+    auto& table = database->GetTables().at("TableA");
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnA")->GetIsNullable());
+    ASSERT_TRUE(table.GetColumns().at("ColumnB")->GetIsNullable());
+    ASSERT_TRUE(table.GetColumns().at("ColumnC")->GetIsNullable());
+
+    // insert null value into ColumnC
+    GpuSqlCustomParser parser(database, "INSERT INTO TableA (ColumnA, ColumnB) VALUES (2, 1);");
+    resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parserSelect(database, "SELECT ColumnA, ColumnB, ColumnC FROM TableA;");
+    resultPtr = parserSelect.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().at("TableA.ColumnA").intpayload().intdata_size(), 1);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnB").intpayload().intdata_size(), 1);
+    ASSERT_EQ(result->payloads().at("TableA.ColumnC").intpayload().intdata_size(), 1);
+    ASSERT_EQ(2, result->payloads().at("TableA.ColumnA").intpayload().intdata()[0]);
+    ASSERT_EQ(1, result->payloads().at("TableA.ColumnB").intpayload().intdata()[0]);
+    ASSERT_EQ(GetNullConstant<int32_t>(), result->payloads().at("TableA.ColumnC").intpayload().intdata()[0]);
+
+    // trying to insert null value into NOT NULL ColumnA
+    GpuSqlCustomParser parser2(database, "INSERT INTO TableA (ColumnC) VALUES (5);");
+    ASSERT_THROW(parser2.Parse(), std::length_error);
+
+    // trying to add NOT NULL on column with null value
+    GpuSqlCustomParser parser3(database, "ALTER TABLE TableA ADD NOT NULL n(ColumnC);");
+    ASSERT_THROW(parser3.Parse(), std::length_error);
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnA")->GetIsNullable());
+    ASSERT_TRUE(table.GetColumns().at("ColumnB")->GetIsNullable());
+    ASSERT_TRUE(table.GetColumns().at("ColumnC")->GetIsNullable());
+
+    // add NOT NULL on column without null value
+    GpuSqlCustomParser parser4(database, "ALTER TABLE TableA ADD NOT NULL nu(ColumnB);");
+    parser4.Parse();
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnA")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnB")->GetIsNullable());
+    ASSERT_TRUE(table.GetColumns().at("ColumnC")->GetIsNullable());
 }

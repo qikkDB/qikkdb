@@ -50,10 +50,12 @@ private:
     std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
     int32_t getDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
     void checkUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
-                                     const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
                                      int32_t dataSize);
 #endif
+    void checkNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+                                       int32_t dataSize);
     bool getHasUniqueConstraints();
+    bool getHasNotNullConstraints();
 
 public:
     const std::shared_ptr<Database>& GetDatabase();

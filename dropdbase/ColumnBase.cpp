@@ -717,3 +717,171 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
         break;
     }
 }
+
+template<>
+void ColumnBase<std::string>::SetIsUnique(bool isUnique)
+{
+    uniqueHashmap_.clear();
+
+    if (isUnique)
+    {
+        if (isNullable_)
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column need to have NOT NULL constraint");
+        }
+
+        std::string duplicateData;
+        bool duplicateFound = false;
+        for (auto const& blocksId : blocks_)
+        {
+            for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+            {
+                auto data = blocksId.second[i]->GetData();
+                int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                {
+                    if (!IsDuplicate(uniqueHashmap_, data[j]))
+                    {
+                        InsertIntoHashmap(data[j]);
+                    }
+                    else
+                    {
+                        duplicateFound = true;
+                        duplicateData = data[j];
+                    }
+                }
+            }
+        }
+
+        if (!duplicateFound)
+        {
+            isUnique_ = true;
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+        }
+        else
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column contains duplicate value: " + duplicateData);
+        }
+    }
+
+    else
+    {
+        isUnique_ = false;
+        BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+    }
+}
+
+template <>
+void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
+{
+    uniqueHashmap_.clear();
+
+    if (isUnique)
+    {
+        if (isNullable_)
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column need to have NOT NULL constraint");
+        }
+
+        ColmnarDB::Types::Point duplicateData;
+        bool duplicateFound = false;
+        for (auto const& blocksId : blocks_)
+        {
+            for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+            {
+                auto data = blocksId.second[i]->GetData();
+                int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                {
+                    if (!IsDuplicate(uniqueHashmap_, data[j]))
+                    {
+                        InsertIntoHashmap(data[j]);
+                    }
+                    else
+                    {
+                        duplicateFound = true;
+                        duplicateData = data[j];
+                    }
+                }
+            }
+        }
+
+        if (!duplicateFound)
+        {
+            isUnique_ = true;
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+        }
+        else
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column contains duplicate value: " + PointFactory::WktFromPoint(duplicateData));
+        }
+    }
+
+    else
+    {
+        isUnique_ = false;
+        BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+    }
+}
+
+template <>
+void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
+{
+    uniqueHashmap_.clear();
+
+    if (isUnique)
+    {
+        if (isNullable_)
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column need to have NOT NULL constraint");
+        }
+
+        ColmnarDB::Types::ComplexPolygon duplicateData;
+        bool duplicateFound = false;
+        for (auto const& blocksId : blocks_)
+        {
+            for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
+            {
+                auto data = blocksId.second[i]->GetData();
+                int8_t* mask = blocksId.second[i]->GetNullBitmask();
+
+                for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
+                {
+                    if (!IsDuplicate(uniqueHashmap_, data[j]))
+                    {
+                        InsertIntoHashmap(data[j]);
+                    }
+                    else
+                    {
+                        duplicateFound = true;
+                        duplicateData = data[j];
+                    }
+                }
+            }
+        }
+
+        if (!duplicateFound)
+        {
+            isUnique_ = true;
+            BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to TRUE for column named: " << name_ << ".";
+        }
+        else
+        {
+            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
+                                    ", column contains duplicate value: " + ComplexPolygonFactory::WktFromPolygon(duplicateData));
+        }
+    }
+
+    else
+    {
+        isUnique_ = false;
+        BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
+    }
+}

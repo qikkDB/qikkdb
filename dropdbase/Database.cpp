@@ -927,6 +927,27 @@ void Database::LoadColumn(const char* path,
                     }
                     remainingDataLength -= currentChunkSize;
 
+                    if (isUnique)
+                    {
+                        if (isNullable)
+                        {
+                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                        }
+
+                        for (int32_t i = 0; i < dataPolygon.size(); i++)
+                        {
+                            if (!columnPolygon.IsDuplicate(dataPolygon[i]))
+                            {
+                                columnPolygon.InsertIntoHashmap(dataPolygon[i]);
+                            }
+                            else
+                            {
+                                throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                    ComplexPolygonFactory::WktFromPolygon(dataPolygon[i]));
+                            }
+                        }
+                    }
+
                     block.InsertData(dataPolygon);
                 }
 
@@ -1085,6 +1106,27 @@ void Database::LoadColumn(const char* path,
                     }
                     remainingDataLength -= currentChunkSize;
 
+                    if (isUnique)
+                    {
+                        if (isNullable)
+                        {
+                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                        }
+
+                        for (int32_t i = 0; i < dataPoint.size(); i++)
+                        {
+                            if (!columnPoint.IsDuplicate(dataPoint[i]))
+                            {
+                                columnPoint.InsertIntoHashmap(dataPoint[i]);
+                            }
+                            else
+                            {
+                                throw std::runtime_error(
+                                    "Loaded column: " + columnName +
+                                    " has UNIQUE constraint and duplicate values: " + PointFactory::WktFromPoint(dataPoint[i]));
+                            }
+                        }
+                    }
                     block.InsertData(dataPoint);
                 }
 
@@ -1238,7 +1280,27 @@ void Database::LoadColumn(const char* path,
                     }
                     remainingDataLength -= currentChunkSize;
 
+                    if (isUnique)
+                    {
+                        if (isNullable)
+                        {
+                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                        }
 
+                        for (int32_t i = 0; i < dataString.size(); i++)
+                        {
+                            if (!columnString.IsDuplicate(dataString[i]))
+                            {
+                                columnString.InsertIntoHashmap(dataString[i]);
+                            }
+                            else
+                            {
+                                throw std::runtime_error(
+                                    "Loaded column: " + columnName +
+                                    " has UNIQUE constraint and duplicate values: " + dataString[i]);
+                            }
+                        }
+                    }
                     block.InsertData(dataString);
                 }
 
@@ -1319,6 +1381,26 @@ void Database::LoadColumn(const char* path,
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
+                }
+
+                if (isUnique)
+                {
+                    if (isNullable)
+                    {
+                        throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                    }
+                    std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
+                                  [&columnInt, &columnName](int8_t& value) {
+                                      if (!columnInt.IsDuplicate(value))
+                                      {
+                                          columnInt.InsertIntoHashmap(value);
+                                      }
+                                      else
+                                      {
+                                          throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                                                   std::to_string(value));
+                                      }
+                                  });
                 }
 
                 auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
@@ -1404,6 +1486,26 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
+                if (isUnique)
+                {
+                    if (isNullable)
+                    {
+                        throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                    }
+                    std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
+                                  [&columnInt, &columnName](int32_t& value) {
+                                      if (!columnInt.IsDuplicate(value))
+                                      {
+                                          columnInt.InsertIntoHashmap(value);
+                                      }
+                                      else
+                                      {
+                                          throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                                                   std::to_string(value));
+                                      }
+                                  });
+                }
+
                 auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
                                                  groupId, false, static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
@@ -1487,6 +1589,26 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
+                if (isUnique)
+                {
+                    if (isNullable)
+                    {
+                        throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                    }
+                    std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
+                                  [&columnLong, &columnName](int64_t& value) {
+                                      if (!columnLong.IsDuplicate(value))
+                                      {
+                                          columnLong.InsertIntoHashmap(value);
+                                      }
+                                      else
+                                      {
+                                          throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                                                   std::to_string(value));
+                                      }
+                                  });
+                }
+
                 auto& block = columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(),
                                                   groupId, false, static_cast<bool>(isCompressed), false);
                 block.SetNullBitmask(std::move(nullBitMask));
@@ -1568,6 +1690,26 @@ void Database::LoadColumn(const char* path,
                     throw std::runtime_error(
                         "Loaded data from disk does not fit into existing block");
                     break;
+                }
+
+                if (isUnique)
+                {
+                    if (isNullable)
+                    {
+                        throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                    }
+                    std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
+                                  [&columnFloat, &columnName](float& value) {
+                                      if (!columnFloat.IsDuplicate(value))
+                                      {
+                                          columnFloat.InsertIntoHashmap(value);
+                                      }
+                                      else
+                                      {
+                                          throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                                                   std::to_string(value));
+                                      }
+                                  });
                 }
 
                 auto& block =
@@ -1654,6 +1796,26 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
+                if (isUnique)
+                {
+                    if (isNullable)
+                    {
+                        throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                    }
+                    std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
+                                  [&columnDouble, &columnName](double& value) {
+                                      if (!columnDouble.IsDuplicate(value))
+                                      {
+                                          columnDouble.InsertIntoHashmap(value);
+                                      }
+                                      else
+                                      {
+                                          throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                                                   std::to_string(value));
+                                      }
+                                  });
+                }
+
                 auto& block =
                     columnDouble.AddBlock(std::move(data), dataLength, columnDouble.GetBlockSize(),
                                           groupId, false, static_cast<bool>(isCompressed), false);
@@ -1676,7 +1838,8 @@ void Database::LoadColumn(const char* path,
 }
 
 /// <summary>
-/// Creates table with given name and columns and adds it to database. If the table already existed, create missing columns if there are any missing
+/// Creates table with given name and columns and adds it to database. If the table already
+/// existed, create missing columns if there are any missing
 /// </summary>
 /// <param name="columns">Columns with types.</param>
 /// <param name="tableName">Table name.</param>
@@ -1979,7 +2142,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
                     colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
                 }
-                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<char*>(&dataLength),
+                              sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
                 colFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
                 colFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
@@ -2022,7 +2186,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
                     colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
                 }
-                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<char*>(&dataLength),
+                              sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
                 colFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
                 colFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
@@ -2065,7 +2230,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
                     colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
                 }
-                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<char*>(&dataLength),
+                              sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
                 colFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
                 colFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
@@ -2108,7 +2274,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
                     colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
                 }
-                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<char*>(&dataLength),
+                              sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
                 colFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
                 colFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
@@ -2151,7 +2318,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
                     colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()), nullBitMaskLength); // write nullBitMask
                 }
-                colFile.write(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // write block length (number of entries)
+                colFile.write(reinterpret_cast<char*>(&dataLength),
+                              sizeof(int32_t)); // write block length (number of entries)
                 colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
                 colFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
                 colFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max

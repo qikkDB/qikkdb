@@ -139,6 +139,11 @@ public:
         return temp_hashmap.find(value) != temp_hashmap.end();
     }
 
+    bool IsDuplicate(T value)
+    {
+        return uniqueHashmap_.find(value) != uniqueHashmap_.end();
+    }
+
     std::unordered_set<T> GetHashmapCopy()
     {
         return uniqueHashmap_;
@@ -175,6 +180,10 @@ public:
         return isNullable_;
     }
 
+    /// <summary>
+    /// set isNullable_ flag, checking is there null value in column which doesnt allow to set FALSE flag
+    /// </summary>
+    /// <param name="isNullable">required isNullable_ value</param>
     virtual void SetIsNullable(bool isNullable) override
     {
         if (!isNullable)
@@ -226,8 +235,13 @@ public:
         return isUnique_;
     }
 
+    /// <summary>
+    /// set isUnique_ flag, checking is there is duplicity value or null value in column which dont allow to set TRUE flag
+    /// </summary>
+    /// <param name="isUnique">required isUnique_ value</param>
     virtual void SetIsUnique(bool isUnique) override
     {
+        uniqueHashmap_.clear();
 
         if (isUnique)
         {
@@ -268,17 +282,14 @@ public:
             }
             else
             {
-                uniqueHashmap_.clear();
-
                 throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                        ", column contains duplicate value");
+                                        ", column contains duplicate value: " + std::to_string(duplicateData));
             }
         }
 
         else
         {
             isUnique_ = false;
-            uniqueHashmap_.clear();
             BOOST_LOG_TRIVIAL(debug) << "Flag isUnique_ was set to FALSE for column named: " << name_ << ".";
         }
     }
@@ -971,6 +982,15 @@ public:
         return GetBlocksList()[blockIdx]->GetSize();
     }
 };
+
+template <>
+void ColumnBase<std::string>::SetIsUnique(bool isUnique);
+
+template <>
+void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique);
+
+template <>
+void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique);
 
 template <>
 void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn);
