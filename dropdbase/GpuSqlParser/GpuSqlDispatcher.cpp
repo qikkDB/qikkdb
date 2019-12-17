@@ -791,7 +791,7 @@ void GpuSqlDispatcher::AddMinFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = minAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
+        fun = minAggregationFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
         fun = minGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
@@ -811,7 +811,7 @@ void GpuSqlDispatcher::AddMaxFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = maxAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
+        fun = maxAggregationFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
         fun = maxGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
@@ -831,7 +831,7 @@ void GpuSqlDispatcher::AddSumFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = sumAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
+        fun = sumAggregationFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
         fun = sumGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
@@ -871,7 +871,7 @@ void GpuSqlDispatcher::AddAvgFunction(DataType key, DataType value, GroupByType 
     switch (groupByType)
     {
     case GroupByType::NO_GROUP_BY:
-        fun = avgAggregationFunctions_[GetBinaryDispatchTableIndex(key, value)];
+        fun = avgAggregationFunctions_[GetUnaryDispatchTableIndex(value)];
         break;
     case GroupByType::SINGLE_KEY_GROUP_BY:
         fun = avgGroupByFunctions_[GetBinaryDispatchTableIndex(key, value)];
