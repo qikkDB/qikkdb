@@ -460,28 +460,36 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
 
-                    if (upperStr == "TRUE")
+                    if (bit == 1)
                     {
-                        data = 1;
-                        newNullMask.push_back(bit);
-                    }
-                    else if (upperStr == "FALSE")
-                    {
-                        data = 0;
-                        newNullMask.push_back(bit);
+                        data = GetNullConstant<int8_t>();
+                        newNullMask.push_back(1);
                     }
                     else
                     {
-                        try
+                        if (upperStr == "TRUE")
                         {
-                            data = static_cast<int8_t>(std::stol(dataToCopy[j]));
-                            data = data == 0 ? 0 : 1;
+                            data = 1;
                             newNullMask.push_back(bit);
                         }
-                        catch (std::invalid_argument)
+                        else if (upperStr == "FALSE")
                         {
-                            data = GetNullConstant<int8_t>();
-                            newNullMask.push_back(1);
+                            data = 0;
+                            newNullMask.push_back(bit);
+                        }
+                        else
+                        {
+                            try
+                            {
+                                data = static_cast<int8_t>(std::stol(dataToCopy[j]));
+                                data = data == 0 ? 0 : 1;
+                                newNullMask.push_back(bit);
+                            }
+                            catch (std::invalid_argument)
+                            {
+                                data = GetNullConstant<int8_t>();
+                                newNullMask.push_back(1);
+                            }
                         }
                     }
                     castedDataToCopy.push_back(data);
