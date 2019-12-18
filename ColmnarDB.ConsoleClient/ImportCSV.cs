@@ -253,11 +253,13 @@ namespace ColmnarDB.ConsoleClient
         {
             // build query for creating table
             string query = "CREATE TABLE ";
+
+            query += "[" + tableName + "] ";
             if (blockSize > 0)
             {
                 query += "" + blockSize.ToString() + " ";
             }
-            query += "[" + tableName + "] (";
+            query += "(";
             int i = 0;
             foreach (var typePair in types)
             {
@@ -267,8 +269,8 @@ namespace ColmnarDB.ConsoleClient
                     query += ", ";
                 }
             }
-            query += ");";            
-            
+            query += ");";
+
             // check if database exists
             try
             {
