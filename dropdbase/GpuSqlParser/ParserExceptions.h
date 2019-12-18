@@ -202,6 +202,38 @@ private:
     std::string message_;
 };
 
+struct ConstraintAlreadyReferencedException : public std::exception
+{
+    ConstraintAlreadyReferencedException(const std::string& constraint)
+    : message_("Constraint: \"" + constraint + "\" was already referenced in query.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct ConstraintNotFound : public std::exception
+{
+    ConstraintNotFound(const std::string& constraint)
+    : message_("Constraint: \"" + constraint + "\" was notfound in table.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
 struct ColumnGroupByException : public std::exception
 {
     ColumnGroupByException(const std::string& column)

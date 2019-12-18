@@ -247,9 +247,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                std::to_string(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn +
+                                ", column contains duplicate value: " + std::to_string(duplicateData));
                     }
                 }
                 break;
@@ -283,9 +283,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                std::to_string(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn +
+                                ", column contains duplicate value: " + std::to_string(duplicateData));
                     }
                 }
                 break;
@@ -318,9 +318,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                std::to_string(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn +
+                                ", column contains duplicate value: " + std::to_string(duplicateData));
                     }
                 }
                 break;
@@ -352,9 +352,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                std::to_string(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn +
+                                ", column contains duplicate value: " + std::to_string(duplicateData));
                     }
                 }
                 break;
@@ -388,9 +388,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                PointFactory::WktFromPoint(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn + ", column contains duplicate value: " +
+                                PointFactory::WktFromPoint(duplicateData));
                     }
                 }
                 break;
@@ -425,9 +425,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                ComplexPolygonFactory::WktFromPolygon(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn + ", column contains duplicate value: " +
+                                ComplexPolygonFactory::WktFromPolygon(duplicateData));
                     }
                 }
                 break;
@@ -460,9 +460,8 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn +
-                                                ", column contains duplicate value: " + duplicateData);
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn + ", column contains duplicate value: " + duplicateData);
                     }
                 }
                 break;
@@ -492,11 +491,12 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                             "Could not execute statement due to a UNIQUE "
-                                                "constraint failure on column: " +
-                                                nameOfUniqueColumn + ", column contains duplicate value: " +
-                                                std::to_string(duplicateData));
+                            "constraint failure on column: " +
+                                nameOfUniqueColumn +
+                                ", column contains duplicate value: " + std::to_string(duplicateData));
                     }
                 }
                 break;
@@ -509,8 +509,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
             if (column.second.get()->GetIsUnique())
             {
                 throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
-                    "Could not execute statement due to a UNIQUE constraint failure on column: " +
-                    column.first + "trying to insert NULL value");
+                                                 "Could not execute statement due to a UNIQUE "
+                                                 "constraint failure on column: " +
+                                                     column.first + "trying to insert NULL value");
             }
         }
     }
@@ -544,8 +545,8 @@ void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, 
                         throw constraint_violation_error(
                             ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
                             "Could not execute statement due to a NOT NULL "
-                                                "constraint failure on column: " +
-                                                column.first + " trying to insert NULL value");
+                            "constraint failure on column: " +
+                                column.first + " trying to insert NULL value");
                     }
                 }
             }
@@ -1450,6 +1451,54 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
         }
     }
     break;
+    }
+}
+
+void Table::AddConstraint(const std::string& constraintName,
+                          ConstraintType constraintType,
+                          std::vector<std::string> constraintColumns)
+{
+    for (auto& constraintColumn : constraintColumns)
+    {
+        switch (constraintType)
+        {
+        case ConstraintType::CONSTRAINT_INDEX:
+            AddSortingColumn(constraintColumn);
+            break;
+        case ConstraintType::CONSTRAINT_NOT_NULL:
+            GetColumns().at(constraintColumn)->SetIsNullable(false);
+            break;
+        case ConstraintType::CONSTRAINT_UNIQUE:
+            GetColumns().at(constraintColumn)->SetIsUnique(true);
+            break;
+        case ConstraintType::CONSTRAINT_NONE:
+        default:
+            break;
+        }
+    }
+    constraints.insert({constraintName, {constraintType, constraintColumns}});
+}
+
+void Table::DropConstraint(const std::string& constraintName)
+{
+    auto& constraint = constraints.at(constraintName);
+    for (auto& constraintColumn : constraint.second)
+    {
+        switch (constraint.first)
+        {
+        case ConstraintType::CONSTRAINT_INDEX:
+            RemoveSortingColumn(constraintColumn);
+            break;
+        case ConstraintType::CONSTRAINT_NOT_NULL:
+            GetColumns().at(constraintColumn)->SetIsNullable(true);
+            break;
+        case ConstraintType::CONSTRAINT_UNIQUE:
+            GetColumns().at(constraintColumn)->SetIsUnique(false);
+            break;
+        case ConstraintType::CONSTRAINT_NONE:
+        default:
+            break;
+        }
     }
 }
 

@@ -1352,10 +1352,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_map<std::string, DataType> alterColumns;
     std::unordered_map<std::string, std::string> renameColumns;
     std::unordered_set<std::string> renameColumnToNames;
-    std::unordered_set<std::string> newConstraintColumns;
     std::unordered_map<std::string, std::vector<std::string>> newIndices;
     std::unordered_map<std::string, std::vector<std::string>> newUniques;
     std::unordered_map<std::string, std::vector<std::string>> newNotNulls;
+    std::unordered_set<std::string> dropConstraints;
     std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
@@ -1491,6 +1491,15 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         else if (entry->dropConstraint())
         {
             auto dropConstraintContext = entry->dropConstraint();
+            std::string constraintName = dropConstraintContext->constraintName()->getText();
+
+            if (dropConstraints.find(constraintName) != dropConstraints.end())
+            {
+                throw ConstraintAlreadyReferencedException(constraintName);
+            }
+            // check if constraint exists
+
+            dropConstraints.insert(constraintName);
         }
     }
 
@@ -1561,6 +1570,12 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         {
             dispatcher_.AddArgument<const std::string&>(uniqueColumn);
         }
+    }
+
+    dispatcher_.AddArgument<int32_t>(dropConstraints.size());
+    for (auto& dropConstraint : dropConstraints)
+    {
+        dispatcher_.AddArgument<const std::string&>(dropConstraint);
     }
 }
 

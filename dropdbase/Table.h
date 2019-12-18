@@ -1,6 +1,7 @@
 #pragma once
 #include "IColumn.h"
 #include "DataType.h"
+#include "ConstraintType.h"
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -29,6 +30,7 @@ private:
     std::string name;
     int32_t blockSize_;
     std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
+    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
     bool saveNecesarry_;
@@ -49,8 +51,7 @@ private:
     CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int index);
     std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
     int32_t GetDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
-    void CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data,
-                                     int32_t dataSize);
+    void CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize);
 #endif
     void CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
                                        int32_t dataSize);
@@ -74,6 +75,10 @@ public:
     void SetSaveNecessaryToFalse();
     void RenameColumn(std::string oldColumnName, std::string newColumnName);
     void InsertNullDataIntoNewColumn(std::string newColumnName);
+    void AddConstraint(const std::string& constraintName,
+                       ConstraintType constraintType,
+                       std::vector<std::string> constraintColumns);
+    void DropConstraint(const std::string& constraintName);
 
     /// <summary>
     /// Removes column from columns.

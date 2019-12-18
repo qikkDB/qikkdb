@@ -130,7 +130,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
             printf("tid:%d ip: %d \n", dispatcherThreadId_, instructionPointer_ - 1);
             AssertDeviceMatchesCurrentThread(dispatcherThreadId_);
 #endif
-			// Print logs
+            // Print logs
             if (err != InstructionStatus::CONTINUE)
             {
                 switch (err)
@@ -153,10 +153,10 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                     break;
                 }
             }
-			// Check err again because for LOAD_SKIPPED case it was changed
+            // Check err again because for LOAD_SKIPPED case it was changed
             if (err != InstructionStatus::CONTINUE)
             {
-                break;	// Stop execution
+                break; // Stop execution
             }
         }
         result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(
@@ -1470,7 +1470,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
     {
         database_->GetTables().erase(newTableName.c_str());
         database_->DeleteTableFromDisk(newTableName.c_str());
-		throw;
+        throw;
     }
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create table completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
@@ -1623,40 +1623,56 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
     int32_t newIndexCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newIndexCount; i++)
     {
-        std::string newIndexName = arguments_.Read<std::string>();
-        int32_t newIndexColumnCount = arguments_.Read<int32_t>();
+        std::string constraintName = arguments_.Read<std::string>();
+        int32_t constraintColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> constraintColumns;
 
-        for (int32_t j = 0; j < newIndexColumnCount; j++)
+        for (int32_t j = 0; j < constraintColumnCount; j++)
         {
-            std::string newIndexColumn = arguments_.Read<std::string>();
-            database_->GetTables().at(tableName).AddSortingColumn(newIndexColumn);
+            std::string newConstraintColumn = arguments_.Read<std::string>();
+            constraintColumns.push_back(newConstraintColumn);
         }
+        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_INDEX,
+                                                           constraintColumns);
     }
 
     int32_t newNotNullCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newNotNullCount; i++)
     {
-        std::string newNotNullName = arguments_.Read<std::string>();
-        int32_t newNotNullColumnCount = arguments_.Read<int32_t>();
+        std::string constraintName = arguments_.Read<std::string>();
+        int32_t constraintColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> constraintColumns;
 
-        for (int32_t j = 0; j < newNotNullColumnCount; j++)
+        for (int32_t j = 0; j < constraintColumnCount; j++)
         {
-            std::string newNotNullColumn = arguments_.Read<std::string>();
-            database_->GetTables().at(tableName).GetColumns().at(newNotNullColumn)->SetIsNullable(false);
+            std::string newConstraintColumn = arguments_.Read<std::string>();
+            constraintColumns.push_back(newConstraintColumn);
         }
+        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_NOT_NULL,
+                                                           constraintColumns);
     }
 
     int32_t newUniqueCount = arguments_.Read<int32_t>();
     for (int32_t i = 0; i < newUniqueCount; i++)
     {
-        std::string newUniqueName = arguments_.Read<std::string>();
-        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
+        std::string constraintName = arguments_.Read<std::string>();
+        int32_t constraintColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> constraintColumns;
 
-        for (int32_t j = 0; j < newUniqueColumnCount; j++)
+        for (int32_t j = 0; j < constraintColumnCount; j++)
         {
-            std::string newUniqueColumn = arguments_.Read<std::string>();
-            database_->GetTables().at(tableName).GetColumns().at(newUniqueColumn)->SetIsUnique(true);
+            std::string newConstraintColumn = arguments_.Read<std::string>();
+            constraintColumns.push_back(newConstraintColumn);
         }
+        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_UNIQUE,
+                                                           constraintColumns);
+    }
+
+    int32_t dropConstraintCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < dropConstraintCount; i++)
+    {
+        std::string dropConstraintName = arguments_.Read<std::string>();
+        database_->GetTables().at(tableName).DropConstraint(dropConstraintName);
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter table completed sucessfully" << '\n';
