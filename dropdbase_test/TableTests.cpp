@@ -1796,8 +1796,8 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
 
     GpuSqlCustomParser parserCreateTable2(database,
                                           "CREATE TABLE TableA (ColumnIntA INT, ColumnIntB "
-                                          "INT, ColumnIntC INT, ColumnIntD INT, UNIQUE u "
-                                          "(ColumnIntA), NOT NULL n (ColumnIntA));");
+                                          "INT, ColumnIntC INT, ColumnIntD INT, UNIQUE u_IntA "
+                                          "(ColumnIntA), NOT NULL n_IntA (ColumnIntA));");
 
     resultPtr = parserCreateTable2.Parse();
     auto& table = database->GetTables().at("TableA");
@@ -1983,11 +1983,13 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     resultPtr = parserDropDatabase.Parse();
 
     // add Unique Constraint on column with no duplicity
+
     GpuSqlCustomParser addUniqueNoDup(database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC);");
     ASSERT_THROW(addUniqueNoDup.Parse(), constraint_violation_error);
 
-    GpuSqlCustomParser addUniqueNoDupWithNotNull(
-        database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC), ADD NOT NULL n(ColumnIntC);");
+    GpuSqlCustomParser addUniqueNoDupWithNotNull(database, "ALTER TABLE TableA ADD UNIQUE "
+                                                           "u_IntC(ColumnIntC), ADD NOT NULL "
+                                                           "n_IntC(ColumnIntC);");
     addUniqueNoDupWithNotNull.Parse();
 
     ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsNullable());
@@ -1999,6 +2001,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     ASSERT_FALSE(table.GetColumns().at("ColumnIntD")->GetIsUnique());
 
     // add Unique Constraint on column with duplicity
+
     GpuSqlCustomParser addUniqueDup(database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntB), ADD "
                                               "NOT NULL n(ColumnIntB);");
     ASSERT_THROW(addUniqueDup.Parse(), constraint_violation_error);

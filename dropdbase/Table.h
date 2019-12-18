@@ -30,7 +30,7 @@ private:
     std::string name;
     int32_t blockSize_;
     std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
-    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints;
+    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints_;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
     bool saveNecesarry_;
@@ -79,6 +79,9 @@ public:
                        ConstraintType constraintType,
                        std::vector<std::string> constraintColumns);
     void DropConstraint(const std::string& constraintName);
+    const std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>>&
+    GetConstraints() const;
+    std::unordered_set<ConstraintType> GetConstraintsForColumn(const std::string& columnName);
 
     /// <summary>
     /// Removes column from columns.

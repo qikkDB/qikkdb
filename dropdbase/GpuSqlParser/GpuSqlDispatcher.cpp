@@ -1354,16 +1354,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropDatabase()
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
-    std::unordered_map<std::string, ConstraintType> newColumnsConstraints;
-    std::unordered_map<std::string, std::vector<std::string>> newIndices;
-    std::unordered_map<std::string, std::vector<std::string>> newUniques;
-    std::unordered_map<std::string, std::vector<std::string>> newNotNulls;
-    std::unordered_map<std::string, bool> areNullable;
-    std::unordered_map<std::string, bool> areUnique;
-
-    std::vector<std::string> allIndexColumns;
-    std::vector<std::string> allUniqueColumns;
-    std::vector<std::string> allNotNullColumns;
+    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newColumnsConstraints;
+    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newConstraints;
 
     std::string newTableName = arguments_.Read<std::string>();
     int32_t newTableBlockSize = arguments_.Read<int32_t>();
@@ -1374,97 +1366,48 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
         std::string newColumnName = arguments_.Read<std::string>();
         int32_t newColumnDataType = arguments_.Read<int32_t>();
         ConstraintType newColumnConstraintType = static_cast<ConstraintType>(arguments_.Read<int32_t>());
+
+        if (newColumnConstraintType != ConstraintType::CONSTRAINT_NONE)
+        {
+            newColumnsConstraints.insert({newColumnName + "_C", {newColumnConstraintType, {newColumnName}}});
+        }
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
-
-        areNullable.insert({newColumnName, true});
-        areUnique.insert({newColumnName, false});
-
-        switch (newColumnConstraintType)
-        {
-        case CONSTRAINT_INDEX:
-            allIndexColumns.push_back(newColumnName);
-            break;
-        case CONSTRAINT_UNIQUE:
-            allUniqueColumns.push_back(newColumnName);
-            areUnique[newColumnName] = true;
-            break;
-        case CONSTRAINT_NOT_NULL:
-            allNotNullColumns.push_back(newColumnName);
-            areNullable[newColumnName] = false;
-            break;
-        default:
-            break;
-        }
-        newColumnsConstraints.insert({newColumnName, static_cast<ConstraintType>(newColumnConstraintType)});
     }
 
-    int32_t newIndexCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newIndexCount; i++)
+    int32_t newConstraintCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newConstraintCount; i++)
     {
-        std::string newIndexName = arguments_.Read<std::string>();
-        int32_t newIndexColumnCount = arguments_.Read<int32_t>();
-        std::vector<std::string> newIndexColumns;
+        std::string constraintName = arguments_.Read<std::string>();
+        ConstraintType constraintType = static_cast<ConstraintType>(arguments_.Read<std::int32_t>());
 
-        for (int32_t j = 0; j < newIndexColumnCount; j++)
+        int32_t constraintColumnCount = arguments_.Read<int32_t>();
+        std::vector<std::string> constraintColumns;
+
+        for (int32_t j = 0; j < constraintColumnCount; j++)
         {
-            std::string newIndexColumn = arguments_.Read<std::string>();
-            newIndexColumns.push_back(newIndexColumn);
-            if (std::find(allIndexColumns.begin(), allIndexColumns.end(), newIndexColumn) ==
-                allIndexColumns.end())
-            {
-                allIndexColumns.push_back(newIndexColumn);
-            }
+            std::string newConstraintColumn = arguments_.Read<std::string>();
+            constraintColumns.push_back(newConstraintColumn);
         }
-        newIndices.insert({newIndexName, newIndexColumns});
-    }
-
-    int32_t newUniqueCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newUniqueCount; i++)
-    {
-        std::string newUniqueName = arguments_.Read<std::string>();
-        int32_t newUniqueColumnCount = arguments_.Read<int32_t>();
-        std::vector<std::string> newUniqueColumns;
-
-        for (int32_t j = 0; j < newUniqueColumnCount; j++)
-        {
-            std::string newUniqueColumn = arguments_.Read<std::string>();
-            newUniqueColumns.push_back(newUniqueColumn);
-            if (std::find(allUniqueColumns.begin(), allUniqueColumns.end(), newUniqueColumn) ==
-                allUniqueColumns.end())
-            {
-                allUniqueColumns.push_back(newUniqueColumn);
-                areUnique[newUniqueColumn] = true;
-            }
-        }
-        newUniques.insert({newUniqueName, newUniqueColumns});
-    }
-
-    int32_t newNotNullCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newNotNullCount; i++)
-    {
-        std::string newNotNullName = arguments_.Read<std::string>();
-        int32_t newNotNullColumnCount = arguments_.Read<int32_t>();
-        std::vector<std::string> newNotNullColumns;
-
-        for (int32_t j = 0; j < newNotNullColumnCount; j++)
-        {
-            std::string newNotNullColumn = arguments_.Read<std::string>();
-            newNotNullColumns.push_back(newNotNullColumn);
-            if (std::find(allNotNullColumns.begin(), allNotNullColumns.end(), newNotNullColumn) ==
-                allNotNullColumns.end())
-            {
-                allNotNullColumns.push_back(newNotNullColumn);
-                areNullable[newNotNullColumn] = false;
-            }
-        }
-        newNotNulls.insert({newNotNullName, newNotNullColumns});
+        newConstraints.insert({constraintName, {constraintType, constraintColumns}});
     }
 
     try
     {
-        database_
-            ->CreateTable(newColumns, newTableName.c_str(), areNullable, areUnique, newTableBlockSize)
-            .SetSortingColumns(allIndexColumns);
+        database_->CreateTable(newColumns, newTableName.c_str(), std::unordered_map<std::string, bool>(),
+                               std::unordered_map<std::string, bool>(), newTableBlockSize);
+        for (auto& constraint : newConstraints)
+        {
+            database_->GetTables()
+                .at(newTableName)
+                .AddConstraint(constraint.first, constraint.second.first, constraint.second.second);
+        }
+
+        for (auto& constraint : newColumnsConstraints)
+        {
+            database_->GetTables()
+                .at(newTableName)
+                .AddConstraint(constraint.first, constraint.second.first, constraint.second.second);
+        }
     }
     catch (const constraint_violation_error& e)
     {
@@ -1620,10 +1563,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         database_->RenameTable(tableName, newTableName);
     }
 
-    int32_t newIndexCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newIndexCount; i++)
+    int32_t newConstraintCount = arguments_.Read<int32_t>();
+    for (int32_t i = 0; i < newConstraintCount; i++)
     {
         std::string constraintName = arguments_.Read<std::string>();
+        ConstraintType constraintType = static_cast<ConstraintType>(arguments_.Read<std::int32_t>());
+
         int32_t constraintColumnCount = arguments_.Read<int32_t>();
         std::vector<std::string> constraintColumns;
 
@@ -1632,40 +1577,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
             std::string newConstraintColumn = arguments_.Read<std::string>();
             constraintColumns.push_back(newConstraintColumn);
         }
-        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_INDEX,
-                                                           constraintColumns);
-    }
-
-    int32_t newNotNullCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newNotNullCount; i++)
-    {
-        std::string constraintName = arguments_.Read<std::string>();
-        int32_t constraintColumnCount = arguments_.Read<int32_t>();
-        std::vector<std::string> constraintColumns;
-
-        for (int32_t j = 0; j < constraintColumnCount; j++)
-        {
-            std::string newConstraintColumn = arguments_.Read<std::string>();
-            constraintColumns.push_back(newConstraintColumn);
-        }
-        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_NOT_NULL,
-                                                           constraintColumns);
-    }
-
-    int32_t newUniqueCount = arguments_.Read<int32_t>();
-    for (int32_t i = 0; i < newUniqueCount; i++)
-    {
-        std::string constraintName = arguments_.Read<std::string>();
-        int32_t constraintColumnCount = arguments_.Read<int32_t>();
-        std::vector<std::string> constraintColumns;
-
-        for (int32_t j = 0; j < constraintColumnCount; j++)
-        {
-            std::string newConstraintColumn = arguments_.Read<std::string>();
-            constraintColumns.push_back(newConstraintColumn);
-        }
-        database_->GetTables().at(tableName).AddConstraint(constraintName, ConstraintType::CONSTRAINT_UNIQUE,
-                                                           constraintColumns);
+        database_->GetTables().at(tableName).AddConstraint(constraintName, constraintType, constraintColumns);
     }
 
     int32_t dropConstraintCount = arguments_.Read<int32_t>();

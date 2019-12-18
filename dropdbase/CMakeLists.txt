@@ -43,6 +43,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImporter.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/CSVDataImporter.h
 		${CMAKE_CURRENT_SOURCE_DIR}/DataType.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/ConstraintType.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/CudaLogBoost.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlCustomParser.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/GpuSqlCustomParser.h

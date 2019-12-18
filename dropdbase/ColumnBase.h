@@ -219,10 +219,9 @@ public:
             }
             else
             {
-                throw constraint_violation_error(
-                    ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
-                    "Could not add NOT NULL constraint on column: " +
-                    name_ + ", column contains null values");
+                throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                                                 "Could not add NOT NULL constraint on column: " + name_ +
+                                                     ", column contains null values");
             }
         }
 
@@ -251,8 +250,8 @@ public:
             if (isNullable_)
             {
                 throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
-                                                 "Could not add UNIQUE constraint on column: " +
-                                                 name_ + ", column need to have NOT NULL constraint");
+                                                 "Could not add UNIQUE constraint on column: " + name_ +
+                                                     ", column need to have NOT NULL constraint");
             }
 
             T duplicateData;
@@ -286,10 +285,10 @@ public:
             }
             else
             {
-                throw constraint_violation_error(
-                    ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
-                    "Could not add UNIQUE constraint on column: " +
-                    name_ + ", column contains duplicate value: " + std::to_string(duplicateData));
+                throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                                                 "Could not add UNIQUE constraint on column: " + name_ +
+                                                     ", column contains duplicate value: " +
+                                                     std::to_string(duplicateData));
             }
         }
 

@@ -218,6 +218,38 @@ private:
     std::string message_;
 };
 
+struct ConstraintAlreadyExistsException : public std::exception
+{
+    ConstraintAlreadyExistsException(const std::string& constraint)
+    : message_("Constraint: \"" + constraint + "\" already exists in table.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
+struct ColumnAlreadyConstrainedException : public std::exception
+{
+    ColumnAlreadyConstrainedException(const std::string& column)
+    : message_("Column: \"" + column + "\" is already constrained with a constraint of the same type.")
+    {
+    }
+
+    const char* what() const noexcept override
+    {
+        return message_.c_str();
+    }
+
+private:
+    std::string message_;
+};
+
 struct ConstraintNotFound : public std::exception
 {
     ConstraintNotFound(const std::string& constraint)

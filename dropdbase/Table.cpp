@@ -1476,12 +1476,12 @@ void Table::AddConstraint(const std::string& constraintName,
             break;
         }
     }
-    constraints.insert({constraintName, {constraintType, constraintColumns}});
+    constraints_.insert({constraintName, {constraintType, constraintColumns}});
 }
 
 void Table::DropConstraint(const std::string& constraintName)
 {
-    auto& constraint = constraints.at(constraintName);
+    auto& constraint = constraints_.at(constraintName);
     for (auto& constraintColumn : constraint.second)
     {
         switch (constraint.first)
@@ -1500,6 +1500,32 @@ void Table::DropConstraint(const std::string& constraintName)
             break;
         }
     }
+    constraints_.erase(constraintName);
+}
+
+const std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>>&
+Table::GetConstraints() const
+{
+    return constraints_;
+}
+
+std::unordered_set<ConstraintType> Table::GetConstraintsForColumn(const std::string& columnName)
+{
+    std::unordered_set<ConstraintType> columnConstraints;
+
+    if (std::find(sortingColumns.begin(), sortingColumns.end(), columnName) != sortingColumns.end())
+    {
+        columnConstraints.insert(ConstraintType::CONSTRAINT_INDEX);
+    }
+    if (GetColumns().at(columnName)->GetIsNullable() == false)
+    {
+        columnConstraints.insert(ConstraintType::CONSTRAINT_NOT_NULL);
+    }
+    if (GetColumns().at(columnName)->GetIsUnique())
+    {
+        columnConstraints.insert(ConstraintType::CONSTRAINT_UNIQUE);
+    }
+    return columnConstraints;
 }
 
 /// <summary>
