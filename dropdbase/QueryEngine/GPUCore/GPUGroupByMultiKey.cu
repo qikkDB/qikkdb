@@ -20,20 +20,30 @@ __device__ int32_t GetHash(DataType* keyTypes,
         }
         else
         {
+            // Compute one 32-bit (uint32_t) number from one value
             switch (keyTypes[t])
             {
             case DataType::COLUMN_INT:
                 hash = reinterpret_cast<uint32_t*>(inKeys[t])[i];
                 break;
             case DataType::COLUMN_LONG:
-                hash = static_cast<uint32_t>(reinterpret_cast<int64_t*>(inKeys[t])[i]);
+            {
+                // use XOR of upper 32 bits and lower 32 bits
+                const uint64_t allBits = reinterpret_cast<uint64_t*>(inKeys[t])[i];
+                hash = static_cast<uint32_t>((allBits & 0xFFFFFFFFULL) ^ (allBits >> 32));
                 break;
+            }
             case DataType::COLUMN_FLOAT:
-                hash = static_cast<uint32_t>(reinterpret_cast<float*>(inKeys[t])[i]);
+                // Use float bit representation
+                hash = reinterpret_cast<uint32_t*>(inKeys[t])[i];
                 break;
             case DataType::COLUMN_DOUBLE:
-                hash = static_cast<uint32_t>(reinterpret_cast<double*>(inKeys[t])[i]);
+            {
+                // Use XOR of upper 32 bits and lower 32 bits of double bit representation
+                const uint64_t allBits = reinterpret_cast<uint64_t*>(inKeys[t])[i];
+                hash = static_cast<uint32_t>((allBits & 0xFFFFFFFFULL) ^ (allBits >> 32));
                 break;
+            }
             case DataType::COLUMN_STRING:
             {
                 GPUMemory::GPUString strCol = *reinterpret_cast<GPUMemory::GPUString*>(inKeys[t]);
@@ -42,7 +52,7 @@ __device__ int32_t GetHash(DataType* keyTypes,
             }
             break;
             case DataType::COLUMN_INT8_T:
-                hash = static_cast<uint32_t>(reinterpret_cast<int8_t*>(inKeys[t])[i]);
+                hash = static_cast<uint32_t>(reinterpret_cast<uint8_t*>(inKeys[t])[i]);
                 break;
             default:
                 hash = 0;
