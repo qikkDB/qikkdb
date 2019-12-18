@@ -94,7 +94,7 @@ class ColumnBase : public IColumn
 {
 private:
     std::string name_;
-    int64_t size_;
+    int64_t size_; // current number of not empty rows in a column, sumerized all blocks currentSize_
     int32_t blockSize_;
     std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
     std::unordered_set<T> uniqueHashmap_;
@@ -151,7 +151,7 @@ public:
         return uniqueHashmap_;
     }
 
-    inline int GetBlockSize() const
+    inline int32_t GetBlockSize() const
     {
         return blockSize_;
     };
@@ -338,7 +338,7 @@ public:
         name_ = newName;
     }
 
-    static std::vector<T> NullArray(int length);
+    static std::vector<T> NullArray(int32_t length);
 
     T GetMax()
     {
@@ -388,25 +388,63 @@ public:
     /// <param name="srcColumn">The column whose data will be copied (resized).</param>
     void ResizeColumn(ColumnBase<T>& srcColumn)
     {
-        // TODO implement general purpose resizing here
-        int32_t srcBlockSize = srcColumn->GetBlockSize(); // maximum number of rows that can be fitted into block
+        auto& srcBlocks = srcColumn.GetBlocksList();
 
         int32_t srcBlockIndex = 0;
         int32_t srcRowIndex = 0;
         int32_t dstBlockIndex = 0;
         int32_t dstRowIndex = 0;
 
-        while (srcBlockIndex < srcBlockSize)
+        const int32_t newBlocksCount = (srcColumn.GetSize() + blockSize_ - 1) / blockSize_;
+
+		// Add as many empty blocks as is needed for resizing
+        for (int32_t i = 0; i < newBlocksCount; i++)
         {
-			
-		}
+            AddBlock();
+        }
+
+        while (srcBlockIndex < srcColumn.GetBlockCount())
+        {
+            if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
+            {
+                // srcBlock[i].size_ > dstBlock blockSize_
+                blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
+                                                           srcRowIndex, blockSize_);
+                srcRowIndex += blockSize_;
+                dstBlockIndex += 1;
+                dstRowIndex = 0;
+            }
+            else
+            {
+                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex ==
+                    static_cast<int64_t>(blockSize_ - dstRowIndex))
+                {
+                    // srcBlock[i].size_ == dstBlock blockSize_
+                    blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
+                                                               srcRowIndex, blockSize_);
+                    srcBlockIndex += 1;
+                    srcRowIndex = 0;
+                    dstBlockIndex += 1;
+                    dstRowIndex = 0;
+                }
+                else
+                {
+                    // srcBlock[i].size_ < dstBlock blockSize_
+                    blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(), srcRowIndex,
+                                                               srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex);
+                    dstRowIndex += srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex;
+                    srcBlockIndex += 1;
+                    srcRowIndex = 0; 
+                }
+            }
+        }
     }
 
     /// <summary>
-    /// Add new block in column
+    /// Add new empty block in column
     /// </summary>
     /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(int groupId = -1)
+    BlockBase<T>& AddBlock(int32_t groupId = -1)
     {
         if (blocks_.find(groupId) == blocks_.end())
         {
@@ -426,7 +464,7 @@ public:
     /// <param name="data">Data to be inserted</param>
     /// <returns>Last block of column</returns>
     BlockBase<T>& AddBlock(const std::vector<T>& data,
-                           int groupId = -1,
+                           int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
                            bool countBlockStatistics = true)
@@ -447,7 +485,7 @@ public:
     BlockBase<T>& AddBlock(std::unique_ptr<T[]>&& data,
                            int32_t dataSize,
                            int32_t allocationSize,
-                           int groupId = -1,
+                           int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
                            bool countBlockStatistics = true)
@@ -484,7 +522,7 @@ public:
     /// <param name="columnData">data to insert<param>
     /// <param name="groupId">id of binary index group<param>
     /// <param name="isNullValue">whether data is null value flag<param>
-    void InsertDataOnSpecificPosition(int indexBlock, int indexInBlock, const T& columnData, int groupId = -1, bool isNullValue = false)
+    void InsertDataOnSpecificPosition(int32_t indexBlock, int32_t indexInBlock, const T& columnData, int32_t groupId = -1, bool isNullValue = false)
     {
         size_ += 1;
 
@@ -510,14 +548,14 @@ public:
     /// </summary>
     /// <param name="blockPtr">block that should be splitted</param>
     /// <param name="groupId">id of binary index group<param>
-    void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int groupId = -1)
+    void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int32_t groupId = -1)
     {
         BlockBase<T>& block = *(blockPtr.get());
         std::vector<T> data1;
         std::vector<T> data2;
         const T* data = block.GetData();
 
-        for (int i = 0; i < block.GetSize(); i++)
+        for (int32_t i = 0; i < block.GetSize(); i++)
         {
             if (i < block.GetSize() / 2)
             {
@@ -536,8 +574,8 @@ public:
 
         if (isNullable_)
         {
-            int bitMaskIdx = (((block.GetSize() - 1) / 2) / (sizeof(char) * 8));
-            int shiftIdx = (((block.GetSize() - 1) / 2) % (sizeof(char) * 8));
+            int32_t bitMaskIdx = (((block.GetSize() - 1) / 2) / (sizeof(char) * 8));
+            int32_t shiftIdx = (((block.GetSize() - 1) / 2) % (sizeof(char) * 8));
 
             for (size_t i = 0; i < bitMaskIdx; i++)
             {
@@ -573,9 +611,9 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-    void InsertData(const std::vector<T>& columnData, int groupId = -1, bool compress = false)
+    void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
     {
-        int startIdx = 0;
+        int32_t startIdx = 0;
 
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
@@ -594,7 +632,7 @@ public:
                 // setColumnStatistics();
                 return;
             }
-            int emptySpace = lastBlock->EmptyBlockSpace();
+            int32_t emptySpace = lastBlock->EmptyBlockSpace();
             size_ += emptySpace;
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             if (compress && lastBlock->IsFull())
@@ -606,7 +644,7 @@ public:
 
         while (startIdx < columnData.size())
         {
-            int toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
+            int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy),
                      groupId, compress, false);
             startIdx += toCopy;
@@ -620,30 +658,30 @@ public:
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData,
                     const std::vector<int8_t>& nullMask,
-                    int groupId = -1,
+                    int32_t groupId = -1,
                     bool compress = false)
     {
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
-        int startIdx = 0;
-        int maskIdx = 0;
+        int32_t startIdx = 0;
+        int32_t maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
             auto& lastBlock = blocks_[groupId].back();
             if (columnData.size() <= lastBlock->EmptyBlockSpace())
             {
                 size_ += columnData.size();
-                int bitMaskStartIdx = lastBlock->GetSize();
+                int32_t bitMaskStartIdx = lastBlock->GetSize();
                 lastBlock->InsertData(columnData);
                 auto maskPtr = lastBlock->GetNullBitmask();
-                for (int i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
+                for (int32_t i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
                 {
-                    int nullMaskOffset = maskIdx / (sizeof(char) * 8);
-                    int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+                    int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
+                    int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
                     maskIdx++;
                     if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
                     {
-                        int bitMaskIdx = (i / (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (i / (sizeof(char) * 8));
                         maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
                     }
                 }
@@ -655,19 +693,19 @@ public:
                 return;
             }
 
-            int emptySpace = lastBlock->EmptyBlockSpace();
+            int32_t emptySpace = lastBlock->EmptyBlockSpace();
             auto maskPtr = lastBlock->GetNullBitmask();
             size_ += emptySpace;
-            int bitMaskStartIdx = lastBlock->GetSize();
+            int32_t bitMaskStartIdx = lastBlock->GetSize();
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
-            for (int i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
+            for (int32_t i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
             {
-                int nullMaskOffset = maskIdx / (sizeof(char) * 8);
-                int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+                int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
+                int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
                 maskIdx++;
                 if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
                 {
-                    int bitMaskIdx = (i / (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (i / (sizeof(char) * 8));
                     maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
                 }
             }
@@ -680,19 +718,19 @@ public:
 
         while (startIdx < columnData.size())
         {
-            int toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
+            int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx,
                                                   columnData.cbegin() + startIdx + toCopy),
                                    groupId, compress, false);
             auto maskPtr = block.GetNullBitmask();
-            for (int i = 0; i < toCopy; i++)
+            for (int32_t i = 0; i < toCopy; i++)
             {
-                int nullMaskOffset = maskIdx / (sizeof(char) * 8);
-                int nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
+                int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
+                int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
                 maskIdx++;
                 if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
                 {
-                    int bitMaskIdx = (i / (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (i / (sizeof(char) * 8));
                     maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
                 }
             }
@@ -724,7 +762,7 @@ public:
     /// Insert null data into column
     /// </summary>
     /// <param name="length">Length of inserted data</param>
-    void InsertNullData(int length) override
+    void InsertNullData(int32_t length) override
     {
         std::vector<int8_t> nullMask(length, -1); // fill mask with bits 1
         InsertData(NullArray(length), nullMask);
@@ -757,9 +795,15 @@ public:
                         int32_t data = static_cast<int32_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -767,9 +811,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -800,9 +850,15 @@ public:
                         int64_t data = static_cast<int64_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -810,9 +866,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -843,9 +905,15 @@ public:
                         double data = static_cast<double>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -853,9 +921,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -886,9 +960,15 @@ public:
                         float data = static_cast<float>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -896,9 +976,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -929,9 +1015,15 @@ public:
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -939,9 +1031,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -972,9 +1070,15 @@ public:
                         std::string data = std::to_string(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -982,9 +1086,15 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
+<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
+=======
+                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
+                        int32_t shiftIdx = (j % (sizeof(char) * 8));
+                        int8_t bit = newNullMask[j] << shiftIdx;
+>>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -1046,25 +1156,25 @@ template <>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn);
 
 template <>
-std::vector<int32_t> ColumnBase<int32_t>::NullArray(int length);
+std::vector<int32_t> ColumnBase<int32_t>::NullArray(int32_t length);
 
 template <>
-std::vector<float> ColumnBase<float>::NullArray(int length);
+std::vector<float> ColumnBase<float>::NullArray(int32_t length);
 
 template <>
-std::vector<int64_t> ColumnBase<int64_t>::NullArray(int length);
+std::vector<int64_t> ColumnBase<int64_t>::NullArray(int32_t length);
 
 template <>
-std::vector<double> ColumnBase<double>::NullArray(int length);
+std::vector<double> ColumnBase<double>::NullArray(int32_t length);
 
 template <>
-std::vector<int8_t> ColumnBase<int8_t>::NullArray(int length);
+std::vector<int8_t> ColumnBase<int8_t>::NullArray(int32_t length);
 
 template <>
-std::vector<std::string> ColumnBase<std::string>::NullArray(int length);
+std::vector<std::string> ColumnBase<std::string>::NullArray(int32_t length);
 
 template <>
-std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int length);
+std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int32_t length);
 
 template <>
 std::vector<ColmnarDB::Types::ComplexPolygon>

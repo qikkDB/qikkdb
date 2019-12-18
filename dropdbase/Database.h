@@ -94,7 +94,7 @@ public:
     /// <param name="srcTable">Source table.</param>
     /// <param name="destTable">Destination table.</param>
     /// <param name="columnName">Name of the column whose data will be copied.</param>
-    void CopyBlocksOfColumn(Table& srcTable, Table& destTable, const std::string& columnName);
+    static void CopyBlocksOfColumn(Table& srcTable, Table& destTable, const std::string& columnName);
 
     /// <summary>
     /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.

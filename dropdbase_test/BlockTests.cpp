@@ -181,6 +181,219 @@ TEST(BlockTests, InsertDataVector)
         std::length_error);
 }
 
+TEST(BlockTests, InsertDataInterval)
+{
+    int32_t blockSize = 1024;
+    int32_t offset = 24;
+    int32_t offset2 = 9;
+    int32_t length = 600;
+    int32_t length2 = 300;
+    auto database = std::make_shared<Database>("testDatabase", blockSize);
+    Table table(database, "testTable");
+
+    table.CreateColumn("ColumnInt", COLUMN_INT);
+    table.CreateColumn("ColumnLong", COLUMN_LONG);
+    table.CreateColumn("ColumnFloat", COLUMN_FLOAT);
+    table.CreateColumn("ColumnDouble", COLUMN_DOUBLE);
+    table.CreateColumn("ColumnPoint", COLUMN_POINT);
+    table.CreateColumn("ColumnPolygon", COLUMN_POLYGON);
+    table.CreateColumn("ColumnString", COLUMN_STRING);
+
+    auto& columnInt = table.GetColumns().at("ColumnInt");
+    auto& columnLong = table.GetColumns().at("ColumnLong");
+    auto& columnFloat = table.GetColumns().at("ColumnFloat");
+    auto& columnDouble = table.GetColumns().at("ColumnDouble");
+    auto& columnPoint = table.GetColumns().at("ColumnPoint");
+    auto& columnPolygon = table.GetColumns().at("ColumnPolygon");
+    auto& columnString = table.GetColumns().at("ColumnString");
+
+
+    auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
+    auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
+    auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
+    auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
+    auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+    auto& blockPolygon =
+        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+    auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
+
+    std::vector<int32_t> dataInt;
+    std::vector<int64_t> dataLong;
+    std::vector<float> dataFloat;
+    std::vector<double> dataDouble;
+    std::vector<ColmnarDB::Types::Point> dataPoint;
+    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<std::string> dataString;
+
+    for (int i = 0; i < blockSize; i++)
+    {
+        dataInt.push_back(i);
+        dataLong.push_back(i * 1000000000);
+        dataFloat.push_back((float)0.1111 * i);
+        dataDouble.push_back((double)i);
+        dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
+        dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
+            "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 "
+            "80.11,90 89.15,112.12 110, 61 80.11))"));
+        dataString.push_back("abc");
+    }
+
+    blockInt.InsertDataInterval(dataInt.data(), offset, length);
+    blockLong.InsertDataInterval(dataLong.data(), offset, length);
+    blockFloat.InsertDataInterval(dataFloat.data(), offset, length);
+    blockDouble.InsertDataInterval(dataDouble.data(), offset, length);
+    blockPoint.InsertDataInterval(dataPoint.data(), offset, length);
+    blockPolygon.InsertDataInterval(dataPolygon.data(), offset, length);
+    blockString.InsertDataInterval(dataString.data(), offset, length);
+
+    // Data fit into block (empty block)
+    for (int i = 0; i < length; i++)
+    {
+        ASSERT_EQ(blockInt.GetData()[i], dataInt[i + offset]);
+        ASSERT_EQ(blockLong.GetData()[i], dataLong[i + offset]);
+        ASSERT_EQ(blockFloat.GetData()[i], dataFloat[i + offset]);
+        ASSERT_EQ(blockDouble.GetData()[i], dataDouble[i + offset]);
+        ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetData()[i]),
+                  PointFactory::WktFromPoint(dataPoint[i + offset]));
+        ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetData()[i]),
+                  ComplexPolygonFactory::WktFromPolygon(dataPolygon[i + offset]));
+        ASSERT_EQ(blockString.GetData()[i], dataString[i + offset]);
+    }
+
+	blockInt.InsertDataInterval(dataInt.data(), offset2, length2);
+    blockLong.InsertDataInterval(dataLong.data(), offset2, length2);
+    blockFloat.InsertDataInterval(dataFloat.data(), offset2, length2);
+    blockDouble.InsertDataInterval(dataDouble.data(), offset2, length2);
+    blockPoint.InsertDataInterval(dataPoint.data(), offset2, length2);
+    blockPolygon.InsertDataInterval(dataPolygon.data(), offset2, length2);
+    blockString.InsertDataInterval(dataString.data(), offset2, length2);
+
+	// Data fit into block (not empty block)
+	for (int i = 0; i < length; i++)
+    {
+        ASSERT_EQ(blockInt.GetData()[i], dataInt[i + offset]);
+        ASSERT_EQ(blockLong.GetData()[i], dataLong[i + offset]);
+        ASSERT_EQ(blockFloat.GetData()[i], dataFloat[i + offset]);
+        ASSERT_EQ(blockDouble.GetData()[i], dataDouble[i + offset]);
+        ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetData()[i]),
+                  PointFactory::WktFromPoint(dataPoint[i + offset]));
+        ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetData()[i]),
+                  ComplexPolygonFactory::WktFromPolygon(dataPolygon[i + offset]));
+        ASSERT_EQ(blockString.GetData()[i], dataString[i + offset]);
+    }
+    for (int i = length; i < length + length2; i++)
+    {
+        ASSERT_EQ(blockInt.GetData()[i], dataInt[i - length + offset2]);
+        ASSERT_EQ(blockLong.GetData()[i], dataLong[i - length + offset2]);
+        ASSERT_EQ(blockFloat.GetData()[i], dataFloat[i - length + offset2]);
+        ASSERT_EQ(blockDouble.GetData()[i], dataDouble[i - length + offset2]);
+        ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.GetData()[i]),
+                  PointFactory::WktFromPoint(dataPoint[i - length + offset2]));
+        ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.GetData()[i]),
+                  ComplexPolygonFactory::WktFromPolygon(dataPolygon[i - length + offset2]));
+        ASSERT_EQ(blockString.GetData()[i], dataString[i - length + offset2]);
+    }
+
+    // Data do not fit into block
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockInt.InsertDataInterval(dataInt.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockLong.InsertDataInterval(dataLong.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockFloat.InsertDataInterval(dataFloat.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockDouble.InsertDataInterval(dataDouble.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockPoint.InsertDataInterval(dataPoint.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockPolygon.InsertDataInterval(dataPolygon.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+
+    EXPECT_THROW(
+        {
+            try
+            {
+                blockString.InsertDataInterval(dataString.data(), offset, length);
+            }
+            catch (const std::length_error& expected)
+            {
+                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                throw;
+            }
+        },
+        std::length_error);
+}
+
 TEST(BlockTests, InsertDataOnSpecificPosition)
 {
     auto database = std::make_shared<Database>("testDatabase", 20);

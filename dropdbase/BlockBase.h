@@ -26,13 +26,13 @@ private:
     bool isFullOfNullValue_ = false;
     int32_t groupId_ = -1; // index for group of blocks - binary index
 
-    // these methods handle size_ of block
+    // these methods handle currentSize_ of block
     // void setBlockStatistics(const std::vector<T>& data);
     void setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize);
     void updateBlockStatistics(const T& data, bool isNullValue);
 
     ColumnBase<T>& column_;
-    size_t size_; // size_ is updated in BlockBase.cpp in updateBlockStatistics methods
+    size_t size_; // current number of not empty rows in a block, size_ is updated in BlockBase.cpp in updateBlockStatistics methods
     size_t countOfNotNullValues_;
     size_t compressedSize_;
     size_t capacity_;
@@ -268,6 +268,24 @@ public:
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
+        saveNecessary_ = true;
+    }
+
+	/// <summary>
+    /// Insert data into the current block.
+    /// </summary>
+    /// <param name="data">Data to be inserted.</param>
+    /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
+    void InsertDataInterval(const T* newData, size_t offset, size_t length)
+    {
+        if (EmptyBlockSpace() < length)
+        {
+            throw std::length_error("Attempted to insert data larger than remaining block size");
+        }
+		
+        std::copy(newData + offset, newData + offset + length, data_.get() + size_);
+        
+        setBlockStatistics(length, size_);
         saveNecessary_ = true;
     }
 
