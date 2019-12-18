@@ -51,7 +51,8 @@ std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullAr
 template <>
 std::vector<ColmnarDB::Types::ComplexPolygon> ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length)
 {
-    return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))"));
+    return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt(
+                                                                     "POLYGON((0 0, 0 0))"));
 }
 
 template <>
@@ -244,8 +245,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stol(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -262,8 +263,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -298,8 +299,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stoll(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -316,8 +317,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -352,8 +353,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stod(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -370,8 +371,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -406,8 +407,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stof(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -424,8 +425,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -456,21 +457,38 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 for (int32_t j = 0; j < blockSize; j++)
                 {
                     int8_t data;
-                    try
-                    {
-                        data = static_cast<int8_t>(std::stol(dataToCopy[j]));
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                    std::string upperStr = dataToCopy[j];
+                    std::transform(dataToCopy[j].begin(), dataToCopy[j].end(), upperStr.begin(), ::toupper);
+
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
+                    int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+
+                    if (upperStr == "TRUE")
+                    {
+                        data = 1;
                         newNullMask.push_back(bit);
                     }
-                    catch (std::invalid_argument)
+                    else if (upperStr == "FALSE")
                     {
-                        data = GetNullConstant<int8_t>();
-
-                        newNullMask.push_back(1);
+                        data = 0;
+                        newNullMask.push_back(bit);
                     }
+                    else
+                    {
+                        try
+                        {
+                            data = static_cast<int8_t>(std::stol(dataToCopy[j]));
+                            data = data == 0 ? 0 : 1; 
+                            newNullMask.push_back(bit);
+                        }
+                        catch (std::invalid_argument)
+                        {
+                            data = GetNullConstant<int8_t>();
+                            newNullMask.push_back(1);
+                        }
+					}
                     castedDataToCopy.push_back(data);
                 }
 
@@ -478,8 +496,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -514,8 +532,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = PointFactory::FromWkt(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -532,8 +550,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -568,8 +586,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
 
-                        int bitMaskIdx = (j / (sizeof(char) * 8));
-                        int shiftIdx = (j % (sizeof(char) * 8));
+                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                         newNullMask.push_back(bit);
                     }
@@ -586,8 +604,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -633,8 +651,8 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
                     std::string data = PointFactory::WktFromPoint(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                     newNullMask.push_back(bit);
                 }
@@ -643,8 +661,8 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -690,8 +708,8 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
                     std::string data = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
                     newNullMask.push_back(bit);
                 }
@@ -700,8 +718,8 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    int bitMaskIdx = (j / (sizeof(char) * 8));
-                    int shiftIdx = (j % (sizeof(char) * 8));
+                    int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                    int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                     int8_t bit = newNullMask[j] << shiftIdx;
                     newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                 }
@@ -718,7 +736,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
     }
 }
 
-template<>
+template <>
 void ColumnBase<std::string>::SetIsUnique(bool isUnique)
 {
     uniqueHashmap_.clear();
@@ -728,7 +746,7 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
         if (isNullable_)
         {
             throw std::logic_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column need to have NOT NULL constraint");
+                                   ", column need to have NOT NULL constraint");
         }
 
         std::string duplicateData;
@@ -816,8 +834,9 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
         }
         else
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column contains duplicate value: " + PointFactory::WktFromPoint(duplicateData));
+            throw std::length_error(
+                "Could not add UNIQUE constraint on column: " + name_ +
+                ", column contains duplicate value: " + PointFactory::WktFromPoint(duplicateData));
         }
     }
     else
@@ -872,7 +891,8 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
         else
         {
             throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column contains duplicate value: " + ComplexPolygonFactory::WktFromPolygon(duplicateData));
+                                    ", column contains duplicate value: " +
+                                    ComplexPolygonFactory::WktFromPolygon(duplicateData));
         }
     }
     else

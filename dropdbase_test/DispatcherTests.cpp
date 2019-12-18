@@ -15029,6 +15029,57 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
     resultPtr = parserDropDb.Parse();
 }
 
+TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
+{
+    GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterStringToBool 7;");
+    auto resultPtr = createDatabase.Parse();
+
+    auto database = Database::GetDatabaseByName("TestDatabaseAlterStringToBool");
+
+    ASSERT_TRUE(database->GetTables().find("testTable") == database->GetTables().end());
+
+    GpuSqlCustomParser parser(database, "CREATE TABLE testTable (colP string);");
+    resultPtr = parser.Parse();
+
+    ASSERT_TRUE(database->GetTables().find("testTable") != database->GetTables().end());
+
+    auto& table = database->GetTables().at("testTable");
+    auto type = table.GetColumns().at("colP")->GetColumnType();
+    ASSERT_EQ(type, COLUMN_STRING);
+
+    std::vector<std::string> data = {"1", "0",           "TRUE", "trUe", "FAlSE", "false",
+                                     "5", "ffaallsssee", "25",   "-101", "3.6"};
+    std::vector<int8_t> convertedData = {1, 0, 1, 1, 0, 0, 1, std::numeric_limits<int8_t>::min(),
+                                         1, 1, 1};
+
+    for (int32_t i = 0; i < data.size(); i++)
+    {
+        GpuSqlCustomParser parserInsert(database, "INSERT INTO testTable (colP) VALUES (\"" + data[i] + "\");");
+        parserInsert.Parse();
+    }
+
+    GpuSqlCustomParser parserAlter(database, "ALTER TABLE testTable ALTER COLUMN colP BOOL;");
+    resultPtr = parserAlter.Parse();
+
+    type = table.GetColumns().at("colP")->GetColumnType();
+    ASSERT_EQ(type, COLUMN_INT8_T);
+
+    GpuSqlCustomParser parserSelect(database, "SELECT colP from testTable;");
+    resultPtr = parserSelect.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    auto& payloadsCol = result->payloads().at("testTable.colP");
+
+    ASSERT_EQ(payloadsCol.intpayload().intdata_size(), data.size());
+    for (int i = 0; i < payloadsCol.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(convertedData[i], payloadsCol.intpayload().intdata()[i]);
+    }
+
+    GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToBool;");
+    resultPtr = parserDropDb.Parse();
+}
+
 TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
 {
     GpuSqlCustomParser createDatabase(nullptr, "CREATE DATABASE TestDatabaseAlterBitmaskCopy 10;");
