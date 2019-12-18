@@ -248,6 +248,11 @@ void GpuSqlDispatcher::AddShowColumnsFunction()
     dispatcherFunctions_.push_back(showColumnsFunction_);
 }
 
+void GpuSqlDispatcher::AddShowConstraintsFunction()
+{
+    dispatcherFunctions_.push_back(showConstraintsFunction_);
+}
+
 void GpuSqlDispatcher::AddCreateDatabaseFunction()
 {
     dispatcherFunctions_.push_back(createDatabaseFunction_);
@@ -1327,6 +1332,20 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowColumns()
     MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show columns completed sucessfully" << '\n';
+    return InstructionStatus::FINISH;
+}
+
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
+{
+    std::string db = arguments_.Read<std::string>();
+    std::string tab = arguments_.Read<std::string>();
+
+    std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
+    auto& table = database_->GetTables().at(tab);
+
+	//TODO get constraints names, types and their columns
+
+	//CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
 

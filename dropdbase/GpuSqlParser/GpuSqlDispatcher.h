@@ -255,6 +255,7 @@ private:
     static DispatchFunction showDatabasesFunction_;
     static DispatchFunction showTablesFunction_;
     static DispatchFunction showColumnsFunction_;
+    static DispatchFunction showConstraintsFunction_;
     static DispatchFunction createDatabaseFunction_;
     static DispatchFunction dropDatabaseFunction_;
     static DispatchFunction createTableFunction_;
@@ -584,6 +585,8 @@ public:
 
     void AddShowColumnsFunction();
 
+    void AddShowConstraintsFunction();
+
     void AddCreateDatabaseFunction();
 
     void AddDropDatabaseFunction();
@@ -775,6 +778,8 @@ public:
     InstructionStatus ShowTables();
 
     InstructionStatus ShowColumns();
+
+    InstructionStatus ShowConstraints();
 
     InstructionStatus CreateDatabase();
 

@@ -1123,6 +1123,48 @@ void GpuSqlListener::exitShowColumns(GpuSqlParser::ShowColumnsContext* ctx)
     expandedColumnAliases_.insert({table + "_types", table + "_types"});
 }
 
+void GpuSqlListener::exitShowConstraints(GpuSqlParser::ShowConstraintsContext* ctx)
+{
+    dispatcher_.AddShowConstraintsFunction();
+    std::string db;
+    std::string table;
+
+    if (ctx->database())
+    {
+        db = ctx->database()->getText();
+        TrimDelimitedIdentifier(db);
+
+        if (!Database::Exists(db))
+        {
+            throw DatabaseNotFoundException(db);
+        }
+    }
+    else
+    {
+        if (database_)
+        {
+
+            db = database_->GetName();
+        }
+        else
+        {
+            throw DatabaseNotFoundException(db);
+        }
+    }
+
+    std::shared_ptr<Database> databaseObject = Database::GetDatabaseByName(db);
+    table = ctx->table()->getText();
+    TrimDelimitedIdentifier(table);
+
+    if (databaseObject->GetTables().find(table) == databaseObject->GetTables().end())
+    {
+        throw TableNotFoundFromException(table);
+    }
+
+    dispatcher_.AddArgument<const std::string&>(db);
+    dispatcher_.AddArgument<const std::string&>(table);
+}
+
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
 {
     std::string newDbName = ctx->database()->getText();

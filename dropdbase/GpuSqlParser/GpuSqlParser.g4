@@ -19,12 +19,13 @@ statement:
 	| showStatement
 	| showQueryTypes;
 
-showStatement: ( showDatabases | showTables | showColumns);
+showStatement: ( showDatabases | showTables | showColumns | showConstraints );
 
 showDatabases: SHOWDB SEMICOL;
 showTables: SHOWTB ((FROM | IN) database)? SEMICOL;
 showColumns:
 	SHOWCL (FROM | IN) table ((FROM | IN) database)? SEMICOL;
+showConstraints: SHOWCONSTRAINTS (FROM | IN) table ((FROM | IN) database)? SEMICOL;
 
 showQueryTypes: SHOWQTYPES sqlSelect;
 

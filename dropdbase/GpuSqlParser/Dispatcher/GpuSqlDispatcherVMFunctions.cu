@@ -25,6 +25,7 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::doneFunction_ = &GpuSqlDisp
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showDatabasesFunction_ = &GpuSqlDispatcher::ShowDatabases;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showTablesFunction_ = &GpuSqlDispatcher::ShowTables;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showColumnsFunction_ = &GpuSqlDispatcher::ShowColumns;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showConstraintsFunction_ = &GpuSqlDispatcher::ShowConstraints;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::insertIntoDoneFunction_ = &GpuSqlDispatcher::InsertIntoDone;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createDatabaseFunction_ = &GpuSqlDispatcher::CreateDatabase;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropDatabaseFunction_ = &GpuSqlDispatcher::DropDatabase;

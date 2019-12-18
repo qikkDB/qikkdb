@@ -101,6 +101,7 @@ SHOWDB: S H O W ' ' D A T A B A S E S;
 SHOWTB: S H O W ' ' T A B L E S;
 SHOWCL: S H O W ' ' C O L U M N S;
 SHOWQTYPES: S H O W ' ' Q U E R Y ' ' C O L U M N ' ' T Y P E S;
+SHOWCONSTRAINTS: S H O W ' ' C O N S T R A I N T S;
 
 AVG_AGG: A V G;
 SUM_AGG: S U M;
