@@ -1571,6 +1571,21 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw ConstraintAlreadyReferencedException(constraintName);
             }
 
+            if (constraintType == ConstraintType::CONSTRAINT_NOT_NULL)
+            {
+                for (auto& constraintColumn : tableConstraints.at(constraintName).second)
+                {
+                    auto& otherColumnConstraints =
+                        database_->GetTables().at(tableName).GetConstraintsForColumn(constraintColumn);
+
+                    if (otherColumnConstraints.find(ConstraintType::CONSTRAINT_UNIQUE) !=
+                        otherColumnConstraints.end())
+                    {
+                        // throw here
+                    }
+                }
+            }
+
             dropConstraints.insert(constraintName);
         }
     }

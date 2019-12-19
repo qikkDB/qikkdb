@@ -261,3 +261,96 @@ TEST(DispatcherConstraintTests, AlterTableConstraintAlreadyExists)
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
                 DispatcherObjs::GetInstance().database->GetTables().end());
 }
+
+TEST(DispatcherConstraintTests, CreateTableAddDropMultipleConstrainTest)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB FLOAT, colC LONG, colD "
+                              "DOUBLE INDEX, NOT NULL n (colA, colB), UNIQUE u (colB));");
+    auto resultPtr = parser.Parse();
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") !=
+                DispatcherObjs::GetInstance().database->GetTables().end());
+
+    auto& tableConstraints =
+        DispatcherObjs::GetInstance().database->GetTables().at("TableConstraint").GetConstraints();
+
+    ASSERT_EQ(tableConstraints.at("n").first, ConstraintType::CONSTRAINT_NOT_NULL);
+    std::vector<std::string> expectedConstraintColumns = {"colA", "colB"};
+
+    for (int32_t i = 0; i < expectedConstraintColumns.size(); i++)
+    {
+        ASSERT_EQ(tableConstraints.at("n").second[i], expectedConstraintColumns[i]);
+    }
+
+    ASSERT_FALSE(DispatcherObjs::GetInstance()
+                     .database->GetTables()
+                     .at("TableConstraint")
+                     .GetColumns()
+                     .at("colA")
+                     ->GetIsNullable());
+
+    ASSERT_FALSE(DispatcherObjs::GetInstance()
+                     .database->GetTables()
+                     .at("TableConstraint")
+                     .GetColumns()
+                     .at("colB")
+                     ->GetIsNullable());
+
+    ASSERT_EQ(tableConstraints.at("u").first, ConstraintType::CONSTRAINT_UNIQUE);
+    expectedConstraintColumns = {"colB"};
+
+    for (int32_t i = 0; i < expectedConstraintColumns.size(); i++)
+    {
+        ASSERT_EQ(tableConstraints.at("u").second[i], expectedConstraintColumns[i]);
+    }
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance()
+                    .database->GetTables()
+                    .at("TableConstraint")
+                    .GetColumns()
+                    .at("colB")
+                    ->GetIsUnique());
+
+    ASSERT_EQ(tableConstraints.at("colD_IC").first, ConstraintType::CONSTRAINT_INDEX);
+    expectedConstraintColumns = {"colD"};
+
+    for (int32_t i = 0; i < expectedConstraintColumns.size(); i++)
+    {
+        ASSERT_EQ(tableConstraints.at("colD_IC").second[i], expectedConstraintColumns[i]);
+    }
+
+    auto& sortingColumns =
+        DispatcherObjs::GetInstance().database->GetTables().at("TableConstraint").GetSortingColumns();
+
+    ASSERT_TRUE(std::find(sortingColumns.begin(), sortingColumns.end(), "colD") != sortingColumns.end());
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint DROP NOT NULL n;");
+    resultPtr = parser2.Parse();
+
+    ASSERT_TRUE(tableConstraints.find("n") == tableConstraints.end());
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance()
+                    .database->GetTables()
+                    .at("TableConstraint")
+                    .GetColumns()
+                    .at("colA")
+                    ->GetIsNullable());
+
+    ASSERT_TRUE(DispatcherObjs::GetInstance()
+                    .database->GetTables()
+                    .at("TableConstraint")
+                    .GetColumns()
+                    .at("colB")
+                    ->GetIsNullable());
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "DROP TABLE TableConstraint;");
+
+    resultPtr = parser3.Parse();
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
