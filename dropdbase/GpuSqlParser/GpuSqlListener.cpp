@@ -1581,11 +1581,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                     if (otherColumnConstraints.find(ConstraintType::CONSTRAINT_UNIQUE) !=
                         otherColumnConstraints.end())
                     {
-                        // throw here
+                        throw ConstraintCannotBeRemovedException(constraintName, constraintColumn);
                     }
                 }
             }
-
             dropConstraints.insert(constraintName);
         }
     }

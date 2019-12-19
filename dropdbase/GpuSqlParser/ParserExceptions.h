@@ -129,6 +129,16 @@ struct ConstraintNotFound : public std::exception
     }
 };
 
+struct ConstraintCannotBeRemovedException : public std::exception
+{
+    ConstraintCannotBeRemovedException(const std::string& constraint, const std::string& column)
+    : std::exception(("Constraint: \"" + constraint + "\" cannot be removed becasue its dependancy of another constraint of column: \"" +
+                      column + "\" .")
+                         .c_str())
+    {
+    }
+};
+
 struct ColumnGroupByException : public std::exception
 {
     ColumnGroupByException(const std::string& column)

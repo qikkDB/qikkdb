@@ -329,7 +329,41 @@ TEST(DispatcherConstraintTests, CreateTableAddDropMultipleConstrainTest)
 
     GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
                                "ALTER TABLE TableConstraint DROP NOT NULL n;");
-    resultPtr = parser2.Parse();
+
+    ASSERT_THROW(parser2.Parse(), ConstraintCannotBeRemovedException);
+
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint DROP UNIQUE u;");
+    resultPtr = parser3.Parse();
+
+    ASSERT_FALSE(tableConstraints.find("n") == tableConstraints.end());
+    ASSERT_TRUE(tableConstraints.find("u") == tableConstraints.end());
+
+    ASSERT_FALSE(DispatcherObjs::GetInstance()
+                     .database->GetTables()
+                     .at("TableConstraint")
+                     .GetColumns()
+                     .at("colB")
+                     ->GetIsUnique());
+
+    ASSERT_FALSE(DispatcherObjs::GetInstance()
+                     .database->GetTables()
+                     .at("TableConstraint")
+                     .GetColumns()
+                     .at("colA")
+                     ->GetIsNullable());
+
+    ASSERT_FALSE(DispatcherObjs::GetInstance()
+                     .database->GetTables()
+                     .at("TableConstraint")
+                     .GetColumns()
+                     .at("colB")
+                     ->GetIsNullable());
+
+    GpuSqlCustomParser parser4(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint DROP NOT NULL n;");
+    resultPtr = parser4.Parse();
 
     ASSERT_TRUE(tableConstraints.find("n") == tableConstraints.end());
 
@@ -346,6 +380,51 @@ TEST(DispatcherConstraintTests, CreateTableAddDropMultipleConstrainTest)
                     .GetColumns()
                     .at("colB")
                     ->GetIsNullable());
+
+    GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database,
+                               "DROP TABLE TableConstraint;");
+
+    resultPtr = parser5.Parse();
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
+
+TEST(DispatcherConstraintTests, DropConstraintWrongName)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT, "
+                              "NOT NULL n (colA, colB));");
+    auto resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint DROP NOT NULL n1;");
+
+    ASSERT_THROW(parser2.Parse(), ConstraintNotFound);
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "DROP TABLE TableConstraint;");
+
+    resultPtr = parser3.Parse();
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
+TEST(DispatcherConstraintTests, DropConstraintWrongType)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT, "
+                              "NOT NULL n (colA, colB));");
+    auto resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint DROP UNIQUE n;");
+
+    ASSERT_THROW(parser2.Parse(), ConstraintNotFound);
 
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
                                "DROP TABLE TableConstraint;");
