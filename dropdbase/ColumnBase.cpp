@@ -744,8 +744,9 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
     {
         if (isNullable_)
         {
-            throw std::logic_error("Could not add UNIQUE constraint on column: " + name_ +
-                                   ", column need to have NOT NULL constraint");
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column need to have NOT NULL constraint");
         }
 
         std::string duplicateData;
@@ -778,8 +779,9 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
         }
         else
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column contains duplicate value: " + duplicateData);
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column contains duplicate value: " + duplicateData);
         }
     }
     else
@@ -798,8 +800,9 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
     {
         if (isNullable_)
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column need to have NOT NULL constraint");
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column need to have NOT NULL constraint");
         }
 
         ColmnarDB::Types::Point duplicateData;
@@ -833,9 +836,10 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
         }
         else
         {
-            throw std::length_error(
-                "Could not add UNIQUE constraint on column: " + name_ +
-                ", column contains duplicate value: " + PointFactory::WktFromPoint(duplicateData));
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column contains duplicate value: " +
+                                                 PointFactory::WktFromPoint(duplicateData));
         }
     }
     else
@@ -854,8 +858,9 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
     {
         if (isNullable_)
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column need to have NOT NULL constraint");
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column need to have NOT NULL constraint");
         }
 
         ColmnarDB::Types::ComplexPolygon duplicateData;
@@ -889,9 +894,10 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
         }
         else
         {
-            throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                    ", column contains duplicate value: " +
-                                    ComplexPolygonFactory::WktFromPolygon(duplicateData));
+            throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                                             "Could not add UNIQUE constraint on column: " + name_ +
+                                                 ", column contains duplicate value: " +
+                                                 ComplexPolygonFactory::WktFromPolygon(duplicateData));
         }
     }
     else

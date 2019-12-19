@@ -7,6 +7,7 @@
 #include <stdexcept>
 #include <chrono>
 #include "messages/QueryResponseMessage.pb.h"
+#include "ConstraintViolationError.h"
 #include <boost/log/trivial.hpp>
 #include <boost/asio.hpp>
 
@@ -457,11 +458,26 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
             nullMaskVector.push_back(nullMask[i]);
         }
         nullMap.insert({columnName, nullMaskVector});
-        table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression(), nullMap);
+
+        try
+        {
+            table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression(), nullMap);
+        }
+        catch (constraint_violation_error& e)
+        {
+            BOOST_LOG_TRIVIAL(info) << e.what();
+        }
     }
     else
     {
-        table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression());
+        try
+        {
+            table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression());
+        }
+        catch (constraint_violation_error& e)
+        {
+            BOOST_LOG_TRIVIAL(info) << e.what();
+        }
     }
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
     resultMessage->set_message("");

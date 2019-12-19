@@ -26,6 +26,7 @@
 #include "../NativeGeoPoint.h"
 #include "ParserExceptions.h"
 #include "CpuSqlDispatcher.h"
+#include "../ConstraintViolationError.h"
 #include "../ComplexPolygonFactory.h"
 #include "../PointFactory.h"
 #include "../QueryEngine/GPUCore/IOrderBy.h"

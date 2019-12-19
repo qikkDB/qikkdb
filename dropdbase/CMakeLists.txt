@@ -77,6 +77,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/IColumn.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/ConstraintViolationError.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/ConstraintViolationError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 

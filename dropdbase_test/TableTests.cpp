@@ -3,6 +3,7 @@
 #include "gtest/gtest.h"
 #include "../dropdbase/Table.h"
 #include "../dropdbase/Database.h"
+#include "../dropdbase/ConstraintViolationError.h"
 #include "../dropdbase/DataType.h"
 #include "../dropdbase/ColumnBase.h"
 #include "../dropdbase/Configuration.h"
@@ -1098,35 +1099,35 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     // trying to insert non unique values into isUnique column + trying to insert null values into other isUnique columns which is forbidden
     std::unordered_map<std::string, std::any> data2;
     data2.insert({"ColumnInt", dataInt});
-    ASSERT_THROW(table.InsertData(data2), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data2), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data3;
     data3.insert({"ColumnLong", dataLong});
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data4;
     data4.insert({"ColumnFloat", dataFloat});
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data5;
     data5.insert({"ColumnDouble", dataDouble});
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data6;
     data6.insert({"ColumnPoint", dataPoint});
-    ASSERT_THROW(table.InsertData(data6), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data7;
     data7.insert({"ColumnPolygon", dataPolygon});
-    ASSERT_THROW(table.InsertData(data7), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data7), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data8;
     data8.insert({"ColumnString", dataString});
-    ASSERT_THROW(table.InsertData(data8), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data8), constraint_violation_error);
 
     std::unordered_map<std::string, std::any> data9;
     data9.insert({"ColumnBool", dataBool});
-    ASSERT_THROW(table.InsertData(data9), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data9), constraint_violation_error);
 
     ASSERT_EQ(blockInt[0]->GetSize(), 3);
     ASSERT_EQ(blockInt[0]->GetData()[0], 2);
@@ -1287,7 +1288,7 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     castedColumnString->SetIsUnique(false);
     castedColumnBool->SetIsUnique(false);
 
-    ASSERT_THROW(table.InsertData(data), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data), constraint_violation_error);
 
     auto blockInt1 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList();
@@ -1363,7 +1364,7 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     castedColumnString->SetIsUnique(false);
     castedColumnBool->SetIsUnique(false);
 
-    ASSERT_THROW(table.InsertData(data), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data), constraint_violation_error);
 
     auto blockInt2 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnInt").get())->GetBlocksList();
@@ -1448,7 +1449,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     auto castedColumnIntB = dynamic_cast<ColumnBase<int32_t>*>(columnIntB.get());
 
     // trying to make unique column without NOT NULL constraint which is not allowed
-    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnIntA->SetIsNullable(false);
     castedColumnIntA->SetIsUnique(true);
@@ -1517,7 +1518,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     data3.insert({"ColumnIntA", dataIntA3});
     data3.insert({"ColumnIntB", dataIntB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockIntA3 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
@@ -1548,7 +1549,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     data4.insert({"ColumnIntA", dataIntA4});
     data4.insert({"ColumnIntB", dataIntB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockIntA4 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
@@ -1579,7 +1580,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     data5.insert({"ColumnIntA", dataIntA5});
     data5.insert({"ColumnIntB", dataIntB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockIntA5 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
@@ -1618,7 +1619,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     nullMask.insert({"ColumnIntA", vectorMaskA});
     nullMask.insert({"ColumnIntB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockIntA6 =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("ColumnIntA").get())->GetBlocksList();
@@ -1778,8 +1779,8 @@ TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_DuplicityInDa
 
     castedColumnIntA->SetIsNullable(false);
     castedColumnIntB->SetIsNullable(false);
-    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), std::logic_error);
-    ASSERT_THROW(castedColumnIntB->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnIntA->SetIsUnique(true), constraint_violation_error);
+    ASSERT_THROW(castedColumnIntB->SetIsUnique(true), constraint_violation_error);
 }
 
 TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
@@ -1791,7 +1792,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserCreateTable(database,
                                          "CREATE TABLE TableA (ColumnIntA INT UNIQUE, ColumnIntB "
                                          "INT);");
-    ASSERT_THROW(parserCreateTable.Parse(), std::logic_error);
+    ASSERT_THROW(parserCreateTable.Parse(), constraint_violation_error);
 
     GpuSqlCustomParser parserCreateTable2(database,
                                           "CREATE TABLE TableA (ColumnIntA INT, ColumnIntB "
@@ -1868,7 +1869,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parser3(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
                                          "ColumnIntD) "
                                          "VALUES (3, 2, 6, 9);");
-    ASSERT_THROW(parser3.Parse(), std::runtime_error);
+    ASSERT_THROW(parser3.Parse(), constraint_violation_error);
 
     GpuSqlCustomParser parserSelect3(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
@@ -1895,7 +1896,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     // non unique value in Unique column, unique value into non unique columns
     GpuSqlCustomParser parser4(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB, ColumnIntC, "
                                          "ColumnIntD) VALUES (3, 4, 7, 10);");
-    ASSERT_THROW(parser4.Parse(), std::runtime_error);
+    ASSERT_THROW(parser4.Parse(), constraint_violation_error);
 
     GpuSqlCustomParser parserSelect4(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
@@ -1922,7 +1923,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     // insert only into non unique columns, so null value should be inserted into unique column but this is forbidden
     GpuSqlCustomParser parser5(database,
                                "INSERT INTO TableA (ColumnIntB, ColumnIntC) VALUES (3, 7);");
-    ASSERT_THROW(parser5.Parse(), std::runtime_error);
+    ASSERT_THROW(parser5.Parse(), constraint_violation_error);
 
     GpuSqlCustomParser parserSelect5(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
@@ -1983,7 +1984,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
 
     // add Unique Constraint on column with no duplicity
     GpuSqlCustomParser addUniqueNoDup(database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC);");
-    ASSERT_THROW(addUniqueNoDup.Parse(), std::logic_error);
+    ASSERT_THROW(addUniqueNoDup.Parse(), constraint_violation_error);
 
     GpuSqlCustomParser addUniqueNoDupWithNotNull(
         database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntC), ADD NOT NULL n(ColumnIntC);");
@@ -2000,12 +2001,12 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     // add Unique Constraint on column with duplicity
     GpuSqlCustomParser addUniqueDup(database, "ALTER TABLE TableA ADD UNIQUE u(ColumnIntB), ADD "
                                               "NOT NULL n(ColumnIntB);");
-    ASSERT_THROW(addUniqueDup.Parse(), std::logic_error);
+    ASSERT_THROW(addUniqueDup.Parse(), constraint_violation_error);
 
     // add Unique Constraint on column with null value
     GpuSqlCustomParser addUniqueDupNullValue(database,
                                              "ALTER TABLE TableA ADD NOT NULL n(ColumnIntD);");
-    ASSERT_THROW(addUniqueDupNullValue.Parse(), std::logic_error);
+    ASSERT_THROW(addUniqueDupNullValue.Parse(), constraint_violation_error);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
@@ -2023,7 +2024,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     auto castedColumnA = dynamic_cast<ColumnBase<int64_t>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<int64_t>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -2090,7 +2091,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
         dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2121,7 +2122,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
         dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2152,7 +2153,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
         dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2191,7 +2192,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
         dynamic_cast<ColumnBase<int64_t>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2277,7 +2278,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     auto castedColumnA = dynamic_cast<ColumnBase<float>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<float>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -2342,7 +2343,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB3 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2370,7 +2371,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB4 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2399,7 +2400,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB5 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2436,7 +2437,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB6 = dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2518,7 +2519,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     auto castedColumnA = dynamic_cast<ColumnBase<double>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<double>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -2583,7 +2584,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB3 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2611,7 +2612,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB4 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2640,7 +2641,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB5 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2677,7 +2678,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB6 = dynamic_cast<ColumnBase<double>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
@@ -2760,7 +2761,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     auto castedColumnA = dynamic_cast<ColumnBase<std::string>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<std::string>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -2829,7 +2830,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2860,7 +2861,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2891,7 +2892,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -2930,7 +2931,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -3016,7 +3017,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -3099,7 +3100,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -3132,7 +3133,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -3169,7 +3170,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -3213,7 +3214,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
@@ -3306,7 +3307,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnA.get());
     auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnB.get());
 
-    ASSERT_THROW(castedColumnA->SetIsUnique(true), std::logic_error);
+    ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
     castedColumnA->SetIsNullable(false);
     castedColumnA->SetIsUnique(true);
@@ -3410,7 +3411,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     data3.insert({"ColumnA", dataA3});
     data3.insert({"ColumnB", dataB3});
 
-    ASSERT_THROW(table.InsertData(data3), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
@@ -3445,7 +3446,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     data4.insert({"ColumnA", dataA4});
     data4.insert({"ColumnB", dataB4});
 
-    ASSERT_THROW(table.InsertData(data4), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
@@ -3487,7 +3488,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     data5.insert({"ColumnA", dataA5});
     data5.insert({"ColumnB", dataB5});
 
-    ASSERT_THROW(table.InsertData(data5), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
@@ -3538,7 +3539,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     nullMask.insert({"ColumnA", vectorMaskA});
     nullMask.insert({"ColumnB", vectorMaskB});
 
-    ASSERT_THROW(table.InsertData(data6, false, nullMask), std::runtime_error);
+    ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
         dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
@@ -3651,11 +3652,11 @@ TEST(TableTests, SetIsNullable)
 
     // trying to insert null value into NOT NULL ColumnA
     GpuSqlCustomParser parser2(database, "INSERT INTO TableA (ColumnC) VALUES (5);");
-    ASSERT_THROW(parser2.Parse(), std::runtime_error);
+    ASSERT_THROW(parser2.Parse(), constraint_violation_error);
 
     // trying to add NOT NULL on column with null value
     GpuSqlCustomParser parser3(database, "ALTER TABLE TableA ADD NOT NULL n(ColumnC);");
-    ASSERT_THROW(parser3.Parse(), std::logic_error);
+    ASSERT_THROW(parser3.Parse(), constraint_violation_error);
 
     ASSERT_FALSE(table.GetColumns().at("ColumnA")->GetIsNullable());
     ASSERT_TRUE(table.GetColumns().at("ColumnB")->GetIsNullable());

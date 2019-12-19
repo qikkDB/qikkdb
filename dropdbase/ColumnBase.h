@@ -9,6 +9,7 @@
 #include "ComplexPolygonFactory.h"
 #include "PointFactory.h"
 #include "IColumn.h"
+#include "ConstraintViolationError.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
 
@@ -218,8 +219,10 @@ public:
             }
             else
             {
-                throw std::logic_error("Could not add NOT NULL constraint on column: " + name_ +
-                                        ", column contains null values");
+                throw constraint_violation_error(
+                    ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                    "Could not add NOT NULL constraint on column: " +
+                    name_ + ", column contains null values");
             }
         }
 
@@ -247,8 +250,9 @@ public:
         {
             if (isNullable_)
             {
-                throw std::logic_error("Could not add UNIQUE constraint on column: " + name_ +
-                                        ", column need to have NOT NULL constraint");
+                throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                                                 "Could not add UNIQUE constraint on column: " +
+                                                 name_ + ", column need to have NOT NULL constraint");
             }
 
             T duplicateData;
@@ -282,8 +286,10 @@ public:
             }
             else
             {
-                throw std::length_error("Could not add UNIQUE constraint on column: " + name_ +
-                                        ", column contains duplicate value: " + std::to_string(duplicateData));
+                throw constraint_violation_error(
+                    ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                    "Could not add UNIQUE constraint on column: " +
+                    name_ + ", column contains duplicate value: " + std::to_string(duplicateData));
             }
         }
 

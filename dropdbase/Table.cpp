@@ -7,6 +7,7 @@
 #include "Types/Point.pb.h"
 #include "ColumnBase.h"
 #include "QueryEngine/NullConstants.cuh"
+#include "ConstraintViolationError.h"
 #include <cstdint>
 
 
@@ -243,7 +244,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -277,7 +280,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
 
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -310,7 +315,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -342,7 +349,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -376,7 +385,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 PointFactory::WktFromPoint(duplicateData));
@@ -411,7 +422,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 ComplexPolygonFactory::WktFromPolygon(duplicateData));
@@ -444,7 +457,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn +
                                                 ", column contains duplicate value: " + duplicateData);
@@ -477,7 +492,8 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                     if (duplicateFound)
                     {
-                        throw std::runtime_error("Could not execute statement due to a UNIQUE "
+                        throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                            "Could not execute statement due to a UNIQUE "
                                                 "constraint failure on column: " +
                                                 nameOfUniqueColumn + ", column contains duplicate value: " +
                                                 std::to_string(duplicateData));
@@ -492,7 +508,7 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
             // Case when column is not in inserted data so automaticaly there should be NULL inserted which is not suitable when column is Unique
             if (column.second.get()->GetIsUnique())
             {
-                throw std::runtime_error(
+                throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
                     "Could not execute statement due to a UNIQUE constraint failure on column: " +
                     column.first + "trying to insert NULL value");
             }
@@ -525,7 +541,9 @@ void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, 
 
                     if (isNullValue)
                     {
-                        throw std::runtime_error("Could not execute statement due to a NOT NULL "
+                        throw constraint_violation_error(
+                            ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
+                            "Could not execute statement due to a NOT NULL "
                                                 "constraint failure on column: " +
                                                 column.first + " trying to insert NULL value");
                     }
