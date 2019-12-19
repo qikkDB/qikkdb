@@ -465,7 +465,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (constraint_violation_error& e)
         {
-            BOOST_LOG_TRIVIAL(info) << e.what();
+            BOOST_LOG_TRIVIAL(warning) << e.what();
         }
     }
     else
@@ -476,7 +476,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (constraint_violation_error& e)
         {
-            BOOST_LOG_TRIVIAL(info) << e.what();
+            BOOST_LOG_TRIVIAL(warning) << e.what();
         }
     }
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
