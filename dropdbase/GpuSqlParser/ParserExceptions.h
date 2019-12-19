@@ -11,410 +11,247 @@
 
 struct DatabaseNotUsedException : public std::exception
 {
-    const char* what() const noexcept override
+    DatabaseNotUsedException() : std::exception("No database is currently being used.")
     {
-        return "No database is currently being used.";
     }
 };
 
 struct DatabaseNotFoundException : public std::exception
 {
     DatabaseNotFoundException(const std::string& database)
-    : message_("Database: \"" + database + "\" was not found.")
+    : std::exception(("Database: \"" + database + "\" was not found.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct DatabaseAlreadyExistsException : public std::exception
 {
     DatabaseAlreadyExistsException(const std::string& database)
-    : message_("Database: \"" + database + "\" already exists.")
+    : std::exception(("Database: \"" + database + "\" already exists.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct TableNotFoundFromException : public std::exception
 {
     TableNotFoundFromException(const std::string& table)
-    : message_("Table: \"" + table + "\" was not found in the FROM clause.")
+    : std::exception(("Table: \"" + table + "\" was not found in the FROM clause.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct TableAlreadyExistsException : public std::exception
 {
     TableAlreadyExistsException(const std::string& table)
-    : message_("Table: \"" + table + "\" already exists.")
+    : std::exception(("Table: \"" + table + "\" already exists.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct TableIsFilledException : public std::exception
 {
-    const char* what() const noexcept override
+    TableIsFilledException() : std::exception("Index cannot be created on filled table.")
     {
-        return "Index cannot be created on filled table.";
     }
 };
 
 struct ColumnAmbiguityException : public std::exception
 {
     ColumnAmbiguityException(const std::string& column)
-    : message_("Column: \"" + column + "\" was found in more than one table.")
+    : std::exception(("Column: \"" + column + "\" was found in more than one table.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ColumnAlreadyExistsException : public std::exception
 {
     ColumnAlreadyExistsException(const std::string& column)
-    : message_("Column: \"" + column + "\" already exists.")
+    : std::exception(("Column: \"" + column + "\" already exists.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ColumnNotFoundException : public std::exception
 {
     ColumnNotFoundException(const std::string& column)
-    : message_("Column: \"" + column + "\" was not found in table.")
+    : std::exception(("Column: \"" + column + "\" was not found in table.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct AlreadyModifiedColumnException : public std::exception
 {
     AlreadyModifiedColumnException(const std::string& column)
-    : message_("Column: \"" + column + "\" was already modified in this command.")
+    : std::exception(("Column: \"" + column + "\" was already modified in this command.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct IndexColumnDataTypeException : public std::exception
 {
     IndexColumnDataTypeException(const std::string& column, DataType dataType)
-    : message_("Column: \"" + column + "\" of type: " + ::GetStringFromColumnDataType(dataType) + " cannot be used as an index.")
+    : std::exception(("Column: \"" + column + "\" of type: " + ::GetStringFromColumnDataType(dataType) + " cannot be used as an index.")
+                         .c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ConstraintAlreadyReferencedException : public std::exception
 {
     ConstraintAlreadyReferencedException(const std::string& constraint)
-    : message_("Constraint: \"" + constraint + "\" was already referenced in query.")
+    : std::exception(("Constraint: \"" + constraint + "\" was already referenced in query.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ConstraintAlreadyExistsException : public std::exception
 {
     ConstraintAlreadyExistsException(const std::string& constraint)
-    : message_("Constraint: \"" + constraint + "\" already exists in table.")
+    : std::exception(("Constraint: \"" + constraint + "\" already exists in table.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ColumnAlreadyConstrainedException : public std::exception
 {
     ColumnAlreadyConstrainedException(const std::string& column)
-    : message_("Column: \"" + column + "\" is already constrained with a constraint of the same type.")
+    : std::exception(
+          ("Column: \"" + column + "\" is already constrained with a constraint of the same type.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ConstraintNotFound : public std::exception
 {
     ConstraintNotFound(const std::string& constraint)
-    : message_("Constraint: \"" + constraint + "\" was notfound in table.")
+    : std::exception(("Constraint: \"" + constraint + "\" was notfound in table.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct ColumnGroupByException : public std::exception
 {
     ColumnGroupByException(const std::string& column)
-    : message_("Column: \"" + column + "\" must appear in GROUP BY clause or be used in AGGREGATE function.")
+    : std::exception(("Column: \"" + column + "\" must appear in GROUP BY clause or be used in AGGREGATE function.")
+                         .c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct InsertIntoException : public std::exception
 {
     InsertIntoException(const std::string& column)
-    : message_("Column: \"" + column + "\" was referenced multiple times in the INSERT INTO command.")
+    : std::exception(
+          ("Column: \"" + column + "\" was referenced multiple times in the INSERT INTO command.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct NotSameAmoutOfValuesException : public std::exception
 {
-    const char* what() const noexcept override
+    NotSameAmoutOfValuesException()
+    : std::exception(
+          "Number of values provided in the INSERT INTO must be the same as number of columns")
     {
-        return "Number of values provided in the INSERT INTO must be the same as number of columns";
     }
 };
 
 struct NestedAggregationException : public std::exception
 {
-    const char* what() const noexcept override
+    NestedAggregationException()
+    : std::exception("Use of nested aggregation functions is not allowed.")
     {
-        return "Use of nested aggregation functions is not allowed.";
     }
 };
 
 struct AggregationGroupByException : public std::exception
 {
-    const char* what() const noexcept override
+    AggregationGroupByException()
+    : std::exception("Use of aggregation functions in GROUP BY clause is not allowed.")
     {
-        return "Use of aggregation functions in GROUP BY clause is not allowed.";
     }
 };
 
 struct AggregationWhereException : public std::exception
 {
-    const char* what() const noexcept override
+    AggregationWhereException()
+    : std::exception("Use of aggregation functions in WHERE clause is not allowed.")
     {
-        return "Use of aggregation functions in WHERE clause is not allowed.";
     }
 };
 
 struct OrderByColumnAlreadyReferencedException : public std::exception
 {
     OrderByColumnAlreadyReferencedException(const std::string& column)
-    : message_("Column: \"" + column + "\" was referenced multiple times in the ORDER BY clause.")
+    : std::exception(
+          ("Column: \"" + column + "\" was referenced multiple times in the ORDER BY clause.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct OrderByInvalidColumnException : public std::exception
 {
     OrderByInvalidColumnException(const std::string& column)
-    : message_("Column: \"" + column + "\" is not a valid ORDER BY column.")
+    : std::exception(("Column: \"" + column + "\" is not a valid ORDER BY column.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct GroupByInvalidColumnException : public std::exception
 {
     GroupByInvalidColumnException(const std::string& column)
-    : message_("Column: \"" + column + "\" is not a valid GROUP BY column.")
+    : std::exception(("Column: \"" + column + "\" is not a valid GROUP BY column.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct RetPolygonGroupByException : public std::exception
 {
-    const char* what() const noexcept override
+    RetPolygonGroupByException()
+    : std::exception("Return of complex polygon WKT is not allowed while using group by.")
     {
-        return "Return of complex polygon WKT is not allowed while using group by.";
     }
 };
 
 struct RetPointGroupByException : public std::exception
 {
-    const char* what() const noexcept override
+    RetPointGroupByException()
+    : std::exception("Return of point WKT is not allowed while using group by.")
     {
-        return "Return of point WKT is not allowed while using group by.";
     }
 };
 
 struct AliasRedefinitionException : public std::exception
 {
     AliasRedefinitionException(const std::string& alias)
-    : message_("Attempt to redefine alias: \"" + alias + "\" has occured.")
+    : std::exception(("Attempt to redefine alias: \"" + alias + "\" has occured.").c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct NullMaskOperationInvalidOperandException : public std::exception
 {
-    const char* what() const noexcept override
+    NullMaskOperationInvalidOperandException()
+    : std::exception("Null mask operation can only be called with a column operand.")
     {
-        return "Null mask operation can only be called with a column operand.";
     }
 };
 
 struct JoinColumnTypeException : public std::exception
 {
     JoinColumnTypeException(const std::string& colA, const std::string& colB)
-    : message_("Attempt to join columns: \"" + colA + "\" and \"" + colB + "\" which have different data types.")
+    : std::exception(("Attempt to join columns: \"" + colA + "\" and \"" + colB + "\" which have different data types.")
+                         .c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 struct InvalidOperandsException : public std::exception
 {
     InvalidOperandsException(const std::string& left, const std::string& right, const std::string& op)
-    : message_("Invalid operands: " + left + " " + right + " for operation: " + op)
+    : std::exception(("Invalid operands: " + left + " " + right + " for operation: " + op).c_str())
     {
     }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
 };
 
 
