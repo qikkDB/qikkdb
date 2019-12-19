@@ -121,23 +121,6 @@ private:
     std::string message_;
 };
 
-
-struct ColumnAlreadyExistsInIndexException : public std::exception
-{
-    ColumnAlreadyExistsInIndexException(const std::string& column)
-    : message_("Column: \"" + column + "\" already referenced multiple times in single index.")
-    {
-    }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
-};
-
 struct ColumnNotFoundException : public std::exception
 {
     ColumnNotFoundException(const std::string& column)
@@ -158,22 +141,6 @@ struct AlreadyModifiedColumnException : public std::exception
 {
     AlreadyModifiedColumnException(const std::string& column)
     : message_("Column: \"" + column + "\" was already modified in this command.")
-    {
-    }
-
-    const char* what() const noexcept override
-    {
-        return message_.c_str();
-    }
-
-private:
-    std::string message_;
-};
-
-struct IndexAlreadyExistsException : public std::exception
-{
-    IndexAlreadyExistsException(const std::string& index)
-    : message_("Index: \"" + index + "\" already exists in table.")
     {
     }
 

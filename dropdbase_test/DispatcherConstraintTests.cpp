@@ -196,3 +196,68 @@ TEST(DispatcherConstraintTests, SetBlockSizePerTableTest)
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableBlockSizeC") ==
                 DispatcherObjs::GetInstance().database->GetTables().end());
 }
+
+TEST(DispatcherConstraintTests, CreateTableColumnAlreadyConstrained)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT, "
+                              "NOT NULL n1 (colA, colB), NOT NULL n2 (colA, colC));");
+
+    ASSERT_THROW(parser.Parse(), ColumnAlreadyConstrainedException);
+}
+
+TEST(DispatcherConstraintTests, CreateTableConstraintAlreadyExists)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT, "
+                              "NOT NULL n1 (colA, colB), NOT NULL n1 (colC));");
+
+    ASSERT_THROW(parser.Parse(), ConstraintAlreadyExistsException);
+}
+
+TEST(DispatcherConstraintTests, AlterTableColumnAlreadyConstrained)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT);");
+    auto resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint ADD NOT NULL n1 (colA, colB), ADD NOT "
+                               "NULL n2 (colA, colC);");
+
+    ASSERT_THROW(parser2.Parse(), ColumnAlreadyConstrainedException);
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "DROP TABLE TableConstraint;");
+    resultPtr = parser3.Parse();
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
+TEST(DispatcherConstraintTests, AlterTableConstraintAlreadyExists)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "CREATE TABLE TableConstraint (colA INT, colB STRING, colC FLOAT);");
+    auto resultPtr = parser.Parse();
+
+    GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
+                               "ALTER TABLE TableConstraint ADD NOT NULL n1 (colA, colB), ADD NOT "
+                               "NULL n1 (colC);");
+
+    ASSERT_THROW(parser2.Parse(), ConstraintAlreadyExistsException);
+
+    GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
+                               "DROP TABLE TableConstraint;");
+
+    resultPtr = parser3.Parse();
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}

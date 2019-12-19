@@ -10,7 +10,7 @@ ConstraintType GetConstraintType(const std::string& constraintTypeName)
         c = toupper(c);
     }
 
-    std::unordered_map<std::string, ConstraintType> constraintTypes = {
+    const std::unordered_map<std::string, ConstraintType> constraintTypes = {
         {"INDEX", ConstraintType::CONSTRAINT_INDEX},
         {"NOT NULL", ConstraintType::CONSTRAINT_NOT_NULL},
         {"UNIQUE", ConstraintType::CONSTRAINT_UNIQUE}};
@@ -20,4 +20,14 @@ ConstraintType GetConstraintType(const std::string& constraintTypeName)
         return ConstraintType::CONSTRAINT_NONE;
     }
     return constraintTypes.at(constraintTypeNameUpper);
+}
+
+std::string GetConstraintTypeSuffix(ConstraintType constraintType)
+{
+    const std::unordered_map<ConstraintType, std::string> constraintSuffixes = {
+        {ConstraintType::CONSTRAINT_NONE, ""},
+        {ConstraintType::CONSTRAINT_INDEX, "_IC"},
+        {ConstraintType::CONSTRAINT_NOT_NULL, "_NC"},
+        {ConstraintType::CONSTRAINT_UNIQUE, "_UC"}};
+    return constraintSuffixes.at(constraintType);
 }

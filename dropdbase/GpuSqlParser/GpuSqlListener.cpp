@@ -1257,7 +1257,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                 if (std::find(newConstraintColumns.begin(), newConstraintColumns.end(),
                               constraintColumnName) != newConstraintColumns.end())
                 {
-                    throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                    throw ColumnAlreadyConstrainedException(constraintColumnName);
                 }
 
                 for (auto& newConstraint : newConstraints)
@@ -1493,10 +1493,22 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                     throw ColumnNotFoundException(constraintColumnName);
                 }
 
+                if (constraintType == ConstraintType::CONSTRAINT_INDEX)
+                {
+                    DataType constraintColumnDataType =
+                        database_->GetTables().at(tableName).GetColumns().at(constraintColumnName)->GetColumnType();
+
+                    if (constraintColumnDataType == DataType::COLUMN_POINT ||
+                        constraintColumnDataType == DataType::COLUMN_POLYGON)
+                    {
+                        throw IndexColumnDataTypeException(constraintColumnName, constraintColumnDataType);
+                    }
+                }
+
                 if (std::find(newConstraintColumns.begin(), newConstraintColumns.end(),
                               constraintColumnName) != newConstraintColumns.end())
                 {
-                    throw ColumnAlreadyExistsInIndexException(constraintColumnName);
+                    throw ColumnAlreadyConstrainedException(constraintColumnName);
                 }
 
                 std::unordered_set<ConstraintType> columnConstraints =
@@ -1692,6 +1704,13 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx
         throw TableIsFilledException();
     }
 
+    auto& tableConstraints = database_->GetTables().at(tableName).GetConstraints();
+
+    if (tableConstraints.find(indexName) != tableConstraints.end())
+    {
+        throw ConstraintAlreadyExistsException(indexName);
+    }
+
     // check if index already exists
 
     std::vector<std::string> indexColumns;
@@ -1716,7 +1735,15 @@ void GpuSqlListener::exitSqlCreateIndex(GpuSqlParser::SqlCreateIndexContext* ctx
 
         if (std::find(indexColumns.begin(), indexColumns.end(), indexColumnName) != indexColumns.end())
         {
-            throw ColumnAlreadyExistsInIndexException(indexColumnName);
+            throw ColumnAlreadyConstrainedException(indexColumnName);
+        }
+
+        std::unordered_set<ConstraintType> columnConstraints =
+            database_->GetTables().at(tableName).GetConstraintsForColumn(indexColumnName);
+
+        if (columnConstraints.find(ConstraintType::CONSTRAINT_INDEX) != columnConstraints.end())
+        {
+            throw ColumnAlreadyConstrainedException(indexColumnName);
         }
         indexColumns.push_back(indexColumnName);
     }

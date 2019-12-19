@@ -1369,7 +1369,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 
         if (newColumnConstraintType != ConstraintType::CONSTRAINT_NONE)
         {
-            newColumnsConstraints.insert({newColumnName + "_C", {newColumnConstraintType, {newColumnName}}});
+            newColumnsConstraints.insert({newColumnName + ::GetConstraintTypeSuffix(newColumnConstraintType),
+                                          {newColumnConstraintType, {newColumnName}}});
         }
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
     }
@@ -1650,22 +1651,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
     std::string tableName = arguments_.Read<std::string>();
     std::vector<std::string> sortingColumns;
 
-    for (auto& column : database_->GetTables().at(tableName).GetSortingColumns())
-    {
-        sortingColumns.push_back(column);
-    }
-
     int32_t indexColumnCount = arguments_.Read<int32_t>();
     for (int i = 0; i < indexColumnCount; i++)
     {
         std::string indexColumn = arguments_.Read<std::string>();
-        if (std::find(sortingColumns.begin(), sortingColumns.end(), indexColumn) == sortingColumns.end())
-        {
-            sortingColumns.push_back(indexColumn);
-        }
+        sortingColumns.push_back(indexColumn);
     }
 
-    database_->GetTables().at(tableName).SetSortingColumns(sortingColumns);
+    database_->GetTables().at(tableName).AddConstraint(indexName, ConstraintType::CONSTRAINT_INDEX, sortingColumns);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Create index completed sucessfully" << '\n';
     return InstructionStatus::FINISH;

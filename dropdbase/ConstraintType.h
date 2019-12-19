@@ -10,3 +10,4 @@ enum ConstraintType
 };
 
 ConstraintType GetConstraintType(const std::string& constraintTypeName);
+std::string GetConstraintTypeSuffix(ConstraintType constraintType);
