@@ -81,7 +81,7 @@ namespace ColmnarDB.ConsoleClient
                 string command = splitCommand[0].ToLower();
                 string parameters = "";
 
-                if (command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" && command != "import")
+                if (command != "s" && command != "script" && command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" && command != "import")
                 {
                     parameters = wholeCommand;
                     parameters = parameters.Trim();
@@ -107,7 +107,7 @@ namespace ColmnarDB.ConsoleClient
                     case "use":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument");
+                            Console.WriteLine("Missing argument - database name");
                             break;
                         }
                         parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
@@ -117,11 +117,54 @@ namespace ColmnarDB.ConsoleClient
                     case "query":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument");
+                            Console.WriteLine("Missing argument - query string");
                             break;
                         }
 
                         query.RunQuery(parameters, Console.WindowWidth, client);
+
+                        break;
+
+                    case "s":
+                    case "script":
+                        if (parameters == "")
+                        {
+                            Console.WriteLine("Missing argument - file path");
+                            break;
+                        }
+
+                        try
+                        {
+                            var queryFile = new System.IO.StreamReader(parameters);
+                            Console.WriteLine($"Script from file path '{parameters}' has been loaded.");
+                            string queryString;
+
+                            while ((queryString = queryFile.ReadLine()) != null)
+                            {
+                                try
+                                {
+                                    if (queryString.StartsWith("USE"))
+                                    {
+                                        string[] splitCommand2 = queryString.Split(" ");
+
+                                        use.Use(splitCommand2[1].Replace(";", ""), client);
+                                    }
+                                    else
+                                    {
+                                        query.RunQuery(queryString, Console.WindowWidth, client);
+                                    }  
+                                }
+                                catch (Exception e)
+                                {
+                                    Console.WriteLine(e);
+                                    break;
+                                } 
+                            }
+                        }
+                        catch (System.IO.FileNotFoundException e)
+                        {
+                            Console.WriteLine($"File not found. File path: '{parameters}'.");
+                        }
 
                         break;
 
@@ -191,6 +234,7 @@ namespace ColmnarDB.ConsoleClient
                         Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
                         Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
                         Console.WriteLine(String.Format(format, "[query]", "Run given query"));
+                        Console.WriteLine(String.Format(format, "s [file], script [file]", "Run SQL queries from a file path (also supports console client command USE)."));
                         Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
                         Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
 
