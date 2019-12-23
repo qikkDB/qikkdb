@@ -802,6 +802,14 @@ void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext*
             std::string colName = tableName + "." + columnPair.first;
             DataType retType = columnPair.second->GetColumnType();
 
+            isSelectColumnValid_ =
+                groupByColumns_.find({colName, retType}) != groupByColumns_.end() ? true : !usingGroupBy_;
+
+            if (!isSelectColumnValid_)
+            {
+                throw ColumnGroupByException(colName);
+            }
+
             if (returnColumns_.find(colName) == returnColumns_.end())
             {
                 returnColumns_.insert({colName, {retType, colName}});

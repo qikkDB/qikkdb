@@ -1100,6 +1100,37 @@ protected:
         }
     }
 
+    void GroupByStringNoAggAsterisk(std::vector<std::string> inKeys)
+    {
+        std::string tableName = "NoAggTable";
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colKeys", DataType::COLUMN_STRING));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colKeys").get())
+            ->InsertData(inKeys);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, "SELECT * FROM " + tableName + " GROUP BY colKeys;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
+        std::set<std::string> expectedResult;
+        for (auto value : inKeys)
+        {
+            expectedResult.insert(value);
+        }
+        ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.stringpayload().stringdata_size(); i++)
+        {
+            std::string key = payloadKeys.stringpayload().stringdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+        }
+    }
+
     void GroupByMultiKeyIntIntStringNoAgg(
         std::tuple<std::vector<int32_t>, std::vector<int32_t>, std::vector<std::string>> keys)
     {
@@ -1156,6 +1187,21 @@ protected:
             ASSERT_FALSE(expectedResult.find({keyInt1, keyInt2, keyString}) == expectedResult.end())
                 << " key \"" << keyInt1 << keyInt2 << keyString << "\"";
         }
+    }
+
+    template <typename EXCEPTION>
+    void GroupByExceptionGeneric(const std::string& tableName, std::vector<std::string> columnNames, std::string query)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        for (auto& column : columnNames)
+        {
+            columns.insert({column, DataType::COLUMN_INT});
+        }
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase, query);
+        ASSERT_THROW(parser.Parse(), EXCEPTION);
     }
 };
 
@@ -1450,6 +1496,11 @@ TEST_F(DispatcherGroupByTests, StringKeyNoAgg)
     GroupByStringNoAgg({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"});
 }
 
+TEST_F(DispatcherGroupByTests, StringKeyNoAggAsterisk)
+{
+    GroupByStringNoAggAsterisk({"Apple", "Abcd", "Apple", "XYZ", "Banana", "XYZ", "Abcd", "0", "XYZ", "XYZ"});
+}
+
 TEST_F(DispatcherGroupByTests, MultiKeyNoAgg)
 {
     GroupByMultiKeyIntIntStringNoAgg({{5, 2, 2, 2, 2, 5, 1, 7},
@@ -1609,4 +1660,10 @@ TEST_F(DispatcherGroupByTests, UnlimitedNumberOfKeysAverage)
         ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key " << key;
         ASSERT_EQ(expectedResult.at(key), val) << " at key " << key;
     }
+}
+
+TEST_F(DispatcherGroupByTests, SelectAsteristGroupByException)
+{
+    GroupByExceptionGeneric<ColumnGroupByException>("TableA", {"colA", "colB", "colC"},
+                                                    "SELECT * FROM TableA GROUP BY colA;");
 }
