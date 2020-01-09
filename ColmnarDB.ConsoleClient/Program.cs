@@ -81,7 +81,9 @@ namespace ColmnarDB.ConsoleClient
                 string command = splitCommand[0].ToLower();
                 string parameters = "";
 
-                if (command != "s" && command != "script" && command != "docs" && command != "man" && command != "t" && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u" && command != "use" && command != "h" && command != "help" && command != "import")
+                if (command != "s" && command != "script" && command != "docs" && command != "man" && command != "t"
+                    && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u"
+                    && command != "use" && command != "h" && command != "help" && command != "i" && command != "import")
                 {
                     parameters = wholeCommand;
                     parameters = parameters.Trim();
@@ -107,7 +109,7 @@ namespace ColmnarDB.ConsoleClient
                     case "use":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument - database name");
+                            Console.WriteLine("USE: Missing argument - database name");
                             break;
                         }
                         parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
@@ -117,7 +119,7 @@ namespace ColmnarDB.ConsoleClient
                     case "query":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument - query string");
+                            Console.WriteLine("QUERY: Missing argument - query string");
                             break;
                         }
 
@@ -129,7 +131,7 @@ namespace ColmnarDB.ConsoleClient
                     case "script":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument - file path");
+                            Console.WriteLine("SCRIPT: Missing argument - file path");
                             break;
                         }
 
@@ -138,20 +140,81 @@ namespace ColmnarDB.ConsoleClient
                             var queryFile = new System.IO.StreamReader(parameters);
                             Console.WriteLine($"Script from file path '{parameters}' has been loaded.");
                             string queryString;
+                            int scriptFileLine = 0;
 
                             while ((queryString = queryFile.ReadLine()) != null)
                             {
+                                scriptFileLine++;
+
+                                // skip single line sql comments
+                                if (queryString.Trim().StartsWith("--"))
+                                {
+                                    continue;
+                                }
+
+                                Console.WriteLine("SCRIPT: Executing query/command on line " + scriptFileLine + " from a script file: " + parameters);
+
                                 try
                                 {
-                                    if (queryString.StartsWith("USE"))
+                                    if (queryString.ToLower().StartsWith("u ") || queryString.ToLower().StartsWith("use "))
                                     {
                                         string[] splitCommand2 = queryString.Split(" ");
 
-                                        use.Use(splitCommand2[1].Replace(";", ""), client);
+                                        splitCommand2[1] = splitCommand2[1][splitCommand2[1].Length - 1] == ';' ? splitCommand2[1].Substring(0, splitCommand2[1].Length - 1) : splitCommand2[1];
+                                        use.Use(splitCommand2[1], client);
                                     }
                                     else
                                     {
-                                        query.RunQuery(queryString, Console.WindowWidth, client);
+                                        if (queryString.ToLower().StartsWith("i ") || queryString.ToLower().StartsWith("import "))
+                                        {
+                                            string[] splitCommand2 = queryString.Split(" ");
+                                            string command2 = splitCommand2[0];
+                                            string parameters2 = queryString.Substring(command2.Length + 1);
+                                            string[] splitParameters2 = Regex.Matches(parameters2, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
+
+                                            if (splitCommand2[1] == "" || splitParameters2.Length < 2)
+                                            {
+                                                Console.WriteLine("IMPORT: Missing arguments - database name or file path");
+                                                break;
+                                            }
+
+                                            string database2 = splitParameters2[0];
+                                            splitParameters2[1] = splitParameters2[1][splitParameters2[1].Length - 1] == ';' ? splitParameters2[1].Substring(0, splitParameters2[1].Length - 1) : splitParameters2[1];
+                                            string filePath2 = splitParameters2[1];
+                                            if (filePath2.Length > 0 && filePath2.ElementAt(0) == '\"')
+                                            {
+                                                filePath2 = filePath2.Substring(1, filePath2.Length - 2);
+                                            }
+
+                                            if (splitParameters2.Length == 2)
+                                            {
+                                                import.Import(filePath2, database2);
+                                            }
+                                            else if (splitParameters2.Length == 3)
+                                            {
+                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]));
+                                            }
+                                            else if (splitParameters2.Length == 4)
+                                            {
+                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]));
+                                            }
+                                            else if (splitParameters2.Length == 5)
+                                            {
+                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0));
+                                            }
+                                            else if (splitParameters2.Length == 6)
+                                            {
+                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]));
+                                            }
+                                            else if (splitParameters2.Length == 7)
+                                            {
+                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]), batchSize: int.Parse(splitParameters2[6]));
+                                            }
+                                        }
+                                        else
+                                        {
+                                            query.RunQuery(queryString, Console.WindowWidth, client);
+                                        }
                                     }  
                                 }
                                 catch (Exception e)
@@ -172,7 +235,7 @@ namespace ColmnarDB.ConsoleClient
                     case "timing":
                         if (parameters == "")
                         {
-                            Console.WriteLine("Missing argument");
+                            Console.WriteLine("TIMING: Missing argument - query");
                             break;
                         }
 
@@ -180,13 +243,13 @@ namespace ColmnarDB.ConsoleClient
 
                         break;
 
+                    case "i":
                     case "import":
-
                         string[] splitParameters = Regex.Matches(parameters, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
                         if (parameters == "" || splitParameters.Length < 2)
                         {
-                            Console.WriteLine("Missing arguments");
+                            Console.WriteLine("IMPORT: Missing arguments - database name or file path");
                             break;
                         }
 
