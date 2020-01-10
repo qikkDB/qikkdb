@@ -1635,17 +1635,6 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 {
     std::unique_ptr<IColumn> column;
 
-    if (isNullable)
-    {
-        if (isUnique)
-        {
-            isUnique = false;
-            BOOST_LOG_TRIVIAL(warning) << "Flag isUnique_ CANNOT be set to TRUE for column named: "
-				<< std::string(columnName) << " of table named: " << name <<
-				" because this column is also set to be nullable. The isUnique_ flag for this column will be set to FALSE.";
-        }
-    }
-
     if (columnType == COLUMN_INT)
     {
         column = std::make_unique<ColumnBase<int32_t>>(columnName, blockSize_, isNullable, isUnique);
