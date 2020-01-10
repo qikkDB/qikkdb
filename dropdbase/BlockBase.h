@@ -264,14 +264,14 @@ public:
     {
         if (EmptyBlockSpace() < data.size())
         {
-            throw std::length_error("Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size");
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
         saveNecessary_ = true;
     }
 
-	/// <summary>
+    /// <summary>
     /// Insert data into the current block.
     /// </summary>
     /// <param name="data">Data to be inserted.</param>
@@ -280,12 +280,12 @@ public:
     {
         if (EmptyBlockSpace() < length)
         {
-            throw std::length_error("Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size");
         }
-		
+
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
-        
-        setBlockStatistics(length, size_);
+
+		size_ += length;
         saveNecessary_ = true;
     }
 

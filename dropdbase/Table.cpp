@@ -1112,7 +1112,7 @@ int32_t Table::GetBlockCount() const
     int32_t blockCount = 0;
 
     /* If there is at least one column in a table, return the block count of this column,
-	   because each column should have the same block counts */
+       because each column should have the same block counts */
     if (!columns.empty())
     {
         blockCount = columns.begin()->second.get()->GetBlockCount();
@@ -1621,7 +1621,8 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
         blockSize_ = blockSize;
     }
     saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(info) << "New table was created with block size: " << blockSize << " and table name: " << name << ".";
+    BOOST_LOG_TRIVIAL(info) << "New table was created with block size: " << blockSize
+                            << " and table name: " << name << ".";
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
@@ -1633,6 +1634,17 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
 void Table::CreateColumn(const char* columnName, DataType columnType, bool isNullable, bool isUnique)
 {
     std::unique_ptr<IColumn> column;
+
+    if (isNullable)
+    {
+        if (isUnique)
+        {
+            isUnique = false;
+            BOOST_LOG_TRIVIAL(warning) << "Flag isUnique_ CANNOT be set to TRUE for column named: "
+				<< std::string(columnName) << " of table named: " << name <<
+				" because this column is also set to be nullable. The isUnique_ flag for this column will be set to FALSE.";
+        }
+    }
 
     if (columnType == COLUMN_INT)
     {

@@ -559,7 +559,6 @@ TEST(ColumnTests, InsertData_BlocksExistAndNewDataDoNotFitIntoThem)
         }
     }
 
-
     for (int i = 0; i < database->GetBlockSize() * 1.5; i++)
     {
         ASSERT_EQ(dataInt[i], dataInIntBlock[i]);
@@ -578,25 +577,31 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller1)
     std::string srcColumnName = "SrcColumnInt";
     std::string dstColumnName = "DstColumnInt";
     int32_t oldBlockSize = 1000;
-    int32_t newBlockSize = 900;
+    int32_t newBlockSize = 400;
 
     auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
     Table srcTable(database, "srcTable", oldBlockSize);
     Table dstTable(database, "dstTable", newBlockSize);
 
-    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, true);
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, false);
     auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
 
     auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
 
-    std::vector<int32_t> dataInt;
+	srcColumn->AddBlock();
     for (int i = 0; i < oldBlockSize; i++)
     {
-        dataInt.push_back(i);
+        if (i < 2)
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, i, -1, true);
+        }
+        else
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, i, -1, false);
+        }
     }
-    srcColumn->InsertData(dataInt);
 
-    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false); // TODO zmenit na true, false ked budu aj null masky
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, true, false);
     auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
@@ -605,17 +610,20 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller1)
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
 
     auto& dstBlocks = dstColumn->GetBlocksList();
 
-    int32_t srcDataIndex = 0;
+    ASSERT_EQ(dstBlocks[0]->GetNullBitmask()[0], 3);
+
+	int32_t expectedValue = 0;
     for (auto& dstBlock : dstBlocks)
     {
         for (int32_t i = 0; i < dstBlock->GetSize(); i++)
         {
-            ASSERT_EQ(dataInt[srcDataIndex * newBlockSize + i], dstBlock->GetData()[i]);
+            ASSERT_EQ(expectedValue, dstBlock->GetData()[i]);
+            expectedValue++;
         }
-        srcDataIndex++;
     }
 }
 
@@ -630,7 +638,238 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller2)
     Table srcTable(database, "srcTable", oldBlockSize);
     Table dstTable(database, "dstTable", newBlockSize);
 
-    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, true);
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, false);
+    auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
+
+    auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
+
+	int32_t insertedValue = 0;
+    srcColumn->AddBlock();
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        if (i < 2)
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, insertedValue, -1, true);
+        }
+        else
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, insertedValue, -1, false);
+        }
+        insertedValue++;
+    }
+
+    srcColumn->AddBlock();
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        srcColumn->InsertDataOnSpecificPositionResizing(1, i, insertedValue, -1, false);
+        insertedValue++;
+    }
+
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, true, false);
+    auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
+
+    auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
+
+    dstColumn->ResizeColumn(*srcColumn);
+
+    ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
+    ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
+
+    auto& dstBlocks = dstColumn->GetBlocksList();
+
+	ASSERT_EQ(dstBlocks[0]->GetNullBitmask()[0], 3);
+
+    int32_t expectedValue = 0;
+    for (auto& dstBlock : dstBlocks)
+    {
+        for (int32_t i = 0; i < dstBlock->GetSize(); i++)
+        {
+            ASSERT_EQ(expectedValue, dstBlock->GetData()[i]);
+            expectedValue++;
+        }
+    }
+}
+
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger1)
+{
+    std::string srcColumnName = "SrcColumnInt";
+    std::string dstColumnName = "DstColumnInt";
+    int32_t oldBlockSize = 900;
+    int32_t newBlockSize = 1000;
+
+    auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
+    Table srcTable(database, "srcTable", oldBlockSize);
+    Table dstTable(database, "dstTable", newBlockSize);
+
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, false);
+    auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
+
+    auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
+
+	srcColumn->AddBlock();
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        if (i < 2)
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, i, -1, true);
+        }
+        else
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, i, -1, false);
+        }
+    }
+
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, true, false);
+    auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
+
+    auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
+
+    dstColumn->ResizeColumn(*srcColumn);
+
+    ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
+    ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
+
+    auto& dstBlocks = dstColumn->GetBlocksList();
+
+	ASSERT_EQ(dstBlocks[0]->GetNullBitmask()[0], 3);
+
+	int32_t expectedValue = 0;
+    for (auto& dstBlock : dstBlocks)
+    {
+        for (int32_t i = 0; i < dstBlock->GetSize(); i++)
+        {
+            ASSERT_EQ(expectedValue, dstBlock->GetData()[i]);
+            expectedValue++;
+        }
+    }
+}
+
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger2)
+{
+    std::string srcColumnName = "SrcColumnInt";
+    std::string dstColumnName = "DstColumnInt";
+    int32_t oldBlockSize = 90;
+    int32_t newBlockSize = 1000;
+
+    auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
+    Table srcTable(database, "srcTable", oldBlockSize);
+    Table dstTable(database, "dstTable", newBlockSize);
+
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, false);
+    auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
+
+    auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
+
+	int32_t insertedValue = 0;
+    srcColumn->AddBlock();
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        if (i < 2)
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, insertedValue, -1, true);
+        }
+        else
+        {
+            srcColumn->InsertDataOnSpecificPositionResizing(0, i, insertedValue, -1, false);
+        }
+        insertedValue++;
+    }
+
+    srcColumn->AddBlock();
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        srcColumn->InsertDataOnSpecificPositionResizing(1, i, insertedValue, -1, false);
+        insertedValue++;
+    }
+
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, true, false);
+    auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
+
+    auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
+
+    dstColumn->ResizeColumn(*srcColumn);
+
+    ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
+    ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
+
+    auto& dstBlocks = dstColumn->GetBlocksList();
+
+    ASSERT_EQ(dstBlocks[0]->GetNullBitmask()[0], 3);ASSERT_EQ(dstBlocks[0]->GetNullBitmask()[0], 3);
+
+    int32_t expectedValue = 0;
+    for (auto& dstBlock : dstBlocks)
+    {
+        for (int32_t i = 0; i < dstBlock->GetSize(); i++)
+        {
+            ASSERT_EQ(expectedValue, dstBlock->GetData()[i]);
+            expectedValue++;
+        }
+    }
+}
+
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmallerNotNullable1)
+{
+    std::string srcColumnName = "SrcColumnInt";
+    std::string dstColumnName = "DstColumnInt";
+    int32_t oldBlockSize = 1000;
+    int32_t newBlockSize = 400;
+
+    auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
+    Table srcTable(database, "srcTable", oldBlockSize);
+    Table dstTable(database, "dstTable", newBlockSize);
+
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, false, false);
+    auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
+
+    auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
+
+    std::vector<int32_t> dataInt;
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        dataInt.push_back(i);
+    }
+    srcColumn->InsertData(dataInt);
+
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false);
+    auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
+
+    auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
+
+    dstColumn->ResizeColumn(*srcColumn);
+
+    ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
+    ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
+
+    auto& dstBlocks = dstColumn->GetBlocksList();
+
+    int32_t srcDataIndex = 0;
+
+   for (auto& dstBlock : dstBlocks)
+    {
+        for (int32_t i = 0; i < dstBlock->GetSize(); i++)
+        {
+            ASSERT_EQ(dataInt[srcDataIndex * newBlockSize + i], dstBlock->GetData()[i]);
+        }
+        srcDataIndex++;
+    }
+}
+
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmallerNotNullable2)
+{
+    std::string srcColumnName = "SrcColumnInt";
+    std::string dstColumnName = "DstColumnInt";
+    int32_t oldBlockSize = 1000;
+    int32_t newBlockSize = 500;
+
+    auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
+    Table srcTable(database, "srcTable", oldBlockSize);
+    Table dstTable(database, "dstTable", newBlockSize);
+
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, false);
     auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
 
     auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
@@ -648,7 +887,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller2)
     srcColumn->InsertData(dataInt);
     srcColumn->InsertData(dataInt2);
 
-    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false); // TODO zmenit na true, false ked budu aj null masky
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false);
     auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
@@ -657,6 +896,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller2)
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
 
     auto& dstBlocks = dstColumn->GetBlocksList();
 
@@ -671,7 +911,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller2)
     }
 }
 
-TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger)
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger1NotNullable)
 {
     std::string srcColumnName = "SrcColumnInt";
     std::string dstColumnName = "DstColumnInt";
@@ -682,7 +922,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger)
     Table srcTable(database, "srcTable", oldBlockSize);
     Table dstTable(database, "dstTable", newBlockSize);
 
-    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, true, true);
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, false, false);
     auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
 
     auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
@@ -694,7 +934,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger)
     }
     srcColumn->InsertData(dataInt);
 
-    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false); // TODO zmenit na true, false ked budu aj null masky
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false);
     auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
@@ -703,6 +943,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger)
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
 
     auto& dstBlocks = dstColumn->GetBlocksList();
 
@@ -714,6 +955,59 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger)
             ASSERT_EQ(dataInt[srcDataIndex * newBlockSize + i], dstBlock->GetData()[i]);
         }
         srcDataIndex++;
+    }
+}
+
+TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger2NotNullable)
+{
+    std::string srcColumnName = "SrcColumnInt";
+    std::string dstColumnName = "DstColumnInt";
+    int32_t oldBlockSize = 900;
+    int32_t newBlockSize = 1000;
+
+    auto database = std::make_shared<Database>("testDatabase", oldBlockSize);
+    Table srcTable(database, "srcTable", oldBlockSize);
+    Table dstTable(database, "dstTable", newBlockSize);
+
+    srcTable.CreateColumn(srcColumnName.c_str(), COLUMN_INT, false, false);
+    auto& srcColumnInt = srcTable.GetColumns().at(srcColumnName);
+
+    auto srcColumn = dynamic_cast<ColumnBase<int32_t>*>(srcColumnInt.get());
+
+    std::vector<int32_t> dataInt;
+    for (int i = 0; i < oldBlockSize; i++)
+    {
+        dataInt.push_back(i);
+    }
+    std::vector<int32_t> dataInt2;
+    for (int i = oldBlockSize; i < 2 * oldBlockSize; i++)
+    {
+        dataInt.push_back(i);
+    }
+    srcColumn->InsertData(dataInt);
+    srcColumn->InsertData(dataInt2);
+
+    dstTable.CreateColumn(dstColumnName.c_str(), COLUMN_INT, false, false);
+    auto& dstColumnInt = dstTable.GetColumns().at(dstColumnName);
+
+    auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
+
+    dstColumn->ResizeColumn(*srcColumn);
+
+    ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
+    ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
+    ASSERT_EQ(srcColumn->GetSize(), dstColumn->GetSize());
+
+    auto& dstBlocks = dstColumn->GetBlocksList();
+
+    int32_t expectedValue = 0;
+    for (auto& dstBlock : dstBlocks)
+    {
+        for (int32_t i = 0; i < dstBlock->GetSize(); i++)
+        {
+            ASSERT_EQ(expectedValue, dstBlock->GetData()[i]);
+            expectedValue++;
+        }
     }
 }
 

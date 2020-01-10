@@ -397,44 +397,78 @@ public:
 
         const int32_t newBlocksCount = (srcColumn.GetSize() + blockSize_ - 1) / blockSize_;
 
-		// Add as many empty blocks as is needed for resizing
+        // Add as many empty blocks as is needed for resizing
         for (int32_t i = 0; i < newBlocksCount; i++)
         {
             AddBlock();
         }
 
-        while (srcBlockIndex < srcColumn.GetBlockCount())
+        // If a column is nullable, null bit mask values will be copied value by value, so it is much slower
+        if (isNullable_)
         {
-            if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
+            while (srcBlockIndex < srcColumn.GetBlockCount())
             {
-                // srcBlock[i].size_ > dstBlock blockSize_
-                blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
-                                                           srcRowIndex, blockSize_);
-                srcRowIndex += blockSize_;
-                dstBlockIndex += 1;
-                dstRowIndex = 0;
-            }
-            else
-            {
-                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex ==
-                    static_cast<int64_t>(blockSize_ - dstRowIndex))
+                int8_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
+                int32_t bitMaskIdx = (srcRowIndex / (sizeof(int8_t) * 8)); // which byte it is
+                int32_t shiftIdx = (srcRowIndex % (sizeof(int8_t) * 8)); // which bit it is
+                bool isNullValue = (nullBitMask[bitMaskIdx] >> shiftIdx) & 1;
+
+                InsertDataOnSpecificPositionResizing(dstBlockIndex,
+                    dstRowIndex, srcBlocks[srcBlockIndex]->GetData()[srcRowIndex], -1, isNullValue);
+                srcRowIndex++;
+                dstRowIndex++;
+
+                if (srcRowIndex == srcColumn.GetBlockSize())
                 {
-                    // srcBlock[i].size_ == dstBlock blockSize_
-                    blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
-                                                               srcRowIndex, blockSize_);
-                    srcBlockIndex += 1;
                     srcRowIndex = 0;
+                    srcBlockIndex++;
+                }
+
+                if (dstRowIndex == blockSize_)
+                {
+                    dstRowIndex = 0;
+                    dstBlockIndex++;
+                }
+            }
+        }
+        else
+        {
+            while (srcBlockIndex < srcColumn.GetBlockCount())
+            {
+                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
+                {
+                    // srcBlock[i].size_ > dstBlock
+                    size_ += blockSize_ - dstRowIndex;
+                    blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
+                                                                   srcRowIndex, blockSize_ - dstRowIndex);
+                    srcRowIndex += blockSize_ - dstRowIndex;
                     dstBlockIndex += 1;
                     dstRowIndex = 0;
                 }
                 else
                 {
-                    // srcBlock[i].size_ < dstBlock blockSize_
-                    blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(), srcRowIndex,
-                                                               srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex);
-                    dstRowIndex += srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex;
-                    srcBlockIndex += 1;
-                    srcRowIndex = 0; 
+                    if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex ==
+                        static_cast<int64_t>(blockSize_ - dstRowIndex))
+                    {
+                        // srcBlock[i].size_ == dstBlock
+                        size_ += blockSize_ - dstRowIndex;
+                        blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(),
+                                                                       srcRowIndex, blockSize_ - dstRowIndex);
+                        srcBlockIndex += 1;
+                        srcRowIndex = 0;
+                        dstBlockIndex += 1;
+                        dstRowIndex = 0;
+                    }
+                    else
+                    {
+                        // srcBlock[i].size_ < dstBlock
+                        size_ += srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex;
+                        blocks_[-1][dstBlockIndex]->InsertDataInterval(srcBlocks[srcBlockIndex]->GetData(), srcRowIndex,
+                                                                       srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex);
+                        dstRowIndex += srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex;
+                        srcBlockIndex += 1;
+                        srcRowIndex = 0;
+                    }
                 }
             }
         }
@@ -515,14 +549,18 @@ public:
     }
 
     /// <summary>
-    /// Inserts data on proper position in column
+    /// Inserts data on proper position in column and split blocks, used with clustered indexes
     /// </summary>
     /// <param name="indexBlock">index of block where data will be inserted</param>
     /// <param name="indexInBlock">index in block where data will be inserted</param>
     /// <param name="columnData">data to insert<param>
     /// <param name="groupId">id of binary index group<param>
     /// <param name="isNullValue">whether data is null value flag<param>
-    void InsertDataOnSpecificPosition(int32_t indexBlock, int32_t indexInBlock, const T& columnData, int32_t groupId = -1, bool isNullValue = false)
+    void InsertDataOnSpecificPosition(int32_t indexBlock,
+                                      int32_t indexInBlock,
+                                      const T& columnData,
+                                      int32_t groupId = -1,
+                                      bool isNullValue = false)
     {
         size_ += 1;
 
@@ -541,6 +579,35 @@ public:
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         // setColumnStatistics();
+    }
+
+	/// <summary>
+    /// Inserts data on proper position in column without splitting blocks, used when resizing block size
+    /// </summary>
+    /// <param name="indexBlock">index of block where data will be inserted</param>
+    /// <param name="indexInBlock">index in block where data will be inserted</param>
+    /// <param name="columnData">data to insert<param>
+    /// <param name="groupId">id of binary index group<param>
+    /// <param name="isNullValue">whether data is null value flag<param>
+    void InsertDataOnSpecificPositionResizing(int32_t indexBlock,
+											  int32_t indexInBlock,
+											  const T& columnData,
+											  int32_t groupId = -1,
+										      bool isNullValue = false)
+    {
+        BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
+		
+		if (block.IsFull())
+        {
+            BOOST_LOG_TRIVIAL(debug)
+                << "The block with index " << indexBlock << " is full and data cannot be inserted into it when resizing block size for column named: " << name_ << ".";
+        }
+
+        size_ += 1;
+        block.InsertDataOnSpecificPosition(indexInBlock, columnData, isNullValue);
+
+        saveNecessary_ = true;
+        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
     }
 
     /// <summary>
