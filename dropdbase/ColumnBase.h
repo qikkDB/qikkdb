@@ -862,15 +862,9 @@ public:
                         int32_t data = static_cast<int32_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -878,15 +872,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -917,15 +905,9 @@ public:
                         int64_t data = static_cast<int64_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -933,15 +915,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -972,15 +948,9 @@ public:
                         double data = static_cast<double>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -988,15 +958,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -1027,15 +991,9 @@ public:
                         float data = static_cast<float>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -1043,15 +1001,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -1082,15 +1034,9 @@ public:
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -1098,15 +1044,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
@@ -1137,15 +1077,9 @@ public:
                         std::string data = std::to_string(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newNullMask.push_back(bit);
                     }
 
@@ -1153,15 +1087,9 @@ public:
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-<<<<<<< HEAD
                         const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
                         const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
                         const int8_t bit = newNullMask[j] << shiftIdx;
-=======
-                        int32_t bitMaskIdx = (j / (sizeof(char) * 8));
-                        int32_t shiftIdx = (j % (sizeof(char) * 8));
-                        int8_t bit = newNullMask[j] << shiftIdx;
->>>>>>> Change BlockSize: Copying just data (but not nullMasks) is done in resizing blocks, also tests written
                         newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
                     }
 
