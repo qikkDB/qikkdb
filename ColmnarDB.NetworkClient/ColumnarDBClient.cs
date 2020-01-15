@@ -237,6 +237,8 @@ namespace ColmnarDB.NetworkClient
                 SendTimeout = 0
             };
             // Timeout after one minute
+
+            _client.NoDelay = true;
             _client.Connect(_serverIP, _serverPort);
             InfoMessage message = new InfoMessage { Code = InfoMessage.Types.StatusCode.ConnEstablish, Message = "" };
             try
