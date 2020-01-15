@@ -39,6 +39,8 @@ private:
             {
                 try
                 {
+                    boost::asio::ip::tcp::no_delay option(true);
+                    socket.set_option(option);
                     BOOST_LOG_TRIVIAL(info)
                         << "Accepting client " << socket.remote_endpoint().address().to_string();
 
