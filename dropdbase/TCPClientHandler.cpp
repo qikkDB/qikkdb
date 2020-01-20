@@ -402,7 +402,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         std::vector<ColmnarDB::Types::Point> dataVector;
         int i = 0;
         int elemsRead = 0;
-        while (i < elementCount)
+        while (elemsRead < elementCount)
         {
             ColmnarDB::Types::Point point;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
