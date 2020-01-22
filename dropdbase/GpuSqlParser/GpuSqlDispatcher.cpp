@@ -1354,7 +1354,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropDatabase()
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
-    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newConstraints;
+    std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
 
     std::string newTableName = arguments_.Read<std::string>();
     int32_t newTableBlockSize = arguments_.Read<int32_t>();
@@ -1364,6 +1364,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
     {
         std::string newColumnName = arguments_.Read<std::string>();
         int32_t newColumnDataType = arguments_.Read<int32_t>();
+
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
     }
 
@@ -1381,7 +1382,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
             std::string newConstraintColumn = arguments_.Read<std::string>();
             constraintColumns.push_back(newConstraintColumn);
         }
-        newConstraints.insert({constraintName, {constraintType, constraintColumns}});
+        newConstraints.push_back({constraintName, constraintType, constraintColumns});
     }
 
     try
@@ -1392,7 +1393,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
         {
             database_->GetTables()
                 .at(newTableName)
-                .AddConstraint(constraint.first, constraint.second.first, constraint.second.second);
+                .AddConstraint(std::get<0>(constraint), std::get<1>(constraint), std::get<2>(constraint));
         }
     }
     catch (const constraint_violation_error& e)
