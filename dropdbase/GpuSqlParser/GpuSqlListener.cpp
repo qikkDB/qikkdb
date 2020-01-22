@@ -803,7 +803,7 @@ void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext*
             DataType retType = columnPair.second->GetColumnType();
 
             isSelectColumnValid_ =
-                groupByColumns_.find({colName, retType}) != groupByColumns_.end() ? true : !usingGroupBy_;
+                groupByColumns_.find({colName, retType}) != groupByColumns_.end() || !usingGroupBy_;
 
             if (!isSelectColumnValid_)
             {
