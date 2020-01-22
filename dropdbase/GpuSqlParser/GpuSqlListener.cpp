@@ -1492,11 +1492,8 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
 
                 for (auto& newConstraint : newConstraints)
                 {
-                    if (newConstraint.second.first != constraintType)
-                    {
-                        continue;
-                    }
-                    if (std::find(newConstraint.second.second.begin(), newConstraint.second.second.end(),
+                    if (newConstraint.second.first == constraintType &&
+                        std::find(newConstraint.second.second.begin(), newConstraint.second.second.end(),
                                   constraintColumnName) != newConstraint.second.second.end())
                     {
                         throw ColumnAlreadyConstrainedException(constraintColumnName);
