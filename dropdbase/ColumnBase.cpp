@@ -738,6 +738,12 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
 template <>
 void ColumnBase<std::string>::SetIsUnique(bool isUnique)
 {
+    if (isUnique_ == isUnique)
+    {
+        // No change, do nothing
+        return;
+    }
+
     uniqueHashmap_.clear();
 
     if (isUnique)
@@ -794,6 +800,12 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
 template <>
 void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
 {
+    if (isUnique_ == isUnique)
+    {
+        // No change, do nothing
+        return;
+    }
+
     uniqueHashmap_.clear();
 
     if (isUnique)
@@ -852,6 +864,12 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
 template <>
 void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
 {
+    if (isUnique_ == isUnique)
+    {
+        // No change, do nothing
+        return;
+    }
+
     uniqueHashmap_.clear();
 
     if (isUnique)

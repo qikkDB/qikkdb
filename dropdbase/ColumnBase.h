@@ -113,7 +113,8 @@ private:
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), saveNecessary_(true)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false),
+      saveNecessary_(true)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
         SetIsNullable(isNullable);
@@ -187,8 +188,20 @@ public:
     /// <param name="isNullable">required isNullable_ value</param>
     virtual void SetIsNullable(bool isNullable) override
     {
+        if (isNullable_ == isNullable)
+        {
+            // No change, do nothing
+            return;
+        }
+
         if (isNullable)
         {
+            if (isUnique_)
+            {
+                throw constraint_violation_error(UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                                                 "Could not drop NOT NULL constraint on column: " +
+                                                     name_ + ", column has UNIQUE constraint (drop this constraint first)");
+            }
             isNullable_ = true;
             BOOST_LOG_TRIVIAL(debug) << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
         }
@@ -241,6 +254,12 @@ public:
     /// <param name="isUnique">required isUnique_ value</param>
     virtual void SetIsUnique(bool isUnique) override
     {
+        if (isUnique_ == isUnique)
+        {
+            // No change, do nothing
+            return;
+        }
+
         uniqueHashmap_.clear();
 
         if (isUnique)

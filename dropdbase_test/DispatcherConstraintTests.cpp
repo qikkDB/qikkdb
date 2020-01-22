@@ -433,3 +433,67 @@ TEST(DispatcherConstraintTests, DropConstraintWrongType)
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
                 DispatcherObjs::GetInstance().database->GetTables().end());
 }
+
+void RunCorrectQuery(std::string query)
+{
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, query);
+    parser.Parse();
+}
+
+template <typename EXCEPTION>
+void RunIncorrectQuery(std::string query)
+{
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, query);
+    ASSERT_THROW(parser.Parse(), EXCEPTION);
+}
+
+TEST(DispatcherConstraintTests, UniqueAndNotNullConstraintDependencies)
+{
+    Context::getInstance();
+
+    RunCorrectQuery("CREATE TABLE TableConstraint (col INT);");
+
+    // Correct order of adding
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD NOT NULL n1 (col);");
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD UNIQUE u1 (col);");
+    // Correct order of dropping
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP UNIQUE u1;");
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP NOT NULL n1;");
+
+    // Incorrect order of adding
+    RunIncorrectQuery<constraint_violation_error>(
+        "ALTER TABLE TableConstraint ADD UNIQUE u1 (col);");
+
+    // Incorrect order of dropping
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD NOT NULL n1 (col);");
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD UNIQUE u1 (col);");
+    RunIncorrectQuery<constraint_violation_error>("ALTER TABLE TableConstraint DROP NOT NULL n1;");
+
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP UNIQUE u1;");
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP NOT NULL n1;");
+
+    RunCorrectQuery("DROP TABLE TableConstraint;");
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
+
+TEST(DispatcherConstraintTests, UniqueAndNotNullConstraintAutoOrderingInOneQuery)
+{
+    Context::getInstance();
+
+    RunCorrectQuery("CREATE TABLE TableConstraint (col INT);");
+
+    // Test ordering of adding
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD UNIQUE u1 (col), ADD NOT NULL n1 (col);");
+    // Test ordering of dropping
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP NOT NULL n1, DROP UNIQUE u1;");
+
+    // Test correct order of adding, just to be sure
+    RunCorrectQuery("ALTER TABLE TableConstraint ADD NOT NULL n1 (col), ADD UNIQUE u1 (col);");
+    // Test correct order of dropping, just to be sure
+    RunCorrectQuery("ALTER TABLE TableConstraint DROP UNIQUE u1, DROP NOT NULL n1;");
+
+    RunCorrectQuery("DROP TABLE TableConstraint;");
+    ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableConstraint") ==
+                DispatcherObjs::GetInstance().database->GetTables().end());
+}
