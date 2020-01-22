@@ -5,7 +5,8 @@
 enum ConstraintViolationErrorType
 {
     UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
-    UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE
+    UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+    UNIQUE_CONSTRAINT_DROP_NOT_NULL
 };
 
 class constraint_error : public std::runtime_error

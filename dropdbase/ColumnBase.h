@@ -198,7 +198,7 @@ public:
         {
             if (isUnique_)
             {
-                throw constraint_violation_error(UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
+                throw constraint_violation_error(UNIQUE_CONSTRAINT_DROP_NOT_NULL,
                                                  "Could not drop NOT NULL constraint on column: " +
                                                      name_ + ", column has UNIQUE constraint (drop this constraint first)");
             }

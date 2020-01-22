@@ -330,7 +330,7 @@ TEST(DispatcherConstraintTests, CreateTableAddDropMultipleConstrainTest)
     GpuSqlCustomParser parser2(DispatcherObjs::GetInstance().database,
                                "ALTER TABLE TableConstraint DROP NOT NULL n;");
 
-    ASSERT_THROW(parser2.Parse(), ConstraintCannotBeRemovedException);
+    ASSERT_THROW(parser2.Parse(), constraint_violation_error);
 
 
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
