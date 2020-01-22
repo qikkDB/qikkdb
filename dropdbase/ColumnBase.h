@@ -187,21 +187,25 @@ public:
     /// <param name="isNullable">required isNullable_ value</param>
     virtual void SetIsNullable(bool isNullable) override
     {
-        if (!isNullable)
+        if (isNullable)
+        {
+            isNullable_ = true;
+            BOOST_LOG_TRIVIAL(debug) << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
+        }
+        else
         {
             bool isNullValue = false;
             for (auto const& mapBlock : blocks_)
             {
                 for (int32_t i = 0; i < mapBlock.second.size() && !isNullValue; i++)
                 {
-                    auto data = mapBlock.second[i]->GetData();
                     int8_t* mask = mapBlock.second[i]->GetNullBitmask();
 
                     for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
-                        int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
+                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
+                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
 
                         if (bit)
                         {
@@ -211,24 +215,18 @@ public:
                 }
             }
 
-            if (!isNullValue)
-            {
-                isNullable_ = false;
-                BOOST_LOG_TRIVIAL(debug)
-                    << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
-            }
-            else
+            if (isNullValue)
             {
                 throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_NULL_VALUE,
                                                  "Could not add NOT NULL constraint on column: " + name_ +
                                                      ", column contains null values");
             }
-        }
-
-        else
-        {
-            isNullable_ = true;
-            BOOST_LOG_TRIVIAL(debug) << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
+            else
+            {
+                isNullable_ = false;
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
+            }
         }
     }
 
