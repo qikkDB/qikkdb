@@ -1340,7 +1340,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_map<std::string, std::string> renameColumns;
     std::unordered_set<std::string> renameColumnToNames;
     std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newConstraints;
-    std::unordered_set<std::string> dropConstraints;
+    std::unordered_map<std::string, ConstraintType> dropConstraints;
     std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
@@ -1527,21 +1527,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw ConstraintAlreadyReferencedException(constraintName);
             }
 
-            if (constraintType == ConstraintType::CONSTRAINT_NOT_NULL)
-            {
-                for (auto& constraintColumn : tableConstraints.at(constraintName).second)
-                {
-                    auto& otherColumnConstraints =
-                        database_->GetTables().at(tableName).GetConstraintsForColumn(constraintColumn);
-
-                    if (otherColumnConstraints.find(ConstraintType::CONSTRAINT_UNIQUE) !=
-                        otherColumnConstraints.end())
-                    {
-                        throw ConstraintCannotBeRemovedException(constraintName, constraintColumn);
-                    }
-                }
-            }
-            dropConstraints.insert(constraintName);
+            dropConstraints.insert({constraintName, constraintType});
         }
     }
 
@@ -1611,10 +1597,21 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         }
     }
 
+    // drop uniques first
     dispatcher_.AddArgument<int32_t>(dropConstraints.size());
     for (auto& dropConstraint : dropConstraints)
     {
-        dispatcher_.AddArgument<const std::string&>(dropConstraint);
+        if (dropConstraint.second == ConstraintType::CONSTRAINT_UNIQUE)
+        {
+            dispatcher_.AddArgument<const std::string&>(dropConstraint.first);
+        }
+    }
+    for (auto& dropConstraint : dropConstraints)
+    {
+        if (dropConstraint.second != ConstraintType::CONSTRAINT_UNIQUE)
+        {
+            dispatcher_.AddArgument<const std::string&>(dropConstraint.first);
+        }
     }
 }
 
