@@ -1458,49 +1458,105 @@ void Table::AddConstraint(const std::string& constraintName,
                           ConstraintType constraintType,
                           std::vector<std::string> constraintColumns)
 {
-    for (auto& constraintColumn : constraintColumns)
+    std::vector<std::string> processedColumns;
+
+    try
     {
-        switch (constraintType)
+        for (auto& constraintColumn : constraintColumns)
         {
-        case ConstraintType::CONSTRAINT_INDEX:
-            AddSortingColumn(constraintColumn);
-            break;
-        case ConstraintType::CONSTRAINT_NOT_NULL:
-            GetColumns().at(constraintColumn)->SetIsNullable(false);
-            break;
-        case ConstraintType::CONSTRAINT_UNIQUE:
-            GetColumns().at(constraintColumn)->SetIsUnique(true);
-            break;
-        case ConstraintType::CONSTRAINT_NONE:
-        default:
-            break;
+            switch (constraintType)
+            {
+            case ConstraintType::CONSTRAINT_INDEX:
+                AddSortingColumn(constraintColumn);
+                break;
+            case ConstraintType::CONSTRAINT_NOT_NULL:
+                GetColumns().at(constraintColumn)->SetIsNullable(false);
+                break;
+            case ConstraintType::CONSTRAINT_UNIQUE:
+                GetColumns().at(constraintColumn)->SetIsUnique(true);
+                break;
+            case ConstraintType::CONSTRAINT_NONE:
+            default:
+                break;
+            }
+            processedColumns.push_back(constraintColumn);
         }
+        constraints_.insert({constraintName, {constraintType, constraintColumns}});
     }
-    constraints_.insert({constraintName, {constraintType, constraintColumns}});
+    catch (std::exception& e)
+    {
+        for (auto& processedColumn : processedColumns)
+        {
+            switch (constraintType)
+            {
+            case ConstraintType::CONSTRAINT_INDEX:
+                RemoveSortingColumn(processedColumn);
+                break;
+            case ConstraintType::CONSTRAINT_NOT_NULL:
+                GetColumns().at(processedColumn)->SetIsNullable(true);
+                break;
+            case ConstraintType::CONSTRAINT_UNIQUE:
+                GetColumns().at(processedColumn)->SetIsUnique(false);
+                break;
+            case ConstraintType::CONSTRAINT_NONE:
+            default:
+                break;
+            }
+        }
+        throw;
+    }
 }
 
 void Table::DropConstraint(const std::string& constraintName)
 {
     auto& constraint = constraints_.at(constraintName);
-    for (auto& constraintColumn : constraint.second)
+    std::vector<std::string> processedColumns;
+
+    try
     {
-        switch (constraint.first)
+        for (auto& constraintColumn : constraint.second)
         {
-        case ConstraintType::CONSTRAINT_INDEX:
-            RemoveSortingColumn(constraintColumn);
-            break;
-        case ConstraintType::CONSTRAINT_NOT_NULL:
-            GetColumns().at(constraintColumn)->SetIsNullable(true);
-            break;
-        case ConstraintType::CONSTRAINT_UNIQUE:
-            GetColumns().at(constraintColumn)->SetIsUnique(false);
-            break;
-        case ConstraintType::CONSTRAINT_NONE:
-        default:
-            break;
+            switch (constraint.first)
+            {
+            case ConstraintType::CONSTRAINT_INDEX:
+                RemoveSortingColumn(constraintColumn);
+                break;
+            case ConstraintType::CONSTRAINT_NOT_NULL:
+                GetColumns().at(constraintColumn)->SetIsNullable(true);
+                break;
+            case ConstraintType::CONSTRAINT_UNIQUE:
+                GetColumns().at(constraintColumn)->SetIsUnique(false);
+                break;
+            case ConstraintType::CONSTRAINT_NONE:
+            default:
+                break;
+            }
+            processedColumns.push_back(constraintColumn);
         }
+        constraints_.erase(constraintName);
     }
-    constraints_.erase(constraintName);
+    catch (std::exception& e)
+    {
+        for (auto& processedColumn : processedColumns)
+        {
+            switch (constraint.first)
+            {
+            case ConstraintType::CONSTRAINT_INDEX:
+                RemoveSortingColumn(processedColumn);
+                break;
+            case ConstraintType::CONSTRAINT_NOT_NULL:
+                GetColumns().at(processedColumn)->SetIsNullable(false);
+                break;
+            case ConstraintType::CONSTRAINT_UNIQUE:
+                GetColumns().at(processedColumn)->SetIsUnique(true);
+                break;
+            case ConstraintType::CONSTRAINT_NONE:
+            default:
+                break;
+            }
+        }
+        throw;
+    }
 }
 
 const std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>>&

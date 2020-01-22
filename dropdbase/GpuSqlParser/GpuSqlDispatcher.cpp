@@ -1354,7 +1354,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropDatabase()
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 {
     std::unordered_map<std::string, DataType> newColumns;
-    std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newColumnsConstraints;
     std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> newConstraints;
 
     std::string newTableName = arguments_.Read<std::string>();
@@ -1365,13 +1364,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
     {
         std::string newColumnName = arguments_.Read<std::string>();
         int32_t newColumnDataType = arguments_.Read<int32_t>();
-        ConstraintType newColumnConstraintType = static_cast<ConstraintType>(arguments_.Read<int32_t>());
-
-        if (newColumnConstraintType != ConstraintType::CONSTRAINT_NONE)
-        {
-            newColumnsConstraints.insert({newColumnName + ::GetConstraintTypeSuffix(newColumnConstraintType),
-                                          {newColumnConstraintType, {newColumnName}}});
-        }
         newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
     }
 
@@ -1397,13 +1389,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
         database_->CreateTable(newColumns, newTableName.c_str(), std::unordered_map<std::string, bool>(),
                                std::unordered_map<std::string, bool>(), newTableBlockSize);
         for (auto& constraint : newConstraints)
-        {
-            database_->GetTables()
-                .at(newTableName)
-                .AddConstraint(constraint.first, constraint.second.first, constraint.second.second);
-        }
-
-        for (auto& constraint : newColumnsConstraints)
         {
             database_->GetTables()
                 .at(newTableName)
