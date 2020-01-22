@@ -406,7 +406,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         {
             ColmnarDB::Types::Point point;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
-            i += 4;
+            i += sizeof(int32_t);
             point.ParseFromArray(dataBuffer + i, size);
             i += size;
             elemsRead++;
@@ -423,7 +423,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         {
             ColmnarDB::Types::ComplexPolygon polygon;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
-            i += 4;
+            i += sizeof(int32_t);
             polygon.ParseFromArray(dataBuffer + i, size);
             i += size;
             elemsRead++;
@@ -440,7 +440,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         {
 
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
-            i += 4;
+            i += sizeof(int32_t);
             std::string str(dataBuffer + i, size);
             i += size;
             elemsRead++;

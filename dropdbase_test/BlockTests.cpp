@@ -90,7 +90,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -104,7 +104,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -118,7 +118,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -132,7 +132,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -146,7 +146,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -160,7 +160,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -174,7 +174,7 @@ TEST(BlockTests, InsertDataVector)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -303,7 +303,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -317,7 +317,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -331,7 +331,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -345,7 +345,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -359,7 +359,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -373,7 +373,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },
@@ -387,7 +387,7 @@ TEST(BlockTests, InsertDataInterval)
             }
             catch (const std::length_error& expected)
             {
-                EXPECT_STREQ("Attempted to insert data larger than remaining block size", expected.what());
+                EXPECT_STREQ("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size", expected.what());
                 throw;
             }
         },

@@ -133,6 +133,9 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
             }
         }
     }
+
+	saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 /// <summary>
@@ -1458,6 +1461,9 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
     }
     break;
     }
+
+	saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 void Table::AddConstraint(const std::string& constraintName,
@@ -1910,6 +1916,9 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             }
         }
     }
+
+	saveNecesarry_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 #endif
 
