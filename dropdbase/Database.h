@@ -166,6 +166,13 @@ public:
     /// </summary>
     void DeleteColumnFromDisk(const char* tableName, const char* columnName);
 
+	/// <summary>
+    /// Changes the block size of all tables of database and all the columns of the all tables will be affected - their blocks
+    /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
+    /// </summary>
+    /// <param name="newBlockSize">New block size of all tables and columns of this database.</param>
+    void Database::ChangeDatabaseBlockSize(int32_t newBlockSize);
+
     /// <summary>
     /// Changes the block size of a table and all the columns of the table will be affected - their blocks
     /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.

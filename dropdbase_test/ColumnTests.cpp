@@ -606,7 +606,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller1)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -670,7 +670,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmaller2)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -725,7 +725,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger1)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -789,7 +789,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger2)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -838,7 +838,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmallerNotNullable1)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -892,7 +892,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsSmallerNotNullable2)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -939,7 +939,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger1NotNullable)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());
@@ -992,7 +992,7 @@ TEST(ColumnTests, ResizeColumnNewBlockSizeIsLarger2NotNullable)
 
     auto dstColumn = dynamic_cast<ColumnBase<int32_t>*>(dstColumnInt.get());
 
-    dstColumn->ResizeColumn(*srcColumn);
+    dstColumn->ResizeColumn(srcColumn);
 
     ASSERT_EQ(oldBlockSize, srcColumn->GetBlockSize());
     ASSERT_EQ(newBlockSize, dstColumn->GetBlockSize());

@@ -101,7 +101,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& dstColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
             *dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<ColmnarDB::Types::ComplexPolygon>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_POINT:
@@ -111,7 +111,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& dstColumn =
             dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<ColmnarDB::Types::Point>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_STRING:
@@ -119,7 +119,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<std::string>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<std::string>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<std::string>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_INT8_T:
@@ -127,7 +127,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<int8_t>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<int8_t>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<int8_t>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_INT:
@@ -135,7 +135,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<int32_t>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<int32_t>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<int32_t>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_LONG:
@@ -143,7 +143,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<int64_t>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<int64_t>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<int64_t>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_FLOAT:
@@ -151,7 +151,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<float>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<float>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<float>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_DOUBLE:
@@ -159,7 +159,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         auto& column = dynamic_cast<ColumnBase<double>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn = dynamic_cast<ColumnBase<double>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<double>*> blocks = column.GetBlocksList();
-        dstColumn.ResizeColumn(column);
+        dstColumn.ResizeColumn(&column);
         break;
     }
     }
@@ -730,6 +730,30 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
     if (boost::filesystem::exists(path + name_ + ".db"))
     {
         PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
+    }
+}
+
+/// <summary>
+/// Changes the block size of all tables of database and all the columns of the all tables will be affected - their blocks
+/// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
+/// </summary>
+/// <param name="newBlockSize">New block size of all tables and columns of this database.</param>
+void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
+{
+    if (newBlockSize != blockSize_)
+    {
+        auto& tables = GetTables();
+        std::vector<std::thread> threads;
+
+        for (auto& table : tables)
+        {
+            threads.emplace_back([&](Database* db) {db->ChangeTableBlockSize(table.second.GetName().c_str(), newBlockSize); }, this);
+        }
+
+		for (int32_t i = 0; i < tables.size(); i++)
+        {
+            threads[i].join();
+        }
     }
 }
 

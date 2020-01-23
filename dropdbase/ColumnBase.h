@@ -385,17 +385,18 @@ public:
     /// have to be fully filled. For this reason, the clustered indexing has to be dropped before
     /// this operation.
     /// </summary>
-    /// <param name="srcColumn">The column whose data will be copied (resized).</param>
-    void ResizeColumn(ColumnBase<T>& srcColumn)
+    /// <param name="srcColumnArg">The column whose data will be copied (resized).</param>
+    void ResizeColumn(IColumn* srcColumnArg)
     {
-        auto& srcBlocks = srcColumn.GetBlocksList();
+        auto srcColumn = dynamic_cast<ColumnBase<T>*>(srcColumnArg);
+        auto& srcBlocks = srcColumn->GetBlocksList();
 
         int32_t srcBlockIndex = 0;
         int32_t srcRowIndex = 0;
         int32_t dstBlockIndex = 0;
         int32_t dstRowIndex = 0;
 
-        const int32_t newBlocksCount = (srcColumn.GetSize() + blockSize_ - 1) / blockSize_;
+        const int32_t newBlocksCount = (srcColumn->GetSize() + blockSize_ - 1) / blockSize_;
 
         // Add as many empty blocks as is needed for resizing
         for (int32_t i = 0; i < newBlocksCount; i++)
@@ -406,7 +407,7 @@ public:
         // If a column is nullable, null bit mask values will be copied value by value, so it is much slower
         if (isNullable_)
         {
-            while (srcBlockIndex < srcColumn.GetBlockCount())
+            while (srcBlockIndex < srcColumn->GetBlockCount())
             {
                 int8_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
                 int32_t bitMaskIdx = (srcRowIndex / (sizeof(int8_t) * 8)); // which byte it is
@@ -418,7 +419,7 @@ public:
                 srcRowIndex++;
                 dstRowIndex++;
 
-                if (srcRowIndex == srcColumn.GetBlockSize())
+                if (srcRowIndex == srcBlocks[srcBlockIndex]->GetSize())
                 {
                     srcRowIndex = 0;
                     srcBlockIndex++;
@@ -433,7 +434,7 @@ public:
         }
         else
         {
-            while (srcBlockIndex < srcColumn.GetBlockCount())
+            while (srcBlockIndex < srcColumn->GetBlockCount())
             {
                 if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
                 {

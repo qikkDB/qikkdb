@@ -36,286 +36,305 @@ namespace ColmnarDB.ConsoleClient
             int timeout = 30000;
             if (args.Length >= 2)
             {
-                if (args[0] == "-t")
+                for (int i = 0; i < args.Length; i += 2)
                 {
-                    timeout = Convert.ToInt32(args[1]);
-                    Console.WriteLine("Set timeout to: " + timeout.ToString());
-                }
-                if (args[0] == "-h")
-                {
-                    if (args[1].Contains(':'))
+                    if (args[i] == "-t")
                     {
-                        ipAddress = args[1].Split(':')[0];
-                        port = Convert.ToInt16(args[1].Split(':')[1]);
+                        timeout = Convert.ToInt32(args[i + 1]);
+                        Console.WriteLine("Set timeout to: " + timeout.ToString());
                     }
-                    else
+                    if (args[i] == "-h")
                     {
-                        ipAddress = args[1];
+                        if (args[i + 1].Contains(':'))
+                        {
+                            ipAddress = args[i + 1].Split(':')[0];
+                            port = Convert.ToInt16(args[i + 1].Split(':')[1]);
+                        }
+                        else
+                        {
+                            ipAddress = args[i + 1];
+                        }
                     }
                 }
             }
 
             client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
-            client.Connect();
-            var heartBeatTimer = new System.Timers.Timer(timeout);
-            heartBeatTimer.Elapsed += HeartBeatTimer_Elapsed;
-            heartBeatTimer.AutoReset = true;
-            heartBeatTimer.Enabled = true;
-            UseDatabase use = new UseDatabase();
-            ImportCSV import = new ImportCSV(ipAddress, port);
-            Query query = new Query();
-            mutex = new Mutex();
-            ReadLine.HistoryEnabled = true;
-
-            while (!exit)
+            try
             {
-                string wholeCommand = ReadLine.Read("> ");
+                client.Connect();
+                var heartBeatTimer = new System.Timers.Timer(timeout);
+                heartBeatTimer.Elapsed += HeartBeatTimer_Elapsed;
+                heartBeatTimer.AutoReset = true;
+                heartBeatTimer.Enabled = true;
+                UseDatabase use = new UseDatabase();
+                ImportCSV import = new ImportCSV(ipAddress, port);
+                Query query = new Query();
+                mutex = new Mutex();
+                ReadLine.HistoryEnabled = true;
 
-                if (wholeCommand == "")
+                while (!exit)
                 {
-                    continue;
-                }
+                    string wholeCommand = ReadLine.Read("> ");
 
-                string[] splitCommand = wholeCommand.Split(" ");
+                    if (wholeCommand == "")
+                    {
+                        continue;
+                    }
 
-                string command = splitCommand[0].ToLower();
-                string parameters = "";
+                    string[] splitCommand = wholeCommand.Split(" ");
 
-                if (command != "s" && command != "script" && command != "docs" && command != "man" && command != "t"
-                    && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u"
-                    && command != "use" && command != "h" && command != "help" && command != "i" && command != "import")
-                {
-                    parameters = wholeCommand;
-                    parameters = parameters.Trim();
-                    parameters = parameters[parameters.Length - 1] != ';' ? parameters + ';' : parameters;
-                    command = "query";
-                }
-                else if (splitCommand.Length > 1)
-                {
-                    parameters = wholeCommand.Substring(command.Length + 1);
-                    parameters = parameters.Trim();
-                }
-                mutex.WaitOne();
-                switch (command)
-                {
-                    case "exit":
-                    case "quit":
-                    case "q":
-                        exit = true;
-                        client.Close();
-                        break;
+                    string command = splitCommand[0].ToLower();
+                    string parameters = "";
 
-                    case "u":
-                    case "use":
-                        if (parameters == "")
-                        {
-                            Console.WriteLine("USE: Missing argument - database name");
+                    if (command != "s" && command != "script" && command != "docs" && command != "man" && command != "t"
+                        && command != "timing" && command != "q" && command != "quit" && command != "exit" && command != "u"
+                        && command != "use" && command != "h" && command != "help" && command != "i" && command != "import")
+                    {
+                        parameters = wholeCommand;
+                        parameters = parameters.Trim();
+                        parameters = parameters[parameters.Length - 1] != ';' ? parameters + ';' : parameters;
+                        command = "query";
+                    }
+                    else if (splitCommand.Length > 1)
+                    {
+                        parameters = wholeCommand.Substring(command.Length + 1);
+                        parameters = parameters.Trim();
+                    }
+                    mutex.WaitOne();
+                    switch (command)
+                    {
+                        case "exit":
+                        case "quit":
+                        case "q":
+                            exit = true;
+                            client.Close();
                             break;
-                        }
-                        parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
-                        use.Use(parameters, client);
 
-                        break;
-                    case "query":
-                        if (parameters == "")
-                        {
-                            Console.WriteLine("QUERY: Missing argument - query string");
-                            break;
-                        }
-
-                        query.RunQuery(parameters, Console.WindowWidth, client);
-
-                        break;
-
-                    case "s":
-                    case "script":
-                        if (parameters == "")
-                        {
-                            Console.WriteLine("SCRIPT: Missing argument - file path");
-                            break;
-                        }
-
-                        try
-                        {
-                            var queryFile = new System.IO.StreamReader(parameters);
-                            Console.WriteLine($"Script from file path '{parameters}' has been loaded.");
-                            string queryString;
-                            int scriptFileLine = 0;
-
-                            while ((queryString = queryFile.ReadLine()) != null)
+                        case "u":
+                        case "use":
+                            if (parameters == "")
                             {
-                                scriptFileLine++;
+                                Console.WriteLine("USE: Missing argument - database name");
+                                break;
+                            }
+                            parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
+                            use.Use(parameters, client);
 
-                                // skip single line sql comments
-                                if (queryString.Trim().StartsWith("--"))
+                            break;
+                        case "query":
+                            if (parameters == "")
+                            {
+                                Console.WriteLine("QUERY: Missing argument - query string");
+                                break;
+                            }
+
+                            query.RunQuery(parameters, Console.WindowWidth, client);
+
+                            break;
+
+                        case "s":
+                        case "script":
+                            if (parameters == "")
+                            {
+                                Console.WriteLine("SCRIPT: Missing argument - file path");
+                                break;
+                            }
+
+                            try
+                            {
+                                var queryFile = new System.IO.StreamReader(parameters);
+                                Console.WriteLine($"Script from file path '{parameters}' has been loaded.");
+                                string queryString;
+                                int scriptFileLine = 0;
+
+                                while ((queryString = queryFile.ReadLine()) != null)
                                 {
-                                    continue;
-                                }
+                                    scriptFileLine++;
 
-                                Console.WriteLine("SCRIPT: Executing query/command on line " + scriptFileLine + " from a script file: " + parameters);
-
-                                try
-                                {
-                                    if (queryString.ToLower().StartsWith("u ") || queryString.ToLower().StartsWith("use "))
+                                    // skip single line sql comments
+                                    if (queryString.Trim().StartsWith("--"))
                                     {
-                                        string[] splitCommand2 = queryString.Split(" ");
-
-                                        splitCommand2[1] = splitCommand2[1][splitCommand2[1].Length - 1] == ';' ? splitCommand2[1].Substring(0, splitCommand2[1].Length - 1) : splitCommand2[1];
-                                        use.Use(splitCommand2[1], client);
+                                        continue;
                                     }
-                                    else
+
+                                    Console.WriteLine("SCRIPT: Executing query/command on line " + scriptFileLine + " from a script file: " + parameters);
+
+                                    try
                                     {
-                                        if (queryString.ToLower().StartsWith("i ") || queryString.ToLower().StartsWith("import "))
+                                        if (queryString.ToLower().StartsWith("u ") || queryString.ToLower().StartsWith("use "))
                                         {
                                             string[] splitCommand2 = queryString.Split(" ");
-                                            string command2 = splitCommand2[0];
-                                            string parameters2 = queryString.Substring(command2.Length + 1);
-                                            string[] splitParameters2 = Regex.Matches(parameters2, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
-                                            if (splitCommand2[1] == "" || splitParameters2.Length < 2)
+                                            splitCommand2[1] = splitCommand2[1][splitCommand2[1].Length - 1] == ';' ? splitCommand2[1].Substring(0, splitCommand2[1].Length - 1) : splitCommand2[1];
+                                            use.Use(splitCommand2[1], client);
+                                        }
+                                        else
+                                        {
+                                            if (queryString.ToLower().StartsWith("i ") || queryString.ToLower().StartsWith("import "))
                                             {
-                                                Console.WriteLine("IMPORT: Missing arguments - database name or file path");
-                                                break;
-                                            }
+                                                string[] splitCommand2 = queryString.Split(" ");
+                                                string command2 = splitCommand2[0];
+                                                string parameters2 = queryString.Substring(command2.Length + 1);
+                                                string[] splitParameters2 = Regex.Matches(parameters2, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
-                                            string database2 = splitParameters2[0];
-                                            splitParameters2[1] = splitParameters2[1][splitParameters2[1].Length - 1] == ';' ? splitParameters2[1].Substring(0, splitParameters2[1].Length - 1) : splitParameters2[1];
-                                            string filePath2 = splitParameters2[1];
-                                            if (filePath2.Length > 0 && filePath2.ElementAt(0) == '\"')
-                                            {
-                                                filePath2 = filePath2.Substring(1, filePath2.Length - 2);
-                                            }
+                                                if (splitCommand2[1] == "" || splitParameters2.Length < 2)
+                                                {
+                                                    Console.WriteLine("IMPORT: Missing arguments - database name or file path");
+                                                    break;
+                                                }
 
-                                            if (splitParameters2.Length == 2)
-                                            {
-                                                import.Import(filePath2, database2);
+                                                string database2 = splitParameters2[0];
+                                                splitParameters2[1] = splitParameters2[1][splitParameters2[1].Length - 1] == ';' ? splitParameters2[1].Substring(0, splitParameters2[1].Length - 1) : splitParameters2[1];
+                                                string filePath2 = splitParameters2[1];
+                                                if (filePath2.Length > 0 && filePath2.ElementAt(0) == '\"')
+                                                {
+                                                    filePath2 = filePath2.Substring(1, filePath2.Length - 2);
+                                                }
+
+                                                if (splitParameters2.Length == 2)
+                                                {
+                                                    import.Import(filePath2, database2);
+                                                }
+                                                else if (splitParameters2.Length == 3)
+                                                {
+                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]));
+                                                }
+                                                else if (splitParameters2.Length == 4)
+                                                {
+                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]));
+                                                }
+                                                else if (splitParameters2.Length == 5)
+                                                {
+                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0));
+                                                }
+                                                else if (splitParameters2.Length == 6)
+                                                {
+                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]));
+                                                }
+                                                else if (splitParameters2.Length == 7)
+                                                {
+                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]), batchSize: int.Parse(splitParameters2[6]));
+                                                }
                                             }
-                                            else if (splitParameters2.Length == 3)
+                                            else
                                             {
-                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]));
-                                            }
-                                            else if (splitParameters2.Length == 4)
-                                            {
-                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]));
-                                            }
-                                            else if (splitParameters2.Length == 5)
-                                            {
-                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0));
-                                            }
-                                            else if (splitParameters2.Length == 6)
-                                            {
-                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]));
-                                            }
-                                            else if (splitParameters2.Length == 7)
-                                            {
-                                                import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]), batchSize: int.Parse(splitParameters2[6]));
+                                                query.RunQuery(queryString, Console.WindowWidth, client);
                                             }
                                         }
+<<<<<<< HEAD
                                         else
                                         {
                                             queryString = queryString.Last() != ';' ? queryString + ";" : queryString;
                                             query.RunQuery(queryString, Console.WindowWidth, client);
                                         }
                                     }  
+=======
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        Console.WriteLine(e);
+                                        break;
+                                    }
+>>>>>>> Support multiple arguments in console client and handle connection refused exception
                                 }
-                                catch (Exception e)
-                                {
-                                    Console.WriteLine(e);
-                                    break;
-                                } 
                             }
-                        }
-                        catch (System.IO.FileNotFoundException e)
-                        {
-                            Console.WriteLine($"File not found. File path: '{parameters}'.");
-                        }
+                            catch (System.IO.FileNotFoundException e)
+                            {
+                                Console.WriteLine($"File not found. File path: '{parameters}'.");
+                            }
 
-                        break;
-
-                    case "t":
-                    case "timing":
-                        if (parameters == "")
-                        {
-                            Console.WriteLine("TIMING: Missing argument - query");
                             break;
-                        }
 
-                        query.RunTestQuery(parameters, Console.WindowWidth, client);
+                        case "t":
+                        case "timing":
+                            if (parameters == "")
+                            {
+                                Console.WriteLine("TIMING: Missing argument - query");
+                                break;
+                            }
 
-                        break;
+                            query.RunTestQuery(parameters, Console.WindowWidth, client);
 
-                    case "i":
-                    case "import":
-                        string[] splitParameters = Regex.Matches(parameters, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
-
-                        if (parameters == "" || splitParameters.Length < 2)
-                        {
-                            Console.WriteLine("IMPORT: Missing arguments - database name or file path");
                             break;
-                        }
 
-                        string database = splitParameters[0];
-                        string filePath = splitParameters[1];
-                        if (filePath.Length > 0 && filePath.ElementAt(0) == '\"')
-                        {
-                            filePath = filePath.Substring(1, filePath.Length - 2);
-                        }
+                        case "i":
+                        case "import":
+                            string[] splitParameters = Regex.Matches(parameters, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
 
-                        if (splitParameters.Length == 2)
-                        {
-                            import.Import(filePath, database);
-                        }
-                        else if (splitParameters.Length == 3)
-                        {
-                            import.Import(filePath, database, int.Parse(splitParameters[2]));
-                        }
-                        else if (splitParameters.Length == 4)
-                        {
-                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
-                        }
-                        else if (splitParameters.Length == 5)
-                        {
-                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0));
-                        }
-                        else if (splitParameters.Length == 6)
-                        {
-                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]));
-                        }
-                        else if (splitParameters.Length == 7)
-                        {
-                            import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
-                        }
+                            if (parameters == "" || splitParameters.Length < 2)
+                            {
+                                Console.WriteLine("IMPORT: Missing arguments - database name or file path");
+                                break;
+                            }
 
-                        break;
+                            string database = splitParameters[0];
+                            string filePath = splitParameters[1];
+                            if (filePath.Length > 0 && filePath.ElementAt(0) == '\"')
+                            {
+                                filePath = filePath.Substring(1, filePath.Length - 2);
+                            }
 
-                    case "h":
-                    case "help":
-                        //formated console output
-                        const string format = "{0,-30} {1,-30}";
+                            if (splitParameters.Length == 2)
+                            {
+                                import.Import(filePath, database);
+                            }
+                            else if (splitParameters.Length == 3)
+                            {
+                                import.Import(filePath, database, int.Parse(splitParameters[2]));
+                            }
+                            else if (splitParameters.Length == 4)
+                            {
+                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
+                            }
+                            else if (splitParameters.Length == 5)
+                            {
+                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0));
+                            }
+                            else if (splitParameters.Length == 6)
+                            {
+                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]));
+                            }
+                            else if (splitParameters.Length == 7)
+                            {
+                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
+                            }
 
-                        Console.WriteLine();
-                        Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
-                        Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
-                        Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
-                        Console.WriteLine(String.Format(format, "[query]", "Run given query"));
-                        Console.WriteLine(String.Format(format, "s [file], script [file]", "Run SQL queries from a file path (also supports console client command USE)."));
-                        Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
-                        Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
+                            break;
 
-                        Console.WriteLine();
-                        break;
-                    case "docs":
-                    case "man":
-                        Console.WriteLine("Documentation is available at https://docs.qikk.ly/");
-                        break;
-                    default:
-                        Console.WriteLine("Unknown command, for more information about commands type 'help'");
-                        break;
+                        case "h":
+                        case "help":
+                            //formated console output
+                            const string format = "{0,-30} {1,-30}";
+
+                            Console.WriteLine();
+                            Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
+                            Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
+                            Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
+                            Console.WriteLine(String.Format(format, "i [path], import [path]", "Import CSV file with comma separated columns."));
+                            Console.WriteLine(String.Format(format, "[query]", "Run given query"));
+                            Console.WriteLine(String.Format(format, "s [file], script [file]", "Run SQL queries from a file path (also supports console client command USE)."));
+                            Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
+                            Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
+
+                            Console.WriteLine();
+                            break;
+                        case "docs":
+                        case "man":
+                            Console.WriteLine("Documentation is available at https://docs.qikk.ly/");
+                            break;
+                        default:
+                            Console.WriteLine("Unknown command, for more information about commands type 'help'");
+                            break;
+                    }
+                    mutex.ReleaseMutex();
                 }
-                mutex.ReleaseMutex();
+                heartBeatTimer.Stop();
+                heartBeatTimer.Dispose();
             }
-            heartBeatTimer.Stop();
-            heartBeatTimer.Dispose();
+            catch (System.Net.Sockets.SocketException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
         }
 
         private static void HeartBeatTimer_Elapsed(object sender, ElapsedEventArgs e)

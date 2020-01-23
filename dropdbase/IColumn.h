@@ -26,6 +26,7 @@ public:
     virtual void SetSaveNecessaryToFalse() = 0;
     virtual void SetSaveNecessaryToTrue() = 0;
     virtual void SetColumnName(std::string newName) = 0;
+    virtual void ResizeColumn(IColumn* srcColumnArg) = 0;
 
     virtual ~IColumn(){};
 };
