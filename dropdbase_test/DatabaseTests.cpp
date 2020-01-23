@@ -500,16 +500,16 @@ TEST_F(DatabaseTests, ChangeTableBlockSize)
     // create first table with initialized columns:
     std::unordered_map<std::string, DataType> columnsTable1;
     columnsTable1.insert({"colInteger", COLUMN_INT});
-    //columnsTable1.insert({"colDouble", COLUMN_DOUBLE});
-    //columnsTable1.insert({"colString", COLUMN_STRING});
+    columnsTable1.insert({"colDouble", COLUMN_DOUBLE});
+    columnsTable1.insert({"colString", COLUMN_STRING});
     database->CreateTable(columnsTable1, "TestTable");
 
 	auto& tables = database->GetTables();
 
     auto& table1 = tables.at("TestTable");
     auto& colInteger1 = table1.GetColumns().at("colInteger");
-    //auto& colDouble1 = table1.GetColumns().at("colDouble");
-    //auto& colString1 = table1.GetColumns().at("colString");
+    auto& colDouble1 = table1.GetColumns().at("colDouble");
+    auto& colString1 = table1.GetColumns().at("colString");
 
 	for (int i = 0; i < blockNum; i++)
     {
@@ -524,18 +524,18 @@ TEST_F(DatabaseTests, ChangeTableBlockSize)
         dataDouble1.push_back(45.98924);
         dataDouble1.push_back(999.6665);
         dataDouble1.push_back(1.787985);
-        //dynamic_cast<ColumnBase<double>*>(colDouble1.get())->AddBlock(dataDouble1);
+        dynamic_cast<ColumnBase<double>*>(colDouble1.get())->AddBlock(dataDouble1);
 
         std::vector<std::string> dataString1;
         dataString1.push_back("QikkDB");
         dataString1.push_back("FastestDBinTheWorld");
         dataString1.push_back("Speed is my second name");
-        //dynamic_cast<ColumnBase<std::string>*>(colString1.get())->AddBlock(dataString1);
+        dynamic_cast<ColumnBase<std::string>*>(colString1.get())->AddBlock(dataString1);
     }
 
 	database->ChangeTableBlockSize("TestTable", 2);
 
-	auto& loadedTables = Database::GetDatabaseByName(dbName)->GetTables();
+	auto& loadedTables = database->GetTables();
     auto& firstTableColumns = loadedTables.at("TestTable").GetColumns();
 
 	// first table block counts:
@@ -608,33 +608,67 @@ TEST_F(DatabaseTests, ChangeTableBlockSize)
     ASSERT_EQ(block->GetSum(), 1397);
     ASSERT_EQ(block->GetAvg(), 698.50);
 
-
-    /*
-
-    // first table colDouble:
-    for (int i = 0; i < blockNum; i++)
-    {
-        auto data = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+    // first table colDouble, first block:
+    auto data2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(0)
+                    ->GetData();
+    auto block2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
                         ->GetBlocksList()
-                        .at(i)
-                        ->GetData();
-        auto block = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
-                         ->GetBlocksList()
-                         .at(i);
-        ASSERT_TRUE(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                        .at(0);
+    ASSERT_TRUE(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(0)
+                    ->GetIsNullable());
+    ASSERT_DOUBLE_EQ(data2[0], 45.98924);
+    ASSERT_DOUBLE_EQ(data2[1], 999.6665);
+    
+    ASSERT_DOUBLE_EQ(block2->GetMin(), 45.98924);
+    ASSERT_DOUBLE_EQ(block2->GetMax(), 999.6665);
+    ASSERT_FLOAT_EQ(block2->GetSum(), 1045.6658f);
+    ASSERT_FLOAT_EQ(block2->GetAvg(), 522.82787f);
+
+    // first table colDouble, second block:
+    data2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(1)
+                    ->GetData();
+    block2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
                         ->GetBlocksList()
-                        .at(i)
-                        ->GetIsNullable());
-        ASSERT_DOUBLE_EQ(data[0], 45.98924);
-        ASSERT_DOUBLE_EQ(data[1], 999.6665);
-        ASSERT_DOUBLE_EQ(data[2], 1.787985);
+                        .at(1);
+    ASSERT_TRUE(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(1)
+                    ->GetIsNullable());
+    ASSERT_DOUBLE_EQ(data2[0], 1.787985);
+    ASSERT_DOUBLE_EQ(data2[1], 45.98924);
 
-        ASSERT_DOUBLE_EQ(block->GetMin(), 1.787985);
-        ASSERT_DOUBLE_EQ(block->GetMax(), 999.6665);
-        ASSERT_FLOAT_EQ(block->GetSum(), 1047.44372f);
-        ASSERT_FLOAT_EQ(block->GetAvg(), 349.147908f);
-    }
+    ASSERT_DOUBLE_EQ(block2->GetMin(), 1.787985);
+    ASSERT_DOUBLE_EQ(block2->GetMax(), 45.98924);
+    ASSERT_FLOAT_EQ(block2->GetSum(), 47.777225f);
+    ASSERT_FLOAT_EQ(block2->GetAvg(), 23.8886125f);
 
+    // first table colDouble, third block:
+    data2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(2)
+                    ->GetData();
+    block2 = dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                        ->GetBlocksList()
+                        .at(2);
+    ASSERT_TRUE(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())
+                    ->GetBlocksList()
+                    .at(2)
+                    ->GetIsNullable());
+    ASSERT_DOUBLE_EQ(data2[0], 999.6665);
+    ASSERT_DOUBLE_EQ(data2[1], 1.787985);
+
+    ASSERT_DOUBLE_EQ(block2->GetMin(), 1.787985);
+    ASSERT_DOUBLE_EQ(block2->GetMax(), 999.6665);
+    ASSERT_FLOAT_EQ(block2->GetSum(), 1001.454485f);
+    ASSERT_FLOAT_EQ(block2->GetAvg(), 500.7272425f);
+    
+	/*
     // first table colString:
     for (int i = 0; i < blockNum; i++)
     {
@@ -660,4 +694,8 @@ TEST_F(DatabaseTests, ChangeTableBlockSize)
     }
 
 	*/
+
+	//TODO pridat aj test resizovania celej DB
+
+	//TODO pridaj dalsiu tabulku a opat resizni celu DB
 }

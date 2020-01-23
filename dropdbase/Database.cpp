@@ -771,11 +771,10 @@ void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
         BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " WILL BE changed from "
                                 << table.GetBlockSize() << " to " << newBlockSize << ".";
 
-        auto& database = GetDatabaseByName(name_);
-
         // create temporary table in memory with new block size
         tables_.emplace(std::make_pair(std::string("temp_" + std::string(tableName)),
-                                       Table(database, ("temp_" + std::string(tableName)).c_str(), newBlockSize)));
+                                       Table(GetDatabaseByName(name_),
+                                             ("temp_" + std::string(tableName)).c_str(), newBlockSize)));
 
         auto newTableHashMap = tables_.find(("temp_" + std::string(tableName)).c_str());
         auto oldTableHashMap = tables_.find(tableName);
@@ -812,10 +811,9 @@ void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
         newTableHashMap->second.SetSortingColumns(std::vector<std::string>());
 
         // delete original table from memory
-        database->GetTables().erase(tableName);
+        GetTables().erase(tableName);
 
-        // rename temporary table in memory to its original name
-        newTableHashMap->second.SetTableName(tableName);
+        RenameTable(("temp_" + std::string(tableName)).c_str(), tableName);
 
         // save all changes to disk
         Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
@@ -2032,6 +2030,7 @@ void Database::LoadColumn(const char* path,
     break;
 
     default:
+        BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database): " << type;
         throw std::domain_error("Unsupported data type (when loading database): " + std::to_string(type));
     }
 
