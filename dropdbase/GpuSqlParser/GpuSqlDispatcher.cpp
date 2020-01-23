@@ -1372,11 +1372,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size());
     InsertIntoPayload(payloadConstraintColumns, outDataConstraintColumns, constraints.size());
 
-    MergePayloadToSelfResponse(tab + "_constrains", tab + "_constraints", payloadConstraintName);
+    MergePayloadToSelfResponse(tab + "_constraints", tab + "_constraints", payloadConstraintName);
     MergePayloadToSelfResponse(tab + "_cnstrn_types", tab + "_cnstrn_types", payloadConstraintType);
     MergePayloadToSelfResponse(tab + "_cnstrn_cols", tab + "_cnstrn_cols", payloadConstraintColumns);
 
-    // CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
 

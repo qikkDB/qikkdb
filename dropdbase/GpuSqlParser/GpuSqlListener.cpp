@@ -1163,6 +1163,14 @@ void GpuSqlListener::exitShowConstraints(GpuSqlParser::ShowConstraintsContext* c
 
     dispatcher_.AddArgument<const std::string&>(db);
     dispatcher_.AddArgument<const std::string&>(table);
+
+    ColumnOrder.insert({0, table + "_constraints"});
+    ColumnOrder.insert({1, table + "_cnstrn_types"});
+    ColumnOrder.insert({2, table + "_cnstrn_cols"});
+
+    expandedColumnAliases_.insert({table + "_constraints", table + "_constraints"});
+    expandedColumnAliases_.insert({table + "_cnstrn_types", table + "_cnstrn_types"});
+    expandedColumnAliases_.insert({table + "_cnstrn_cols", table + "_cnstrn_cols"});
 }
 
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
