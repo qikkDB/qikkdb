@@ -18,8 +18,16 @@ GPUMemory::GPUString StringFactory::PrepareGPUString(const std::string* strings,
     GPUMemory::alloc(&gpuString.stringIndices, stringIndices.size());
     GPUMemory::copyHostToDevice(gpuString.stringIndices, stringIndices.data(), stringIndices.size());
 
-    GPUMemory::alloc(&gpuString.allChars, prefixSum);
-    GPUMemory::copyHostToDevice(gpuString.allChars, concat.data(), prefixSum);
+    if (prefixSum == 0)
+    {
+        // Don't allocate empty buffer
+        gpuString.allChars = nullptr;
+    }
+    else
+    {
+        GPUMemory::alloc(&gpuString.allChars, prefixSum);
+        GPUMemory::copyHostToDevice(gpuString.allChars, concat.data(), prefixSum);
+    }
 
     return gpuString;
 }
@@ -46,13 +54,24 @@ GPUMemory::GPUString StringFactory::PrepareGPUString(const std::string* strings,
 
     GPUMemory::GPUString gpuString;
 
-    gpuString.stringIndices = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
-        databaseName, columnName + "_stringIndices", blockIndex, stringIndices.size(), loadSize, loadOffset));
-    GPUMemory::copyHostToDevice(gpuString.stringIndices, stringIndices.data(), stringIndices.size());
+    // If no chars are in the concat, don't use cache
+    if (prefixSum == 0)
+    {
+        GPUMemory::alloc(&gpuString.stringIndices, stringIndices.size());
+        GPUMemory::copyHostToDevice(gpuString.stringIndices, stringIndices.data(), stringIndices.size());
+        // Don't allocate empty buffer
+        gpuString.allChars = nullptr;
+    }
+    else
+    {
+        gpuString.stringIndices = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
+            databaseName, columnName + "_stringIndices", blockIndex, stringIndices.size(), loadSize, loadOffset));
+        GPUMemory::copyHostToDevice(gpuString.stringIndices, stringIndices.data(), stringIndices.size());
 
-    gpuString.allChars = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<char>(
-        databaseName, columnName + "_allChars", blockIndex, concat.size(), loadSize, loadOffset));
-    GPUMemory::copyHostToDevice(gpuString.allChars, concat.data(), prefixSum);
+        gpuString.allChars = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<char>(
+            databaseName, columnName + "_allChars", blockIndex, concat.size(), loadSize, loadOffset));
+        GPUMemory::copyHostToDevice(gpuString.allChars, concat.data(), prefixSum);
+    }
 
     return gpuString;
 }
