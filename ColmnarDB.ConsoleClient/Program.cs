@@ -218,24 +218,16 @@ namespace ColmnarDB.ConsoleClient
                                             }
                                             else
                                             {
+                                                queryString = queryString.Last() != ';' ? queryString + ";" : queryString;
                                                 query.RunQuery(queryString, Console.WindowWidth, client);
                                             }
-                                        }
-<<<<<<< HEAD
-                                        else
-                                        {
-                                            queryString = queryString.Last() != ';' ? queryString + ";" : queryString;
-                                            query.RunQuery(queryString, Console.WindowWidth, client);
-                                        }
-                                    }  
-=======
+                                        }  
                                     }
                                     catch (Exception e)
                                     {
                                         Console.WriteLine(e);
                                         break;
-                                    }
->>>>>>> Support multiple arguments in console client and handle connection refused exception
+                                    } 
                                 }
                             }
                             catch (System.IO.FileNotFoundException e)

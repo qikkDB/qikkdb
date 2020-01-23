@@ -1429,6 +1429,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_set<std::string> renameColumnToNames;
     std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
     std::vector<std::pair<std::string, ConstraintType>> dropConstraints;
+    int64_t newBlockSize = database_->GetBlockSize();
     std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
@@ -1623,6 +1624,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
             }
 
             dropConstraints.push_back({constraintName, constraintType});
+        }
+        else if (entry->alterBlockSize())
+        {
+            newBlockSize = std::stoll(entry->alterBlockSize()->blockSize()->getText());
         }
     }
 

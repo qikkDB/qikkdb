@@ -52,7 +52,10 @@ newTableEntry: (newTableColumn | newTableConstraint);
 alterDatabaseEntries: (
 		(alterDatabaseEntry (COMMA alterDatabaseEntry)*)
 	);
-alterDatabaseEntry: (renameDatabase);
+alterDatabaseEntry: (
+        renameDatabase
+        | alterBlockSize
+   );
 renameDatabase: (RENAMETO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry: (
@@ -63,6 +66,7 @@ alterTableEntry: (
 		| renameTable
 		| addConstraint
 		| dropConstraint
+		| alterBlockSize
 	);
 addColumn: (ADD column datatype);
 dropColumn: (DROPCOLUMN column);
@@ -73,6 +77,7 @@ addConstraint: (
 		ADD constraint constraintName LPAREN constraintColumns RPAREN
 	);
 dropConstraint: (DROP constraint constraintName);
+alterBlockSize: (ALTER BLOCKSIZE blockSize);
 renameColumnFrom: column;
 renameColumnTo: column;
 newTableColumn: (column datatype (constraint)?);

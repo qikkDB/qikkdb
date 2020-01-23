@@ -1,5 +1,5 @@
 
-// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.7.2
+// Generated from C:/Users/DavidKubikInstarea/Desktop/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.8
 
 #pragma once
 
@@ -108,6 +108,9 @@ public:
 
   virtual void enterDropConstraint(GpuSqlParser::DropConstraintContext * /*ctx*/) override { }
   virtual void exitDropConstraint(GpuSqlParser::DropConstraintContext * /*ctx*/) override { }
+
+  virtual void enterAlterBlockSize(GpuSqlParser::AlterBlockSizeContext * /*ctx*/) override { }
+  virtual void exitAlterBlockSize(GpuSqlParser::AlterBlockSizeContext * /*ctx*/) override { }
 
   virtual void enterRenameColumnFrom(GpuSqlParser::RenameColumnFromContext * /*ctx*/) override { }
   virtual void exitRenameColumnFrom(GpuSqlParser::RenameColumnFromContext * /*ctx*/) override { }
