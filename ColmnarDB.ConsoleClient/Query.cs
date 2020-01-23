@@ -238,26 +238,46 @@ namespace ColmnarDB.ConsoleClient
             Console.WriteLine("+");
 
             //Prints values of each column
-            var columnIndex = 0;
             for (int i = 0; i < numberOfRows; i++)
             {
+                int valuesCount = 0;
                 foreach (var column in orderedColumnNames)
                 {
-                    columnIndex += 1;
+                    string oneValue = (result[column][i] ?? "NULL").ToString();
+                    string[] valuesList = oneValue.Split("\n");
 
-                    string replacement = Regex.Replace((result[column][i] ?? "NULL").ToString(), @"\t|\n|\r", "");
-                    if (replacement.Length > rightAlign)
+                    if(valuesCount < valuesList.Length)
                     {
-                        var newValue = replacement.Substring(0, rightAlign - 3) + "...";
-                        Console.Write(format, "|", newValue);
-                    }
-                    else
-                    {
-                        Console.Write(format, "|", replacement);
+                        valuesCount = valuesList.Length;
                     }
                 }
 
-                Console.WriteLine("|");
+                for(int j = 0; j < valuesCount; j++)
+                {
+                    foreach (var column in orderedColumnNames)
+                    {   
+                        string replacement = Regex.Replace((result[column][i] ?? "NULL").ToString(), @"\t|\r", "");
+                        string[] valuesList = replacement.Split("\n");
+
+                        if(valuesList.Length > j)
+                        {
+                            if (valuesList[j].Length > rightAlign)
+                            {
+                                var newValue = valuesList[j].Substring(0, rightAlign - 3) + "...";
+                                Console.Write(format, "|", newValue);
+                            }
+                            else
+                            {
+                                Console.Write(format, "|", valuesList[j]);
+                            }
+                        }
+                        else
+                        {
+                            Console.Write(format, "|", " ");
+                        }
+                    }
+                    Console.WriteLine("|");
+                }
             }
 
             for (int i = 0; i < orderedColumnNames.Count; i++)
