@@ -31,3 +31,12 @@ std::string GetConstraintTypeSuffix(ConstraintType constraintType)
         {ConstraintType::CONSTRAINT_UNIQUE, "_UC"}};
     return constraintSuffixes.at(constraintType);
 }
+
+std::string GetConstraintTypeName(ConstraintType constraintType)
+{
+    const std::unordered_map<ConstraintType, std::string> constraintSuffixes = {
+        {ConstraintType::CONSTRAINT_INDEX, "INDEX"},
+        {ConstraintType::CONSTRAINT_NOT_NULL, "NOT NULL"},
+        {ConstraintType::CONSTRAINT_UNIQUE, "UNIQUE"}};
+    return constraintSuffixes.at(constraintType);
+}

@@ -1343,7 +1343,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
     auto& table = database_->GetTables().at(tab);
 
-	//TODO get constraints names, types and their columns
+	auto& constraints = table.GetConstraints();
 
 	//CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
