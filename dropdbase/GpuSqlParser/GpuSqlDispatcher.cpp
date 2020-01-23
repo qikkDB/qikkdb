@@ -1343,9 +1343,40 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     std::shared_ptr<Database> database = Database::GetDatabaseByName(db);
     auto& table = database_->GetTables().at(tab);
 
-	auto& constraints = table.GetConstraints();
+    auto& constraints = table.GetConstraints();
 
-	//CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
+    std::unique_ptr<std::string[]> outDataConstraintName(new std::string[constraints.size()]);
+    std::unique_ptr<std::string[]> outDataConstraintType(new std::string[constraints.size()]);
+    std::unique_ptr<std::string[]> outDataConstraintColumns(new std::string[constraints.size()]);
+
+    int i = 0;
+    for (auto& constraint : constraints)
+    {
+        outDataConstraintName[i] = constraint.first;
+        outDataConstraintType[i] = ::GetConstraintTypeName(constraint.second.first);
+
+        for (auto& constraintColumn : constraint.second.second)
+        {
+            outDataConstraintColumns[i] += (constraintColumn + '\n');
+        }
+        outDataConstraintColumns[i].pop_back();
+
+        i++;
+    }
+
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintName;
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintType;
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintColumns;
+
+    InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size());
+    InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size());
+    InsertIntoPayload(payloadConstraintColumns, outDataConstraintColumns, constraints.size());
+
+    MergePayloadToSelfResponse(tab + "_constrains", tab + "_constraints", payloadConstraintName);
+    MergePayloadToSelfResponse(tab + "_cnstrn_types", tab + "_cnstrn_types", payloadConstraintType);
+    MergePayloadToSelfResponse(tab + "_cnstrn_cols", tab + "_cnstrn_cols", payloadConstraintColumns);
+
+    // CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
 
