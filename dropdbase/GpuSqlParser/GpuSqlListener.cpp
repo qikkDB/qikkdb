@@ -234,6 +234,16 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext* c
         dispatcher_.AddRightFunction(leftOperandType, rightOperandType);
         returnDataType = DataType::COLUMN_STRING;
         break;
+    case GpuSqlLexer::LONGITUDE_TO_TILE_X:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        dispatcher_.AddLongitudeToTileXFunction(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
+        break;
+    case GpuSqlLexer::LATITUDE_TO_TILE_Y:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        dispatcher_.AddLatitudeToTileYFunction(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
+        break;
     default:
         break;
     }

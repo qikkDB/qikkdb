@@ -167,3 +167,25 @@ DISPATCHER_INVALID_TYPE(ArithmeticOperations::root, ColmnarDB::Types::ComplexPol
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::root, std::string)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::root, int8_t)
 END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::longitudeToTileXFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::longitudeToTileX, int32_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::longitudeToTileX, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::longitudeToTileX, float, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::longitudeToTileX, double, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::longitudeToTileX, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::longitudeToTileX, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::longitudeToTileX, std::string)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::longitudeToTileX, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::latitudeToTileYFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::latitudeToTileY, int32_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::latitudeToTileY, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::latitudeToTileY, float, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::latitudeToTileY, double, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::latitudeToTileY, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::latitudeToTileY, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::latitudeToTileY, std::string)
+DISPATCHER_INVALID_TYPE(ArithmeticOperations::latitudeToTileY, int8_t)
+END_DISPATCH_TABLE

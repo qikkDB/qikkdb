@@ -199,6 +199,8 @@ expression:
 	| op = CONCAT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
 	| op = LEFT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
 	| op = RIGHT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
+	| op = LONGITUDE_TO_TILE_X LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
+	| op = LATITUDE_TO_TILE_Y LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
 	| expression op = BETWEEN expression op2 = AND expression						# ternaryOperation
 	| left = expression op = AND right = expression									# binaryOperation
 	| left = expression op = OR right = expression									# binaryOperation

@@ -517,6 +517,16 @@ void GpuSqlDispatcher::AddRootFunction(DataType base, DataType exponent)
     dispatcherFunctions_.push_back(rootFunctions_[GetBinaryDispatchTableIndex(base, exponent)]);
 }
 
+void GpuSqlDispatcher::AddLongitudeToTileXFunction(DataType longitude, DataType zoom)
+{
+    dispatcherFunctions_.push_back(longitudeToTileXFunctions_[GetBinaryDispatchTableIndex(longitude, zoom)]);
+}
+
+void GpuSqlDispatcher::AddLatitudeToTileYFunction(DataType latitude, DataType zoom)
+{
+    dispatcherFunctions_.push_back(latitudeToTileYFunctions_[GetBinaryDispatchTableIndex(latitude, zoom)]);
+}
+
 void GpuSqlDispatcher::AddContainsFunction(DataType left, DataType right)
 {
     dispatcherFunctions_.push_back(containsFunctions_[GetBinaryDispatchTableIndex(left, right)]);
