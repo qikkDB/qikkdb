@@ -9,257 +9,257 @@
 #include <string>
 #include "DataType.h"
 
-struct DatabaseNotUsedException : public std::exception
+struct DatabaseNotUsedException : public std::runtime_error
 {
-    DatabaseNotUsedException() : std::exception("No database is currently being used.")
+    DatabaseNotUsedException() : std::runtime_error("No database is currently being used.")
     {
     }
 };
 
-struct DatabaseNotFoundException : public std::exception
+struct DatabaseNotFoundException : public std::runtime_error
 {
     DatabaseNotFoundException(const std::string& database)
-    : std::exception(("Database: \"" + database + "\" was not found.").c_str())
+    : std::runtime_error(("Database: \"" + database + "\" was not found.").c_str())
     {
     }
 };
 
-struct DatabaseAlreadyExistsException : public std::exception
+struct DatabaseAlreadyExistsException : public std::runtime_error
 {
     DatabaseAlreadyExistsException(const std::string& database)
-    : std::exception(("Database: \"" + database + "\" already exists.").c_str())
+    : std::runtime_error(("Database: \"" + database + "\" already exists.").c_str())
     {
     }
 };
 
-struct TableNotFoundFromException : public std::exception
+struct TableNotFoundFromException : public std::runtime_error
 {
     TableNotFoundFromException(const std::string& table)
-    : std::exception(("Table: \"" + table + "\" was not found in the FROM clause.").c_str())
+    : std::runtime_error(("Table: \"" + table + "\" was not found in the FROM clause.").c_str())
     {
     }
 };
 
-struct TableAlreadyExistsException : public std::exception
+struct TableAlreadyExistsException : public std::runtime_error
 {
     TableAlreadyExistsException(const std::string& table)
-    : std::exception(("Table: \"" + table + "\" already exists.").c_str())
+    : std::runtime_error(("Table: \"" + table + "\" already exists.").c_str())
     {
     }
 };
 
-struct TableIsFilledException : public std::exception
+struct TableIsFilledException : public std::runtime_error
 {
-    TableIsFilledException() : std::exception("Index cannot be created on filled table.")
+    TableIsFilledException() : std::runtime_error("Index cannot be created on filled table.")
     {
     }
 };
 
-struct ColumnAmbiguityException : public std::exception
+struct ColumnAmbiguityException : public std::runtime_error
 {
     ColumnAmbiguityException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" was found in more than one table.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" was found in more than one table.").c_str())
     {
     }
 };
 
-struct ColumnAlreadyExistsException : public std::exception
+struct ColumnAlreadyExistsException : public std::runtime_error
 {
     ColumnAlreadyExistsException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" already exists.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" already exists.").c_str())
     {
     }
 };
 
-struct ColumnNotFoundException : public std::exception
+struct ColumnNotFoundException : public std::runtime_error
 {
     ColumnNotFoundException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" was not found in table.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" was not found in table.").c_str())
     {
     }
 };
 
-struct AlreadyModifiedColumnException : public std::exception
+struct AlreadyModifiedColumnException : public std::runtime_error
 {
     AlreadyModifiedColumnException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" was already modified in this command.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" was already modified in this command.").c_str())
     {
     }
 };
 
-struct IndexColumnDataTypeException : public std::exception
+struct IndexColumnDataTypeException : public std::runtime_error
 {
     IndexColumnDataTypeException(const std::string& column, DataType dataType)
-    : std::exception(("Column: \"" + column + "\" of type: " + ::GetStringFromColumnDataType(dataType) + " cannot be used as an index.")
+    : std::runtime_error(("Column: \"" + column + "\" of type: " + ::GetStringFromColumnDataType(dataType) + " cannot be used as an index.")
                          .c_str())
     {
     }
 };
 
-struct ConstraintAlreadyReferencedException : public std::exception
+struct ConstraintAlreadyReferencedException : public std::runtime_error
 {
     ConstraintAlreadyReferencedException(const std::string& constraint)
-    : std::exception(("Constraint: \"" + constraint + "\" was already referenced in query.").c_str())
+    : std::runtime_error(("Constraint: \"" + constraint + "\" was already referenced in query.").c_str())
     {
     }
 };
 
-struct ConstraintAlreadyExistsException : public std::exception
+struct ConstraintAlreadyExistsException : public std::runtime_error
 {
     ConstraintAlreadyExistsException(const std::string& constraint)
-    : std::exception(("Constraint: \"" + constraint + "\" already exists in table.").c_str())
+    : std::runtime_error(("Constraint: \"" + constraint + "\" already exists in table.").c_str())
     {
     }
 };
 
-struct ColumnAlreadyConstrainedException : public std::exception
+struct ColumnAlreadyConstrainedException : public std::runtime_error
 {
     ColumnAlreadyConstrainedException(const std::string& column)
-    : std::exception(
+    : std::runtime_error(
           ("Column: \"" + column + "\" is already constrained with a constraint of the same type.").c_str())
     {
     }
 };
 
-struct ConstraintNotFound : public std::exception
+struct ConstraintNotFound : public std::runtime_error
 {
     ConstraintNotFound(const std::string& constraint)
-    : std::exception(("Constraint: \"" + constraint + "\" was notfound in table.").c_str())
+    : std::runtime_error(("Constraint: \"" + constraint + "\" was notfound in table.").c_str())
     {
     }
 };
 
-struct ConstraintCannotBeRemovedException : public std::exception
+struct ConstraintCannotBeRemovedException : public std::runtime_error
 {
     ConstraintCannotBeRemovedException(const std::string& constraint, const std::string& column)
-    : std::exception(("Constraint: \"" + constraint + "\" cannot be removed becasue its dependancy of another constraint of column: \"" +
+    : std::runtime_error(("Constraint: \"" + constraint + "\" cannot be removed becasue its dependancy of another constraint of column: \"" +
                       column + "\" .")
                          .c_str())
     {
     }
 };
 
-struct ColumnGroupByException : public std::exception
+struct ColumnGroupByException : public std::runtime_error
 {
     ColumnGroupByException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" must appear in GROUP BY clause or be used in AGGREGATE function.")
+    : std::runtime_error(("Column: \"" + column + "\" must appear in GROUP BY clause or be used in AGGREGATE function.")
                          .c_str())
     {
     }
 };
 
-struct InsertIntoException : public std::exception
+struct InsertIntoException : public std::runtime_error
 {
     InsertIntoException(const std::string& column)
-    : std::exception(
+    : std::runtime_error(
           ("Column: \"" + column + "\" was referenced multiple times in the INSERT INTO command.").c_str())
     {
     }
 };
 
-struct NotSameAmoutOfValuesException : public std::exception
+struct NotSameAmoutOfValuesException : public std::runtime_error
 {
     NotSameAmoutOfValuesException()
-    : std::exception(
+    : std::runtime_error(
           "Number of values provided in the INSERT INTO must be the same as number of columns")
     {
     }
 };
 
-struct NestedAggregationException : public std::exception
+struct NestedAggregationException : public std::runtime_error
 {
     NestedAggregationException()
-    : std::exception("Use of nested aggregation functions is not allowed.")
+    : std::runtime_error("Use of nested aggregation functions is not allowed.")
     {
     }
 };
 
-struct AggregationGroupByException : public std::exception
+struct AggregationGroupByException : public std::runtime_error
 {
     AggregationGroupByException()
-    : std::exception("Use of aggregation functions in GROUP BY clause is not allowed.")
+    : std::runtime_error("Use of aggregation functions in GROUP BY clause is not allowed.")
     {
     }
 };
 
-struct AggregationWhereException : public std::exception
+struct AggregationWhereException : public std::runtime_error
 {
     AggregationWhereException()
-    : std::exception("Use of aggregation functions in WHERE clause is not allowed.")
+    : std::runtime_error("Use of aggregation functions in WHERE clause is not allowed.")
     {
     }
 };
 
-struct OrderByColumnAlreadyReferencedException : public std::exception
+struct OrderByColumnAlreadyReferencedException : public std::runtime_error
 {
     OrderByColumnAlreadyReferencedException(const std::string& column)
-    : std::exception(
+    : std::runtime_error(
           ("Column: \"" + column + "\" was referenced multiple times in the ORDER BY clause.").c_str())
     {
     }
 };
 
-struct OrderByInvalidColumnException : public std::exception
+struct OrderByInvalidColumnException : public std::runtime_error
 {
     OrderByInvalidColumnException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" is not a valid ORDER BY column.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" is not a valid ORDER BY column.").c_str())
     {
     }
 };
 
-struct GroupByInvalidColumnException : public std::exception
+struct GroupByInvalidColumnException : public std::runtime_error
 {
     GroupByInvalidColumnException(const std::string& column)
-    : std::exception(("Column: \"" + column + "\" is not a valid GROUP BY column.").c_str())
+    : std::runtime_error(("Column: \"" + column + "\" is not a valid GROUP BY column.").c_str())
     {
     }
 };
 
-struct RetPolygonGroupByException : public std::exception
+struct RetPolygonGroupByException : public std::runtime_error
 {
     RetPolygonGroupByException()
-    : std::exception("Return of complex polygon WKT is not allowed while using group by.")
+    : std::runtime_error("Return of complex polygon WKT is not allowed while using group by.")
     {
     }
 };
 
-struct RetPointGroupByException : public std::exception
+struct RetPointGroupByException : public std::runtime_error
 {
     RetPointGroupByException()
-    : std::exception("Return of point WKT is not allowed while using group by.")
+    : std::runtime_error("Return of point WKT is not allowed while using group by.")
     {
     }
 };
 
-struct AliasRedefinitionException : public std::exception
+struct AliasRedefinitionException : public std::runtime_error
 {
     AliasRedefinitionException(const std::string& alias)
-    : std::exception(("Attempt to redefine alias: \"" + alias + "\" has occured.").c_str())
+    : std::runtime_error(("Attempt to redefine alias: \"" + alias + "\" has occured.").c_str())
     {
     }
 };
 
-struct NullMaskOperationInvalidOperandException : public std::exception
+struct NullMaskOperationInvalidOperandException : public std::runtime_error
 {
     NullMaskOperationInvalidOperandException()
-    : std::exception("Null mask operation can only be called with a column operand.")
+    : std::runtime_error("Null mask operation can only be called with a column operand.")
     {
     }
 };
 
-struct JoinColumnTypeException : public std::exception
+struct JoinColumnTypeException : public std::runtime_error
 {
     JoinColumnTypeException(const std::string& colA, const std::string& colB)
-    : std::exception(("Attempt to join columns: \"" + colA + "\" and \"" + colB + "\" which have different data types.")
+    : std::runtime_error(("Attempt to join columns: \"" + colA + "\" and \"" + colB + "\" which have different data types.")
                          .c_str())
     {
     }
 };
 
-struct InvalidOperandsException : public std::exception
+struct InvalidOperandsException : public std::runtime_error
 {
     InvalidOperandsException(const std::string& left, const std::string& right, const std::string& op)
-    : std::exception(("Invalid operands: " + left + " " + right + " for operation: " + op).c_str())
+    : std::runtime_error(("Invalid operands: " + left + " " + right + " for operation: " + op).c_str())
     {
     }
 };
