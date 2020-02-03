@@ -1965,7 +1965,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                               column.second->GetName() + ".col",
                           std::ios::binary);
 
-    if (colFile.is_open)
+    if (colFile.is_open())
     {
         int32_t type = column.second->GetColumnType();
         bool isNullable = column.second->GetIsNullable();
