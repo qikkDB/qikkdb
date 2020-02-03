@@ -67,7 +67,7 @@ public:
     int32_t GetBlockCount() const;
     int64_t GetSize() const;
     const std::unordered_map<std::string, std::unique_ptr<IColumn>>& GetColumns() const;
-    std::vector<std::string> GetSortingColumns();
+    const std::vector<std::string>& GetSortingColumns();
     void SetSortingColumns(std::vector<std::string> columns);
     void AddSortingColumn(const std::string& sortingColumn);
     void RemoveSortingColumn(const std::string& sortingColumn);

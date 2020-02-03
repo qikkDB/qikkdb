@@ -1135,7 +1135,7 @@ const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColum
     return columns;
 }
 
-std::vector<std::string> Table::GetSortingColumns()
+const std::vector<std::string>& Table::GetSortingColumns()
 {
     return sortingColumns;
 }
