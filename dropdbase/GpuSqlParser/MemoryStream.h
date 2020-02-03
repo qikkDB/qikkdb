@@ -18,17 +18,12 @@ private:
     int32_t readOffset_;
 
 public:
-    MemoryStream()
-    {
-        readOffset_ = 0;
-        buffer_.reserve(8192);
-    }
-
-    void Reset()
-    {
-        readOffset_ = 0;
-    }
-
+    MemoryStream();
+   
+    void Reset();
+    
+    void Clear();
+    
     template <typename T>
     void Insert(T value)
     {

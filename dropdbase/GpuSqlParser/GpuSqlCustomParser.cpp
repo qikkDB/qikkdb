@@ -100,8 +100,11 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         WalkSqlSelect(walker, gpuSqlListener, cpuWhereListener,
                       statement->showQueryTypes()->sqlSelect(), usingWhere, usingGroupBy,
                       usingOrderBy, usingAggregation, usingJoin, usingLoad, nonSelect);
-        auto& resultColInfo = gpuSqlListener.GetResultColumnInfo();
-        std::unordered_map<std::string, DataType> columnTypes;
+        isSingleGpuStatement_ = true;
+        walker.walk(&gpuSqlListener, statement->showQueryTypes());
+		
+		//auto& resultColInfo = gpuSqlListener.GetResultColumnInfo();
+       /* std::unordered_map<std::string, DataType> columnTypes;
         for (auto& colInfo : resultColInfo)
         {
             if (colInfo.second.second.length() == 0)
@@ -127,7 +130,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
 
         ret->mutable_payloads()->insert({"ColumnName", namePayload});
         ret->mutable_payloads()->insert({"TypeName", typePayload});
-        return ret;
+        return ret;*/
     }
     else if (statement->sqlInsertInto())
     {

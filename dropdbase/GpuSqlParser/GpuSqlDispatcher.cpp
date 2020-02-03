@@ -253,6 +253,11 @@ void GpuSqlDispatcher::AddShowConstraintsFunction()
     dispatcherFunctions_.push_back(showConstraintsFunction_);
 }
 
+void GpuSqlDispatcher::AddShowQueryColumnTypesFunction()
+{
+    dispatcherFunctions_.push_back(showQueryColumnTypesFunction_);
+}
+
 void GpuSqlDispatcher::AddCreateDatabaseFunction()
 {
     dispatcherFunctions_.push_back(createDatabaseFunction_);
@@ -1379,6 +1384,33 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show constraints completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
+
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowQueryColumnTypes()
+{
+    int32_t columnSize = arguments_.Read<int32_t>();
+
+    std::unique_ptr<std::string[]> outDataColumnName(new std::string[columnSize]);
+    std::unique_ptr<std::string[]> outDataColumnType(new std::string[columnSize]);
+
+    for (int32_t i = 0; i < columnSize; i++)
+    {
+        outDataColumnName[i] = arguments_.Read<std::string>();
+        outDataColumnType[i] = arguments_.Read<std::string>();
+    }
+
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnName;
+    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnType;
+
+    InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize);
+    InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize);
+
+    MergePayloadToSelfResponse("ColumnName", "ColumnName", payloadColumnName);
+    MergePayloadToSelfResponse("TypeName", "TypeName", payloadColumnType);
+
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Show query column types completed sucessfully" << '\n';
+    return InstructionStatus::FINISH;
+}
+
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateDatabase()
 {

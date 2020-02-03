@@ -161,6 +161,8 @@ public:
 
     void exitShowConstraints(GpuSqlParser::ShowConstraintsContext* ctx) override;
 
+    void exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext* ctx) override;
+
     void exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx) override;
 
     void exitSqlDropDb(GpuSqlParser::SqlDropDbContext* ctx) override;

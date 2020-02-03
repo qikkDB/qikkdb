@@ -1,4 +1,4 @@
- //
+//
 // Created by Martin Staňo on 2019-01-15.
 //
 
@@ -27,4 +27,21 @@ std::string MemoryStream::Read()
     std::string str(buffer_.begin() + readOffset_, buffer_.begin() + readOffset_ + len);
     readOffset_ += len;
     return str;
+}
+
+MemoryStream::MemoryStream()
+{
+    readOffset_ = 0;
+    buffer_.reserve(8192);
+}
+
+void MemoryStream::Reset()
+{
+    readOffset_ = 0;
+}
+
+void MemoryStream::Clear()
+{
+    buffer_.clear();
+    readOffset_ = 0;
 }

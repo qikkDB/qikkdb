@@ -120,3 +120,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertIntoDone()
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Insert into completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
+
+void GpuSqlDispatcher::ClearArguments()
+{
+    arguments_.Clear();
+}
+
+void GpuSqlDispatcher::ClearInstructions()
+{
+    dispatcherFunctions_.clear();
+}

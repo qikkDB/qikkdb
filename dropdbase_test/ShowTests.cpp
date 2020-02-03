@@ -76,9 +76,45 @@ protected:
                       payloadsConstraintsColumns.stringpayload().stringdata()[i]);
         }
     }
+
+    void ShowQueryColumnTypes()
+    {
+        GpuSqlCustomParser parser(showDatabase, "CREATE TABLE " + tableName + " (colA int, colB string, colC double);");
+        auto resultPtr = parser.Parse();
+        GpuSqlCustomParser parserShow(showDatabase,
+                                      "SHOW QUERY COLUMN TYPES select colB, colC from " + tableName + ";");
+        auto resultPtrShow = parserShow.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtrShow.get());
+
+        auto& payloadsColumnNames = result->payloads().at("ColumnName");
+        auto& payloadsColumnTypes = result->payloads().at("TypeName");
+
+        std::vector<std::string> expectedColumnNames;
+        expectedColumnNames.push_back("tableA.colB");
+        expectedColumnNames.push_back("tableA.colC");
+
+        std::vector<std::string> expectedColumnTypes;
+        expectedColumnTypes.push_back(GetStringFromColumnDataType(DataType::COLUMN_STRING));
+        expectedColumnTypes.push_back(GetStringFromColumnDataType(DataType::COLUMN_DOUBLE));
+
+        ASSERT_EQ(expectedColumnNames.size(), payloadsColumnNames.stringpayload().stringdata_size());
+        ASSERT_EQ(expectedColumnTypes.size(), payloadsColumnTypes.stringpayload().stringdata_size());
+
+        for (int i = 0; i < expectedColumnNames.size(); i++)
+        {
+            ASSERT_EQ(expectedColumnTypes[i], payloadsColumnTypes.stringpayload().stringdata()[i]);
+            ASSERT_EQ(expectedColumnNames[i], payloadsColumnNames.stringpayload().stringdata()[i]);
+        }
+    }
 };
 
 TEST_F(ShowTests, showConstraints)
 {
     ShowConstraints();
+}
+
+TEST_F(ShowTests, showQueryColumnTypes)
+{
+    ShowQueryColumnTypes();
 }

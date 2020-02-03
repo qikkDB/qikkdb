@@ -1173,6 +1173,30 @@ void GpuSqlListener::exitShowConstraints(GpuSqlParser::ShowConstraintsContext* c
     expandedColumnAliases_.insert({table + "_cnstrn_cols", table + "_cnstrn_cols"});
 }
 
+void GpuSqlListener::exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext* ctx)
+{
+    dispatcher_.ClearArguments();
+    dispatcher_.ClearInstructions();
+
+    dispatcher_.AddShowQueryColumnTypesFunction();
+
+	dispatcher_.AddArgument<int32_t>(returnColumns_.size());
+    for (auto& returnColumn : returnColumns_)
+    {
+        std::string returnColName = returnColumn.first;
+        DataType dataType = std::get<0>(returnColumn.second);
+
+        dispatcher_.AddArgument<const std::string&>(returnColName);
+        dispatcher_.AddArgument<const std::string&>(::GetStringFromColumnDataType(dataType));
+    }
+
+    ColumnOrder.insert({0, "ColumnName"});
+    ColumnOrder.insert({1, "TypeName"});
+
+    expandedColumnAliases_.insert({"ColumnName", "ColumnName"});
+    expandedColumnAliases_.insert({"TypeName", "TypeName"});
+}
+
 void GpuSqlListener::exitSqlCreateDb(GpuSqlParser::SqlCreateDbContext* ctx)
 {
     std::string newDbName = ctx->database()->getText();

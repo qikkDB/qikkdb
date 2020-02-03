@@ -77,11 +77,11 @@ private:
 
     enum class InstructionStatus
     {
-		CONTINUE = 0,
-		OUT_OF_BLOCKS,
-		FINISH,
-		LOAD_SKIPPED,
-		EXCEPTION
+        CONTINUE = 0,
+        OUT_OF_BLOCKS,
+        FINISH,
+        LOAD_SKIPPED,
+        EXCEPTION
     };
 
     static const std::string KEYS_SUFFIX;
@@ -256,6 +256,7 @@ private:
     static DispatchFunction showTablesFunction_;
     static DispatchFunction showColumnsFunction_;
     static DispatchFunction showConstraintsFunction_;
+    static DispatchFunction showQueryColumnTypesFunction_;
     static DispatchFunction createDatabaseFunction_;
     static DispatchFunction dropDatabaseFunction_;
     static DispatchFunction createTableFunction_;
@@ -587,6 +588,8 @@ public:
 
     void AddShowConstraintsFunction();
 
+    void AddShowQueryColumnTypesFunction();
+
     void AddCreateDatabaseFunction();
 
     void AddDropDatabaseFunction();
@@ -780,6 +783,8 @@ public:
     InstructionStatus ShowColumns();
 
     InstructionStatus ShowConstraints();
+
+    InstructionStatus ShowQueryColumnTypes();
 
     InstructionStatus CreateDatabase();
 
@@ -1006,7 +1011,7 @@ public:
     }
 
     template <typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConstCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerConstCol()
     {
         auto colName = arguments_.Read<std::string>();
         T cnst = arguments_.Read<T>();
@@ -1015,7 +1020,7 @@ public:
     }
 
     template <typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerColCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerColCol()
     {
         auto colNameRight = arguments_.Read<std::string>();
         auto colNameLeft = arguments_.Read<std::string>();
@@ -1024,7 +1029,7 @@ public:
     }
 
     template <typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConstConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerConstConst()
     {
         U cnstRight = arguments_.Read<U>();
         T cnstLeft = arguments_.Read<T>();
@@ -1036,7 +1041,7 @@ public:
     //// FUNCTOR ERROR HANDLERS
 
     template <typename OP, typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerColConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerColConst()
     {
         U cnst = arguments_.Read<U>();
         auto colName = arguments_.Read<std::string>();
@@ -1046,7 +1051,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConstCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerConstCol()
     {
         auto colName = arguments_.Read<std::string>();
         T cnst = arguments_.Read<T>();
@@ -1056,7 +1061,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerColCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerColCol()
     {
         auto colNameRight = arguments_.Read<std::string>();
         auto colNameLeft = arguments_.Read<std::string>();
@@ -1066,7 +1071,7 @@ public:
 
 
     template <typename OP, typename T, typename U>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConstConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerConstConst()
     {
         U cnstRight = arguments_.Read<U>();
         T cnstLeft = arguments_.Read<T>();
@@ -1076,7 +1081,7 @@ public:
     }
 
     template <typename OP, typename T>
-    InstructionStatus  InvalidOperandTypesErrorHandlerCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerCol()
     {
         auto colName = arguments_.Read<std::string>();
 
@@ -1084,7 +1089,7 @@ public:
     }
 
     template <typename OP, typename T>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerConst()
     {
         T cnst = arguments_.Read<T>();
 
@@ -1094,7 +1099,7 @@ public:
     ////
 
     template <typename T>
-    InstructionStatus  InvalidOperandTypesErrorHandlerCol()
+    InstructionStatus InvalidOperandTypesErrorHandlerCol()
     {
         auto colName = arguments_.Read<std::string>();
 
@@ -1102,7 +1107,7 @@ public:
     }
 
     template <typename T>
-    InstructionStatus  InvalidOperandTypesErrorHandlerConst()
+    InstructionStatus InvalidOperandTypesErrorHandlerConst()
     {
         T cnst = arguments_.Read<T>();
 
@@ -1115,6 +1120,9 @@ public:
         arguments_.Insert<T>(argument);
     }
 
+    void ClearArguments();
+    void ClearInstructions();
+
 private:
     template <typename OP, typename O, typename K, typename V>
     class GroupByHelper;
@@ -1124,46 +1132,48 @@ private:
 };
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetCol<std::string>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::RetConst<std::string>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::GroupByCol<std::string>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus
+GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName);
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<std::string>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus  GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus
+GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();

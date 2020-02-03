@@ -26,6 +26,8 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showDatabasesFunction_ = &G
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showTablesFunction_ = &GpuSqlDispatcher::ShowTables;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showColumnsFunction_ = &GpuSqlDispatcher::ShowColumns;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showConstraintsFunction_ = &GpuSqlDispatcher::ShowConstraints;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::showQueryColumnTypesFunction_ =
+    &GpuSqlDispatcher::ShowQueryColumnTypes;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::insertIntoDoneFunction_ = &GpuSqlDispatcher::InsertIntoDone;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createDatabaseFunction_ = &GpuSqlDispatcher::CreateDatabase;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropDatabaseFunction_ = &GpuSqlDispatcher::DropDatabase;
@@ -36,7 +38,8 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterDatabaseFunction_ = &G
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction_ = &GpuSqlDispatcher::CreateIndex;
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
+GpuSqlDispatcher::InstructionStatus
+GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
 {
     if (allocatedPointers_.find(colName + "_polyPoints") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
@@ -137,7 +140,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
 
             int32_t outDataSize;
             CPUJoinReorderer::reorderByJI<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
-                                                                             *col, blockIndex_,
+                                                                            *col, blockIndex_,
                                                                             joinIndices_->at(table),
                                                                             database_->GetBlockSize());
 
@@ -415,9 +418,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
                         reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
                 }
             }
-            InsertString(database_->GetName(), colName,
-                         block->GetData() + loadOffset_,
-                         loadSize_, false, nullMaskPtr);
+            InsertString(database_->GetName(), colName, block->GetData() + loadOffset_, loadSize_,
+                         false, nullMaskPtr);
             noLoad_ = false;
         }
         else
@@ -434,8 +436,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
             int8_t* nullMaskPtr = nullptr;
 
             int32_t outDataSize;
-            CPUJoinReorderer::reorderByJI<std::string>(joinedStrings, outDataSize, *col,
-                                                                blockIndex_,
+            CPUJoinReorderer::reorderByJI<std::string>(joinedStrings, outDataSize, *col, blockIndex_,
                                                        joinIndices_->at(table), database_->GetBlockSize());
 
             if (col->GetIsNullable())
@@ -450,8 +451,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<std::string>(std::get<0>(cacheMaskEntry),
-																					outMaskSize, *col, blockIndex_,
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<std::string>(
+                            std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
                             joinIndices_->at(table), database_->GetBlockSize());
                     }
                 }
