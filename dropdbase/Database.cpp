@@ -234,8 +234,6 @@ void Database::PersistOnlyDbFile(const char* path)
 
     if (dbFile.is_open())
     {
-
-
         int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
         dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION),
