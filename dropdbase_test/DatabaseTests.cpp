@@ -625,7 +625,7 @@ TEST_F(DatabaseTests, ChangeTableBlockSize)
     
     ASSERT_DOUBLE_EQ(block2->GetMin(), 45.98924);
     ASSERT_DOUBLE_EQ(block2->GetMax(), 999.6665);
-    ASSERT_FLOAT_EQ(block2->GetSum(), 1045.6658f);
+    ASSERT_FLOAT_EQ(block2->GetSum(), 1045.6558f);
     ASSERT_FLOAT_EQ(block2->GetAvg(), 522.82787f);
 
     // first table colDouble, second block:
