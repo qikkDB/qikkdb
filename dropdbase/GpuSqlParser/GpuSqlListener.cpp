@@ -1177,13 +1177,16 @@ void GpuSqlListener::exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext* ctx
 {
     dispatcher_.ClearArguments();
     dispatcher_.ClearInstructions();
+    ColumnOrder.clear();
 
     dispatcher_.AddShowQueryColumnTypesFunction();
 
-	dispatcher_.AddArgument<int32_t>(returnColumns_.size());
+    dispatcher_.AddArgument<int32_t>(returnColumns_.size());
     for (auto& returnColumn : returnColumns_)
     {
-        std::string returnColName = returnColumn.first;
+        std::string returnColName =
+            returnColumn.second.second.length() == 0 ? returnColumn.first : returnColumn.second.second;
+
         DataType dataType = std::get<0>(returnColumn.second);
 
         dispatcher_.AddArgument<const std::string&>(returnColName);

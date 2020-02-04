@@ -107,6 +107,43 @@ protected:
             ASSERT_EQ(expectedColumnNames[i], payloadsColumnNames.stringpayload().stringdata()[i]);
         }
     }
+
+    void ShowQueryColumnTypesWithAliases()
+    {
+        GpuSqlCustomParser parser(showDatabase, "CREATE TABLE " + tableName + " (colInteger1 int, colFloat1 float);");
+        auto resultPtr = parser.Parse();
+
+        GpuSqlCustomParser parserShow(showDatabase,
+                                  "SHOW QUERY COLUMN TYPES SELECT (t.colInteger1 - 10) AS col1, "
+                                  "t.colFloat1, "
+                                  "colInteger1*2 AS colInteger1 FROM " +
+                                      tableName + " as t WHERE t.colInteger1 > 20;");
+        resultPtr = parserShow.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+        std::vector<std::string> expectedResultsName = {"col1", tableName + ".colFloat1", "colInteger1"};
+        std::vector<std::string> expectedResultsType;
+        expectedResultsType.push_back(::GetStringFromColumnDataType(DataType::COLUMN_INT));
+        expectedResultsType.push_back(::GetStringFromColumnDataType(DataType::COLUMN_FLOAT));
+        expectedResultsType.push_back(::GetStringFromColumnDataType(DataType::COLUMN_INT));
+
+        auto& payloadsName = result->payloads().at("ColumnName");
+        auto& payloadsType = result->payloads().at("TypeName");
+
+        ASSERT_EQ(payloadsName.stringpayload().stringdata_size(), expectedResultsName.size());
+        ASSERT_EQ(payloadsType.stringpayload().stringdata_size(), expectedResultsType.size());
+
+        for (int i = 0; i < payloadsName.stringpayload().stringdata_size(); i++)
+        {
+            ASSERT_EQ(expectedResultsName[i], payloadsName.stringpayload().stringdata()[i]);
+        }
+
+        for (int i = 0; i < payloadsType.stringpayload().stringdata_size(); i++)
+        {
+            ASSERT_EQ(expectedResultsType[i], payloadsType.stringpayload().stringdata()[i]);
+        }
+    }
 };
 
 TEST_F(ShowTests, showConstraints)
@@ -117,4 +154,9 @@ TEST_F(ShowTests, showConstraints)
 TEST_F(ShowTests, showQueryColumnTypes)
 {
     ShowQueryColumnTypes();
+}
+
+TEST_F(ShowTests, showQueryColumnTypesWithAliases)
+{
+    ShowQueryColumnTypesWithAliases();
 }

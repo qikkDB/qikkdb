@@ -101,7 +101,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
                       statement->showQueryTypes()->sqlSelect(), usingWhere, usingGroupBy,
                       usingOrderBy, usingAggregation, usingJoin, usingLoad, nonSelect);
         isSingleGpuStatement_ = true;
-        walker.walk(&gpuSqlListener, statement->showQueryTypes());
+        gpuSqlListener.exitShowQueryTypes(statement->showQueryTypes());
 		
 		//auto& resultColInfo = gpuSqlListener.GetResultColumnInfo();
        /* std::unordered_map<std::string, DataType> columnTypes;

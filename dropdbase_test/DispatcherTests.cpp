@@ -9372,54 +9372,6 @@ TEST(DispatcherTests, Alias)
     }
 }
 
-TEST(DispatcherTests, QueryTypes)
-{
-    Context::getInstance();
-
-    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
-                              "SHOW QUERY COLUMN TYPES SELECT (t.colInteger1 - 10) AS col1, "
-                              "t.colFloat1, "
-                              "colInteger1*2 AS colInteger1 FROM "
-                              "TableA as t WHERE t.colInteger1 > 20;");
-    auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
-
-    auto columnInt = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
-                                                            .database->GetTables()
-                                                            .at("TableA")
-                                                            .GetColumns()
-                                                            .at("colInteger1")
-                                                            .get());
-    auto columnFloat = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance()
-                                                            .database->GetTables()
-                                                            .at("TableA")
-                                                            .GetColumns()
-                                                            .at("colFloat1")
-                                                            .get());
-    std::vector<std::string> expectedResultsName = {"col1", "TableA.colFloat1", "colInteger1"};
-    std::vector<std::string> expectedResultsType;
-    expectedResultsType.push_back(::GetStringFromColumnDataType(columnInt->GetColumnType()));
-    expectedResultsType.push_back(::GetStringFromColumnDataType(columnFloat->GetColumnType()));
-    expectedResultsType.push_back(::GetStringFromColumnDataType(columnInt->GetColumnType()));
-
-    auto& payloadsName = result->payloads().at("ColumnName");
-    auto& payloadsType = result->payloads().at("TypeName");
-
-    ASSERT_EQ(payloadsName.stringpayload().stringdata_size(), expectedResultsName.size());
-    ASSERT_EQ(payloadsType.stringpayload().stringdata_size(), expectedResultsType.size());
-
-    for (int i = 0; i < payloadsName.stringpayload().stringdata_size(); i++)
-    {
-        ASSERT_EQ(expectedResultsName[i], payloadsName.stringpayload().stringdata()[i]);
-    }
-
-    for (int i = 0; i < payloadsType.stringpayload().stringdata_size(); i++)
-    {
-        ASSERT_EQ(expectedResultsType[i], payloadsType.stringpayload().stringdata()[i]);
-    }
-}
-
-
 TEST(DispatcherTests, LimitOffset)
 {
     Context::getInstance();
