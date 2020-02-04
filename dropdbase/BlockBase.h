@@ -1,6 +1,7 @@
 #pragma once
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
 #include "Compression/Compression.h"
+#include "NullValues.h"
 
 #include <algorithm>
 #include <memory>
@@ -210,7 +211,7 @@ public:
 
     size_t GetNullBitmaskSize() const
     {
-        return (size_ + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        return NullValues::GetNullBitMaskSize(size_);
     }
 
     bool GetSaveNecessary() const
@@ -310,7 +311,7 @@ public:
             bitMask_ = std::move(nullMask);
             if (bitMask_)
             {
-                int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
                 GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
                 isNullMaskRegistered_ = true;
             }
@@ -396,49 +397,38 @@ public:
         {
             std::move_backward(data_.get() + index, data_.get() + size_, data_.get() + size_ + 1);
 
-            int bitMaskIdx = (index / (sizeof(char) * 8));
-            int shiftIdx = (index % (sizeof(char) * 8));
+            int32_t bitMaskIdx = NullValues::GetBitMaskIdx(index);
+            int32_t shiftIdx = NullValues::GetShiftMaskIdx(index);
 
-            int last = isNullValue ? 1 : 0;
+            int8_t last = isNullValue ? 1 : 0;
 
             if (isNullable_)
             {
                 for (size_t i = shiftIdx; i < 8; i++)
                 {
-                    int tmp = (bitMask_[bitMaskIdx] >> i) & 1;
+                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), bitMaskIdx, i);
 
                     if (last != tmp)
                     {
-                        if (last)
-                        {
-                            bitMask_[bitMaskIdx] |= (1 << i);
-                        }
-                        else
-                        {
-                            bitMask_[bitMaskIdx] &= ~(1 << i);
-                        }
-
+                        NullValues::SetBitInBitMask(bitMask_.get(), bitMaskIdx, i, last);
                         last = tmp;
                     }
                 }
 
                 bitMaskIdx++;
-                int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
                 for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
                 {
-                    int tmp = bitMask_[i] >> 7;
+                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i, 7);
                     bitMask_[i] <<= 1;
-                    bitMask_[i] |= last;
+                    NullValues::SetBitInBitMask(bitMask_.get(), i, 0, last);
                     last = tmp;
                 }
             }
         }
         else if (isNullValue)
         {
-            int bitMaskIdx = (index / (sizeof(char) * 8));
-            int shiftIdx = (index % (sizeof(char) * 8));
-            int last = isNullValue ? 1 : 0;
-            bitMask_[bitMaskIdx] |= (last << shiftIdx);
+            NullValues::SetBitInBitMask(bitMask_.get(), index, isNullValue);
         }
         data_[index] = data;
         updateBlockStatistics(data, isNullValue);
