@@ -2,6 +2,7 @@
 // Generated from C:/Users/PeterKratkyInstarea/Desktop/GPU-DB/dropdbase/GpuSqlParser\GpuSqlLexer.g4 by ANTLR 4.8
 
 
+
 #include "GpuSqlLexer.h"
 
 

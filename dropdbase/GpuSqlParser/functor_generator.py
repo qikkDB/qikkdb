@@ -66,22 +66,14 @@ operations_string_unary = ['ltrim', 'rtrim', 'lower', 'upper', 'reverse']
 
 operations_string_binary = ['left', 'right']
 
+print("Halo")
+
 for operation in operations_binary:
     declaration = "std::array<GpuSqlDispatcher::DispatchFunction," \
                   "DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> GpuSqlDispatcher::" + operation + "Functions = {"
 
     for colIdx, colVal in enumerate(all_types):
         for rowIdx, rowVal in enumerate(all_types):
-
-            if colIdx < len(types):
-                col = "Const"
-            elif colIdx >= len(types):
-                col = "Col"
-
-            if rowIdx < len(types):
-                row = "Const"
-            elif rowIdx >= len(types):
-                row = "Col"
 
             if operation != 'contains' and (colVal in geo_types or rowVal in geo_types):
                 op = "InvalidOperandTypesErrorHandler"
@@ -100,7 +92,13 @@ for operation in operations_binary:
 
             else:
                 op = operation
-            function = "GpuSqlDispatcher::" + op + col + row + "<" + colVal + ", " + rowVal + ">"
+                if colIdx >= len(types):
+                    colVal += "*"
+
+                if rowIdx >= len(types):
+                    rowVal += "*"
+
+            function = "GpuSqlDispatcher::" + op + "<" + colVal + ", " + rowVal + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")
@@ -303,36 +301,35 @@ for operation in operations_arithmetic:
     for colIdx, colVal in enumerate(all_types):
         for rowIdx, rowVal in enumerate(all_types):
 
-            if colIdx < len(types):
-                col = "Const"
-            elif colIdx >= len(types):
-                col = "Col"
-
-            if rowIdx < len(types):
-                row = "Const"
-            elif rowIdx >= len(types):
-                row = "Col"
+            col = colVal
+            row = rowVal
 
             if colVal in geo_types or rowVal in geo_types:
-                op = "InvalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandlerColCol"
 
             elif colVal == STRING or rowVal == STRING:
-                op = "InvalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandlerColCol"
 
             elif colVal == BOOL or rowVal == BOOL:
-                op = "InvalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandlerColCol"
 
             elif (operation == "mod" or operation in bitwise_operations) and (
                     colVal in floating_types or rowVal in floating_types):
-                op = "InvalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandlerColCol"
 
             elif (operation == "roundDecimal") and (rowVal in floating_types):
-                op = "InvalidOperandTypesErrorHandler"
+                op = "InvalidOperandTypesErrorHandlerColCol"
 
             else:
+                if colIdx >= len(types):
+                    col = colVal + "*"
+
+                if rowIdx >= len(types):
+                    row = rowVal + "*"
+
                 op = "Arithmetic"
 
-            function = "GpuSqlDispatcher::" + op + col + row + "<ArithmeticOperations::" + operation + ", " + colVal + ", " + rowVal + ">"
+            function = "GpuSqlDispatcher::" + op +"<ArithmeticOperations::" + operation + ", " + col + ", " + row + ">"
 
             if colIdx == len(all_types) - 1 and rowIdx == len(all_types) - 1:
                 declaration += ("&" + function + "};")

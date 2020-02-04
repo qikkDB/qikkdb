@@ -913,6 +913,9 @@ public:
     template <typename OP, typename T, typename U>
     InstructionStatus LogicalConstConst();
 
+    template <typename OP, typename L, typename R>
+    InstructionStatus Arithmetic();
+
     template <typename OP, typename T, typename U>
     InstructionStatus ArithmeticColConst();
 

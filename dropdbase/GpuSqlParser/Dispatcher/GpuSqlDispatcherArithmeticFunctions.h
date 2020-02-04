@@ -7,7 +7,7 @@
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename L, typename R>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticColConst()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
 {
     std::tuple<R, PointerAllocation, InstructionStatus, std::string> right = LoadInstructionArgument<R>();
     std::tuple<L, PointerAllocation, InstructionStatus, std::string> left = LoadInstructionArgument<L>();
@@ -93,6 +93,83 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticColConst()
         FreeColumnIfRegister<R>(std::get<3>(right));
     }
 
+    return InstructionStatus::CONTINUE;
+}
+
+/// Implementation of generic binary arithmetic function dispatching given by the functor OP
+/// Implementation for column constant case
+/// Pops data from argument memory stream and loads data to GPU on demand
+/// <returns name="statusCode">Finish status code of the operation</returns>
+template <typename OP, typename T, typename U>
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticColConst()
+{
+    U cnst = arguments_.Read<U>();
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    constexpr bool bothTypesFloatOrBothIntegral =
+        std::is_floating_point<T>::value && std::is_floating_point<U>::value ||
+        std::is_integral<T>::value && std::is_integral<U>::value;
+    typedef typename std::conditional<
+        bothTypesFloatOrBothIntegral, typename std::conditional<sizeof(T) >= sizeof(U), T, U>::type,
+        typename std::conditional<std::is_floating_point<T>::value, T,
+                                  typename std::conditional<std::is_floating_point<U>::value, U, void>::type>::type>::type ResultType;
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
+    {
+        return loadFlag;
+    }
+
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticColConst: " << colName << " " << reg << '\n';
+
+    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+            groupByColumns_.end() &&
+        !insideAggregation_)
+    {
+        if (isOverallLastBlock_)
+        {
+            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+            int32_t retSize = column.ElementCount;
+            ResultType* result;
+            if (column.GpuNullMaskPtr)
+            {
+                int8_t* nullMask;
+                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
+            }
+            GPUArithmetic::Arithmetic<OP, ResultType, T*, U>(result, reinterpret_cast<T*>(column.GpuPtr),
+                                                             cnst, retSize);
+            groupByColumns_.push_back({reg, ::GetColumnType<ResultType>()});
+        }
+    }
+    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+    {
+        PointerAllocation column = allocatedPointers_.at(colName);
+        int32_t retSize = column.ElementCount;
+        if (!IsRegisterAllocated(reg))
+        {
+            ResultType* result;
+            if (column.GpuNullMaskPtr)
+            {
+                int8_t* nullMask;
+                result = AllocateRegister<ResultType>(reg, retSize, &nullMask);
+                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
+            }
+            else
+            {
+                result = AllocateRegister<ResultType>(reg, retSize);
+            }
+            GPUArithmetic::Arithmetic<OP, ResultType, T*, U>(result, reinterpret_cast<T*>(column.GpuPtr),
+                                                             cnst, retSize);
+        }
+    }
+    FreeColumnIfRegister<T>(colName);
     return InstructionStatus::CONTINUE;
 }
 
