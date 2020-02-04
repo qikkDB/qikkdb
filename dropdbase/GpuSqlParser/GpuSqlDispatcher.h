@@ -684,6 +684,66 @@ public:
     }
 
     template <typename T>
+    std::tuple<T, PointerAllocation, InstructionStatus, std::string> LoadInstructionArgument()
+    {
+        PointerAllocation column = {0, 0, false, 0};
+
+        if (std::is_pointer<T>::value)
+        {
+            auto colName = arguments_.Read<std::string>();
+            GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::remove_pointer<T>::type>(colName);
+
+            if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
+                             StringDataTypeComp(colName)) != groupByColumns_.end() &&
+                !insideAggregation_)
+            {
+                if (isOverallLastBlock_)
+                {
+                    column = allocatedPointers_.at(colName + KEYS_SUFFIX);
+                }
+            }
+            else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+            {
+                column = allocatedPointers_.at(colName);
+            }
+
+            return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
+        }
+        else
+        {
+            return {arguments_.Read<T>(), column, InstructionStatus::CONTINUE, ""};
+        }
+    }
+
+    template <typename T>
+    std::pair<T*, int8_t*> AllocateInstructionResult(const std::string reg, int32_t retSize, bool allocateNullMask)
+    {
+        T* result = nullptr;
+        int8_t* nullMask = nullptr;
+
+        if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
+                groupByColumns_.end() &&
+            !insideAggregation_)
+        {
+            if (isOverallLastBlock_)
+            {
+                result = allocateNullMask ? AllocateRegister<T>(reg + KEYS_SUFFIX, retSize, &nullMask) :
+                                            AllocateRegister<T>(reg + KEYS_SUFFIX, retSize);
+
+                groupByColumns_.push_back({reg, ::GetColumnType<T>()});
+            }
+        }
+        else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
+        {
+            if (!IsRegisterAllocated(reg))
+            {
+                result = allocateNullMask ? AllocateRegister<T>(reg, retSize, &nullMask) :
+                                            AllocateRegister<T>(reg, retSize);
+            }
+        }
+    }
+
+    template <typename T>
     InstructionStatus LoadCol(std::string& colName);
 
     InstructionStatus LoadColNullMask(std::string& colName);
