@@ -102,35 +102,6 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
                       usingOrderBy, usingAggregation, usingJoin, usingLoad, nonSelect);
         isSingleGpuStatement_ = true;
         gpuSqlListener.exitShowQueryTypes(statement->showQueryTypes());
-		
-		//auto& resultColInfo = gpuSqlListener.GetResultColumnInfo();
-       /* std::unordered_map<std::string, DataType> columnTypes;
-        for (auto& colInfo : resultColInfo)
-        {
-            if (colInfo.second.second.length() == 0)
-            {
-                columnTypes.insert({colInfo.first, colInfo.second.first});
-            }
-            else
-            {
-                columnTypes.insert({colInfo.second.second, colInfo.second.first});
-            }
-        }
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload namePayload;
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload typePayload;
-        for (auto& column : gpuSqlListener.ColumnOrder)
-        {
-            std::string colName = column.second.front() == '$' ? column.second.substr(1) : column.second;
-            namePayload.mutable_stringpayload()->add_stringdata(colName);
-            typePayload.mutable_stringpayload()->add_stringdata(
-                GetStringFromColumnDataType(columnTypes.at(column.second)));
-        }
-
-        ret->mutable_payloads()->insert({"ColumnName", namePayload});
-        ret->mutable_payloads()->insert({"TypeName", typePayload});
-        return ret;*/
     }
     else if (statement->sqlInsertInto())
     {
