@@ -213,6 +213,7 @@ namespace ColmnarDB.ConsoleClient
                                         }
                                         else
                                         {
+                                            queryString = queryString.Last() != ';' ? queryString + ";" : queryString;
                                             query.RunQuery(queryString, Console.WindowWidth, client);
                                         }
                                     }  
