@@ -33,7 +33,7 @@ protected:
         // clean up occurs when test completes or an exception is thrown
         Database::RemoveFromInMemoryDatabaseList(dbName.c_str());
 
-		// clear directory to make sure, there are no old database files, but do not remove directory:
+        // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);
         for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
         {
@@ -55,7 +55,7 @@ protected:
                                   "ALTER TABLE SimpleTable RENAME COLUMN colA TO " + newColName + ";");
         auto resultPtr = parser.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find(newColName) !=
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find("colA") ==
@@ -67,16 +67,16 @@ protected:
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find("colD") !=
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
 
-		// persist database, rename again, and test changes in memory and on disk
+        // persist database, rename again, and test changes in memory and on disk
         alterDatabase->Persist(path.c_str());
 
-		std::string newestColName = newColName + "_secondTry";
+        std::string newestColName = newColName + "_secondTry";
 
-		GpuSqlCustomParser parser2(alterDatabase,
-                                  "ALTER TABLE SimpleTable RENAME COLUMN " + newColName + " TO " + newestColName + ";");    
-		resultPtr = parser2.Parse();
+        GpuSqlCustomParser parser2(alterDatabase, "ALTER TABLE SimpleTable RENAME COLUMN " +
+                                                      newColName + " TO " + newestColName + ";");
+        resultPtr = parser2.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find(newestColName) !=
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find("colA") ==
@@ -90,7 +90,7 @@ protected:
         ASSERT_TRUE(alterDatabase->GetTables().at("SimpleTable").GetColumns().find("colD") !=
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
 
-		// test changes on disk:
+        // test changes on disk:
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + ".db")));
         ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
             path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colA" + ".col")));
@@ -105,7 +105,7 @@ protected:
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
             path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
 
-		// clear directory to make sure, there are no old database files, but do not remove directory:
+        // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);
         for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
         {
@@ -126,22 +126,23 @@ protected:
         GpuSqlCustomParser parser(alterDatabase, "ALTER TABLE SimpleTable RENAME TO " + newTableName + ";");
         auto resultPtr = parser.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_TRUE(alterDatabase->GetTables().find("SimpleTable") == alterDatabase->GetTables().end());
         ASSERT_TRUE(alterDatabase->GetTables().find(newTableName) != alterDatabase->GetTables().end());
 
-		// persist database, rename again, and test changes in memory and on disk
+        // persist database, rename again, and test changes in memory and on disk
         alterDatabase->Persist(path.c_str());
         std::string newestTableName = newTableName + "_secondTry";
 
-		GpuSqlCustomParser parser2(alterDatabase, "ALTER TABLE " + newTableName + " RENAME TO " + newestTableName + ";");
+        GpuSqlCustomParser parser2(alterDatabase, "ALTER TABLE " + newTableName + " RENAME TO " +
+                                                      newestTableName + ";");
         resultPtr = parser2.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_TRUE(alterDatabase->GetTables().find(newTableName) == alterDatabase->GetTables().end());
         ASSERT_TRUE(alterDatabase->GetTables().find(newestTableName) != alterDatabase->GetTables().end());
 
-		// test changes on disk:
+        // test changes on disk:
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + ".db")));
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
             path + dbName + Database::SEPARATOR + newestTableName + Database::SEPARATOR + "colA" + ".col")));
@@ -189,24 +190,24 @@ protected:
         GpuSqlCustomParser parser(nullptr, "ALTER DATABASE AlterTestDb RENAME TO " + newDatabaseName + ";");
         auto resultPtr = parser.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_FALSE(Database::Exists("AlterTestDb"));
         ASSERT_TRUE(Database::Exists(newDatabaseName));
 
-		// persist database, rename again, and test changes in memory and on disk
+        // persist database, rename again, and test changes in memory and on disk
         alterDatabase->Persist(path.c_str());
-		std::string newestDatabaseName = newDatabaseName + "_secondTry";
+        std::string newestDatabaseName = newDatabaseName + "_secondTry";
 
         GpuSqlCustomParser parser2(nullptr, "ALTER DATABASE " + newDatabaseName + " RENAME TO " +
                                                 newestDatabaseName + ";");
         resultPtr = parser2.Parse();
 
-		// test in memory changes:
+        // test in memory changes:
         ASSERT_FALSE(Database::Exists("AlterTestDb"));
         ASSERT_FALSE(Database::Exists(newDatabaseName));
         ASSERT_TRUE(Database::Exists(newestDatabaseName));
 
-		// test changes on disk:
+        // test changes on disk:
         ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + newestDatabaseName + ".db")));
         ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(path + newDatabaseName + ".db")));
         ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(path + "AlterTestDb" + ".db")));
@@ -242,6 +243,50 @@ protected:
             boost::filesystem::remove_all(it->path());
         }
     }
+
+    void AlterTableAlterBlockSizeGenericTest(int32_t newBlockSize)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colA", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colB", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colC", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colD", DataType::COLUMN_INT));
+
+        alterDatabase->CreateTable(columns, tableName.c_str());
+
+        ASSERT_NE(blockSize, newBlockSize);
+
+        ASSERT_EQ(alterDatabase->GetTables().at(tableName).GetBlockSize(), blockSize);
+
+        GpuSqlCustomParser parser(alterDatabase, "ALTER TABLE " + tableName + " ALTER BLOCK SIZE " +
+                                                     std::to_string(newBlockSize) + ";");
+        auto resultPtr = parser.Parse();
+
+        ASSERT_EQ(alterDatabase->GetTables().at(tableName).GetBlockSize(), newBlockSize);
+    }
+
+    void AlterDatabaseAlterBlockSizeGenericTest(int32_t newBlockSize)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colA", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colB", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colC", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colD", DataType::COLUMN_INT));
+
+        alterDatabase->CreateTable(columns, tableName.c_str());
+
+        ASSERT_NE(blockSize, newBlockSize);
+
+        ASSERT_EQ(alterDatabase->GetTables().at(tableName).GetBlockSize(), blockSize);
+        ASSERT_EQ(alterDatabase->GetBlockSize(), blockSize);
+
+        GpuSqlCustomParser parser(nullptr, "ALTER DATABASE " + dbName + " ALTER BLOCK SIZE " +
+                                               std::to_string(newBlockSize) + ";");
+        auto resultPtr = parser.Parse();
+
+        ASSERT_EQ(alterDatabase->GetTables().at(tableName).GetBlockSize(), newBlockSize);
+        ASSERT_EQ(alterDatabase->GetBlockSize(), newBlockSize);
+    }
 };
 
 TEST_F(DispatcherAlterTests, RenameColumnTest)
@@ -257,4 +302,15 @@ TEST_F(DispatcherAlterTests, RenameTableTest)
 TEST_F(DispatcherAlterTests, RenameDatabaseTest)
 {
     AlterTableRenameDatabaseGenericTest("RenamedDatabase");
+}
+
+TEST_F(DispatcherAlterTests, AlterTableBlockSizeTest)
+{
+    AlterTableAlterBlockSizeGenericTest(blockSize * 2);
+}
+
+TEST_F(DispatcherAlterTests, AlterDatabaseBlockSizeTest)
+{
+	// FIXME: changing tables map while iterating through it
+    //AlterDatabaseAlterBlockSizeGenericTest(blockSize * 2);
 }

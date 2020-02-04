@@ -1630,6 +1630,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
     {
         std::string newTableName = arguments_.Read<std::string>();
         database_->RenameTable(tableName, newTableName);
+        tableName = newTableName;
     }
 
     int32_t newConstraintCount = arguments_.Read<int32_t>();
@@ -1655,6 +1656,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         std::string dropConstraintName = arguments_.Read<std::string>();
         database_->GetTables().at(tableName).DropConstraint(dropConstraintName);
     }
+
+    int32_t newBlockSize = arguments_.Read<int32_t>();
+    database_->ChangeTableBlockSize(tableName.c_str(), newBlockSize);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter table completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
@@ -1699,6 +1703,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
                     boost::filesystem::rename(p.path(), newPath);
                 }
             }
+            databaseName = newDatabaseName;
         }
         else
         {
@@ -1707,6 +1712,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
                 << " was NOT removed from disk. No such file (if the database was not yet saved, "
                    "ignore this warning) or no write access.";
         }
+    }
+
+    bool blockSizeChanged = arguments_.Read<bool>();
+    if (blockSizeChanged)
+    {
+        int32_t newBlockSize = arguments_.Read<int32_t>();
+        Database::GetDatabaseByName(databaseName)->ChangeDatabaseBlockSize(newBlockSize);
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Alter database completed sucessfully" << '\n';

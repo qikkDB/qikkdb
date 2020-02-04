@@ -1429,7 +1429,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     std::unordered_set<std::string> renameColumnToNames;
     std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
     std::vector<std::pair<std::string, ConstraintType>> dropConstraints;
-    int64_t newBlockSize = database_->GetBlockSize();
+    int32_t newBlockSize = database_->GetTables().at(tableName).GetBlockSize();
     std::string newTableName = "";
 
     for (auto& entry : ctx->alterTableEntries()->alterTableEntry())
@@ -1627,7 +1627,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         }
         else if (entry->alterBlockSize())
         {
-            newBlockSize = std::stoll(entry->alterBlockSize()->blockSize()->getText());
+            newBlockSize = std::stoi(entry->alterBlockSize()->blockSize()->getText());
         }
     }
 
@@ -1696,6 +1696,8 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     {
         dispatcher_.AddArgument<const std::string&>(dropConstraint.first);
     }
+
+    dispatcher_.AddArgument<int32_t>(newBlockSize);
 }
 
 void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext* ctx)
@@ -1708,6 +1710,7 @@ void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext*
         throw DatabaseNotFoundException(databaseName);
     }
 
+    int32_t newBlockSize = -1;
     std::string newDatabaseName = "";
 
     for (auto& entry : ctx->alterDatabaseEntries()->alterDatabaseEntry())
@@ -1722,6 +1725,10 @@ void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext*
                 throw DatabaseAlreadyExistsException(databaseName);
             }
         }
+        else if (entry->alterBlockSize())
+        {
+            newBlockSize = std::stoi(entry->alterBlockSize()->blockSize()->getText());
+        }
     }
 
     dispatcher_.AddAlterDatabaseFunction();
@@ -1731,6 +1738,12 @@ void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext*
     if (!newDatabaseName.empty())
     {
         dispatcher_.AddArgument<const std::string&>(newDatabaseName);
+    }
+
+	dispatcher_.AddArgument<bool>(newBlockSize != -1);
+    if (newBlockSize != -1)
+    {
+        dispatcher_.AddArgument<int32_t>(newBlockSize);
     }
 }
 

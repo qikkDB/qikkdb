@@ -747,10 +747,11 @@ void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
 
         for (auto& table : tables)
         {
-            threads.emplace_back([&](Database* db) {db->ChangeTableBlockSize(table.second.GetName().c_str(), newBlockSize); }, this);
+            threads.emplace_back(
+                [&](Database* db) { db->ChangeTableBlockSize(table.first.c_str(), newBlockSize); }, this);
         }
 
-		for (int32_t i = 0; i < tables.size(); i++)
+        for (int32_t i = 0; i < threads.size(); i++)
         {
             threads[i].join();
         }
