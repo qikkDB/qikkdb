@@ -691,7 +691,13 @@ public:
         if constexpr (std::is_pointer<T>::value)
         {
             auto colName = arguments_.Read<std::string>();
-            GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<typename std::remove_pointer<T>::type>(colName);
+            GpuSqlDispatcher::InstructionStatus loadFlag =
+                LoadCol<typename std::remove_pointer<T>::type>(colName);
+
+            if (loadFlag != InstructionStatus::CONTINUE)
+            {
+                return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
+            }
 
             if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                              StringDataTypeComp(colName)) != groupByColumns_.end() &&
@@ -922,19 +928,7 @@ public:
 
     template <typename OP, typename L, typename R>
     InstructionStatus Arithmetic();
-    /*
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticColConst();
 
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticConstConst();
-	*/
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnaryCol();
 

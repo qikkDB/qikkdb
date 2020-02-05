@@ -1,4 +1,4 @@
-
+#pragma once
 #define BEGIN_DISPATCH_TABLE(OP) \
     std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE* DataType::DATA_TYPE_SIZE> OP = {
 

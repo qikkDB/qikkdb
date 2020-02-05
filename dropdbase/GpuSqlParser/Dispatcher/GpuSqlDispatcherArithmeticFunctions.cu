@@ -1,9 +1,9 @@
 #include "GpuSqlDispatcherArithmeticFunctions.h"
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
+#define MERGED
 #include "DispatcherMacros.h"
 
-#define MERGED
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::mulFunctions_)
 DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mul, int32_t, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ArithmeticOperations::mul, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
