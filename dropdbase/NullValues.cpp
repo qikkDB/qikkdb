@@ -1,5 +1,6 @@
 #include "NullValues.h"
 #include "NullValues.h"
+#include "NullValues.h"
 
 int32_t NullValues::GetBitMaskIdx(const int32_t idx)
 {
@@ -47,4 +48,9 @@ int8_t NullValues::GetConcreteBitFromBitmask(const int8_t* bitMask, int32_t inde
     int32_t shiftMaskIdx = GetShiftMaskIdx(index);
 
 	return GetConcreteBitFromBitmask(bitMask, bitMaskIdx, shiftMaskIdx);
+}
+
+int8_t NullValues::GetPartOfBitmaskByte(const int8_t* bitMask, int32_t shiftMaskIdx, int32_t bitMaskIdx)
+{
+    return ((1 << (shiftMaskIdx + 1)) - 1) & bitMask[bitMaskIdx];
 }

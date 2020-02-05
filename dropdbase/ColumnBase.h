@@ -555,11 +555,15 @@ public:
     /// <param name="columnData">data to insert<param>
     /// <param name="groupId">id of binary index group<param>
     /// <param name="isNullValue">whether data is null value flag<param>
+<<<<<<< HEAD
     void InsertDataOnSpecificPosition(int32_t indexBlock,
                                       int32_t indexInBlock,
                                       const T& columnData,
                                       int32_t groupId = -1,
                                       bool isNullValue = false)
+=======
+    void InsertDataOnSpecificPosition(const int32_t indexBlock, const int32_t indexInBlock, const T& columnData, int groupId = -1, bool isNullValue = false)
+>>>>>>> NullValueApi: completed Columnbase refactor
     {
         size_ += 1;
 
@@ -654,8 +658,7 @@ public:
                 block1->GetNullBitmask()[i] = block.GetNullBitmask()[i];
             }
             block1->GetNullBitmask()[bitMaskIdx] =
-                ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx];
-
+                NullValues::GetPartOfBitmaskByte(block.GetNullBitmask(), shiftIdx, bitMaskIdx);
 
             int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(block.BlockCapacity());
 
@@ -664,7 +667,7 @@ public:
                 int8_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
                 if (bitMaskIdx + 1 < bitMaskCapacity)
                 {
-                    tmp |= ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx + 1];
+                    tmp |= NullValues::GetPartOfBitmaskByte(block.GetNullBitmask(), shiftIdx, bitMaskIdx + 1);
                 }
                 block2->GetNullBitmask()[i - bitMaskIdx] = tmp;
             }
@@ -768,19 +771,9 @@ public:
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             for (int32_t i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
             {
-<<<<<<< HEAD
-                int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
-                int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
-                maskIdx++;
-                if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
-                {
-                    int32_t bitMaskIdx = (i / (sizeof(char) * 8));
-                    maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
-=======
                 if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                 {
                     NullValues::SetBitInBitMask(maskPtr, i, 1);
->>>>>>> NullValueApi: refactor of ColumnBase
                 }
                 maskIdx++;
             }
