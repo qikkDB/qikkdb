@@ -1177,21 +1177,36 @@ void GpuSqlListener::exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext* ctx
 {
     dispatcher_.ClearArguments();
     dispatcher_.ClearInstructions();
-    ColumnOrder.clear();
 
     dispatcher_.AddShowQueryColumnTypesFunction();
 
-    dispatcher_.AddArgument<int32_t>(returnColumns_.size());
-    for (auto& returnColumn : returnColumns_)
+    dispatcher_.AddArgument<int32_t>(ColumnOrder.size());
+    for (auto& column : ColumnOrder)
     {
-        std::string returnColName =
-            returnColumn.second.second.empty() ? returnColumn.first : returnColumn.second.second;
+        DataType columnType;
+        std::string returnColName = column.second;
 
-        DataType dataType = std::get<0>(returnColumn.second);
+        if (returnColumns_.find(column.second) != returnColumns_.end())
+        {
+            columnType = std::get<0>(returnColumns_[column.second]);
+        }
+        else
+        {
+            for (auto& returnColumn : returnColumns_)
+            {
+                if (std::get<1>(returnColumn.second) == column.second)
+                {
+                    columnType = std::get<0>(returnColumn.second);
+                    break;
+                }
+            }
+        }
 
         dispatcher_.AddArgument<const std::string&>(returnColName);
-        dispatcher_.AddArgument<const std::string&>(::GetStringFromColumnDataType(dataType));
+        dispatcher_.AddArgument<const std::string&>(::GetStringFromColumnDataType(columnType));
     }
+
+    ColumnOrder.clear();
 
     ColumnOrder.insert({0, "ColumnName"});
     ColumnOrder.insert({1, "TypeName"});
