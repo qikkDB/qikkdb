@@ -216,9 +216,7 @@ public:
 
                     for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
 
                         if (bit)
                         {
@@ -278,7 +276,6 @@ public:
                 for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
                 {
                     auto data = blocksId.second[i]->GetData();
-                    int8_t* mask = blocksId.second[i]->GetNullBitmask();
 
                     for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
                     {
@@ -644,8 +641,13 @@ public:
 
         if (isNullable_)
         {
+<<<<<<< HEAD
             int32_t bitMaskIdx = (((block.GetSize() - 1) / 2) / (sizeof(char) * 8));
             int32_t shiftIdx = (((block.GetSize() - 1) / 2) % (sizeof(char) * 8));
+=======
+            int32_t bitMaskIdx = NullValues::GetBitMaskIdx((block.GetSize() - 1) / 2);
+            int32_t shiftIdx = NullValues::GetShiftMaskIdx((block.GetSize() - 1) / 2);
+>>>>>>> NullValueApi: refactor of ColumnBase
 
             for (size_t i = 0; i < bitMaskIdx; i++)
             {
@@ -655,13 +657,11 @@ public:
                 ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx];
 
 
-            int32_t bitMaskCapacity =
-                ((block.BlockCapacity() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+            int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(block.BlockCapacity());
 
             for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
             {
-                int8_t tmp = block.GetNullBitmask()[i] >> (shiftIdx + 1);
-
+                int8_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
                 if (bitMaskIdx + 1 < bitMaskCapacity)
                 {
                     tmp |= ((1 << (shiftIdx + 1)) - 1) & block.GetNullBitmask()[bitMaskIdx + 1];
@@ -746,14 +746,12 @@ public:
                 auto maskPtr = lastBlock->GetNullBitmask();
                 for (int32_t i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
                 {
-                    int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
-                    int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
-                    maskIdx++;
-                    if ((nullMask[nullMaskOffset] >> nullMaskShiftOffset) & 1)
+
+                    if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                     {
-                        int32_t bitMaskIdx = (i / (sizeof(char) * 8));
-                        maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
+                        NullValues::SetBitInBitMask(maskPtr, i, 1);
                     }
+                    maskIdx++;
                 }
                 if (compress && lastBlock->IsFull())
                 {
@@ -770,6 +768,7 @@ public:
             lastBlock->InsertData(std::vector<T>(columnData.cbegin(), columnData.cbegin() + emptySpace));
             for (int32_t i = bitMaskStartIdx; i < lastBlock->BlockCapacity(); i++)
             {
+<<<<<<< HEAD
                 int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
                 int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
                 maskIdx++;
@@ -777,7 +776,13 @@ public:
                 {
                     int32_t bitMaskIdx = (i / (sizeof(char) * 8));
                     maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
+=======
+                if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
+                {
+                    NullValues::SetBitInBitMask(maskPtr, i, 1);
+>>>>>>> NullValueApi: refactor of ColumnBase
                 }
+                maskIdx++;
             }
             if (compress && lastBlock->IsFull())
             {
@@ -795,6 +800,7 @@ public:
             auto maskPtr = block.GetNullBitmask();
             for (int32_t i = 0; i < toCopy; i++)
             {
+<<<<<<< HEAD
                 int32_t nullMaskOffset = maskIdx / (sizeof(char) * 8);
                 int32_t nullMaskShiftOffset = maskIdx % (sizeof(char) * 8);
                 maskIdx++;
@@ -802,13 +808,18 @@ public:
                 {
                     int32_t bitMaskIdx = (i / (sizeof(char) * 8));
                     maskPtr[bitMaskIdx] |= 1 << (i % (sizeof(char) * 8));
+=======
+                if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
+                {
+                    NullValues::SetBitInBitMask(maskPtr, i, 1);
+>>>>>>> NullValueApi: refactor of ColumnBase
                 }
+                maskIdx++;
             }
             startIdx += toCopy;
         }
         // setColumnStatistics();
     }
-
 
     /// <summary>
     /// Get all unique values for this column
@@ -865,20 +876,14 @@ public:
                         int32_t data = static_cast<int32_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());
@@ -908,20 +913,14 @@ public:
                         int64_t data = static_cast<int64_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());
@@ -951,20 +950,14 @@ public:
                         double data = static_cast<double>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());
@@ -994,20 +987,14 @@ public:
                         float data = static_cast<float>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());
@@ -1037,20 +1024,14 @@ public:
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());
@@ -1080,20 +1061,14 @@ public:
                         std::string data = std::to_string(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = newNullMask[j] << shiftIdx;
-                        newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
+                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
                     }
 
                     block.second.erase(block.second.begin());

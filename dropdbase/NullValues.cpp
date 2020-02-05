@@ -1,4 +1,5 @@
 #include "NullValues.h"
+#include "NullValues.h"
 
 int32_t NullValues::GetBitMaskIdx(const int32_t idx)
 {
@@ -35,7 +36,15 @@ void NullValues::SetBitInBitMask(int8_t* bitMask, const int32_t index, const int
     SetBitInBitMask(bitMask, bitMaskIdx, shiftMaskIdx, newBit);
 }
 
-int8_t NullValues::GetConcreteBitFromBitmask(int8_t* bitMask, const int32_t bitMaskIdx, const int32_t shiftMaskIdx)
+int8_t NullValues::GetConcreteBitFromBitmask(const int8_t* bitMask, const int32_t bitMaskIdx, const int32_t shiftMaskIdx)
 {
     return (bitMask[bitMaskIdx] >> shiftMaskIdx) & 1;
+}
+
+int8_t NullValues::GetConcreteBitFromBitmask(const int8_t* bitMask, int32_t index)
+{
+    int32_t bitMaskIdx = GetBitMaskIdx(index);
+    int32_t shiftMaskIdx = GetShiftMaskIdx(index);
+
+	return GetConcreteBitFromBitmask(bitMask, bitMaskIdx, shiftMaskIdx);
 }

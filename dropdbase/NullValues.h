@@ -11,5 +11,6 @@ public:
     static void
     SetBitInBitMask(int8_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx, int8_t newBit);
     static void SetBitInBitMask(int8_t* bitMask, int32_t index, int8_t newBit);
-    static int8_t GetConcreteBitFromBitmask(int8_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx);
+    static int8_t GetConcreteBitFromBitmask(const int8_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx);
+    static int8_t GetConcreteBitFromBitmask(const int8_t* bitMask, int32_t index);
 };
