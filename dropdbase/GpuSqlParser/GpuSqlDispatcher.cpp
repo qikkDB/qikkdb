@@ -421,7 +421,7 @@ void GpuSqlDispatcher::AddLogicalOrFunction(DataType left, DataType right)
 
 void GpuSqlDispatcher::AddMulFunction(DataType left, DataType right)
 {
-    dispatcherFunctions_.push_back(mulFunctions_[GetBinaryDispatchTableIndex(left, right)]);
+    dispatcherFunctions_.push_back(mulFunctions_[left * DataType::DATA_TYPE_SIZE + right]);
 }
 
 

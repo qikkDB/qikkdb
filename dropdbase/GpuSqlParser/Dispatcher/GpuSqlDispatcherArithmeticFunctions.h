@@ -26,17 +26,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Arithmetic: " << reg << '\n';
 
     constexpr bool bothTypesFloatOrBothIntegral =
-        std::is_floating_point<std::remove_pointer<L>::type>::value &&
-            std::is_floating_point<std::remove_pointer<R>::type>::value ||
-        std::is_integral<std::remove_pointer<L>::type>::value &&
-            std::is_integral<std::remove_pointer<R>::type>::value;
+        std::is_floating_point<typename std::remove_pointer<L>::type>::value &&
+            std::is_floating_point<typename std::remove_pointer<R>::type>::value ||
+        std::is_integral<typename std::remove_pointer<L>::type>::value &&
+            std::is_integral<typename std::remove_pointer<R>::type>::value;
     typedef typename std::conditional<
         bothTypesFloatOrBothIntegral,
-        typename std::conditional<sizeof(std::remove_pointer<L>::type) >= sizeof(std::remove_pointer<R>::type),
-                                  std::remove_pointer<L>::type, std::remove_pointer<R>::type>::type,
-        typename std::conditional<std::is_floating_point<std::remove_pointer<L>::type>::value, std::remove_pointer<L>::type,
-                                  typename std::conditional<std::is_floating_point<std::remove_pointer<R>::type>::value,
-                                                            std::remove_pointer<R>::type, void>::type>::type>::type ResultType;
+        typename std::conditional<sizeof(typename std::remove_pointer<L>::type) >= sizeof(typename std::remove_pointer<R>::type),
+                                  typename std::remove_pointer<L>::type, typename std::remove_pointer<R>::type>::type,
+        typename std::conditional<std::is_floating_point<typename std::remove_pointer<L>::type>::value, typename std::remove_pointer<L>::type,
+                                  typename std::conditional<std::is_floating_point<typename std::remove_pointer<R>::type>::value,
+                                                            typename std::remove_pointer<R>::type, void>::type>::type>::type ResultType;
 
     if (std::is_pointer<L>::value && std::is_pointer<R>::value)
     {
@@ -45,11 +45,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const int32_t retSize = std::min(std::get<1>(left).ElementCount, std::get<1>(right).ElementCount);
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
-                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask);
+                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
+                                                      std::get<3>(left), std::get<3>(right));
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
-                std::get<1>(result), reinterpret_cast<int8_t*>(std::get<0>(left).GpuNullMaskPtr),
-                reinterpret_cast<int8_t*>(std::get<0>(right).GpuNullMaskPtr), bitMaskSize);
+                std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
             GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                             std::get<0>(right), retSize);
         }
@@ -64,10 +65,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
-                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask);
+                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
+                                                      std::get<3>(left), std::get<3>(right));
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                          reinterpret_cast<int8_t*>(std::get<0>(left).GpuNullMaskPtr),
+                                          reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                           bitMaskSize);
             GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                             std::get<0>(right), retSize);
@@ -82,10 +84,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const int32_t retSize = std::get<1>(right).ElementCount;
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
-                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask);
+                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
+                                                      std::get<3>(left), std::get<3>(right));
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                          reinterpret_cast<int8_t*>(std::get<0>(right).GpuNullMaskPtr),
+                                          reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
                                           bitMaskSize);
             GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                             std::get<0>(right), retSize);

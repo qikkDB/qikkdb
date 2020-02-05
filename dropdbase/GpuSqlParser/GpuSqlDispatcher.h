@@ -688,10 +688,10 @@ public:
     {
         PointerAllocation column = {0, 0, false, 0};
 
-        if (std::is_pointer<T>::value)
+        if constexpr (std::is_pointer<T>::value)
         {
             auto colName = arguments_.Read<std::string>();
-            GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::remove_pointer<T>::type>(colName);
+            GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<typename std::remove_pointer<T>::type>(colName);
 
             if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                              StringDataTypeComp(colName)) != groupByColumns_.end() &&
@@ -716,13 +716,19 @@ public:
     }
 
     template <typename T>
-    std::pair<T*, int8_t*> AllocateInstructionResult(const std::string reg, int32_t retSize, bool allocateNullMask)
+    std::pair<T*, int8_t*> AllocateInstructionResult(const std::string& reg,
+                                                     int32_t retSize,
+                                                     bool allocateNullMask,
+                                                     const std::string& colNameLeft,
+                                                     const std::string& colNameRight)
     {
         T* result = nullptr;
         int8_t* nullMask = nullptr;
 
-        if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-                groupByColumns_.end() &&
+        if ((std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
+                          StringDataTypeComp(colNameLeft)) != groupByColumns_.end() ||
+             std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
+                          StringDataTypeComp(colNameRight)) != groupByColumns_.end()) &&
             !insideAggregation_)
         {
             if (isOverallLastBlock_)
@@ -741,6 +747,7 @@ public:
                                             AllocateRegister<T>(reg, retSize);
             }
         }
+        return {result, nullMask};
     }
 
     template <typename T>
