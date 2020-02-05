@@ -922,7 +922,7 @@ public:
 
     template <typename OP, typename L, typename R>
     InstructionStatus Arithmetic();
-
+    /*
     template <typename OP, typename T, typename U>
     InstructionStatus ArithmeticColConst();
 
@@ -934,7 +934,7 @@ public:
 
     template <typename OP, typename T, typename U>
     InstructionStatus ArithmeticConstConst();
-
+	*/
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnaryCol();
 

@@ -99,6 +99,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
     return InstructionStatus::CONTINUE;
 }
 
+/*
 /// Implementation of generic binary arithmetic function dispatching given by the functor OP
 /// Implementation for column constant case
 /// Pops data from argument memory stream and loads data to GPU on demand
@@ -458,3 +459,4 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticConstConst()
     }
     return InstructionStatus::CONTINUE;
 }
+*/
