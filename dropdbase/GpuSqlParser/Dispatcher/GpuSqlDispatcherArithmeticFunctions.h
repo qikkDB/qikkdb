@@ -46,7 +46,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
                 AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
-                                                      std::get<3>(left), std::get<3>(right));
+                                                      {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -69,7 +69,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
                 AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
-                                                      std::get<3>(left), std::get<3>(right));
+                                                      {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -91,7 +91,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
             std::pair<ResultType*, int8_t*> result =
                 AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask,
-                                                      std::get<3>(left), std::get<3>(right));
+                                                      {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));

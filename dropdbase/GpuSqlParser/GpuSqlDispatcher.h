@@ -725,17 +725,21 @@ public:
     std::pair<T*, int8_t*> AllocateInstructionResult(const std::string& reg,
                                                      int32_t retSize,
                                                      bool allocateNullMask,
-                                                     const std::string& colNameLeft,
-                                                     const std::string& colNameRight)
+                                                     const std::vector<std::string>& instructionOperandColumns)
     {
         T* result = nullptr;
         int8_t* nullMask = nullptr;
 
-        if ((std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                          StringDataTypeComp(colNameLeft)) != groupByColumns_.end() ||
-             std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                          StringDataTypeComp(colNameRight)) != groupByColumns_.end()) &&
-            !insideAggregation_)
+        bool areGroupByColumns = false;
+
+        for (auto& operandColumn : instructionOperandColumns)
+        {
+            areGroupByColumns = areGroupByColumns ||
+                                (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
+                                              StringDataTypeComp(operandColumn)) != groupByColumns_.end());
+        }
+
+        if (areGroupByColumns && !insideAggregation_)
         {
             if (isOverallLastBlock_)
             {
@@ -928,6 +932,9 @@ public:
 
     template <typename OP, typename L, typename R>
     InstructionStatus Arithmetic();
+
+    template <typename OP, typename T>
+    InstructionStatus ArithmeticUnary();
 
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnaryCol();
