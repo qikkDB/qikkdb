@@ -17,6 +17,9 @@
 
 namespace ArithmeticOperations
 {
+__device__ const double PI = 3.141592653589793238463;
+__device__ const float PI_F = 3.14159265358979f;
+
 /// Arithmetic operation add
 struct add
 {
@@ -254,6 +257,31 @@ struct roundDecimal
     {
         const double multiplier = powf(10.0, b);
         return roundf(a * multiplier) / multiplier;
+    }
+};
+
+/// Mathematical function longitudeToTileX
+struct longitudeToTileX
+{
+    static constexpr bool isFloatRetType = false;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U longitude, V zoom, int32_t* errorFlag, T min, T max) const
+    {
+        return (int32_t)floorf((longitude + 180.0f) / 360.0f * powf(2.0f, zoom));
+    }
+};
+
+/// Mathematical function latitudeToTileY
+struct latitudeToTileY
+{
+    static constexpr bool isFloatRetType = false;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
+    {
+        return (int32_t)floorf((1 - logf(tanf(latitude *  PI_F/ 180.0f) +
+                                         1 / cosf(latitude * PI_F / 180.0f)) /
+                                        PI_F) *
+            powf(2.0f, zoom - 1));
     }
 };
 
