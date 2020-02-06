@@ -12,8 +12,8 @@
 template <typename OP, typename L, typename R>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
 {
-    std::tuple<R, PointerAllocation, InstructionStatus, std::string> right = LoadInstructionArgument<R>();
-    std::tuple<L, PointerAllocation, InstructionStatus, std::string> left = LoadInstructionArgument<L>();
+    InstructionArgument<R> right = LoadInstructionArgument<R>();
+    InstructionArgument<L> left = LoadInstructionArgument<L>();
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {
@@ -306,8 +306,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringConstConst()
 template <typename OP, typename L, typename R>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Logical()
 {
-    std::tuple<R, PointerAllocation, InstructionStatus, std::string> right = LoadInstructionArgument<R>();
-    std::tuple<L, PointerAllocation, InstructionStatus, std::string> left = LoadInstructionArgument<L>();
+    InstructionArgument<R> right = LoadInstructionArgument<R>();
+    InstructionArgument<L> left = LoadInstructionArgument<L>();
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {

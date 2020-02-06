@@ -5,7 +5,7 @@
 template <typename OP, typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 {
-    std::tuple<T, PointerAllocation, InstructionStatus, std::string> left = LoadInstructionArgument<T>();
+    InstructionArgument<T> left = LoadInstructionArgument<T>();
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {

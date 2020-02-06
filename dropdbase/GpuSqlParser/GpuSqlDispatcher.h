@@ -89,6 +89,14 @@ private:
     static const std::string RECONSTRUCTED_SUFFIX;
 
     typedef InstructionStatus (GpuSqlDispatcher::*DispatchFunction)();
+    template <typename T>
+    using InstructionArgument = typename std::conditional<
+        std::is_same<T, std::string>::value,
+        std::tuple<GPUMemory::GPUString, std::tuple<GPUMemory::GPUString, int32_t, int8_t*>, InstructionStatus, std::string>,
+        typename std::conditional<std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value,
+                                  std::tuple<GPUMemory::GPUPolygon, std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*>, InstructionStatus, std::string>,
+                                  std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type>::type;
+
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
     int32_t blockIndex_;
