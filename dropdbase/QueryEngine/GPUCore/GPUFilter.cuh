@@ -117,50 +117,25 @@ public:
 
     /// Filtration operation between two strings (column-column)
     template <typename OP>
-    static void
-    colCol(int8_t* outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int8_t* nullBitMask, int32_t dataElementCount)
+    static void FilterString(int8_t* outMask,
+                             GPUMemory::GPUString ACol,
+                             bool isACol,
+                             GPUMemory::GPUString BCol,
+                             bool isBCol,
+                             int8_t* nullBitMask,
+                             int32_t dataElementCount)
     {
         kernel_filter_string<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, true, BCol, true, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation between two strings (column-constant)
-    template <typename OP>
-    static void
-    colConst(int8_t* outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BConst, int8_t* nullBitMask, int32_t dataElementCount)
-    {
-        kernel_filter_string<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, true, BConst, false, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation between two strings (constant-column)
-    template <typename OP>
-    static void
-    constCol(int8_t* outMask, GPUMemory::GPUString AConst, GPUMemory::GPUString BCol, int8_t* nullBitMask, int32_t dataElementCount)
-    {
-        kernel_filter_string<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, AConst, false, BCol, true, nullBitMask, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// Filtration operation between two strings (constant-constant)
-    template <typename OP>
-    static void constConst(int8_t* outMask, GPUMemory::GPUString AConst, GPUMemory::GPUString BConst, int32_t dataElementCount)
-    {
-        // Compare constants
-        kernel_filter_string<OP>
-            <<<Context::getInstance().calcGridDim(1), Context::getInstance().getBlockDim()>>>(
-                outMask, AConst, false, BConst, false, nullptr, 1);
+                outMask, ACol, isACol, BCol, isBCol, nullBitMask, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        // Expand mask - copy the one result to whole mask
-        int8_t numberFromMask;
-        GPUMemory::copyDeviceToHost(&numberFromMask, outMask, 1);
-        GPUMemory::memset(outMask, numberFromMask, dataElementCount);
+        if (!isACol && !isBCol)
+        {
+            // Expand mask - copy the one result to whole mask
+            int8_t numberFromMask;
+            GPUMemory::copyDeviceToHost(&numberFromMask, outMask, 1);
+            GPUMemory::memset(outMask, numberFromMask, dataElementCount);
+        }
     }
 };

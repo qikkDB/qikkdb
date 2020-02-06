@@ -133,7 +133,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
             GPUFilter::Filter<OP, L, R>(std::get<0>(result), std::get<0>(left), std::get<0>(right),
                                         nullptr, retSize);
         }
-    };
+    }
 
     return InstructionStatus::CONTINUE;
 }
@@ -173,7 +173,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringColConst()
         {
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPUFilter::colConst<OP>(mask, std::get<0>(column), constString, nullBitMask, retSize);
+        GPUFilter::FilterString<OP>(mask, std::get<0>(column), true, constString, false, nullBitMask, retSize);
     }
     return InstructionStatus::CONTINUE;
 }
@@ -212,7 +212,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringConstCol()
         {
             mask = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPUFilter::constCol<OP>(mask, constString, std::get<0>(column), nullBitMask, retSize);
+        GPUFilter::FilterString<OP>(mask, constString, false, std::get<0>(column), true, nullBitMask, retSize);
     }
     return InstructionStatus::CONTINUE;
 }
@@ -263,13 +263,15 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringColCol()
             {
                 GPUMemory::copyDeviceToDevice(combinedMask, rightMask, bitMaskSize);
             }
-            GPUFilter::colCol<OP>(mask, std::get<0>(columnLeft), std::get<0>(columnRight), combinedMask, retSize);
+            GPUFilter::FilterString<OP>(mask, std::get<0>(columnLeft), true,
+                                        std::get<0>(columnRight), true, combinedMask, retSize);
         }
 
         else
         {
             int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-            GPUFilter::colCol<OP>(mask, std::get<0>(columnLeft), std::get<0>(columnRight), nullptr, retSize);
+            GPUFilter::FilterString<OP>(mask, std::get<0>(columnLeft), true,
+                                        std::get<0>(columnRight), true, nullptr, retSize);
         }
     }
     return InstructionStatus::CONTINUE;
@@ -296,7 +298,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::FilterStringConstConst()
         GPUMemory::GPUString constStringRight = InsertConstStringGpu(cnstRight);
 
         int8_t* mask = AllocateRegister<int8_t>(reg, retSize);
-        GPUFilter::constConst<OP>(mask, constStringLeft, constStringRight, retSize);
+        GPUFilter::FilterString<OP>(mask, constStringLeft, false, constStringRight, false, nullptr, retSize);
     }
     return InstructionStatus::CONTINUE;
 }
@@ -424,7 +426,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Logical()
         {
             GPULogic::Logic<OP, L, R>(std::get<0>(result), std::get<0>(left), std::get<0>(right), nullptr, retSize);
         }
-    };
+    }
 
     return InstructionStatus::CONTINUE;
 }
