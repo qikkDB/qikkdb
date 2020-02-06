@@ -738,7 +738,7 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
 /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
 /// </summary>
 /// <param name="newBlockSize">New block size of all tables and columns of this database.</param>
-void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
+void Database::ChangeDatabaseBlockSize(const int32_t newBlockSize)
 {
     if (newBlockSize != blockSize_)
     {
@@ -765,10 +765,8 @@ void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
 /// </summary>
 /// <param name="tableName">Name of the table which have which block size will be changed.</param>
 /// <param name="newBlockSize">New block size of a table and columns of this table.</param>
-void Database::ChangeTableBlockSize(const char* tableName2, int32_t newBlockSize)
+void Database::ChangeTableBlockSize(const std::string tableName, const int32_t newBlockSize)
 {
-    std::string tableName = tableName2;
-
     if (newBlockSize != tables_.at(tableName).GetBlockSize())
     {
         auto& table = tables_.at(tableName);
@@ -780,7 +778,7 @@ void Database::ChangeTableBlockSize(const char* tableName2, int32_t newBlockSize
                                        Table(GetDatabaseByName(name_),
                                              ("temp_" + tableName).c_str(), newBlockSize)));
 
-        auto& newTableHashMap = tables_.find(("temp_" + tableName).c_str());
+        auto& newTableHashMap = tables_.find("temp_" + tableName);
         auto& oldTableHashMap = tables_.find(tableName);
 
         // create the same columns in the new table (same as in the old table)
@@ -817,7 +815,7 @@ void Database::ChangeTableBlockSize(const char* tableName2, int32_t newBlockSize
         // delete original table from memory
         tables_.erase(tableName);
 
-        RenameTable(("temp_" + std::string(tableName)).c_str(), tableName);
+        RenameTable(("temp_" + tableName).c_str(), tableName);
 
         // save all changes to disk
         Persist(Configuration::GetInstance().GetDatabaseDir().c_str());

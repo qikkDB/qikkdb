@@ -179,7 +179,7 @@ public:
     /// </summary>
     /// <param name="tableName">Name of the table which have which block size will be changed.</param>
     /// <param name="newBlockSize">New block size of a table and columns of this table.</param>
-    void ChangeTableBlockSize(const char* tableName, int32_t newBlockSize);
+    void ChangeTableBlockSize(const std::string tableName, int32_t newBlockSize);
 
     /// <summary>
     /// Load database from disk into memory.

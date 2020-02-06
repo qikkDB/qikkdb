@@ -409,10 +409,10 @@ public:
         {
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
-                int8_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
-                int32_t bitMaskIdx = (srcRowIndex / (sizeof(int8_t) * 8)); // which byte it is
-                int32_t shiftIdx = (srcRowIndex % (sizeof(int8_t) * 8)); // which bit it is
-                bool isNullValue = (nullBitMask[bitMaskIdx] >> shiftIdx) & 1;
+                const int8_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
+                const int32_t bitMaskIdx = (srcRowIndex / (sizeof(int8_t) * 8)); // which byte it is
+                const int32_t shiftIdx = (srcRowIndex % (sizeof(int8_t) * 8)); // which bit it is
+                const bool isNullValue = (nullBitMask[bitMaskIdx] >> shiftIdx) & 1;
 
                 InsertDataOnSpecificPositionResizing(dstBlockIndex,
                     dstRowIndex, srcBlocks[srcBlockIndex]->GetData()[srcRowIndex], -1, isNullValue);
