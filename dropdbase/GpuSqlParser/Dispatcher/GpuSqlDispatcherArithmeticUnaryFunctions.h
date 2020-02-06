@@ -18,7 +18,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 
     // TODO STD conditional :: if OP == abs return type = T
 
-    typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
+    typedef typename std::conditional<OP::isFloatRetType, float, typename std::remove_pointer<T>::type>::type ResultType;
 
     if (std::is_pointer<T>::value)
     {
@@ -30,117 +30,35 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
                 AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask, {std::get<3>(left)});
             if (std::get<0>(result))
             {
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                              reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                                              bitMaskSize);
+                if (std::get<1>(result))
+                {
+                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
+                                                  reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                                                  bitMaskSize);
+                }
                 GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(std::get<0>(result),
                                                                        std::get<0>(left), retSize);
             }
         }
         FreeColumnIfRegister<T>(std::get<3>(left));
     }
-
-    return InstructionStatus::CONTINUE;
-}
-
-/// Implementation of generic unary arithmetic function dispatching given by the functor OP
-/// Implementation for column case
-/// Pops data from argument memory stream and loads data to GPU on demand
-/// <returns name="statusCode">Finish status code of the operation</returns>
-template <typename OP, typename T>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnaryCol()
-{
-    auto colName = arguments_.Read<std::string>();
-    auto reg = arguments_.Read<std::string>();
-
-    // TODO STD conditional :: if OP == abs return type = T
-
-    typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
-
-    GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
-    if (loadFlag != InstructionStatus::CONTINUE)
+    else
     {
-        return loadFlag;
-    }
-
-    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticUnaryCol: " << colName << " " << reg << '\n';
-
-    if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(), StringDataTypeComp(colName)) !=
-            groupByColumns_.end() &&
-        !insideAggregation_)
-    {
-        if (isOverallLastBlock_)
+        const int32_t retSize = GetBlockSize();
+        if (retSize == 0)
         {
-            PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
-            int32_t retSize = column.ElementCount;
-            ResultType* result;
-            if (column.GpuNullMaskPtr)
-            {
-                int8_t* nullMask;
-                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize, &nullMask);
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
-            }
-            else
-            {
-                result = AllocateRegister<ResultType>(reg + KEYS_SUFFIX, retSize);
-            }
-            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T*>(result,
-                                                                    reinterpret_cast<T*>(column.GpuPtr), retSize);
-            groupByColumns_.push_back({reg, ::GetColumnType<ResultType>()});
+            return InstructionStatus::OUT_OF_BLOCKS;
         }
-    }
-    else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
-    {
-        PointerAllocation column = allocatedPointers_.at(colName);
-        int32_t retSize = column.ElementCount;
-        if (!IsRegisterAllocated(reg))
+
+        std::pair<ResultType*, int8_t*> result =
+            AllocateInstructionResult<ResultType>(reg, retSize, false, {});
+
+        if (std::get<0>(result))
         {
-            ResultType* result;
-            if (column.GpuNullMaskPtr)
-            {
-                int8_t* nullMask;
-                result = AllocateRegister<ResultType>(reg, retSize, &nullMask);
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
-            }
-            else
-            {
-                result = AllocateRegister<ResultType>(reg, retSize);
-            }
-            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T*>(result,
-                                                                    reinterpret_cast<T*>(column.GpuPtr), retSize);
+            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(std::get<0>(result),
+                                                                   std::get<0>(left), retSize);
         }
-    }
-    FreeColumnIfRegister<T>(colName);
-    return InstructionStatus::CONTINUE;
-}
-
-/// Implementation of generic unary arithmetic function dispatching given by the functor OP
-/// Implementation for constant case
-/// Pops data from argument memory stream and loads data to GPU on demand
-/// <returns name="statusCode">Finish status code of the operation</returns>
-template <typename OP, typename T>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnaryConst()
-{
-    T cnst = arguments_.Read<T>();
-    auto reg = arguments_.Read<std::string>();
-
-    // TODO STD conditional :: if OP == abs return type = T
-    typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
-
-    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticUnaryConst: " << reg << '\n';
-
-    int32_t retSize = GetBlockSize();
-    if (retSize == 0)
-    {
-        return InstructionStatus::OUT_OF_BLOCKS;
-    }
-    if (!IsRegisterAllocated(reg))
-    {
-        ResultType* result = AllocateRegister<ResultType>(reg, retSize);
-        GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(result, cnst, retSize);
     }
 
     return InstructionStatus::CONTINUE;

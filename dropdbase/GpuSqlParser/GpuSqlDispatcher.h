@@ -936,12 +936,6 @@ public:
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnary();
 
-    template <typename OP, typename T>
-    InstructionStatus ArithmeticUnaryCol();
-
-    template <typename OP, typename T>
-    InstructionStatus ArithmeticUnaryConst();
-
     template <typename OP>
     InstructionStatus StringUnaryCol();
 

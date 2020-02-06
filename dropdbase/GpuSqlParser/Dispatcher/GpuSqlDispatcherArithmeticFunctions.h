@@ -49,10 +49,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                       {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
-                    std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                    reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
+                if (std::get<1>(result))
+                {
+                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                        std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                        reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
+                }
                 GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
             }
@@ -72,10 +75,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                       {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                              reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                                              bitMaskSize);
+                if (std::get<1>(result))
+                {
+                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
+                                                  reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                                                  bitMaskSize);
+                }
                 GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
             }
@@ -94,15 +100,35 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                       {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
-                int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                              reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
-                                              bitMaskSize);
+                if (std::get<1>(result))
+                {
+                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
+                                                  reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
+                                                  bitMaskSize);
+                }
                 GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
             }
         }
         FreeColumnIfRegister<R>(std::get<3>(right));
+    }
+
+    else
+    {
+        const int32_t retSize = GetBlockSize();
+        if (retSize == 0)
+        {
+            return InstructionStatus::OUT_OF_BLOCKS;
+        }
+
+        std::pair<ResultType*, int8_t*> result =
+            AllocateInstructionResult<ResultType>(reg, retSize, false, {});
+        if (std::get<0>(result))
+        {
+            GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
+                                                            std::get<0>(right), retSize);
+        }
     }
 
     return InstructionStatus::CONTINUE;
