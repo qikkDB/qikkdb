@@ -234,14 +234,24 @@ void GpuSqlListener::exitBinaryOperation(GpuSqlParser::BinaryOperationContext* c
         dispatcher_.AddRightFunction(leftOperandType, rightOperandType);
         returnDataType = DataType::COLUMN_STRING;
         break;
-    case GpuSqlLexer::LONGITUDE_TO_TILE_X:
+    case GpuSqlLexer::GEO_LONGITUDE_TO_TILE_X:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        dispatcher_.AddLongitudeToTileXFunction(leftOperandType, rightOperandType);
+        dispatcher_.AddGeoLongitudeToTileXFunction(leftOperandType, rightOperandType);
         returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
-    case GpuSqlLexer::LATITUDE_TO_TILE_Y:
+    case GpuSqlLexer::GEO_LATITUDE_TO_TILE_Y:
         reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
-        dispatcher_.AddLatitudeToTileYFunction(leftOperandType, rightOperandType);
+        dispatcher_.AddGeoLatitudeToTileYFunction(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
+        break;
+    case GpuSqlLexer::GEO_TILE_X_TO_LONGITUDE:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        dispatcher_.AddGeoTileXToLongitudeFunction(leftOperandType, rightOperandType);
+        returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
+        break;
+    case GpuSqlLexer::GEO_TILE_Y_TO_LATITUDE:
+        reg = "$" + op + "(" + leftOperand + "," + rightOperand + ")";
+        dispatcher_.AddGeoTileYToLatitudeFunction(leftOperandType, rightOperandType);
         returnDataType = GetReturnDataType(leftOperandType, rightOperandType);
         break;
     default:

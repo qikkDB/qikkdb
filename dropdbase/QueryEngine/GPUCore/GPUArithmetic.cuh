@@ -13,12 +13,11 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 #include "../NullConstants.cuh"
+#include "../../MathConstants.h"
 #include "ArithmeticOperations.h"
 
 namespace ArithmeticOperations
 {
-__device__ const double PI = 3.141592653589793238463;
-__device__ const float PI_F = 3.14159265358979f;
 
 /// Arithmetic operation add
 struct add
@@ -260,8 +259,9 @@ struct roundDecimal
     }
 };
 
-/// Mathematical function longitudeToTileX
-struct longitudeToTileX
+/// Geo-arithmetic function LongitudeToTileX
+/// Converts longitude in degrees to tile X at zoom
+struct geoLongitudeToTileX
 {
     static constexpr bool isFloatRetType = false;
     template <typename T, typename U, typename V>
@@ -271,17 +271,41 @@ struct longitudeToTileX
     }
 };
 
-/// Mathematical function latitudeToTileY
-struct latitudeToTileY
+/// Geo-arithmetic function geoLatitudeToTileY
+/// Converts latitude in degrees to tile Y at zoom
+struct geoLatitudeToTileY
 {
     static constexpr bool isFloatRetType = false;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
     {
-        return (int32_t)floorf((1 - logf(tanf(latitude *  PI_F/ 180.0f) +
-                                         1 / cosf(latitude * PI_F / 180.0f)) /
-                                        PI_F) *
-            powf(2.0f, zoom - 1));
+        U latitudeRad = latitude * pi<U> / 180.0f;
+        return (int32_t)(floorf((1.0 - asinhf(tanf(latitudeRad)) / pi<float>) / 2.0 * powf(2.0f, zoom))); 
+    }
+};
+
+/// Geo-arithmetic function geoTileXToLongitude
+/// Converts tile X at zoom to longitude in degrees
+struct geoTileXToLongitude
+{
+    static constexpr bool isFloatRetType = true;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U tileX, V zoom, int32_t* errorFlag, T min, T max) const
+    {
+        return tileX / powf(2.0f, zoom) * 360.0f - 180.0f;
+    }
+};
+
+/// Geo-arithmetic function geoTileYToLatitude
+/// Converts tile Y at zoom to latitude in degrees
+struct geoTileYToLatitude
+{
+    static constexpr bool isFloatRetType = true;
+    template <typename T, typename U, typename V>
+    __device__ __host__ T operator()(U tileY, V zoom, int32_t* errorFlag, T min, T max) const
+    {
+        float latitudeRad = atanf(sinhf(pi<float> * (1 - 2 * tileY / powf(2.0f, zoom))));
+        return latitudeRad * 180.0 / pi<float>;
     }
 };
 

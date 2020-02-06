@@ -166,8 +166,10 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
-    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> longitudeToTileXFunctions_;
-    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> latitudeToTileYFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLongitudeToTileXFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLatitudeToTileYFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileXToLongitudeFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileYToLatitudeFunctions_;    
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions_;
@@ -552,9 +554,13 @@ public:
 
     void AddRootFunction(DataType base, DataType exponent);
 
-	void AddLongitudeToTileXFunction(DataType longitude, DataType zoom);
+	void AddGeoLongitudeToTileXFunction(DataType longitude, DataType zoom);
 
-    void AddLatitudeToTileYFunction(DataType latitude, DataType zoom);
+    void AddGeoLatitudeToTileYFunction(DataType latitude, DataType zoom);
+
+	void AddGeoTileXToLongitudeFunction(DataType tileX, DataType zoom);
+
+    void AddGeoTileYToLatitudeFunction(DataType tileY, DataType zoom);
 
     void AddMinFunction(DataType key, DataType value, GroupByType groupByType);
 
