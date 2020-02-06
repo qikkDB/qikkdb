@@ -12125,6 +12125,7 @@ TEST(DispatcherTests, StringNotEqConstConst)
 
 
 // Polygon clipping tests
+/*
 TEST(DispatcherTests, PolygonClippingAndContains)
 {
     // TODO: fix zero allocation, finish polygon clippin and add asserts
@@ -12138,7 +12139,7 @@ TEST(DispatcherTests, PolygonClippingAndContains)
 
     std::vector<std::string> expectedResultsPoints;
 }
-
+*/
 
 TEST(DispatcherTests, CreateDropDatabase)
 {
