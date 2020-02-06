@@ -231,12 +231,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int32_t> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -245,29 +246,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stol(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<int32_t>();
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -284,12 +276,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int64_t> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -298,29 +291,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stoll(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<int64_t>();
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -337,12 +321,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<double> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -351,29 +336,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stod(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<double>();
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -390,12 +366,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<float> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -404,29 +381,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stof(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<float>();
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -443,12 +411,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int8_t> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -457,26 +426,23 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     std::string upperStr = dataToCopy[j];
                     std::transform(dataToCopy[j].begin(), dataToCopy[j].end(), upperStr.begin(), ::toupper);
 
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-
+                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                     if (bit == 1)
                     {
                         data = GetNullConstant<int8_t>();
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     else
                     {
                         if (upperStr == "TRUE")
                         {
                             data = 1;
-                            newNullMask.push_back(bit);
+                            NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                         }
                         else if (upperStr == "FALSE")
                         {
                             data = 0;
-                            newNullMask.push_back(bit);
+                            NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                         }
                         else
                         {
@@ -484,12 +450,12 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                             {
                                 data = static_cast<int8_t>(std::stol(dataToCopy[j]));
                                 data = data == 0 ? 0 : 1;
-                                newNullMask.push_back(bit);
+                                NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                             }
                             catch (std::invalid_argument)
                             {
                                 data = GetNullConstant<int8_t>();
-                                newNullMask.push_back(1);
+                                NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                             }
                         }
                     }
@@ -497,15 +463,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
-
+                newBlock.SetNullBitmask(std::move(newNullMask));
                 block.second.erase(block.second.begin());
             }
         }
@@ -521,12 +479,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<ColmnarDB::Types::Point> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -535,29 +494,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = PointFactory::FromWkt(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -574,12 +524,13 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -588,29 +539,20 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
 
-                        const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                        const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                        const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                        newNullMask.push_back(bit);
+                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
 
-                        newNullMask.push_back(1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
                     }
                     castedDataToCopy.push_back(data);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
@@ -629,9 +571,7 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
 {
     auto toType = destinationColumn->GetColumnType();
 
-    switch (toType)
-    {
-    case COLUMN_STRING:
+    if (toType == COLUMN_STRING)
     {
         auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(destinationColumn);
 
@@ -640,43 +580,34 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<std::string> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
                     std::string data = PointFactory::WktFromPoint(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                    newNullMask.push_back(bit);
+                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                    NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
         }
     }
-    break;
 
-    default:
+    else
+	{
         throw std::runtime_error("Attempt to execute unsupported column type conversion.");
-        break;
     }
 }
 
@@ -685,9 +616,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
 {
     auto toType = destinationColumn->GetColumnType();
 
-    switch (toType)
-    {
-    case COLUMN_STRING:
+    if (toType == COLUMN_STRING)
     {
         auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(destinationColumn);
 
@@ -696,43 +625,34 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int8_t* mask = block.second.front()->GetNullBitmask();
+                int64_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<std::string> castedDataToCopy;
-                std::vector<int8_t> newNullMask;
+                std::unique_ptr<int64_t[]> newNullMask =
+                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
                     std::string data = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = (mask[bitMaskIdx] >> shiftIdx) & 1;
-                    newNullMask.push_back(bit);
+                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                    NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                 }
 
                 auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                for (int32_t j = 0; j < blockSize; j++)
-                {
-                    const int32_t bitMaskIdx = (j / (sizeof(int8_t) * 8));
-                    const int32_t shiftIdx = (j % (sizeof(int8_t) * 8));
-                    const int8_t bit = newNullMask[j] << shiftIdx;
-                    newBlock.GetNullBitmask()[bitMaskIdx] |= bit;
-                }
+                newBlock.SetNullBitmask(std::move(newNullMask));
 
                 block.second.erase(block.second.begin());
             }
         }
     }
-    break;
 
-    default:
+    else
+    {
         throw std::runtime_error("Attempt to execute unsupported column type conversion.");
-        break;
     }
 }
 
@@ -825,7 +745,6 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
             for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
             {
                 auto data = blocksId.second[i]->GetData();
-                int8_t* mask = blocksId.second[i]->GetNullBitmask();
 
                 for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
                 {
@@ -889,7 +808,6 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
             for (int32_t i = 0; i < blocksId.second.size() && !duplicateFound; i++)
             {
                 auto data = blocksId.second[i]->GetData();
-                int8_t* mask = blocksId.second[i]->GetNullBitmask();
 
                 for (int32_t j = 0; j < blocksId.second[i]->GetSize() && !duplicateFound; j++)
                 {

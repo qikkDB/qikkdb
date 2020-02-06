@@ -38,7 +38,7 @@ private:
     size_t compressedSize_;
     size_t capacity_;
     std::unique_ptr<T[]> data_;
-    std::unique_ptr<int8_t[]> bitMask_;
+    std::unique_ptr<int64_t[]> bitMask_;
     bool isCompressed_;
     bool isNullable_;
     bool wasRegistered_;
@@ -71,8 +71,8 @@ public:
         wasRegistered_ = true;
         if (isNullable_)
         {
-            int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
+            int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
+            bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
             std::memset(bitMask_.get(), 0, bitMaskCapacity);
             GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
@@ -114,8 +114,8 @@ public:
         wasRegistered_ = true;
         if (isNullable_)
         {
-            int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
+            int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
+            bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
             std::memset(bitMask_.get(), 0, bitMaskCapacity);
             GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
@@ -141,8 +141,8 @@ public:
         isCompressed_ = false;
         if (isNullable_)
         {
-            int32_t bitMaskCapacity = ((capacity_ + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            bitMask_ = std::unique_ptr<int8_t[]>(new int8_t[bitMaskCapacity]);
+            int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
+            bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
             std::memset(bitMask_.get(), 0, bitMaskCapacity);
             GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
@@ -199,9 +199,14 @@ public:
         return isNullable_;
     }
 
-    int8_t* GetNullBitmask()
+    int64_t* GetNullBitmask()
     {
         return bitMask_.get();
+    }
+
+	std::unique_ptr<int64_t[]> GetNullBitmaskPtr()
+    {
+        return bitMask_;
     }
 
     size_t GetSize() const
@@ -299,7 +304,7 @@ public:
         }
     }
 
-    void SetNullBitmask(std::unique_ptr<int8_t[]>&& nullMask)
+    void SetNullBitmask(std::unique_ptr<int64_t[]>&& nullMask)
     {
         if (isNullable_)
         {
@@ -386,7 +391,7 @@ public:
     /// <param name="index">index in block where data will be inserted</param>
     /// <param name="data">value to insert<param>
     /// <param name="isNullValue">whether data is null value flag<param>
-    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false)
+    void InsertDataOnSpecificPosition(int32_t index, const T& data, bool isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
         {
@@ -404,7 +409,7 @@ public:
 
             if (isNullable_)
             {
-                for (size_t i = shiftIdx; i < 8; i++)
+                for (size_t i = shiftIdx; i < 64; i++)
                 {
                     int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), bitMaskIdx, i);
 
@@ -419,7 +424,7 @@ public:
                 int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
                 for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
                 {
-                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i, 7);
+                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i, 63);
                     bitMask_[i] <<= 1;
                     NullValues::SetBitInBitMask(bitMask_.get(), i, 0, last);
                     last = tmp;

@@ -37,23 +37,23 @@ private:
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
-                                        int indexBlock,
-                                        int indexInBlock,
-                                        int iterator,
-                                        const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
+                                        int32_t indexBlock,
+                                        int32_t indexInBlock,
+                                        int32_t iterator,
+                                        const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks);
     int32_t GetDataRangeInSortingColumn();
     std::tuple<std::vector<std::any>, std::vector<int8_t>>
     GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
-                                   int iterator,
-                                   const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks);
-    std::tuple<int, int> GetIndicesFromTotalIndex(int index, bool positionToCompare);
-    std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOnIndex(int index);
-    CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int index);
-    std::tuple<int, int> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
+                                   int32_t iterator,
+                                   const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks);
+    std::tuple<int32_t, int32_t> GetIndicesFromTotalIndex(int32_t index, bool positionToCompare);
+    std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOnIndex(int32_t index);
+    CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int32_t index);
+    std::tuple<int32_t, int32_t> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
     int32_t GetDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
     void CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize);
 #endif
-    void CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+    void CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks,
                                        int32_t dataSize);
     bool GetHasUniqueConstraints();
     bool GetHasNotNullConstraints();
@@ -115,8 +115,8 @@ public:
     /// <param name="compress">Whether data will be compressed.</param>
     void InsertData(const std::unordered_map<std::string, std::any>& data,
                     bool compress = false,
-                    const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks =
-                        std::unordered_map<std::string, std::vector<int8_t>>());
+                    const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks =
+                        std::unordered_map<std::string, std::vector<int64_t>>());
     int32_t AssignGroupId(std::vector<std::any>& rowData, std::vector<std::unique_ptr<IColumn>>& columns);
 #endif
 

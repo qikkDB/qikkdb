@@ -171,7 +171,7 @@ public:
         return initAvgIsSet_;
     }
 
-    virtual std::pair<int8_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
+    virtual std::pair<int64_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
     {
         auto block = GetBlocksList()[blockIndex];
         return std::make_pair(block->GetNullBitmask(), block->GetSize());
@@ -212,7 +212,7 @@ public:
             {
                 for (int32_t i = 0; i < mapBlock.second.size() && !isNullValue; i++)
                 {
-                    int8_t* mask = mapBlock.second[i]->GetNullBitmask();
+                    int64_t* mask = mapBlock.second[i]->GetNullBitmask();
 
                     for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
@@ -664,7 +664,7 @@ public:
 
             for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
             {
-                int8_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
+                int64_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
                 if (bitMaskIdx + 1 < bitMaskCapacity)
                 {
                     tmp |= NullValues::GetPartOfBitmaskByte(block.GetNullBitmask(), shiftIdx, bitMaskIdx + 1);
@@ -730,7 +730,7 @@ public:
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData,
-                    const std::vector<int8_t>& nullMask,
+                    const std::vector<int64_t>& nullMask,
                     int32_t groupId = -1,
                     bool compress = false)
     {
@@ -838,7 +838,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int32_t length) override
     {
-        std::vector<int8_t> nullMask(length, -1); // fill mask with bits 1
+        std::vector<int64_t> nullMask(length, -1); // fill mask with bits 1
         InsertData(NullArray(length), nullMask);
     }
 
@@ -857,27 +857,18 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
-
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int32_t> castedDataToCopy;
-                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int32_t data = static_cast<int32_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }
@@ -894,27 +885,20 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int64_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int64_t> castedDataToCopy;
-                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int64_t data = static_cast<int64_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }
@@ -931,27 +915,20 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int64_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<double> castedDataToCopy;
-                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         double data = static_cast<double>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }
@@ -968,7 +945,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int64_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -979,16 +956,10 @@ public:
                     {
                         float data = static_cast<float>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }
@@ -1005,27 +976,20 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int64_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<int8_t> castedDataToCopy;
-                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         int8_t data = static_cast<int8_t>(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }
@@ -1042,27 +1006,20 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int8_t* mask = block.second.front()->GetNullBitmask();
+                    int64_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
                     std::vector<std::string> castedDataToCopy;
-                    std::vector<int8_t> newNullMask;
 
                     for (int32_t j = 0; j < blockSize; j++)
                     {
                         std::string data = std::to_string(dataToCopy[j]);
                         castedDataToCopy.push_back(data);
-
-                        newNullMask.push_back(NullValues::GetConcreteBitFromBitmask(mask, j));
                     }
 
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
-
-                    for (int32_t j = 0; j < blockSize; j++)
-                    {
-                        NullValues::SetBitInBitMask(newBlock.GetNullBitmask(), j, newNullMask[j]);
-                    }
+                    newBlock.SetNullBitmask(std::move(block.second.front()->GetNullBitmaskPtr()));
 
                     block.second.erase(block.second.begin());
                 }

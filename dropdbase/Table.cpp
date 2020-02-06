@@ -20,10 +20,10 @@
 /// <param name="iterator">index of row of data</param>
 /// <param name="nullMask">column name with bitmask</param>
 void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
-                                           int indexBlock,
-                                           int indexInBlock,
-                                           int iterator,
-                                           const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
+                                           const int32_t indexBlock,
+                                           const int32_t indexInBlock,
+                                           const int32_t iterator,
+                                           const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
 {
     for (const auto& column : columns)
     {
@@ -32,11 +32,9 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
         if (data.find(columnName) != data.end())
         {
             int8_t isNullValue = false;
-            int bitMaskIdx = (iterator / (sizeof(char) * 8));
-            int shiftIdx = (iterator % (sizeof(char) * 8));
             if (nullMasks.find(columnName) != nullMasks.end())
             {
-                isNullValue = (nullMasks.at(columnName)[bitMaskIdx] >> shiftIdx) & 1;
+                isNullValue = NullValues::GetConcreteBitFromBitmask(nullMasks.at(columnName).data(), iterator);
             }
 
             const auto& wrappedData = data.at(columnName);
@@ -519,7 +517,7 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
     }
 }
 
-void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks,
+void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks,
                                           int32_t dataSize)
 {
     bool nullValueFound = false;
@@ -535,11 +533,10 @@ void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, 
                 for (int i = 0; i < dataSize && !nullValueFound; i++)
                 {
                     int8_t isNullValue = false;
-                    int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
-                    int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
                     if (nullMasks.find(column.first) != nullMasks.end())
                     {
-                        isNullValue = (nullMasks.at(column.first)[bitMaskIdx] >> shiftIdx) & 1;
+                        isNullValue =
+                            NullValues::GetConcreteBitFromBitmask(nullMasks.at(column.first).data(), i);
                     }
 
                     if (isNullValue)
@@ -662,8 +659,8 @@ int32_t Table::GetDataRangeInSortingColumn()
 /// <returns>tuple of row and bitmask of this row from specific position</returns>
 std::tuple<std::vector<std::any>, std::vector<int8_t>>
 Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
-                                      int iterator,
-                                      const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
+                                      const int32_t iterator,
+                                      const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
 {
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
@@ -671,11 +668,9 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
     for (auto column : sortingColumns)
     {
         int8_t isNullValue = 0;
-        int bitMaskIdx = (iterator / (sizeof(char) * 8));
-        int shiftIdx = (iterator % (sizeof(char) * 8));
         if (nullMasks.find(column) != nullMasks.end())
         {
-            isNullValue = (nullMasks.at(column)[bitMaskIdx] >> shiftIdx) & 1;
+            isNullValue = NullValues::GetConcreteBitFromBitmask(nullMasks.at(column).data(), iterator);
         }
 
         maskOfRow.push_back(isNullValue);
@@ -767,7 +762,7 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
 /// <param name="positionToCompare">whether method is used to get indices to compare row from these
 /// indices or we're looking for indices to insert row</param> <returns>block index, index in
 /// block</returns>
-std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToCompare)
+std::tuple<int32_t, int32_t> Table::GetIndicesFromTotalIndex(const int32_t index, bool positionToCompare)
 {
     int32_t blockIndex = 0;
     int32_t indexInBlock = index;
@@ -809,7 +804,6 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToC
         }
     }
 
-
     else if (columnType == COLUMN_DOUBLE)
     {
         auto castedColumn = dynamic_cast<ColumnBase<double>*>(firstSortingColumn);
@@ -826,7 +820,6 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToC
         }
     }
 
-
     else if (columnType == COLUMN_FLOAT)
     {
         auto castedColumn = dynamic_cast<ColumnBase<float>*>(firstSortingColumn);
@@ -842,7 +835,6 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToC
             i++;
         }
     }
-
 
     else if (columnType == COLUMN_STRING)
     {
@@ -867,18 +859,16 @@ std::tuple<int, int> Table::GetIndicesFromTotalIndex(int index, bool positionToC
 /// </summary>
 /// <param name="index">index to database where row should be extracted from</param>
 /// <returns>values of row and its bitmask</returns>
-std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOnIndex(int index)
+std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOnIndex(const int32_t index)
 {
-    int blockIndex;
-    int indexInBlock;
+    int32_t blockIndex;
+    int32_t indexInBlock;
 
     std::tie(blockIndex, indexInBlock) = GetIndicesFromTotalIndex(index, true);
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
 
-    int8_t isNullValue = 0;
-    int bitMaskIdx = (indexInBlock / (sizeof(char) * 8));
-    int shiftIdx = (indexInBlock % (sizeof(char) * 8));
+    int64_t isNullValue = 0;
 
     for (auto sortingColumn : sortingColumns)
     {
@@ -891,7 +881,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
             isNullValue =
-                (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
+                                                      indexInBlock);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -901,7 +892,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
             isNullValue =
-                (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
+                                                      indexInBlock);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -911,7 +903,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
             isNullValue =
-                (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
+                                                      indexInBlock);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -921,7 +914,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
             isNullValue =
-                (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
+                                                      indexInBlock);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -931,7 +925,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
             isNullValue =
-                (castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1;
+                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
+                                                      indexInBlock);
             maskOfRow.push_back(isNullValue);
         }
     }
@@ -946,7 +941,7 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 /// <param name="index">index of row in database that should be compare with inserted row</param>
 /// <returns>one of enum value - Greater, Lower, Equal - according to relationship of inserted row and row from database</returns>
 Table::CompareResult
-Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfInsertRow, int index)
+Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfInsertRow, const int32_t index)
 {
     std::vector<std::any> rowToCompare;
     std::vector<int8_t> maskOfCompareRow;
@@ -1324,10 +1319,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1342,10 +1334,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1360,10 +1349,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1378,10 +1364,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1397,10 +1380,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1416,10 +1396,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1434,10 +1411,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1452,10 +1426,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
-                int nullMaskOffset = j / (sizeof(char) * 8);
-                int nullMaskShiftOffset = j % (sizeof(char) * 8);
-
-                block.GetNullBitmask()[nullMaskOffset] |= (1 << nullMaskShiftOffset);
+                NullValues::SetBitInBitMask(block.GetNullBitmask(), j, 1);
             }
         }
     }
@@ -1690,7 +1661,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 /// <param name="compress">Whether data will be compressed.</param>
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                        bool compress,
-                       const std::unordered_map<std::string, std::vector<int8_t>>& nullMasks)
+                       const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
 {
     int oneColumnDataSize = GetDataSizeOfInsertedColumns(data);
 
