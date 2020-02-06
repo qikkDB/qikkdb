@@ -171,7 +171,7 @@ public:
     /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
     /// </summary>
     /// <param name="newBlockSize">New block size of all tables and columns of this database.</param>
-    void Database::ChangeDatabaseBlockSize(int32_t newBlockSize);
+    void ChangeDatabaseBlockSize(int32_t newBlockSize);
 
     /// <summary>
     /// Changes the block size of a table and all the columns of the table will be affected - their blocks
