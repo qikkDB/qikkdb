@@ -267,7 +267,7 @@ struct geoLongitudeToTileX
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U longitude, V zoom, int32_t* errorFlag, T min, T max) const
     {
-        return (int32_t)floorf((longitude + 180.0f) / 360.0f * powf(2.0f, zoom));
+        return floorf((longitude + 180.0f) / 360.0f * powf(2.0f, zoom));
     }
 };
 
@@ -279,8 +279,7 @@ struct geoLatitudeToTileY
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
     {
-        U latitudeRad = latitude * pi<U> / 180.0f;
-        return (int32_t)(floorf((1.0 - asinhf(tanf(latitudeRad)) / pi<float>) / 2.0 * powf(2.0f, zoom))); 
+        return (floorf((1.0 - asinhf(tanf(latitude * pi<float> / 180.0f)) / pi<float>) / 2.0 * powf(2.0f, zoom))); 
     }
 };
 
