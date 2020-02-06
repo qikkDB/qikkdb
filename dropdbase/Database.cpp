@@ -742,10 +742,11 @@ void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
 {
     if (newBlockSize != blockSize_)
     {
-        auto& tables = GetTables();
+        blockSize_ = newBlockSize;
+
         std::vector<std::thread> threads;
 
-        for (auto& table : tables)
+        for (auto& table : tables_)
         {
             threads.emplace_back(
                 [&](Database* db) { db->ChangeTableBlockSize(table.first.c_str(), newBlockSize); }, this);
@@ -764,8 +765,10 @@ void Database::ChangeDatabaseBlockSize(int32_t newBlockSize)
 /// </summary>
 /// <param name="tableName">Name of the table which have which block size will be changed.</param>
 /// <param name="newBlockSize">New block size of a table and columns of this table.</param>
-void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
+void Database::ChangeTableBlockSize(const char* tableName2, int32_t newBlockSize)
 {
+    std::string tableName = tableName2;
+
     if (newBlockSize != tables_.at(tableName).GetBlockSize())
     {
         auto& table = tables_.at(tableName);
@@ -773,12 +776,12 @@ void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
                                 << table.GetBlockSize() << " to " << newBlockSize << ".";
 
         // create temporary table in memory with new block size
-        tables_.emplace(std::make_pair(std::string("temp_" + std::string(tableName)),
+        tables_.emplace(std::make_pair(std::string("temp_" + tableName),
                                        Table(GetDatabaseByName(name_),
-                                             ("temp_" + std::string(tableName)).c_str(), newBlockSize)));
+                                             ("temp_" + tableName).c_str(), newBlockSize)));
 
-        auto newTableHashMap = tables_.find(("temp_" + std::string(tableName)).c_str());
-        auto oldTableHashMap = tables_.find(tableName);
+        auto& newTableHashMap = tables_.find(("temp_" + tableName).c_str());
+        auto& oldTableHashMap = tables_.find(tableName);
 
         // create the same columns in the new table (same as in the old table)
         if (newTableHashMap != tables_.end() && oldTableHashMap != tables_.end())
@@ -806,13 +809,13 @@ void Database::ChangeTableBlockSize(const char* tableName, int32_t newBlockSize)
         }
 
         // delete (original) .col files with old block size which are persisted on disk, if they are persisted
-        DeleteTableFromDisk(tableName);
+        DeleteTableFromDisk(tableName.c_str());
 
         // initialize sorting Columns to be empty
         newTableHashMap->second.SetSortingColumns(std::vector<std::string>());
 
         // delete original table from memory
-        GetTables().erase(tableName);
+        tables_.erase(tableName);
 
         RenameTable(("temp_" + std::string(tableName)).c_str(), tableName);
 

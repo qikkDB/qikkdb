@@ -311,6 +311,5 @@ TEST_F(DispatcherAlterTests, AlterTableBlockSizeTest)
 
 TEST_F(DispatcherAlterTests, AlterDatabaseBlockSizeTest)
 {
-	// FIXME: changing tables map while iterating through it
-    //AlterDatabaseAlterBlockSizeGenericTest(blockSize * 2);
+    AlterDatabaseAlterBlockSizeGenericTest(blockSize * 2);
 }
