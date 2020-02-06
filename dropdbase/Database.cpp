@@ -778,8 +778,8 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
                                        Table(GetDatabaseByName(name_),
                                              ("temp_" + tableName).c_str(), newBlockSize)));
 
-        auto& newTableHashMap = tables_.find("temp_" + tableName);
-        auto& oldTableHashMap = tables_.find(tableName);
+        auto newTableHashMap = tables_.find("temp_" + tableName);
+        auto oldTableHashMap = tables_.find(tableName);
 
         // create the same columns in the new table (same as in the old table)
         if (newTableHashMap != tables_.end() && oldTableHashMap != tables_.end())
