@@ -206,7 +206,7 @@ public:
 
 	std::unique_ptr<int64_t[]> GetNullBitmaskPtr()
     {
-        return bitMask_;
+        return std::move(bitMask_);
     }
 
     size_t GetSize() const

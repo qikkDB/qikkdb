@@ -460,9 +460,9 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     if (isNullable)
     {
-        std::vector<int8_t> nullMaskVector;
+        std::vector<int64_t> nullMaskVector;
         int32_t nullMaskSize = bulkImportMessage.nullmasklen();
-        std::unordered_map<std::string, std::vector<int8_t>> nullMap;
+        std::unordered_map<std::string, std::vector<int64_t>> nullMap;
         for (int i = 0; i < nullMaskSize; i++)
         {
             nullMaskVector.push_back(nullMask[i]);

@@ -178,7 +178,7 @@ private:
     CpuSqlDispatcher cpuDispatcher_;
 
     std::unique_ptr<InsertIntoStruct> insertIntoData_;
-    std::unordered_map<std::string, std::vector<int8_t>> insertIntoNullMasks_;
+    std::unordered_map<std::string, std::vector<int64_t>> insertIntoNullMasks_;
     std::unique_ptr<IOrderBy> orderByTable_;
     std::vector<OrderByBlocks>& orderByBlocks_;
 

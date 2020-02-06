@@ -15,7 +15,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto()
 
     T data = hasValue ? arguments_.Read<T>() : ColumnBase<T>::NullArray(1)[0];
     std::vector<T> dataVector({data});
-    std::vector<int8_t> nullMaskVector({static_cast<int8_t>(hasValue ? 0 : 1)});
+    std::vector<int64_t> nullMaskVector({static_cast<int64_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, dataVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
