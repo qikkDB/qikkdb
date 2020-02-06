@@ -508,7 +508,7 @@ private:
 
         // Insert the intersections into the linked lists and cross link the intersections for intersect/union traversal
         kernel_add_and_crosslink_intersections_to_ll<<<Context::getInstance().calcGridDim(dataElementCount),
-                                                       Context::getInstance().getBlockDim()>>>(
+                                                       768>>>(
             llPolygonABuffers.get(), llPolygonBBuffers.get(), polygonAin, polygonBin,
             llPolygonABufferSizesPrefixSum.get(), llPolygonBBufferSizesPrefixSum.get(), isAConst,
             isBConst, dataElementCount);
