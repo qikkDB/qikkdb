@@ -20,7 +20,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 
     typedef typename std::conditional<OP::isFloatRetType, float, typename std::remove_pointer<T>::type>::type ResultType;
 
-    if (std::is_pointer<T>::value)
+    if constexpr (std::is_pointer<T>::value)
     {
         if (std::get<0>(left))
         {
@@ -32,7 +32,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
             {
                 if (std::get<1>(result))
                 {
-                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     GPUMemory::copyDeviceToDevice(std::get<1>(result),
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);

@@ -38,7 +38,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                   typename std::conditional<std::is_floating_point<typename std::remove_pointer<R>::type>::value,
                                                             typename std::remove_pointer<R>::type, void>::type>::type>::type ResultType;
 
-    if (std::is_pointer<L>::value && std::is_pointer<R>::value)
+    if constexpr (std::is_pointer<L>::value && std::is_pointer<R>::value)
     {
         if (std::get<0>(left) && std::get<0>(right))
         {
@@ -51,10 +51,25 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             {
                 if (std::get<1>(result))
                 {
-                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
-                        std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                        reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
+                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
+                    {
+                        GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                            std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                            reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
+                    }
+                    else if (std::get<1>(left).GpuNullMaskPtr)
+                    {
+                        GPUMemory::copyDeviceToDevice(std::get<1>(result),
+                                                      reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                                                      bitMaskSize);
+                    }
+                    else
+                    {
+                        GPUMemory::copyDeviceToDevice(std::get<1>(result),
+                                                      reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
+                                                      bitMaskSize);
+                    }
                 }
                 GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
@@ -64,7 +79,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         FreeColumnIfRegister<R>(std::get<3>(right));
     }
 
-    else if (std::is_pointer<L>::value)
+    else if constexpr (std::is_pointer<L>::value)
     {
         if (std::get<0>(left))
         {
@@ -77,7 +92,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             {
                 if (std::get<1>(result))
                 {
-                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     GPUMemory::copyDeviceToDevice(std::get<1>(result),
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);
@@ -89,7 +104,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         FreeColumnIfRegister<L>(std::get<3>(left));
     }
 
-    else if (std::is_pointer<R>::value)
+    else if constexpr (std::is_pointer<R>::value)
     {
         if (std::get<0>(right))
         {
@@ -102,7 +117,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             {
                 if (std::get<1>(result))
                 {
-                    int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     GPUMemory::copyDeviceToDevice(std::get<1>(result),
                                                   reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
                                                   bitMaskSize);

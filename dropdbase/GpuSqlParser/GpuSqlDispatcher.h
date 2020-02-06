@@ -894,17 +894,8 @@ public:
 
     //// FILTERS WITH FUNCTORS
 
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterConstConst();
+    template <typename OP, typename L, typename R>
+    InstructionStatus Filter();
 
     template <typename OP>
     InstructionStatus FilterStringColConst();
@@ -919,16 +910,7 @@ public:
     InstructionStatus FilterStringConstConst();
 
     template <typename OP, typename T, typename U>
-    InstructionStatus LogicalColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalConstConst();
+    InstructionStatus Logical();
 
     template <typename OP, typename L, typename R>
     InstructionStatus Arithmetic();

@@ -2,6 +2,7 @@
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
+#define MERGED
 #include "DispatcherMacros.h"
 
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::greaterFunctions_)
@@ -112,6 +113,7 @@ DISPATCHER_ERROR(FilterConditions::notEqual, std::string, int8_t)
 DISPATCHER_TYPE(GpuSqlDispatcher::Filter, FilterConditions::notEqual, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
 END_DISPATCH_TABLE
 
+
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::logicalAndFunctions_)
 DISPATCHER_TYPE(GpuSqlDispatcher::Logical, LogicOperations::logicalAnd, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
 DISPATCHER_TYPE(GpuSqlDispatcher::Logical, LogicOperations::logicalAnd, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
@@ -149,3 +151,6 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::isNullFunction_ =
     &GpuSqlDispatcher::NullMaskCol<NullMaskOperations::isNull>;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::isNotNullFunction_ =
     &GpuSqlDispatcher::NullMaskCol<NullMaskOperations::isNotNull>;
+
+
+#undef MERGED
