@@ -386,7 +386,7 @@ public:
     /// this operation.
     /// </summary>
     /// <param name="srcColumnArg">The column whose data will be copied (resized).</param>
-    void ResizeColumn(IColumn* srcColumnArg)
+    virtual void ResizeColumn(IColumn* srcColumnArg) override
     {
         auto srcColumn = dynamic_cast<ColumnBase<T>*>(srcColumnArg);
         auto& srcBlocks = srcColumn->GetBlocksList();
