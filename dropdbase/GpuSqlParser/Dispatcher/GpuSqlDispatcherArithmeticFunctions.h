@@ -9,8 +9,8 @@
 template <typename OP, typename L, typename R>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
 {
-    InstructionArgument<R> right = LoadInstructionArgument<R>();
-    InstructionArgument<L> left = LoadInstructionArgument<L>();
+    InstructionArgument<R> right = InstructionArgumentLoadHelper<R>::LoadInstructionArgument(*this);
+    InstructionArgument<L> left = InstructionArgumentLoadHelper<L>::LoadInstructionArgument(*this);
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {

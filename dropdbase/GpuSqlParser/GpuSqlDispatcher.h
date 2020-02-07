@@ -91,9 +91,9 @@ private:
     typedef InstructionStatus (GpuSqlDispatcher::*DispatchFunction)();
     template <typename T>
     using InstructionArgument = typename std::conditional<
-        std::is_same<T, std::string>::value,
+        std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
         std::tuple<GPUMemory::GPUString, std::tuple<GPUMemory::GPUString, int32_t, int8_t*>, InstructionStatus, std::string>,
-        typename std::conditional<std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value,
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value,
                                   std::tuple<GPUMemory::GPUPolygon, std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*>, InstructionStatus, std::string>,
                                   std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type>::type;
 
@@ -691,43 +691,94 @@ public:
                                               reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
     }
 
-    template <typename T>
-    std::tuple<T, PointerAllocation, InstructionStatus, std::string> LoadInstructionArgument()
+    template <class T, class Enable = void>
+    class InstructionArgumentLoadHelper
     {
-        PointerAllocation column = {0, 0, false, 0};
-
-        if constexpr (std::is_pointer<T>::value)
+    public:
+        static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
         {
-            auto colName = arguments_.Read<std::string>();
-            GpuSqlDispatcher::InstructionStatus loadFlag =
-                LoadCol<typename std::remove_pointer<T>::type>(colName);
+            PointerAllocation column = {0, 0, false, 0};
 
-            if (loadFlag != InstructionStatus::CONTINUE)
+            if constexpr (std::is_pointer<T>::value)
             {
+                auto colName = dispatcher.arguments_.Read<std::string>();
+                GpuSqlDispatcher::InstructionStatus loadFlag =
+                    dispatcher.LoadCol<typename std::remove_pointer<T>::type>(colName);
+
+                if (loadFlag != InstructionStatus::CONTINUE)
+                {
+                    return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
+                }
+
+                if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                 StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
+                    !dispatcher.insideAggregation_)
+                {
+                    if (dispatcher.isOverallLastBlock_)
+                    {
+                        column = dispatcher.allocatedPointers_.at(colName + KEYS_SUFFIX);
+                    }
+                }
+                else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                {
+                    column = dispatcher.allocatedPointers_.at(colName);
+                }
+
                 return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
             }
-
-            if (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                             StringDataTypeComp(colName)) != groupByColumns_.end() &&
-                !insideAggregation_)
+            else
             {
-                if (isOverallLastBlock_)
-                {
-                    column = allocatedPointers_.at(colName + KEYS_SUFFIX);
-                }
+                return {dispatcher.arguments_.Read<T>(), column, InstructionStatus::CONTINUE, ""};
             }
-            else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
-            {
-                column = allocatedPointers_.at(colName);
-            }
-
-            return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
         }
-        else
+    };
+
+    template <class T>
+    class InstructionArgumentLoadHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value>::type>
+    {
+    public:
+        static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
         {
-            return {arguments_.Read<T>(), column, InstructionStatus::CONTINUE, ""};
+            std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = {{nullptr, nullptr}, 0, nullptr};
+
+            if constexpr (std::is_pointer<T>::value)
+            {
+                auto colName = dispatcher.arguments_.Read<std::string>();
+                GpuSqlDispatcher::InstructionStatus loadFlag =
+                    dispatcher.LoadCol<typename std::remove_pointer<T>::type>(colName);
+
+                if (loadFlag != InstructionStatus::CONTINUE)
+                {
+                    return {std::get<0>(column), column, loadFlag, colName};
+                }
+
+                if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                 StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
+                    !dispatcher.insideAggregation_)
+                {
+                    if (dispatcher.isOverallLastBlock_)
+                    {
+                        column = dispatcher.FindStringColumn(colName + KEYS_SUFFIX);
+                    }
+                }
+                else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                {
+                    column = dispatcher.FindStringColumn(colName);
+                }
+
+                return {std::get<0>(column), column, loadFlag, colName};
+            }
+            else
+            {
+                GPUMemory::GPUString gpuString =
+                    dispatcher.InsertConstStringGpu(dispatcher.arguments_.Read<T>(), 1);
+                column = {gpuString, 1, nullptr};
+                return {gpuString, column, InstructionStatus::CONTINUE, ""};
+            }
         }
-    }
+    };
 
     template <typename T>
     std::pair<T*, int8_t*> AllocateInstructionResult(const std::string& reg,
