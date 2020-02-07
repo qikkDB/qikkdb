@@ -958,6 +958,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     {
         BOOST_LOG_TRIVIAL(error) << "File " + std::string(path + std::string(fileDbName) + ".db") +
                                         " is empty and so cannot be loaded.";
+        return nullptr;
     }
 }
 
