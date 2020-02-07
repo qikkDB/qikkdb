@@ -855,7 +855,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         if (persistenceFormatVersion != Database::PERSISTENCE_FORMAT_VERSION)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "WARNING: Database persistence format version is different. "
+                << "WARNING: Database persistence format version is different in database file: "
+                << std::string(path + std::string(fileDbName) + ".db") << ". "
                 << "The persisted database files are in persistence format version: " << persistenceFormatVersion
                 << " the current persistence format version in this version of database core is: "
                 << Database::PERSISTENCE_FORMAT_VERSION
