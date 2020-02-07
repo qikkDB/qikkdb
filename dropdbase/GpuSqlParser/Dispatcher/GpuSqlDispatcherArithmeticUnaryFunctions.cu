@@ -202,4 +202,70 @@ DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, std::string)
 DISPATCHER_UNARY_ERROR(ArithmeticUnaryOperations::ceil, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::yearFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::year, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::year, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::year, float)
+DISPATCHER_UNARY_ERROR(DateOperations::year, double)
+DISPATCHER_UNARY_ERROR(DateOperations::year, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::year, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::year, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::year, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::monthFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::month, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::month, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::month, float)
+DISPATCHER_UNARY_ERROR(DateOperations::month, double)
+DISPATCHER_UNARY_ERROR(DateOperations::month, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::month, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::month, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::month, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::dayFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::day, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::day, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::day, float)
+DISPATCHER_UNARY_ERROR(DateOperations::day, double)
+DISPATCHER_UNARY_ERROR(DateOperations::day, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::day, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::day, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::day, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::hourFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::hour, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, float)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, double)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::hour, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::minuteFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::minute, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, float)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, double)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::minute, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::secondFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::second, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::second, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::second, float)
+DISPATCHER_UNARY_ERROR(DateOperations::second, double)
+DISPATCHER_UNARY_ERROR(DateOperations::second, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::second, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::second, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::second, int8_t)
+END_DISPATCH_TABLE
+
 #undef MERGED

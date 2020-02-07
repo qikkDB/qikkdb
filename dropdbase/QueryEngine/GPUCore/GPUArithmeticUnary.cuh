@@ -14,6 +14,7 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 #include "ArithmeticUnaryOperations.h"
+#include "DateOperations.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -15029,7 +15029,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
         ASSERT_EQ(convertedData[i], payloadsCol.intpayload().intdata()[i]);
     }
 
-	ASSERT_EQ(table.GetColumns().at("colP").get()->GetBlockCount(), 2);
+    ASSERT_EQ(table.GetColumns().at("colP").get()->GetBlockCount(), 2);
     ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(0).first[0], 0);
     ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(1).first[0], 1);
 

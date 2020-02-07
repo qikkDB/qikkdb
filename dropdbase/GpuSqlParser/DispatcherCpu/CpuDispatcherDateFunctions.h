@@ -24,8 +24,10 @@ int32_t CpuSqlDispatcher::DateExtractCol()
     int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin));
     int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax));
 
-    resultMin[0] = OP{}.operator()(reinterpret_cast<int64_t*>(std::get<0>(colValMin))[0]);
-    resultMax[0] = OP{}.operator()(reinterpret_cast<int64_t*>(std::get<0>(colValMax))[0]);
+    resultMin[0] =
+        OP{}.template operator()<int32_t, int64_t>(reinterpret_cast<int64_t*>(std::get<0>(colValMin))[0]);
+    resultMax[0] =
+        OP{}.template operator()<int32_t, int64_t>(reinterpret_cast<int64_t*>(std::get<0>(colValMax))[0]);
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "Where evaluation dateCol_min: " << colName << ", " << reg + "_min"
@@ -46,13 +48,13 @@ int32_t CpuSqlDispatcher::DateExtractConst()
     int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, false);
     int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, false);
 
-    resultMin[0] = OP{}.operator()(cnst);
-    resultMax[0] = OP{}.operator()(cnst);
+    resultMin[0] = OP{}.template operator()<int32_t, int64_t>(cnst);
+    resultMax[0] = OP{}.template operator()<int32_t, int64_t>(cnst);
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation dateConst_min: " << reg + "_min"
-                                                  << ": " << resultMin[0] << '\n';
+                                                   << ": " << resultMin[0] << '\n';
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Where evaluation dateConst_max: " << reg + "_max"
-                                                  << ": " << resultMax[0] << '\n';
+                                                   << ": " << resultMax[0] << '\n';
 
     return 0;
 }

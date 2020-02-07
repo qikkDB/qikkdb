@@ -13,25 +13,7 @@
 #include "cuda_ptr.h"
 #include "GPUReconstruct.cuh"
 #include "GPUMemory.cuh"
-
-/// Kernel for extracting date or time variable (e.g. days, hours)
-/// from datetime column or constant
-/// <param name="output">block of the result data</param>
-/// <param name="dateTimeCol">input timestamp (column or constant)</param>
-/// <param name="dataElementCount">the count of elements in the input block
-/// (or of output block if input is constant)</param>
-template <typename OP, typename T>
-__global__ void kernel_extract(int32_t* output, T dateTimeCol, int32_t dataElementCount)
-{
-    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    const int32_t stride = blockDim.x * gridDim.x;
-
-    for (int32_t i = idx; i < dataElementCount; i += stride)
-    {
-        output[i] = OP{}.operator()(maybe_deref(dateTimeCol, i));
-    }
-}
-
+#include "GPUArithmeticUnary.cuh"
 
 __global__ void kernel_fill_date_string(GPUMemory::GPUString outCol,
                                         int32_t* years,
@@ -47,22 +29,6 @@ __global__ void kernel_fill_date_string(GPUMemory::GPUString outCol,
 class GPUDate
 {
 public:
-    /// Extract values (one value - year/month/dat/hour/minute/second - per row) from a datetime column
-    /// <param name="output">Output GPU buffer for result (int32_t)</param>
-    /// <param name="dateTimeCol">Input GPU buffer - datetime (int64_t)</param>
-    /// <param name="dataElementCount">Row count (e.g. size of block to process)</param>
-    template <typename OP, typename T>
-    static void Extract(int32_t* output, T dateTimeCol, int32_t dataElementCount)
-    {
-        static_assert(std::is_same<typename std::remove_pointer<T>::type, int64_t>::value,
-                      "DateTime can only be extracted from int64 columns");
-        kernel_extract<OP>
-            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                output, dateTimeCol, dataElementCount);
-        cudaDeviceSynchronize();
-        CheckCudaError(cudaGetLastError());
-    }
-
     template <typename T>
     static void DateToString(GPUMemory::GPUString* output, T dateTimeCol, int32_t dataElementCount)
     {
@@ -97,27 +63,27 @@ public:
             cuda_ptr<int32_t> seconds(dataElementCount);
 
 
-            kernel_extract<DateOperations::year>
+            kernel_arithmetic_unary<DateOperations::year, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     years.get(), dateTimeCol, dataElementCount);
 
-            kernel_extract<DateOperations::month>
+            kernel_arithmetic_unary<DateOperations::month, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     months.get(), dateTimeCol, dataElementCount);
 
-            kernel_extract<DateOperations::day>
+            kernel_arithmetic_unary<DateOperations::day, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     days.get(), dateTimeCol, dataElementCount);
 
-            kernel_extract<DateOperations::hour>
+            kernel_arithmetic_unary<DateOperations::hour, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     hours.get(), dateTimeCol, dataElementCount);
 
-            kernel_extract<DateOperations::minute>
+            kernel_arithmetic_unary<DateOperations::minute, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     minutes.get(), dateTimeCol, dataElementCount);
 
-            kernel_extract<DateOperations::second>
+            kernel_arithmetic_unary<DateOperations::second, int32_t, T>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     seconds.get(), dateTimeCol, dataElementCount);
 
