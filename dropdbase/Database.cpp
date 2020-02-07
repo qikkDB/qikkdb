@@ -326,9 +326,10 @@ void Database::PersistOnlyDbFile(const char* path)
 
     if (dbFile.is_open())
     {
-        if (dbFile.good())
-        {
-
+        dbFile.seekp(0, dbFile.end);
+        size_t fileSize = dbFile.tellp();
+        if (fileSize != 0)
+		{
             int32_t dbNameLength = name.length() + 1; // +1 because '\0'
 
             dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION),
@@ -2164,7 +2165,9 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
     if (colFile.is_open())
     {
-        if (colFile.good())
+        colFile.seekp(0, colFile.end);
+        size_t fileSize = colFile.tellp();
+        if (fileSize != 0)
         {
             int32_t type = column.second->GetColumnType();
             bool isNullable = column.second->GetIsNullable();
