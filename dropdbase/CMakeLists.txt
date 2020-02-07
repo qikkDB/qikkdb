@@ -24,8 +24,6 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/NullValues.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/NullValues.h
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.h
 		${CMAKE_CURRENT_SOURCE_DIR}/StringFactory.cpp
@@ -106,7 +104,8 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherVMFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherOrderByFunctions.cu
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cu
-				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMergeJoin.cu)
+				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMergeJoin.cu
+				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/NullValues.cu)
 
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /wd4244 /wd4267 /wd4305 /bigobj")

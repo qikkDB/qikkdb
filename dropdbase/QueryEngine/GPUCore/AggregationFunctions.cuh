@@ -97,7 +97,7 @@ struct min
         cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
 
         // Allocate temporary storage
-        GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+        GPUMemory::alloc<int64_t>(reinterpret_cast<int64_t**>(&tempBuffer), tempBufferSize);
 
         // Run minimum reduction - data stays on gpu
         cub::DeviceReduce::Min(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
@@ -287,7 +287,7 @@ struct avg
         cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);
 
         // Allocate temporary storage
-        GPUMemory::alloc<int8_t>(reinterpret_cast<int8_t**>(&tempBuffer), tempBufferSize);
+        GPUMemory::alloc<int64_t>(reinterpret_cast<int64_t**>(&tempBuffer), tempBufferSize);
 
         // Run sum reduction - data stays on gpu
         cub::DeviceReduce::Sum(tempBuffer, tempBufferSize, ACol, outValue, dataElementCount);

@@ -41,10 +41,10 @@ struct InsertIntoStruct;
 struct OrderByBlocks
 {
     std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> ReconstructedOrderByOrderColumnBlocks;
-    std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> ReconstructedOrderByOrderColumnNullBlocks;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> ReconstructedOrderByOrderColumnNullBlocks;
 
     std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> ReconstructedOrderByRetColumnBlocks;
-    std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> ReconstructedOrderByRetColumnNullBlocks;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> ReconstructedOrderByRetColumnNullBlocks;
 };
 
 class GPUOrderBy;
@@ -354,7 +354,7 @@ private:
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    static void ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift);
+    static void ShiftNullMaskLeft(std::vector<int64_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
     int32_t GetUnaryDispatchTableIndex(DataType type);
 
@@ -692,14 +692,14 @@ public:
     static std::unordered_map<std::string, int32_t> linkTable;
 
     template <typename T>
-    T* AllocateRegister(const std::string& reg, int32_t size, int8_t** nullPointerMask = nullptr)
+    T* AllocateRegister(const std::string& reg, int32_t size, int64_t** nullPointerMask = nullptr)
     {
         T* gpuRegister;
         GPUMemory::alloc<T>(&gpuRegister, size);
         if (nullPointerMask)
         {
-            int32_t bitMaskSize = ((size + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::alloc<int8_t>(nullPointerMask, bitMaskSize);
+            int32_t bitMaskSize = NullValues::GetNullBitMaskSize(size);
+            GPUMemory::alloc<int64_t>(nullPointerMask, bitMaskSize);
             InsertRegister(reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask),
                                                                 bitMaskSize, true, 0});
             InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true,
@@ -725,7 +725,7 @@ public:
     void InsertRegister(const std::string& registerName, PointerAllocation registerValues);
 
     template <typename T>
-    void AddCachedRegister(const std::string& reg, T* ptr, int32_t size, int8_t* nullMaskPtr = nullptr)
+    void AddCachedRegister(const std::string& reg, T* ptr, int32_t size, int64_t* nullMaskPtr = nullptr)
     {
         InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(ptr), size, false,
                                               reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
@@ -1017,12 +1017,13 @@ public:
                                                const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                                int32_t size,
                                                bool useCache = false,
-                                               int8_t* nullMaskPtr = nullptr);
+                                               int64_t* nullMaskPtr = nullptr);
     GPUMemory::GPUString InsertString(const std::string& databaseName,
                                       const std::string& colName,
                                       const std::string* strings,
                                       size_t size,
                                       bool useCache = false,
+<<<<<<< HEAD
                                       int8_t* nullMaskPtr = nullptr);
     template <typename T>
     CompositeDataTypeAllocation<T> FindCompositeDataTypeAllocation(const std::string& colName);
@@ -1031,6 +1032,16 @@ public:
 
     template <typename T>
     CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
+=======
+                                      int64_t* nullMaskPtr = nullptr);
+    std::tuple<GPUMemory::GPUPolygon, int32_t, int64_t*> FindComplexPolygon(std::string colName);
+    std::tuple<GPUMemory::GPUString, int32_t, int64_t*> FindStringColumn(const std::string& colName);
+    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int64_t* newNullMask);
+    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int64_t* newNullMask);
+    NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
+    GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
+    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
+>>>>>>> NullValuesApi: Continue on refator code to use 64bit nullmasks and use api
 
     template <typename T>
     InstructionStatus OrderByConst();

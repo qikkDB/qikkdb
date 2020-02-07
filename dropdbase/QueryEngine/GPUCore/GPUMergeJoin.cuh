@@ -221,7 +221,7 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
                                                  T* colABlock,
                                                  T* colBBlock,
                                                  int32_t* colABlockIndices,
-                                                 int8_t* colABlockNullMask,
+                                                 int64_t* colABlockNullMask,
                                                  int32_t diagonalCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -233,12 +233,14 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
         if (colABlockNullMask)
         {
             // Fetch the null flag
-            const int32_t offset = colABlockIndices[mergeAIndices[i]] % (sizeof(int8_t) * 8);
-            const bool nullFlag =
-                static_cast<int32_t>(static_cast<uint8_t>(
+            //const int32_t offset = NullValues::GetShiftMaskIdx(colABlockIndices[mergeAIndices[i]]); // colABlockIndices[mergeAIndices[i]] % (sizeof(int8_t) * 8);
+            const bool nullFlag = static_cast<int32_t>(static_cast<uint8_t>(
+                NullValues::GetConcreteBitFromBitmask(colABlockNullMask, colABlockIndices[mergeAIndices[i]])));
+                /*static_cast<int32_t>(static_cast<uint8_t>(
                     colABlockNullMask[colABlockIndices[mergeAIndices[i]] / (sizeof(int8_t) * 8)])) >>
                     offset &
-                1;
+                1;*/
+
 
             // Evaluate the join condition
             joinPredicateMask[i] =
@@ -371,18 +373,16 @@ public:
         cuda_ptr<int32_t> colBBlockJoinIndices(diagonalCountCapacityRounded);
 
         // Calculate the null block size and alloc the null mask buffers
-        size_t colABlockNullMaskCapacity =
-            (colABlockCapacity + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t colABlockNullMaskCapacity = NullValues::GetNullBitMaskSize(colABlockCapacity);
 
-        cuda_ptr<int8_t> colABlockNullMask(colABlockNullMaskCapacity);
+        cuda_ptr<int64_t> colABlockNullMask(colABlockNullMaskCapacity);
 
         // Perform the merge join
         for (int32_t a = 0; a < colABlockCount; a++)
         {
             // Fetch the A block size and null mask size
             const int32_t colABlockSize = colABlockList[a]->GetSize();
-            const int32_t colABlockNullMaskSize =
-                (colABlockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+            const int32_t colABlockNullMaskSize = NullValues::GetNullBitMaskSize(colABlockSize);
             if (colABlockSize == 0)
             {
                 continue;
@@ -396,7 +396,7 @@ public:
             // Copy the block content to the gpu, if the null mask is present copy it aswell
             GPUMemory::copyHostToDevice(colABlock.get(), colABlockList[a]->GetData(), colABlockSize);
 
-            int8_t* d_colABlockNullMask = nullptr;
+            int64_t* d_colABlockNullMask = nullptr;
             if (colAisNullable && colABlockList[a]->GetNullBitmask())
             {
                 GPUMemory::copyHostToDevice(colABlockNullMask.get(),

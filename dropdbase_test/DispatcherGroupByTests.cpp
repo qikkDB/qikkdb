@@ -1016,8 +1016,8 @@ protected:
         columns.insert(std::make_pair<std::string, DataType>("colValue", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        std::vector<int8_t> compressedKeyNullMask((keyNulls.size() + 7) / 8);
-        std::vector<int8_t> compressedValueNullMask((valueNulls.size() + 7) / 8);
+        std::vector<int64_t> compressedKeyNullMask((keyNulls.size() + 7) / 8);
+        std::vector<int64_t> compressedValueNullMask((valueNulls.size() + 7) / 8);
         for (int32_t i = 0; i < keyNulls.size(); i++)
         {
             if (i % 8 == 0)
@@ -1098,8 +1098,8 @@ protected:
         columns.insert(std::make_pair<std::string, DataType>("colValue", DataType::COLUMN_INT));
         groupByDatabase->CreateTable(columns, tableName.c_str());
 
-        std::vector<int8_t> compressedKeyNullMask((keyNulls.size() + 7) / 8);
-        std::vector<int8_t> compressedValueNullMask((valueNulls.size() + 7) / 8);
+        std::vector<int64_t> compressedKeyNullMask((keyNulls.size() + 7) / 8);
+        std::vector<int64_t> compressedValueNullMask((valueNulls.size() + 7) / 8);
         for (int32_t i = 0; i < keyNulls.size(); i++)
         {
             if (i % 8 == 0)

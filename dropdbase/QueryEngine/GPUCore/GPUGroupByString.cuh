@@ -40,7 +40,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        int32_t* stringLengths,
                                        GPUMemory::GPUString keysBuffer,
                                        V* values,
-                                       int8_t* valuesNullMaskUncompressed,
+                                       int64_t* valuesNullMaskUncompressed,
                                        int64_t* keyOccurrenceCount,
                                        const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
@@ -48,8 +48,8 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        const int32_t dataElementCount,
                                        const int32_t arrayMultiplier,
                                        int32_t* errorFlag,
-                                       int8_t* inKeysNullMask,
-                                       int8_t* inValuesNullMask)
+                                       int64_t* inKeysNullMask,
+                                       int64_t* inValuesNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -159,7 +159,7 @@ __global__ void kernel_collect_string_keys(GPUMemory::GPUString sideBuffer,
                                            int32_t inKeysCount);
 
 
-__global__ void kernel_source_indices_to_mask(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
+__global__ void kernel_source_indices_to_mask(int64_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
 
 
 __global__ void kernel_mark_collected_strings(int32_t* sourceIndices, int32_t maxHashCount);
@@ -194,7 +194,7 @@ public:
 private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    int8_t* valuesNullMaskUncompressed_ = nullptr;
+    int64_t* valuesNullMaskUncompressed_ = nullptr;
 
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
@@ -334,8 +334,8 @@ public:
     void ProcessBlock(GPUMemory::GPUString inKeys,
                       V* inValues,
                       int32_t dataElementCount,
-                      int8_t* inKeysNullMask = nullptr,
-                      int8_t* inValuesNullMask = nullptr)
+                      int64_t* inKeysNullMask = nullptr,
+                      int64_t* inValuesNullMask = nullptr)
     {
         if (dataElementCount > 0)
         {
@@ -384,9 +384,9 @@ public:
     }
 
     /// Create memory-wasting null mask for keys - one 1 at [0], other zeros
-    cuda_ptr<int8_t> CreateKeyNullMask()
+    cuda_ptr<int64_t> CreateKeyNullMask()
     {
-        cuda_ptr<int8_t> keyNullMask(keyBufferSize_, 0);
+        cuda_ptr<int64_t> keyNullMask(keyBufferSize_, 0);
         GPUMemory::memset(keyNullMask.get(), 1, 1);
         return keyNullMask;
     }
@@ -399,18 +399,18 @@ public:
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(std::vector<int32_t>& keysStringLengths,
                                std::vector<char>& keysAllChars,
-                               int8_t* keysNullMask,
+                               int64_t* keysNullMask,
                                V* values,
-                               int8_t* valuesNullMask,
+                               int64_t* valuesNullMask,
                                int64_t* occurrences,
                                int32_t* elementCount)
     {
         Context& context = Context::getInstance();
-        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<int8_t> keysNullMaskInput = CreateKeyNullMask();
+        cuda_ptr<int64_t> keysNullMaskInput = CreateKeyNullMask();
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
                                                 keysBuffer_, occupancyMask.get(), keyBufferSize_);
@@ -447,18 +447,18 @@ public:
     void GetResults(GPUMemory::GPUString* outKeys,
                     O** outValues,
                     int32_t* outDataElementCount,
-                    int8_t** outKeysNullMask = nullptr,
-                    int8_t** outValuesNullMask = nullptr)
+                    int64_t** outKeysNullMask = nullptr,
+                    int64_t** outValuesNullMask = nullptr)
     {
         Context& context = Context::getInstance();
 
         // Create buffer for bucket compression - reconstruction
-        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
         // Compute occupancyMask
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<int8_t> keysNullMaskCompressed =
+        cuda_ptr<int64_t> keysNullMaskCompressed =
             GPUReconstruct::CompressNullMask(CreateKeyNullMask().get(), keyBufferSize_);
 
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
@@ -477,9 +477,7 @@ public:
 
             if (USE_VALUES)
             {
-                cuda_ptr<int8_t> valuesNullMaskCompressed((keyBufferSize_ + sizeof(int32_t) * 8 - 1) /
-                                                              (sizeof(int8_t) * 8),
-                                                          0);
+                cuda_ptr<int64_t> valuesNullMaskCompressed((NullValues::GetNullBitMaskSize(keyBufferSize_)), 0);
 
                 if (outValuesNullMask)
                 {
@@ -570,8 +568,8 @@ public:
                     O** outValues,
                     int32_t* outDataElementCount,
                     std::vector<std::unique_ptr<IGroupBy>>& tables,
-                    int8_t** outKeysNullMask = nullptr,
-                    int8_t** outValuesNullMask = nullptr)
+                    int64_t** outKeysNullMask = nullptr,
+                    int64_t** outValuesNullMask = nullptr)
     {
         if (tables.size() <= 0) // invalid count of tables
         {
@@ -587,10 +585,10 @@ public:
 
             std::vector<int32_t> keysAllHostStringLengths;
             std::vector<char> keysAllHostAllChars;
-            std::vector<int8_t> keysNullMaskAllHost;
+            std::vector<int64_t> keysNullMaskAllHost;
 
             std::vector<V> valuesAllHost;
-            std::vector<int8_t> valuesNullMaskAllHost;
+            std::vector<int64_t> valuesNullMaskAllHost;
 
             std::vector<int64_t> occurrencesAllHost;
 
@@ -609,12 +607,12 @@ public:
 
                 std::vector<int32_t> keysStringLengths;
                 std::vector<char> keysAllChars;
-                std::unique_ptr<int8_t[]> keysNullMask =
-                    std::make_unique<int8_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<int64_t[]> keysNullMask =
+                    std::make_unique<int64_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<int8_t[]> valuesNullMask =
-                    std::make_unique<int8_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<int64_t[]> valuesNullMask =
+                    std::make_unique<int64_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<int64_t[]> occurrences =
                     std::make_unique<int64_t[]>(table->GetMaxHashCount());
@@ -654,10 +652,10 @@ public:
             if (sumElementCount > 0)
             {
                 cuda_ptr<int32_t> keysAllGPUStringLengths(sumElementCount);
-                cuda_ptr<int8_t> keysNullMaskAllGPU(sumElementCount);
+                cuda_ptr<int64_t> keysNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
-                cuda_ptr<int8_t> valuesNullMaskAllGPU(sumElementCount);
+                cuda_ptr<int64_t> valuesNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 

@@ -54,24 +54,24 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
 
         auto col = FindCompositeDataTypeAllocation<std::string>(colName);
         size_t inSize = col.ElementCount;
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
 
         GPUMemory::GPUString reorderedColumn;
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int8_t*>(filter_), inSize);
+                                     reinterpret_cast<int64_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
@@ -124,31 +124,31 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         PointerAllocation col = allocatedPointers_.at(colName);
         size_t inSize = col.ElementCount;
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int8_t*>(filter_), inSize);
+                                     reinterpret_cast<int64_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                  reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPointColToWKT(outData->getData(), &outSize, reorderedColumn.get(),
@@ -196,20 +196,20 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
 
         GPUMemory::GPUPolygon reorderedColumn;
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int8_t*>(filter_), inSize);
+                                     reinterpret_cast<int64_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderPolygonByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
@@ -271,8 +271,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 
             for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
             {

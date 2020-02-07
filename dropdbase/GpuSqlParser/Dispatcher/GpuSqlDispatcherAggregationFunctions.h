@@ -37,7 +37,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     int32_t reconstructOutSize;
 
     IN* reconstructOutReg = nullptr;
-    int8_t* reconstructOutNullMask = nullptr;
+    int64_t* reconstructOutNullMask = nullptr;
     constexpr bool isCount = std::is_same<OP, AggregationFunctions::count>::value;
     if constexpr (isCount) // TODO consider null values
     {
@@ -58,9 +58,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     {
         GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize,
                                                reinterpret_cast<IN*>(column.GpuPtr),
-                                               reinterpret_cast<int8_t*>(filter_),
+                                               reinterpret_cast<int64_t*>(filter_),
                                                column.ElementCount, &reconstructOutNullMask,
-                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+                                               reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
         // Rewrite pointers and free old ones when needed
         RewriteColumn(column, reinterpret_cast<uintptr_t>(reconstructOutReg), reconstructOutSize,
                       reconstructOutNullMask);
@@ -116,8 +116,8 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->ProcessBlock(reinterpret_cast<K*>(groupByColumn.GpuPtr),
                            reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize,
-                           reinterpret_cast<int8_t*>(groupByColumn.GpuNullMaskPtr),
-                           reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
+                           reinterpret_cast<int64_t*>(groupByColumn.GpuNullMaskPtr),
+                           reinterpret_cast<int64_t*>(valueColumn.GpuNullMaskPtr));
     }
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -128,9 +128,9 @@ public:
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
         K* outKeys = nullptr;
-        int8_t* outKeyNullMask = nullptr;
+        int64_t* outKeyNullMask = nullptr;
         O* outValues = nullptr;
-        int8_t* outValueNullMask = nullptr;
+        int64_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
@@ -170,8 +170,8 @@ public:
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->ProcessBlock(groupByColumn.GpuPtr, reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize,
-                           reinterpret_cast<int8_t*>(groupByColumn.GpuNullMaskPtr),
-                           reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
+                           reinterpret_cast<int64_t*>(groupByColumn.GpuNullMaskPtr),
+                           reinterpret_cast<int64_t*>(valueColumn.GpuNullMaskPtr));
     }
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -182,9 +182,9 @@ public:
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
         GPUMemory::GPUString outKeys;
-        int8_t* outKeyNullMask = nullptr;
+        int64_t* outKeyNullMask = nullptr;
         O* outValues = nullptr;
-        int8_t* outValueNullMask = nullptr;
+        int64_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
@@ -223,7 +223,7 @@ public:
                              GpuSqlDispatcher& dispatcher)
     {
         std::vector<void*> keyPtrs;
-        std::vector<int8_t*> keyNullMaskPtrs;
+        std::vector<int64_t*> keyNullMaskPtrs;
         std::vector<GPUMemory::GPUString*> stringKeyPtrs;
         int32_t minKeySize = std::numeric_limits<int32_t>::max();
 
@@ -249,7 +249,7 @@ public:
                 std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
                 PointerAllocation keyColumn = dispatcher.allocatedPointers_.at(groupByColumnName);
                 keyPtrs.push_back(reinterpret_cast<void*>(keyColumn.GpuPtr));
-                keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(keyColumn.GpuNullMaskPtr));
+                keyNullMaskPtrs.push_back(reinterpret_cast<int64_t*>(keyColumn.GpuNullMaskPtr));
                 minKeySize = std::min(keyColumn.ElementCount, minKeySize);
             }
         }
@@ -259,7 +259,7 @@ public:
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->ProcessBlock(keyPtrs, keyNullMaskPtrs, reinterpret_cast<V*>(valueColumn.GpuPtr),
-                           dataSize, reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
+                           dataSize, reinterpret_cast<int64_t*>(valueColumn.GpuNullMaskPtr));
 
         for (auto& stringPtr : stringKeyPtrs)
         {
@@ -274,9 +274,9 @@ public:
     {
         int32_t outSize;
         std::vector<void*> outKeys;
-        std::vector<int8_t*> outKeysNullMasks;
+        std::vector<int64_t*> outKeysNullMasks;
         O* outValues = nullptr;
-        int8_t* outValueNullMask = nullptr;
+        int64_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_,
@@ -395,13 +395,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationGroupBy()
         !aggCount)
     {
         V* reconstructOutReg;
-        int8_t* reconstructOutNullMask;
+        int64_t* reconstructOutNullMask;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
                                               reinterpret_cast<V*>(column.GpuPtr),
-                                              reinterpret_cast<int8_t*>(filter_),
+                                              reinterpret_cast<int64_t*>(filter_),
                                               column.ElementCount, &reconstructOutNullMask,
-                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
-        if (reconstructOutNullMask != reinterpret_cast<int8_t*>(column.GpuNullMaskPtr))
+                                              reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
+        if (reconstructOutNullMask != reinterpret_cast<int64_t*>(column.GpuNullMaskPtr))
         {
             InsertRegister(colTableName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
                            PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
@@ -499,12 +499,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol()
     // Reconstruct key column
     int32_t reconstructOutSize;
     T* reconstructOutReg;
-    int8_t* reconstructOutNullMask;
+    int64_t* reconstructOutNullMask;
     GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
-                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount,
+                                          reinterpret_cast<int64_t*>(filter_), column.ElementCount,
                                           &reconstructOutNullMask,
-                                          reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
+                                          reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
 
     InsertRegister(columnName + RECONSTRUCTED_SUFFIX,
                    PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutReg),

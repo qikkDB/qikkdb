@@ -1,7 +1,7 @@
 #pragma once
 #include "QueryEngine/GPUCore/GPUMemory.cuh"
 #include "Compression/Compression.h"
-#include "NullValues.h"
+#include "QueryEngine/GPUCore/NullValues.cuh"
 
 #include <algorithm>
 #include <memory>

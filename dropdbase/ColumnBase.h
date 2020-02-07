@@ -558,7 +558,7 @@ public:
     void InsertDataOnSpecificPosition(const int32_t indexBlock,
                                       const int32_t indexInBlock,
                                       const T& columnData,
-                                      int groupId = -1,
+                                      int32_t groupId = -1,
                                       bool isNullValue = false)
     {
         size_ += 1;

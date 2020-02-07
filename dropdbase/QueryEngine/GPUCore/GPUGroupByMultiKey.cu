@@ -71,10 +71,10 @@ __device__ int32_t GetHash(DataType* keyTypes,
 __device__ bool AreEqualMultiKeys(DataType* keyTypes,
                                   const int32_t keysColCount,
                                   void** keysA,
-                                  int8_t** keysANullMask,
+                                  int64_t** keysANullMask,
                                   const int32_t indexA,
                                   void** keysB,
-                                  int8_t** keysBNullMask,
+                                  int64_t** keysBNullMask,
                                   const int32_t indexB,
                                   const bool compressedBNullMask)
 {
@@ -148,10 +148,10 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
 __device__ bool IsNewMultiKey(DataType* keyTypes,
                               const int32_t keysColCount,
                               void** inKeys,
-                              int8_t** inKeysNullMask,
+                              int64_t** inKeysNullMask,
                               const int32_t i,
                               void** keysBuffer,
-                              int8_t** keysNullBuffer,
+                              int64_t** keysNullBuffer,
                               int32_t* sourceIndices,
                               const int32_t index)
 {
@@ -167,7 +167,7 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
 template <>
 void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
                                               int32_t* outDataElementCount,
-                                              int8_t* occupancyMaskPtr,
+                                              int64_t* occupancyMaskPtr,
                                               void** keyCol,
                                               const int32_t elementCount)
 {
@@ -189,7 +189,7 @@ void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
 template <>
 void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
                                           int32_t* outDataElementCount,
-                                          int8_t* occupancyMaskPtr,
+                                          int64_t* occupancyMaskPtr,
                                           void** keyCol,
                                           int32_t elementCount)
 {
@@ -211,11 +211,11 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 
 void AllocKeysBuffer(void*** keysBuffer,
-                     int8_t*** keysNullBuffer,
+                     int64_t*** keysNullBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
-                     std::vector<int8_t*>* pointersNullMask)
+                     std::vector<int64_t*>* pointersNullMask)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
     GPUMemory::alloc(keysNullBuffer, keyTypes.size());
@@ -297,7 +297,7 @@ void AllocKeysBuffer(void*** keysBuffer,
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
-        int8_t* gpuKeyNullMask;
+        int64_t* gpuKeyNullMask;
         GPUMemory::alloc(&gpuKeyNullMask, rowCount);
         GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
         if (pointersNullMask)
@@ -388,12 +388,12 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          int8_t** keysNullBuffer,
+                                          int64_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys,
-                                          int8_t** inKeysNullMask)
+                                          int64_t** inKeysNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -444,9 +444,8 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 // If using keys null mask
                 if (inKeysNullMask[t] != nullptr)
                 {
-                    keysNullBuffer[t][i] = (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >>
-                                            (sourceIndices[i] % (sizeof(int8_t) * 8))) &
-                                           1;
+                    keysNullBuffer[t][i] =
+                        NullValues::GetConcreteBitFromBitmask(inKeysNullMask[t], sourceIndices[i]);
                 }
                 else // If not, set added key as not null
                 {
