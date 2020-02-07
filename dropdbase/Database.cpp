@@ -842,7 +842,9 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     // read file .db
     std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
 
-    if (dbFile.good())
+	dbFile.seekg(0, dbFile.end);
+    size_t fileSize = dbFile.tellg();
+    if (fileSize != 0)
     {
         BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db.";
 
@@ -955,7 +957,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     else
     {
         BOOST_LOG_TRIVIAL(error) << "File " + std::string(path + std::string(fileDbName) + ".db") +
-                                        " is corrupted and so cannot be loaded.";
+                                        " is empty and so cannot be loaded.";
     }
 }
 
@@ -980,7 +982,9 @@ void Database::LoadColumn(const char* path,
     std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col",
                           std::ios::binary);
 
-    if (colFile.good())
+    colFile.seekg(0, colFile.end);
+    size_t fileSize = colFile.tellg();
+    if (fileSize != 0)
     {
         BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
                                 << table.GetName() << SEPARATOR << columnName << ".col.";
@@ -2060,7 +2064,7 @@ void Database::LoadColumn(const char* path,
         BOOST_LOG_TRIVIAL(error) << "File " +
                                         std::string(pathStr + dbName + SEPARATOR + table.GetName() +
                                                     SEPARATOR + columnName + ".col") +
-                                        " is corrupted and so cannot be loaded.";
+                                        " is empty and so cannot be loaded.";
     }
 }
 
