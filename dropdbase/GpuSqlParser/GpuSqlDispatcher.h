@@ -75,6 +75,13 @@ private:
         std::uintptr_t GpuNullMaskPtr;
     };
 
+    struct GpuStringAllocation
+    {
+        GPUMemory::GPUString GpuPtr;
+        int32_t ElementCount;
+        std::uintptr_t GpuNullMaskPtr;
+    };
+
     enum class InstructionStatus
     {
         CONTINUE = 0,
@@ -92,7 +99,7 @@ private:
     template <typename T>
     using InstructionArgument = typename std::conditional<
         std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
-        std::tuple<GPUMemory::GPUString, std::tuple<GPUMemory::GPUString, int32_t, int8_t*>, InstructionStatus, std::string>,
+        std::tuple<GPUMemory::GPUString, GpuStringAllocation, InstructionStatus, std::string>,
         typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value,
                                   std::tuple<GPUMemory::GPUPolygon, std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*>, InstructionStatus, std::string>,
                                   std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type>::type;
@@ -740,7 +747,7 @@ public:
     public:
         static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
         {
-            std::tuple<GPUMemory::GPUString, int32_t, int8_t*> column = {{nullptr, nullptr}, 0, nullptr};
+            GpuStringAllocation column = {{nullptr, nullptr}, 0, 0};
 
             if constexpr (std::is_pointer<T>::value)
             {
@@ -750,7 +757,7 @@ public:
 
                 if (loadFlag != InstructionStatus::CONTINUE)
                 {
-                    return {std::get<0>(column), column, loadFlag, colName};
+                    return {column.GpuPtr, column, loadFlag, colName};
                 }
 
                 if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
@@ -768,13 +775,13 @@ public:
                     column = dispatcher.FindStringColumn(colName);
                 }
 
-                return {std::get<0>(column), column, loadFlag, colName};
+                return {column.GpuPtr, column, loadFlag, colName};
             }
             else
             {
                 GPUMemory::GPUString gpuString =
-                    dispatcher.InsertConstStringGpu(dispatcher.arguments_.Read<T>(), 1);
-                column = {gpuString, 1, nullptr};
+                    dispatcher.InsertConstStringGpu(dispatcher.arguments_.Read<T>());
+                column = {gpuString, 0, 0};
                 return {gpuString, column, InstructionStatus::CONTINUE, ""};
             }
         }
@@ -874,7 +881,7 @@ public:
                                       bool useCache = false,
                                       int8_t* nullMaskPtr = nullptr);
     std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
-    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> FindStringColumn(const std::string& colName);
+    GpuStringAllocation FindStringColumn(const std::string& colName);
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
@@ -955,18 +962,6 @@ public:
 
     template <typename OP, typename L, typename R>
     InstructionStatus Filter();
-
-    template <typename OP>
-    InstructionStatus FilterStringColConst();
-
-    template <typename OP>
-    InstructionStatus FilterStringConstCol();
-
-    template <typename OP>
-    InstructionStatus FilterStringColCol();
-
-    template <typename OP>
-    InstructionStatus FilterStringConstConst();
 
     template <typename OP, typename T, typename U>
     InstructionStatus Logical();

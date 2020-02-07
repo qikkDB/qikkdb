@@ -177,12 +177,12 @@ public:
         std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
         auto groupByColumn = dispatcher.FindStringColumn(groupByColumnName);
 
-        int32_t dataSize = std::min(std::get<1>(groupByColumn), valueColumn.ElementCount);
+        int32_t dataSize = std::min(groupByColumn.ElementCount, valueColumn.ElementCount);
 
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
-            ->ProcessBlock(std::get<0>(groupByColumn), reinterpret_cast<V*>(valueColumn.GpuPtr),
-                           dataSize, std::get<2>(groupByColumn),
+            ->ProcessBlock(groupByColumn.GpuPtr, reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize,
+                           reinterpret_cast<int8_t*>(groupByColumn.GpuNullMaskPtr),
                            reinterpret_cast<int8_t*>(valueColumn.GpuNullMaskPtr));
     }
 
@@ -247,13 +247,13 @@ public:
                 GPUMemory::GPUString* stringColPtr;
                 GPUMemory::alloc<GPUMemory::GPUString>(&stringColPtr, 1);
 
-                GPUMemory::GPUString stringCol = std::get<0>(stringColumn);
+                GPUMemory::GPUString stringCol = stringColumn.GpuPtr;
                 GPUMemory::copyHostToDevice<GPUMemory::GPUString>(stringColPtr, &stringCol, 1);
                 keyPtrs.push_back(reinterpret_cast<void*>(stringColPtr));
-                keyNullMaskPtrs.push_back(std::get<2>(stringColumn));
+                keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(stringColumn.GpuNullMaskPtr));
                 stringKeyPtrs.push_back(stringColPtr);
 
-                minKeySize = std::min(std::get<1>(stringColumn), minKeySize);
+                minKeySize = std::min(stringColumn.ElementCount, minKeySize);
             }
             else
             {

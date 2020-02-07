@@ -53,7 +53,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
         }
 
         auto col = FindStringColumn(colName);
-        size_t inSize = std::get<1>(col);
+        size_t inSize = col.ElementCount;
         size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
         std::unique_ptr<VariantArray<std::string>> outData =
@@ -75,10 +75,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
         }
 
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                       std::get<0>(col), inSize);
+                                       col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           std::get<2>(col), inSize);
+                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,

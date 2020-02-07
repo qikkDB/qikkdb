@@ -89,6 +89,7 @@ __global__ void kernel_filter_string(int8_t* outMask,
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// A class for column-wise logic operation for data filtering based on logic conditions
+template <typename OP, typename T, typename U, class Enable = void>
 class GPUFilter
 {
 public:
@@ -98,7 +99,7 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U>
+
     static void Filter(int8_t* outMask, T ACol, U BCol, int8_t* nullBitMask, int32_t dataElementCount)
     {
         if (std::is_pointer<T>::value || std::is_pointer<U>::value)
@@ -113,24 +114,27 @@ public:
         }
         CheckCudaError(cudaGetLastError());
     }
+};
 
-
+template <typename OP, typename T, typename U>
+class GPUFilter<OP,
+                T,
+                U,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+{
+public:
     /// Filtration operation between two strings (column-column)
-    template <typename OP>
-    static void FilterString(int8_t* outMask,
-                             GPUMemory::GPUString ACol,
-                             bool isACol,
-                             GPUMemory::GPUString BCol,
-                             bool isBCol,
-                             int8_t* nullBitMask,
-                             int32_t dataElementCount)
+    static void
+    Filter(int8_t* outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int8_t* nullBitMask, int32_t dataElementCount)
     {
         kernel_filter_string<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, isACol, BCol, isBCol, nullBitMask, dataElementCount);
+                outMask, ACol, std::is_pointer<T>::value, BCol, std::is_pointer<U>::value,
+                nullBitMask, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        if (!isACol && !isBCol)
+        if constexpr (!std::is_pointer<T>::value && !std::is_pointer<U>::value)
         {
             // Expand mask - copy the one result to whole mask
             int8_t numberFromMask;

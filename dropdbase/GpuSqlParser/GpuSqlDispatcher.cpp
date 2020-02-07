@@ -1103,16 +1103,14 @@ std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComple
                            reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
 }
 
-std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringColumn(const std::string& colName)
+GpuSqlDispatcher::GpuStringAllocation GpuSqlDispatcher::FindStringColumn(const std::string& colName)
 {
     GPUMemory::GPUString gpuString;
     int32_t size = allocatedPointers_.at(colName + "_stringIndices").ElementCount;
     gpuString.stringIndices =
         reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + "_stringIndices").GpuPtr);
     gpuString.allChars = reinterpret_cast<char*>(allocatedPointers_.at(colName + "_allChars").GpuPtr);
-    return std::make_tuple(gpuString, size,
-                           reinterpret_cast<int8_t*>(
-                               allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
+    return {gpuString, size, allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr};
 }
 
 void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
@@ -1147,7 +1145,7 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
     if (filter_)
     {
         const auto column = FindStringColumn(colName);
-        GPUMemory::free(std::get<0>(column));
+        GPUMemory::free(column.GpuPtr);
         // Do not free null mask (std::get<2>) because it is stored also as col_nullmask in allocated pointers
     }
 

@@ -50,15 +50,15 @@ struct GPUPolygon
     /// Start indices of each complex polygon in polygon array
     int32_t* polyIdx;
 
-	__device__ __host__ int32_t PointIdxAt(int32_t idx);
+    __device__ __host__ int32_t PointIdxAt(int32_t idx);
 
-	__device__ __host__ int32_t PolyIdxAt(int32_t idx);
+    __device__ __host__ int32_t PolyIdxAt(int32_t idx);
 
-	__device__ __host__ int32_t PointCountAt(int32_t idx);
+    __device__ __host__ int32_t PointCountAt(int32_t idx);
 
-	__device__ __host__ int32_t PolyCountAt(int32_t idx);
+    __device__ __host__ int32_t PolyCountAt(int32_t idx);
 
-	__device__ __host__ int32_t TotalPointCountAt(int32_t idx);
+    __device__ __host__ int32_t TotalPointCountAt(int32_t idx);
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
@@ -69,6 +69,11 @@ struct GPUString
     /// Start indices of each string in allChars array,
     /// shifted by 1 string to left (last one is total count of chars)
     int64_t* stringIndices;
+
+    operator bool()
+    {
+        return allChars && stringIndices;
+    }
 };
 
 bool EvictWithLockList();
@@ -241,9 +246,9 @@ void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
         std::cout << static_cast<PrintType>(bufferCpu[i]) << " ";
     }
     std::cout << std::endl;
-} 
+}
 
-template<>
+template <>
 void PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount);
 
 }; // namespace GPUMemory

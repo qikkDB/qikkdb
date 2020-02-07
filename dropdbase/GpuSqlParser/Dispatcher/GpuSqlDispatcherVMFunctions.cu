@@ -656,7 +656,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
                                         StringDataTypeComp(colName)) != groupByColumns_.end() ?
                                KEYS_SUFFIX :
                                ""));
-            outSize = std::get<1>(col);
+            outSize = col.ElementCount;
 
             if (usingOrderBy_)
             {
@@ -669,33 +669,33 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
                 PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
                 GPUOrderBy::ReOrderStringByIdx(reorderedColumn,
                                                reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                               std::get<0>(col), outSize);
+                                               col.GpuPtr, outSize);
                 GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                                    reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                                   std::get<2>(col), outSize);
+                                                   reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), outSize);
 
-                GPUMemory::free(std::get<0>(col));
-                GPUMemory::free(std::get<2>(col));
+                GPUMemory::free(col.GpuPtr);
+                GPUMemory::free(reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
 
-                std::get<0>(col).stringIndices = reorderedColumn.stringIndices;
-                std::get<0>(col).allChars = reorderedColumn.allChars;
-                std::get<2>(col) = reorderedNullColumn.release();
+                col.GpuPtr.stringIndices = reorderedColumn.stringIndices;
+                col.GpuPtr.allChars = reorderedColumn.allChars;
+                col.GpuNullMaskPtr = reinterpret_cast<std::uintptr_t>(reorderedNullColumn.release());
             }
 
             outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
-            if (std::get<2>(col))
+            if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 std::unique_ptr<int8_t[]> nullMask = std::unique_ptr<int8_t[]>(new int8_t[bitMaskSize]);
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col), nullptr,
-                                                     std::get<1>(col), nullMask.get(), std::get<2>(col));
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr, nullptr,
+                                                     col.ElementCount, nullMask.get(),
+                                                     reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
                 bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
             }
             else
             {
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
-                                                     nullptr, std::get<1>(col));
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr, nullptr, col.ElementCount);
             }
         }
         else
@@ -727,22 +727,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
         else
         {
             auto col = FindStringColumn(colName);
-            outSize = std::get<1>(col);
+            outSize = col.ElementCount;
             outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
-            if (std::get<2>(col))
+            if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr,
                                                      reinterpret_cast<int8_t*>(filter_),
-                                                     std::get<1>(col), nullMask.get(), std::get<2>(col));
+                                                     col.ElementCount, nullMask.get(),
+                                                     reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
                 bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
             }
             else
             {
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, std::get<0>(col),
-                                                     reinterpret_cast<int8_t*>(filter_), std::get<1>(col));
+                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr,
+                                                     reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
         }
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';

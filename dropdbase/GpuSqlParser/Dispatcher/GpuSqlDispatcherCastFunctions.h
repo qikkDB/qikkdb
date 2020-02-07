@@ -109,45 +109,45 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringCol()
         if (isOverallLastBlock_)
         {
             auto column = FindStringColumn(colName + KEYS_SUFFIX);
-            int32_t retSize = std::get<1>(column);
+            int32_t retSize = column.ElementCount;
             OUT* result;
 
-            if (std::get<2>(column))
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
                 result = AllocateRegister<OUT>(reg + KEYS_SUFFIX, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, std::get<2>(column), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
                 result = AllocateRegister<OUT>(reg + KEYS_SUFFIX, retSize);
             }
 
-            GPUCast::CastString(result, std::get<0>(column), retSize);
+            GPUCast::CastString(result, column.GpuPtr, retSize);
             groupByColumns_.push_back({reg, ::GetColumnType<OUT>()});
         }
     }
     else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
     {
         auto column = FindStringColumn(colName);
-        int32_t retSize = std::get<1>(column);
+        int32_t retSize = column.ElementCount;
 
         if (!IsRegisterAllocated(reg))
         {
             OUT* result;
-            if (std::get<2>(column))
+            if (column.GpuNullMaskPtr)
             {
                 int8_t* nullMask;
                 result = AllocateRegister<OUT>(reg, retSize, &nullMask);
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                GPUMemory::copyDeviceToDevice(nullMask, std::get<2>(column), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
                 result = AllocateRegister<OUT>(reg, retSize);
             }
-            GPUCast::CastString(result, std::get<0>(column), retSize);
+            GPUCast::CastString(result, column.GpuPtr, retSize);
         }
     }
     return InstructionStatus::CONTINUE;
@@ -212,7 +212,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
             {
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
             }
-           
+
             groupByColumns_.push_back({reg, DataType::COLUMN_STRING});
         }
     }
