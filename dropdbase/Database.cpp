@@ -846,6 +846,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     size_t fileSize = dbFile.tellg();
     if (fileSize != 0)
     {
+        dbFile.seekg(0, dbFile.beg);
         BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db.";
 
         int32_t persistenceFormatVersion;
@@ -988,6 +989,7 @@ void Database::LoadColumn(const char* path,
     size_t fileSize = colFile.tellg();
     if (fileSize != 0)
     {
+        colFile.seekg(0, colFile.beg);
         BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
                                 << table.GetName() << SEPARATOR << columnName << ".col.";
 
