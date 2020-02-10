@@ -34,9 +34,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::min(std::get<1>(left).ElementCount, std::get<1>(right).ElementCount);
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
-            std::pair<int8_t*, int8_t*> result =
-                AllocateInstructionResult<int8_t>(reg, retSize, allocateNullMask,
-                                                  {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -75,9 +74,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
-            std::pair<int8_t*, int8_t*> result =
-                AllocateInstructionResult<int8_t>(reg, retSize, allocateNullMask,
-                                                  {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -100,9 +98,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::get<1>(right).ElementCount;
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
-            std::pair<int8_t*, int8_t*> result =
-                AllocateInstructionResult<int8_t>(reg, retSize, allocateNullMask,
-                                                  {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -127,7 +124,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
             return InstructionStatus::OUT_OF_BLOCKS;
         }
 
-        std::pair<int8_t*, int8_t*> result = AllocateInstructionResult<int8_t>(reg, retSize, false, {});
+        InstructionResult<int8_t> result =
+            InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(*this, reg, retSize, false, {});
         if (std::get<0>(result))
         {
             GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left), std::get<0>(right),

@@ -104,6 +104,14 @@ private:
                                   std::tuple<GPUMemory::GPUPolygon, std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*>, InstructionStatus, std::string>,
                                   std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type>::type;
 
+    template <typename T>
+    using InstructionResult = typename std::conditional<
+        std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
+        std::pair<GPUMemory::GPUString, int8_t*>,
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value,
+                                  std::pair<GPUMemory::GPUPolygon, int8_t*>,
+                                  std::pair<typename std::conditional<std::is_pointer<T>::value, T, typename std::add_pointer<T>::type>::type, int8_t*>>::type>::type;
+
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
     int32_t blockIndex_;
@@ -698,7 +706,7 @@ public:
                                               reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
     }
 
-    template <class T, class Enable = void>
+    template <typename T, class Enable = void>
     class InstructionArgumentLoadHelper
     {
     public:
@@ -739,9 +747,61 @@ public:
                 return {dispatcher.arguments_.Read<T>(), column, InstructionStatus::CONTINUE, ""};
             }
         }
+
+        static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
+                                                              const std::string& reg,
+                                                              int32_t retSize,
+                                                              bool allocateNullMask,
+                                                              const std::vector<std::string>& instructionOperandColumns)
+        {
+            T* result = nullptr;
+            int8_t* nullMask = nullptr;
+
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    result = allocateNullMask ?
+                                 dispatcher.AllocateRegister<T>(reg + KEYS_SUFFIX, retSize, &nullMask) :
+                                 dispatcher.AllocateRegister<T>(reg + KEYS_SUFFIX, retSize);
+
+                    dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    result = allocateNullMask ? dispatcher.AllocateRegister<T>(reg, retSize, &nullMask) :
+                                                dispatcher.AllocateRegister<T>(reg, retSize);
+                }
+            }
+            return {result, nullMask};
+        }
+
+        static void StoreInstructionResult(InstructionResult<T> instructionResult,
+                                           GpuSqlDispatcher& dispatcher,
+                                           const std::string& reg,
+                                           int32_t retSize,
+                                           bool allocateNullMask,
+                                           const std::vector<std::string>& instructionOperandColumns)
+        {
+            // No explicit result storage required for primitive types
+        }
     };
 
-    template <class T>
+    template <typename T>
     class InstructionArgumentLoadHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value>::type>
     {
     public:
@@ -779,52 +839,104 @@ public:
             }
             else
             {
-                GPUMemory::GPUString gpuString =
-                    dispatcher.InsertConstStringGpu(dispatcher.arguments_.Read<T>());
+                const T cnst = dispatcher.arguments_.Read<T>();
+                const int32_t retSize = dispatcher.GetBlockSize();
+                if (retSize == 0)
+                {
+                    return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
+                }
+
+                GPUMemory::GPUString gpuString = dispatcher.InsertConstStringGpu(cnst, retSize);
                 column = {gpuString, 0, 0};
                 return {gpuString, column, InstructionStatus::CONTINUE, ""};
             }
         }
+
+        static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
+                                                              const std::string& reg,
+                                                              int32_t retSize,
+                                                              bool allocateNullMask,
+                                                              const std::vector<std::string>& instructionOperandColumns)
+        {
+            GPUMemory::GPUString result;
+            int8_t* nullMask = nullptr;
+
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    if (allocateNullMask)
+                    {
+                        const int32_t bitMaskSize =
+                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                    }
+                    dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    if (allocateNullMask)
+                    {
+                        const int32_t bitMaskSize =
+                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+                    }
+                }
+            }
+            return {result, nullMask};
+        }
+
+        static void StoreInstructionResult(InstructionResult<T> instructionResult,
+                                           GpuSqlDispatcher& dispatcher,
+                                           const std::string& reg,
+                                           int32_t retSize,
+                                           bool allocateNullMask,
+                                           const std::vector<std::string>& instructionOperandColumns)
+        {
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    dispatcher.FillStringRegister(std::get<0>(instructionResult), reg + KEYS_SUFFIX,
+                                                  retSize, true,
+                                                  allocateNullMask ? std::get<1>(instructionResult) : nullptr);
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    dispatcher.FillStringRegister(std::get<0>(instructionResult), reg, retSize, true,
+                                                  allocateNullMask ? std::get<1>(instructionResult) : nullptr);
+                }
+            }
+        }
     };
-
-    template <typename T>
-    std::pair<T*, int8_t*> AllocateInstructionResult(const std::string& reg,
-                                                     int32_t retSize,
-                                                     bool allocateNullMask,
-                                                     const std::vector<std::string>& instructionOperandColumns)
-    {
-        T* result = nullptr;
-        int8_t* nullMask = nullptr;
-
-        bool areGroupByColumns = false;
-
-        for (auto& operandColumn : instructionOperandColumns)
-        {
-            areGroupByColumns = areGroupByColumns ||
-                                (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
-                                              StringDataTypeComp(operandColumn)) != groupByColumns_.end());
-        }
-
-        if (areGroupByColumns && !insideAggregation_)
-        {
-            if (isOverallLastBlock_)
-            {
-                result = allocateNullMask ? AllocateRegister<T>(reg + KEYS_SUFFIX, retSize, &nullMask) :
-                                            AllocateRegister<T>(reg + KEYS_SUFFIX, retSize);
-
-                groupByColumns_.push_back({reg, ::GetColumnType<T>()});
-            }
-        }
-        else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
-        {
-            if (!IsRegisterAllocated(reg))
-            {
-                result = allocateNullMask ? AllocateRegister<T>(reg, retSize, &nullMask) :
-                                            AllocateRegister<T>(reg, retSize);
-            }
-        }
-        return {result, nullMask};
-    }
 
     template <typename T>
     InstructionStatus LoadCol(std::string& colName);
@@ -968,12 +1080,6 @@ public:
 
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnary();
-
-    template <typename OP>
-    InstructionStatus StringUnaryCol();
-
-    template <typename OP>
-    InstructionStatus StringUnaryConst();
 
     template <typename OP>
     InstructionStatus StringUnaryNumericCol();

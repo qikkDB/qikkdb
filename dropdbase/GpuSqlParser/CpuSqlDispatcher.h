@@ -235,9 +235,9 @@ public:
     template <typename OP, typename T, typename U>
     int32_t arithmeticConstConst();
 
-	int32_t DateToStringCol();
+    int32_t DateToStringCol();
 
-	int32_t DateToStringConst();
+    int32_t DateToStringConst();
 
     template <typename OP>
     int32_t DateExtractCol();

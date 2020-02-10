@@ -14,6 +14,7 @@
 #include "../GPUError.h"
 #include "MaybeDeref.cuh"
 #include "ArithmeticUnaryOperations.h"
+#include "GPUStringUnary.cuh"
 #include "DateOperations.h"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -39,6 +40,7 @@ __global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCo
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Class for unary arithmetic functions
+template <typename OP, typename T, typename U, class Enable = void>
 class GPUArithmeticUnary
 {
 public:
@@ -47,11 +49,28 @@ public:
     /// <param name="output">output GPU buffer</param>
     /// <param name="ACol">buffer with operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U>
     static void ArithmeticUnary(T* output, U ACol, int32_t dataElementCount)
     {
         kernel_arithmetic_unary<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 output, ACol, dataElementCount);
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                                 std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+{
+public:
+    /// String unary operations which return string, for column
+    /// <param name="output">output string column</param>
+    /// <param name="inCol">input string column (GPUString)</param>
+    /// <param name="dataElementCount">input string count</param>
+    static void ArithmeticUnary(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount)
+    {
+        output = OP{}(inCol, dataElementCount);
     }
 };

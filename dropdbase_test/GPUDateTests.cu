@@ -84,7 +84,7 @@ void testExtract(std::vector<int64_t>& input, std::vector<int32_t>& correctOutpu
     cuda_ptr<int32_t> resultDevice(ELEMENT_COUNT);
 
     GPUMemory::copyHostToDevice(dtDevice.get(), input.data(), ELEMENT_COUNT);
-    GPUArithmeticUnary::ArithmeticUnary<OP, int32_t, int64_t*>(resultDevice.get(), dtDevice.get(), ELEMENT_COUNT);
+    GPUArithmeticUnary<OP, int32_t, int64_t*>::ArithmeticUnary(resultDevice.get(), dtDevice.get(), ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(resultHost.get(), resultDevice.get(), ELEMENT_COUNT);
 
     for (int i = 0; i < ELEMENT_COUNT; i++)
@@ -104,7 +104,7 @@ void testExtractOneConstant(int64_t input, int32_t correctOutput)
     // Use our cuda smart pointers
     cuda_ptr<int32_t> resultDevice(ELEMENT_COUNT);
 
-    GPUArithmeticUnary::ArithmeticUnary<OP, int32_t, int64_t>(resultDevice.get(), input, ELEMENT_COUNT);
+    GPUArithmeticUnary<OP, int32_t, int64_t>::ArithmeticUnary(resultDevice.get(), input, ELEMENT_COUNT);
     GPUMemory::copyDeviceToHost(resultHost.get(), resultDevice.get(), ELEMENT_COUNT);
 
     for (int i = 0; i < ELEMENT_COUNT; i++)

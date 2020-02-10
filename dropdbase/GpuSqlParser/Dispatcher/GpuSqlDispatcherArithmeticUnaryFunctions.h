@@ -27,9 +27,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
         {
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
-            std::pair<ResultType*, int8_t*> result =
-                AllocateInstructionResult<ResultType>(reg, retSize, allocateNullMask, {std::get<3>(left)});
-            if (std::get<0>(result))
+            InstructionResult<ResultType> result =
+                InstructionArgumentLoadHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize,
+                                                                                     allocateNullMask,
+                                                                                     {std::get<3>(left)});
+            if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
             {
                 if (std::get<1>(result))
                 {
@@ -38,8 +40,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(std::get<0>(result),
+                GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                        std::get<0>(left), retSize);
+                InstructionArgumentLoadHelper<ResultType>::StoreInstructionResult(result, *this, reg,
+                                                                                  retSize, allocateNullMask,
+                                                                                  {std::get<3>(left)});
             }
         }
         FreeColumnIfRegister<T>(std::get<3>(left));
@@ -52,13 +57,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
             return InstructionStatus::OUT_OF_BLOCKS;
         }
 
-        std::pair<ResultType*, int8_t*> result =
-            AllocateInstructionResult<ResultType>(reg, retSize, false, {});
+        InstructionResult<ResultType> result =
+            InstructionArgumentLoadHelper<ResultType>::AllocateInstructionResult(*this, reg,
+                                                                                 retSize, false, {});
 
-        if (std::get<0>(result))
+        if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
         {
-            GPUArithmeticUnary::ArithmeticUnary<OP, ResultType, T>(std::get<0>(result),
+            GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                    std::get<0>(left), retSize);
+            InstructionArgumentLoadHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
+                                                                              false, {std::get<3>(left)});
         }
     }
 

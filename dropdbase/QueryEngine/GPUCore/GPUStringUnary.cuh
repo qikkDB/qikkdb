@@ -222,6 +222,8 @@ namespace StringUnaryOperations
 {
 struct ltrim
 {
+    typedef std::string RetType;
+
     GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
         return StringUnaryOpHierarchy::variable{}
@@ -231,6 +233,8 @@ struct ltrim
 
 struct rtrim
 {
+    typedef std::string RetType;
+
     GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
         return StringUnaryOpHierarchy::variable{}
@@ -240,6 +244,8 @@ struct rtrim
 
 struct lower
 {
+    typedef std::string RetType;
+
     GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
         return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::lower>(input, stringCount);
@@ -248,6 +254,8 @@ struct lower
 
 struct upper
 {
+    typedef std::string RetType;
+
     GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
         return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::upper>(input, stringCount);
@@ -256,6 +264,8 @@ struct upper
 
 struct reverse
 {
+    typedef std::string RetType;
+
     GPUMemory::GPUString operator()(GPUMemory::GPUString input, int32_t stringCount) const
     {
         return StringUnaryOpHierarchy::fixed{}.template operator()<StringUnaryOpHierarchy::FixedLength::reverse>(input, stringCount);
@@ -278,16 +288,6 @@ struct len
 class GPUStringUnary
 {
 public:
-    /// String unary operations which return string, for column
-    /// <param name="output">output string column</param>
-    /// <param name="inCol">input string column (GPUString)</param>
-    /// <param name="dataElementCount">input string count</param>
-    template <typename OP>
-    static void StringUnary(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount)
-    {
-        output = OP{}(inCol, dataElementCount);
-    }
-
     /// String unary operations which return number, for column
     /// <param name="outCol">output number column</param>
     /// <param name="inCol">input string column (GPUString)</param>

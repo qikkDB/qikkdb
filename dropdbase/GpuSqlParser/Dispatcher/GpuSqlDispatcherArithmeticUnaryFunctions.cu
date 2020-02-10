@@ -1,6 +1,7 @@
 #include "GpuSqlDispatcherArithmeticUnaryFunctions.h"
 #include <array>
 #include "../../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
+#include "../../QueryEngine/GPUCore/GPUStringUnary.cuh"
 #define MERGED
 #include "DispatcherMacros.h"
 
@@ -266,6 +267,61 @@ DISPATCHER_UNARY_ERROR(DateOperations::second, ColmnarDB::Types::Point)
 DISPATCHER_UNARY_ERROR(DateOperations::second, ColmnarDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(DateOperations::second, std::string)
 DISPATCHER_UNARY_ERROR(DateOperations::second, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::ltrimFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, float)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, double)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryOperations::ltrim, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::rtrimFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, float)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, double)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryOperations::rtrim, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::rtrim, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::lowerFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, float)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, double)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryOperations::lower, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::lower, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::upperFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, float)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, double)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryOperations::upper, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::upper, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::reverseFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, float)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, double)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryOperations::reverse, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, int8_t)
 END_DISPATCH_TABLE
 
 #undef MERGED
