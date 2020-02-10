@@ -1874,7 +1874,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath  << " has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -2051,10 +2051,10 @@ void Database::LoadColumn(const char* path,
         break;
 
         default:
-            BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - " << std::string(path)
-                                     << std::string(dbName) << "): " << type;
-            throw std::domain_error("Unsupported data type (when loading database - "
-                                    + std::string(path) + std::string(dbName) + "): " + std::to_string(type));
+            BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - "
+                                     << std::string(path) << std::string(dbName) << "): " << type;
+            throw std::domain_error("Unsupported data type (when loading database - " + std::string(path) +
+                                    std::string(dbName) + "): " + std::to_string(type));
         }
 
         colFile.close();
