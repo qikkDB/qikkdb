@@ -38,7 +38,7 @@ __constant__ const int64_t START_DAYS_OF_MONTHS[] = {
 struct toString
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef void RetType;
 
     template <typename T, typename U>
     __device__ __host__ T operator()(U dateTime) const
@@ -51,7 +51,7 @@ struct toString
 struct year
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ __host__ T operator()(U dateTime) const
@@ -96,7 +96,7 @@ struct year
 struct month
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ __host__ T operator()(U dateTime) const
@@ -140,7 +140,7 @@ struct month
 struct day
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ __host__ T operator()(U dateTime) const
@@ -185,7 +185,7 @@ struct day
 struct hour
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ T operator()(U dateTime) const
@@ -205,7 +205,7 @@ struct hour
 struct minute
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ T operator()(U dateTime) const
@@ -225,7 +225,7 @@ struct minute
 struct second
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef int32_t RetType;
 
     template <typename T, typename U>
     __device__ T operator()(U dateTime) const

@@ -18,7 +18,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 
     // TODO STD conditional :: if OP == abs return type = T
 
-    typedef typename std::conditional<OP::isFloatRetType, float, typename std::remove_pointer<T>::type>::type ResultType;
+    typedef typename std::conditional<std::is_same<typename OP::RetType, void>::value,
+                                      typename std::remove_pointer<T>::type, typename OP::RetType>::type ResultType;
 
     if constexpr (std::is_pointer<T>::value)
     {
