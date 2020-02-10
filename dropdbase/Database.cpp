@@ -839,15 +839,17 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-    // read file .db
-    std::ifstream dbFile(path + std::string(fileDbName) + ".db", std::ios::binary);
+    const std::string filePath = std::string(path) + std::string(fileDbName) + ".db";
 
-	dbFile.seekg(0, dbFile.end);
-    size_t fileSize = dbFile.tellg();
+    // read file .db
+    std::ifstream dbFile(filePath, std::ios::binary);
+
+    dbFile.seekg(0, dbFile.end);
+    const size_t fileSize = dbFile.tellg();
     if (fileSize != 0)
     {
         dbFile.seekg(0, dbFile.beg);
-        BOOST_LOG_TRIVIAL(info) << "Loading database from: " << path << fileDbName << ".db.";
+        BOOST_LOG_TRIVIAL(info) << "Loading database from: " << filePath << ".";
 
         int32_t persistenceFormatVersion;
         dbFile.read(reinterpret_cast<char*>(&persistenceFormatVersion),
@@ -856,9 +858,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         if (persistenceFormatVersion != Database::PERSISTENCE_FORMAT_VERSION)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "WARNING: Database persistence format version is different in database file: "
-                << std::string(path + std::string(fileDbName) + ".db") << ". "
-                << "The persisted database files are in persistence format version: " << persistenceFormatVersion
+                << "WARNING: Database persistence format version is different in database file: " << filePath
+                << ". The persisted database files are in persistence format version: " << persistenceFormatVersion
                 << " the current persistence format version in this version of database core is: "
                 << Database::PERSISTENCE_FORMAT_VERSION
                 << ". There is going to be coversion to the database core format verion. "
@@ -958,8 +959,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "File " + std::string(path + std::string(fileDbName) + ".db") +
-                                        " is empty and so cannot be loaded.";
+        BOOST_LOG_TRIVIAL(error) << "File " + filePath + " is empty and so cannot be loaded.";
         return nullptr;
     }
 }
@@ -980,18 +980,17 @@ void Database::LoadColumn(const char* path,
 {
     const int32_t oneChunkSize = 8 * 1024 * 1024;
     // read files .col:
-    std::string pathStr = std::string(path);
+    const std::string filePath = std::string(path) + std::string(dbName) + SEPARATOR +
+                                 table.GetName() + SEPARATOR + columnName + ".col";
 
-    std::ifstream colFile(pathStr + dbName + SEPARATOR + table.GetName() + SEPARATOR + columnName + ".col",
-                          std::ios::binary);
+    std::ifstream colFile(filePath, std::ios::binary);
 
     colFile.seekg(0, colFile.end);
-    size_t fileSize = colFile.tellg();
+    const size_t fileSize = colFile.tellg();
     if (fileSize != 0)
     {
         colFile.seekg(0, colFile.beg);
-        BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << pathStr + dbName << SEPARATOR
-                                << table.GetName() << SEPARATOR << columnName << ".col.";
+        BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << filePath << ".";
 
         int32_t emptyBlockIndex = 0;
 
@@ -1041,9 +1040,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1053,7 +1050,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnPolygon.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block (" + filePath + ") at index: "
+                                             << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1140,8 +1138,7 @@ void Database::LoadColumn(const char* path,
 
                             if (dataCount > columnPolygon.GetBlockSize())
                             {
-                                throw std::runtime_error(
-                                    "Loaded data from disk does not fit into existing block");
+                                throw std::runtime_error("Loaded data (" + filePath + ") from disk does not fit into existing block");
                                 break;
                             }
                         }
@@ -1151,7 +1148,7 @@ void Database::LoadColumn(const char* path,
                         {
                             if (isNullable)
                             {
-                                throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                                throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                             }
 
                             for (int32_t i = 0; i < dataPolygon.size(); i++)
@@ -1163,7 +1160,7 @@ void Database::LoadColumn(const char* path,
                                 else
                                 {
                                     throw std::runtime_error(
-                                        "Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                        "Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                         ComplexPolygonFactory::WktFromPolygon(dataPolygon[i]));
                                 }
                             }
@@ -1173,7 +1170,8 @@ void Database::LoadColumn(const char* path,
                     }
 
                     block.SetNullBitmask(std::move(nullBitMask));
-                    BOOST_LOG_TRIVIAL(debug) << "Added ComplexPolygon block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added ComplexPolygon block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1200,9 +1198,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1222,9 +1218,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1235,7 +1229,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnPoint.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Point block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Point block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1322,8 +1317,7 @@ void Database::LoadColumn(const char* path,
 
                             if (dataCount > columnPoint.GetBlockSize())
                             {
-                                throw std::runtime_error(
-                                    "Loaded data from disk does not fit into existing block");
+                                throw std::runtime_error("Loaded data (" + filePath + ") from disk does not fit into existing block");
                                 break;
                             }
                         }
@@ -1333,7 +1327,7 @@ void Database::LoadColumn(const char* path,
                         {
                             if (isNullable)
                             {
-                                throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                                throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                             }
 
                             for (int32_t i = 0; i < dataPoint.size(); i++)
@@ -1344,7 +1338,7 @@ void Database::LoadColumn(const char* path,
                                 }
                                 else
                                 {
-                                    throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                    throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                                              PointFactory::WktFromPoint(dataPoint[i]));
                                 }
                             }
@@ -1353,7 +1347,8 @@ void Database::LoadColumn(const char* path,
                     }
 
                     block.SetNullBitmask(std::move(nullBitMask));
-                    BOOST_LOG_TRIVIAL(debug) << "Added Point block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Point block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1393,9 +1388,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1405,7 +1398,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnString.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty String block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty String block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1496,8 +1490,7 @@ void Database::LoadColumn(const char* path,
 
                             if (dataCount > columnString.GetBlockSize())
                             {
-                                throw std::runtime_error(
-                                    "Loaded data from disk does not fit into existing block");
+                                throw std::runtime_error("Loaded data (" + filePath + ") from disk does not fit into existing block");
                                 break;
                             }
                         }
@@ -1507,7 +1500,7 @@ void Database::LoadColumn(const char* path,
                         {
                             if (isNullable)
                             {
-                                throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                                throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                             }
 
                             for (int32_t i = 0; i < dataString.size(); i++)
@@ -1519,7 +1512,7 @@ void Database::LoadColumn(const char* path,
                                 else
                                 {
                                     throw std::runtime_error(
-                                        "Loaded column: " + columnName +
+                                        "Loaded column: " + filePath +
                                         " has UNIQUE constraint and duplicate values: " + dataString[i]);
                                 }
                             }
@@ -1528,7 +1521,8 @@ void Database::LoadColumn(const char* path,
                     }
 
                     block.SetNullBitmask(std::move(nullBitMask));
-                    BOOST_LOG_TRIVIAL(debug) << "Added String block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added String block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1568,9 +1562,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1590,7 +1582,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnInt.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Int8 block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1601,8 +1594,8 @@ void Database::LoadColumn(const char* path,
 
                     if (dataLength > columnInt.GetBlockSize())
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
                         break;
                     }
 
@@ -1610,17 +1603,17 @@ void Database::LoadColumn(const char* path,
                     {
                         if (isNullable)
                         {
-                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                            throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                         }
                         std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
-                                      [&columnInt, &columnName](int8_t& value) {
+                                      [&columnInt, &filePath](int8_t& value) {
                                           if (!columnInt.IsDuplicate(value))
                                           {
                                               columnInt.InsertIntoHashmap(value);
                                           }
                                           else
                                           {
-                                              throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                              throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                                                        std::to_string(value));
                                           }
                                       });
@@ -1632,7 +1625,8 @@ void Database::LoadColumn(const char* path,
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
-                    BOOST_LOG_TRIVIAL(debug) << "Added Int8 block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Int8 block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1672,9 +1666,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1694,7 +1686,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnInt.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Int32 block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1705,8 +1698,8 @@ void Database::LoadColumn(const char* path,
 
                     if (dataLength > columnInt.GetBlockSize())
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
                         break;
                     }
 
@@ -1714,17 +1707,17 @@ void Database::LoadColumn(const char* path,
                     {
                         if (isNullable)
                         {
-                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                            throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                         }
                         std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
-                                      [&columnInt, &columnName](int32_t& value) {
+                                      [&columnInt, &filePath](int32_t& value) {
                                           if (!columnInt.IsDuplicate(value))
                                           {
                                               columnInt.InsertIntoHashmap(value);
                                           }
                                           else
                                           {
-                                              throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                              throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                                                        std::to_string(value));
                                           }
                                       });
@@ -1736,7 +1729,8 @@ void Database::LoadColumn(const char* path,
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
-                    BOOST_LOG_TRIVIAL(debug) << "Added Int32 block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Int32 block (" + filePath + ") with data at index : " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1776,9 +1770,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -1798,7 +1790,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnLong.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Int64 block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1809,8 +1802,8 @@ void Database::LoadColumn(const char* path,
 
                     if (dataLength > columnLong.GetBlockSize())
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
                         break;
                     }
 
@@ -1840,7 +1833,8 @@ void Database::LoadColumn(const char* path,
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
-                    BOOST_LOG_TRIVIAL(debug) << "Added Int64 block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Int64 block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1880,9 +1874,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath  << " has finished successfully.";
                     break;
                 }
 
@@ -1902,7 +1894,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnFloat.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Float block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Float block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -1913,8 +1906,8 @@ void Database::LoadColumn(const char* path,
 
                     if (dataLength > columnFloat.GetBlockSize())
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
                         break;
                     }
 
@@ -1922,17 +1915,17 @@ void Database::LoadColumn(const char* path,
                     {
                         if (isNullable)
                         {
-                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                            throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                         }
                         std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
-                                      [&columnFloat, &columnName](float& value) {
+                                      [&columnFloat, &filePath](float& value) {
                                           if (!columnFloat.IsDuplicate(value))
                                           {
                                               columnFloat.InsertIntoHashmap(value);
                                           }
                                           else
                                           {
-                                              throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                              throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                                                        std::to_string(value));
                                           }
                                       });
@@ -1944,7 +1937,8 @@ void Database::LoadColumn(const char* path,
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
-                    BOOST_LOG_TRIVIAL(debug) << "Added Float block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Float block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1984,9 +1978,7 @@ void Database::LoadColumn(const char* path,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << pathStr + dbName
-                                             << SEPARATOR << table.GetName() << SEPARATOR
-                                             << columnName << ".col has finished successfully.";
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
                     break;
                 }
 
@@ -2006,7 +1998,8 @@ void Database::LoadColumn(const char* path,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnDouble.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Double block at index: " << emptyBlockIndex;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added empty Double block (" + filePath + ") at index: " << emptyBlockIndex;
                 }
                 else // read data from block
                 {
@@ -2017,8 +2010,8 @@ void Database::LoadColumn(const char* path,
 
                     if (dataLength > columnDouble.GetBlockSize())
                     {
-                        throw std::runtime_error(
-                            "Loaded data from disk does not fit into existing block");
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
                         break;
                     }
 
@@ -2026,17 +2019,17 @@ void Database::LoadColumn(const char* path,
                     {
                         if (isNullable)
                         {
-                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                            throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
                         }
                         std::for_each(std::next(data.get(), 0), std::next(data.get(), dataLength),
-                                      [&columnDouble, &columnName](double& value) {
+                                      [&columnDouble, &filePath](double& value) {
                                           if (!columnDouble.IsDuplicate(value))
                                           {
                                               columnDouble.InsertIntoHashmap(value);
                                           }
                                           else
                                           {
-                                              throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                              throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
                                                                        std::to_string(value));
                                           }
                                       });
@@ -2048,7 +2041,8 @@ void Database::LoadColumn(const char* path,
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
-                    BOOST_LOG_TRIVIAL(debug) << "Added Double block with data at index: " << index;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Added Double block (" + filePath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -2057,18 +2051,17 @@ void Database::LoadColumn(const char* path,
         break;
 
         default:
-            BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database): " << type;
-            throw std::domain_error("Unsupported data type (when loading database): " + std::to_string(type));
+            BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - " << std::string(path)
+                                     << std::string(dbName) << "): " << type;
+            throw std::domain_error("Unsupported data type (when loading database - "
+                                    + std::string(path) + std::string(dbName) + "): " + std::to_string(type));
         }
 
         colFile.close();
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "File " +
-                                        std::string(pathStr + dbName + SEPARATOR + table.GetName() +
-                                                    SEPARATOR + columnName + ".col") +
-                                        " is empty and so cannot be loaded.";
+        BOOST_LOG_TRIVIAL(error) << "File " + filePath + " is empty and so cannot be loaded.";
     }
 }
 
