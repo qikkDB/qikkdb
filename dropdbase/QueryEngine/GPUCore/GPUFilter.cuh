@@ -20,7 +20,7 @@
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template <typename OP, typename T, typename U>
-__global__ void kernel_filter(int8_t* outMask, T ACol, U BCol, int8_t* nullBitMask, int32_t dataElementCount)
+__global__ void kernel_filter(int64_t* outMask, T ACol, U BCol, int64_t* nullBitMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -29,12 +29,10 @@ __global__ void kernel_filter(int8_t* outMask, T ACol, U BCol, int8_t* nullBitMa
     {
         if (nullBitMask)
         {
-            int bitMaskIdx = (i / (sizeof(char) * 8));
-            int shiftIdx = (i % (sizeof(char) * 8));
             outMask[i] =
                 OP{}.template operator()<typename std::remove_pointer<T>::type, typename std::remove_pointer<U>::type>(
                     maybe_deref(ACol, i), maybe_deref(BCol, i)) &&
-                !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+                !(NullValues::GetConcreteBitFromBitmask(nullBitMask, i));
         }
         else
         {
@@ -47,12 +45,12 @@ __global__ void kernel_filter(int8_t* outMask, T ACol, U BCol, int8_t* nullBitMa
 
 /// Kernel for string comparison (equality, ...)
 template <typename OP>
-__global__ void kernel_filter_string(int8_t* outMask,
+__global__ void kernel_filter_string(int64_t* outMask,
                                      GPUMemory::GPUString inputA,
                                      bool isACol,
                                      GPUMemory::GPUString inputB,
                                      bool isBCol,
-                                     int8_t* nullBitMask,
+                                     int64_t* nullBitMask,
                                      int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -60,13 +58,6 @@ __global__ void kernel_filter_string(int8_t* outMask,
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        int bitMaskIdx;
-        int shiftIdx;
-        if (nullBitMask != nullptr)
-        {
-            bitMaskIdx = (i / (sizeof(char) * 8));
-            shiftIdx = (i % (sizeof(char) * 8));
-        }
         const int32_t aI = isACol ? i : 0;
         const int64_t aIndex = GetStringIndex(inputA.stringIndices, aI);
         const int32_t aLength = static_cast<int32_t>(inputA.stringIndices[aI] - aIndex);
@@ -76,7 +67,7 @@ __global__ void kernel_filter_string(int8_t* outMask,
         if (nullBitMask != nullptr)
         {
             outMask[i] = OP{}.compareStrings(inputA.allChars + aIndex, aLength, inputB.allChars + bIndex, bLength) &&
-                         !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+                !(NullValues::GetConcreteBitFromBitmask(nullBitMask, i));
         }
         else
         {

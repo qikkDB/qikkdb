@@ -14,7 +14,7 @@
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
 template <typename T>
-__global__ void kernel_operator_not(int8_t* outCol, T ACol, int8_t* nullBitMask, int32_t dataElementCount)
+__global__ void kernel_operator_not(int8_t* outCol, T ACol, int64_t* nullBitMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -23,10 +23,9 @@ __global__ void kernel_operator_not(int8_t* outCol, T ACol, int8_t* nullBitMask,
     {
         if (nullBitMask)
         {
-            int bitMaskIdx = (i / (sizeof(char) * 8));
-            int shiftIdx = (i % (sizeof(char) * 8));
+
             outCol[i] = !maybe_deref<typename std::remove_pointer<T>::type>(ACol, i) &&
-                        !((nullBitMask[bitMaskIdx] >> shiftIdx) & 1);
+                        !(NullValues::GetConcreteBitFromBitmask(nullBitMask, i));
         }
         else
         {

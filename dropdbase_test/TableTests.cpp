@@ -1687,7 +1687,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     ASSERT_EQ(blockIntB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockIntB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_NoDuplicityInData_Int)
@@ -2265,7 +2265,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     ASSERT_EQ(blockB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
@@ -2506,7 +2506,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[6], 1.0f);
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[7], 8.0f);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
@@ -2748,7 +2748,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[6], 1.0);
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[7], 8.0);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
@@ -3004,7 +3004,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     ASSERT_EQ(blockB7[0]->GetData()[6], "w");
     ASSERT_EQ(blockB7[0]->GetData()[7], "q");
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
@@ -3291,7 +3291,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[6]), "POINT(719.11 11.12)");
     ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[7]), "POINT(6.11 11.12)");
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
@@ -3620,7 +3620,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[6]), resultB[6]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[7]), resultB[7]);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, SetIsNullable)

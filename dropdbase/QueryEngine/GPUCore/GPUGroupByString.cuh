@@ -406,7 +406,7 @@ public:
                                int32_t* elementCount)
     {
         Context& context = Context::getInstance();
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
@@ -453,7 +453,7 @@ public:
         Context& context = Context::getInstance();
 
         // Create buffer for bucket compression - reconstruction
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
         // Compute occupancyMask
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);

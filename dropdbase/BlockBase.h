@@ -73,7 +73,7 @@ public:
         {
             int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
             bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
-            std::memset(bitMask_.get(), 0, bitMaskCapacity);
+            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(int64_t));
             GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
         }
@@ -116,7 +116,7 @@ public:
         {
             int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
             bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
-            std::memset(bitMask_.get(), 0, bitMaskCapacity);
+            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(int64_t));
             GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
         }
@@ -143,8 +143,8 @@ public:
         {
             int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
             bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
-            std::memset(bitMask_.get(), 0, bitMaskCapacity);
-            GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
+            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(int64_t)); 
+            GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity); 
             isNullMaskRegistered_ = true;
         }
     }
@@ -295,7 +295,7 @@ public:
         saveNecessary_ = true;
     }
 
-    void SetNullBitmask(const std::vector<int8_t>& nullMask)
+    void SetNullBitmask(const std::vector<int64_t>& nullMask)
     {
         if (isNullable_)
         {

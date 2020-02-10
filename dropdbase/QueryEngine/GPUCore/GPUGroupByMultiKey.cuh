@@ -86,7 +86,7 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
 template <typename T>
 void ReconstructSingleKeyColKeep(std::vector<void*>* outKeysVector,
                                  int32_t* outDataElementCount,
-                                 int64_t* occupancyMaskPtr,
+                                 int8_t* occupancyMaskPtr,
                                  void** keyCol,
                                  int32_t elementCount)
 {
@@ -106,7 +106,7 @@ void ReconstructSingleKeyColKeep(std::vector<void*>* outKeysVector,
 template <>
 void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
                                               int32_t* outDataElementCount,
-                                              int64_t* occupancyMaskPtr,
+                                              int8_t* occupancyMaskPtr,
                                               void** keyCol,
                                               int32_t elementCount);
 
@@ -114,7 +114,7 @@ void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
 template <typename T>
 void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector,
                              int32_t* outDataElementCount,
-                             int64_t* occupancyMaskPtr,
+                             int8_t* occupancyMaskPtr,
                              void** keyCol,
                              int32_t elementCount)
 {
@@ -140,7 +140,7 @@ void ReconstructSingleKeyCol(std::vector<void*>* outKeysVector,
 template <>
 void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
                                           int32_t* outDataElementCount,
-                                          int64_t* occupancyMaskPtr,
+                                          int8_t* occupancyMaskPtr,
                                           void** keyCol,
                                           int32_t elementCount);
 
@@ -655,7 +655,7 @@ public:
                                int32_t* outDataElementCount)
     {
         Context& context = Context::getInstance();
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
@@ -758,7 +758,7 @@ public:
         Context& context = Context::getInstance();
 
         // Compute key occupancy mask
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_);
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 

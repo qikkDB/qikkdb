@@ -27,7 +27,7 @@ __device__ const char WKT_POINT[] = "POINT";
 
 /// Kernel for reconstructing buffer according to calculated prefixSum and inMask
 template <typename T>
-__global__ void kernel_reconstruct_col(T* outData, T* ACol, int32_t* prefixSum, int64_t* inMask, int32_t dataElementCount)
+__global__ void kernel_reconstruct_col(T* outData, T* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -46,14 +46,14 @@ __global__ void kernel_reconstruct_col(T* outData, T* ACol, int32_t* prefixSum, 
 
 /// Kernel for reconstructing null masks according to calculated prefixSum and inMask
 __global__ void
-kernel_reconstruct_null_mask(int32_t* outData, int64_t* ACol, int32_t* prefixSum, int64_t* inMask, int32_t dataElementCount);
+kernel_reconstruct_null_mask(int32_t* outData, int64_t* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount);
 
 /// Kernel for compressing null masks from memory-wasting int8_t* array
 __global__ void kernel_compress_null_mask(int32_t* outData, int64_t* ACol, int32_t dataElementCount);
 
 /// Kernel for generating array with sorted indexes which point to values where mask is 1.
 template <typename T>
-__global__ void kernel_generate_indexes(T* outData, int32_t* prefixSum, int64_t* inMask, int32_t dataElementCount)
+__global__ void kernel_generate_indexes(T* outData, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -103,10 +103,10 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
 __global__ void
-kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+kernel_generate_poly_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 __global__ void
-kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+kernel_generate_point_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void
@@ -204,7 +204,7 @@ public:
     static void reconstructCol(T* outData,
                                int32_t* outDataElementCount,
                                T* ACol,
-                               int64_t* inMask,
+                               int8_t* inMask,
                                int32_t dataElementCount,
                                int64_t* outNullMask = nullptr,
                                int64_t* nullMask = nullptr)
@@ -273,7 +273,7 @@ public:
     static void reconstructColKeep(T** outCol,
                                    int32_t* outDataElementCount,
                                    T* ACol,
-                                   int64_t* inMask,
+                                   int8_t* inMask,
                                    int32_t dataElementCount,
                                    int64_t** outNullMask = nullptr,
                                    int64_t* nullMask = nullptr)
@@ -364,7 +364,7 @@ public:
     static void ReconstructStringColKeep(GPUMemory::GPUString* outStringCol,
                                          int32_t* outDataElementCount,
                                          GPUMemory::GPUString inStringCol,
-                                         int64_t* inMask,
+                                         int8_t* inMask,
                                          int32_t inDataElementCount,
                                          int64_t** outNullMask = nullptr,
                                          int64_t* nullMask = nullptr);
@@ -378,7 +378,7 @@ public:
     static void ReconstructStringCol(std::string* outStringData,
                                      int32_t* outDataElementCount,
                                      GPUMemory::GPUString inStringCol,
-                                     int64_t* inMask,
+                                     int8_t* inMask,
                                      int32_t inDataElementCount,
                                      int64_t* outNullMask = nullptr,
                                      int64_t* nullMask = nullptr);
@@ -389,7 +389,7 @@ public:
                                         std::vector<char>& keysAllChars,
                                         int32_t* outDataElementCount,
                                         GPUMemory::GPUString inStringCol,
-                                        int64_t* inMask,
+                                        int8_t* inMask,
                                         int32_t inDataElementCount);
 
     /// Convert polygons to WKTs (GPUPolygon column to GPUString columns)
@@ -445,7 +445,7 @@ public:
     static void ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
                                        int32_t* outDataElementCount,
                                        GPUMemory::GPUPolygon inCol,
-                                       int64_t* inMask,
+                                       int8_t* inMask,
                                        int32_t inDataElementCount,
                                        int64_t** outNullMask = nullptr,
                                        int64_t* nullMask = nullptr);
@@ -459,7 +459,7 @@ public:
     static void ReconstructPolyColToWKT(std::string* outStringData,
                                         int32_t* outDataElementCount,
                                         GPUMemory::GPUPolygon inPolygonCol,
-                                        int64_t* inMask,
+                                        int8_t* inMask,
                                         int32_t inDataElementCount,
                                         int64_t* outNullMask = nullptr,
                                         int64_t* nullMask = nullptr);
@@ -473,7 +473,7 @@ public:
     static void ReconstructPointColToWKT(std::string* outStringData,
                                          int32_t* outDataElementCount,
                                          NativeGeoPoint* inPointCol,
-                                         int64_t* inMask,
+                                         int8_t* inMask,
                                          int32_t inDataElementCount,
                                          int64_t* outNullMask = nullptr,
                                          int64_t* nullMask = nullptr);
@@ -578,7 +578,7 @@ public:
         // Calculate the prefix sum for getting tempBufferSize (in-place scan)
         cub::DeviceScan::InclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
         // Temporary storage
-        cuda_ptr<int8_t> tempBuffer(tempBufferSize);
+        cuda_ptr<int64_t> tempBuffer(tempBufferSize);
         // Run inclusive prefix sum
         cub::DeviceScan::InclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
     }
@@ -596,7 +596,7 @@ public:
         // Calculate the prefix sum for getting tempBufferSize (in-place scan)
         cub::DeviceScan::ExclusiveSum(nullptr, tempBufferSize, inMask, prefixSumPointer, dataElementCount);
         // Temporary storage
-        cuda_ptr<int8_t> tempBuffer(tempBufferSize);
+        cuda_ptr<int64_t> tempBuffer(tempBufferSize);
         // Run exclusive prefix sum
         cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
     }
@@ -610,7 +610,7 @@ public:
         // Calculate the sum for getting tempBufferSize (in-place scan)
         cub::DeviceReduce::Sum(nullptr, tempBufferSize, inputBuffer, outPointer, dataElementCount);
         // Temporary storage
-        cuda_ptr<int8_t> tempBuffer(tempBufferSize);
+        cuda_ptr<int64_t> tempBuffer(tempBufferSize);
         // Run sum
         cub::DeviceReduce::Sum(tempBuffer.get(), tempBufferSize, inputBuffer, outPointer, dataElementCount);
     }
@@ -633,7 +633,7 @@ template <>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* outData,
                                                              int32_t* outDataElementCount,
                                                              ColmnarDB::Types::Point* ACol,
-                                                             int64_t* inMask,
+                                                             int8_t* inMask,
                                                              int32_t dataElementCount,
                                                              int64_t* outNullMask,
                                                              int64_t* nullMask);
@@ -643,7 +643,7 @@ template <>
 void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon* outData,
                                                                       int32_t* outDataElementCount,
                                                                       ColmnarDB::Types::ComplexPolygon* ACol,
-                                                                      int64_t* inMask,
+                                                                      int8_t* inMask,
                                                                       int32_t dataElementCount,
                                                                       int64_t* outNullMask,
                                                                       int64_t* nullMask);
@@ -654,7 +654,7 @@ template <>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point** outCol,
                                                                  int32_t* outDataElementCount,
                                                                  ColmnarDB::Types::Point* ACol,
-                                                                 int64_t* inMask,
+                                                                 int8_t* inMask,
                                                                  int32_t dataElementCount,
                                                                  int64_t** outNullMask,
                                                                  int64_t* nullMask);
@@ -664,7 +664,7 @@ template <>
 void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon** outCol,
                                                                           int32_t* outDataElementCount,
                                                                           ColmnarDB::Types::ComplexPolygon* ACol,
-                                                                          int64_t* inMask,
+                                                                          int8_t* inMask,
                                                                           int32_t dataElementCount,
                                                                           int64_t** outNullMask,
                                                                           int64_t* nullMask);

@@ -23,7 +23,7 @@ void testColColFilter()
     // CPU data:
     std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
     std::unique_ptr<T[]> inputDataB = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
-    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    std::unique_ptr<int64_t[]> outputData = std::make_unique<int64_t[]>(DATA_ELEMENT_COUNT);
 
     // Fill input data buffers:
     std::default_random_engine generator;
@@ -51,7 +51,7 @@ void testColColFilter()
     // Create CUDA buffers:
     T* inputBufferA;
     T* inputBufferB;
-    int8_t* outputBuffer;
+    int64_t* outputBuffer;
 
     // Alloc buffers in GPU memory:
     GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
@@ -190,7 +190,7 @@ void testColConstFilter()
     // CPU data:
     std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
     T inputDataBConstant;
-    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    std::unique_ptr<int64_t[]> outputData = std::make_unique<int64_t[]>(DATA_ELEMENT_COUNT);
 
     // Fill input data buffers:
     std::default_random_engine generator;
@@ -217,7 +217,7 @@ void testColConstFilter()
 
     // Create CUDA buffers:
     T* inputBufferA;
-    int8_t* outputBuffer;
+    int64_t* outputBuffer;
 
     // Alloc buffers in GPU memory:
     GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
@@ -350,7 +350,7 @@ void testConstColFilter()
     // CPU data:
     std::unique_ptr<T[]> inputDataA = std::make_unique<T[]>(DATA_ELEMENT_COUNT);
     T inputDataBConstant;
-    std::unique_ptr<int8_t[]> outputData = std::make_unique<int8_t[]>(DATA_ELEMENT_COUNT);
+    std::unique_ptr<int64_t[]> outputData = std::make_unique<int64_t[]>(DATA_ELEMENT_COUNT);
 
     // Fill input data buffers:
     std::default_random_engine generator;
@@ -377,7 +377,7 @@ void testConstColFilter()
 
     // Create CUDA buffers:
     T* inputBufferA;
-    int8_t* outputBuffer;
+    int64_t* outputBuffer;
 
     // Alloc buffers in GPU memory:
     GPUMemory::alloc(&inputBufferA, DATA_ELEMENT_COUNT);
@@ -511,7 +511,7 @@ void testConstConstFilter()
     // CPU data:
     T inputDataAConstant;
     T inputDataBConstant;
-    int8_t outputData;
+    int64_t outputData;
 
     // Fill input data buffers:
     std::default_random_engine generator;
@@ -532,7 +532,7 @@ void testConstConstFilter()
     }
 
     // Create CUDA buffers:
-    int8_t* outputBuffer;
+    int64_t* outputBuffer;
 
     // Alloc buffers in GPU memory:
     GPUMemory::alloc(&outputBuffer, 1);
@@ -652,17 +652,17 @@ TEST(GPUFilterTests, FiltersConstConst)
 template <typename OP>
 void TestFilterStringColCol(std::vector<std::string> inputStringACol,
                             std::vector<std::string> inputStringBCol,
-                            std::vector<int8_t> expectedResults)
+                            std::vector<int64_t> expectedResults)
 {
     GPUMemory::GPUString gpuStringACol =
         StringFactory::PrepareGPUString(inputStringACol.data(), inputStringACol.size());
     GPUMemory::GPUString gpuStringBCol =
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
-    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    cuda_ptr<int64_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string*, std::string*>::Binary(gpuMask.get(), gpuStringACol,
                                                               gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
@@ -677,16 +677,15 @@ void TestFilterStringColCol(std::vector<std::string> inputStringACol,
 template <typename OP>
 void TestFilterStringColConst(std::vector<std::string> inputStringACol,
                               std::string inputStringBConst,
-                              std::vector<int8_t> expectedResults)
+                              std::vector<int64_t> expectedResults)
 {
     GPUMemory::GPUString gpuStringACol =
         StringFactory::PrepareGPUString(inputStringACol.data(), inputStringACol.size());
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = inputStringACol.size();
-    cuda_ptr<int8_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string*, std::string>::Binary(gpuMask.get(), gpuStringACol,
                                                              gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);s
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
@@ -701,16 +700,16 @@ void TestFilterStringColConst(std::vector<std::string> inputStringACol,
 template <typename OP>
 void TestFilterStringConstCol(std::string inputStringAConst,
                               std::vector<std::string> inputStringBCol,
-                              std::vector<int8_t> expectedResults)
+                              std::vector<int64_t> expectedResults)
 {
     GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(&inputStringAConst, 1);
     GPUMemory::GPUString gpuStringBCol =
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = inputStringBCol.size();
-    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    cuda_ptr<int64_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string, std::string*>::Binary(gpuMask.get(), gpuStringACol,
                                                              gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
@@ -723,15 +722,15 @@ void TestFilterStringConstCol(std::string inputStringAConst,
 }
 
 template <typename OP>
-void TestFilterStringConstConst(std::string inputStringAConst, std::string inputStringBConst, int8_t expectedResult)
+void TestFilterStringConstConst(std::string inputStringAConst, std::string inputStringBConst, int64_t expectedResult)
 {
     GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(&inputStringAConst, 1);
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = 8;
-    cuda_ptr<int8_t> gpuMask(dataElementCount);
+    cuda_ptr<int64_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string, std::string>::Binary(gpuMask.get(), gpuStringACol,
                                                             gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);

@@ -3,7 +3,7 @@
 __device__ int32_t GetHash(DataType* keyTypes,
                            const int32_t keysColCount,
                            void** inKeys,
-                           int8_t** inKeysNullMask,
+                           int64_t** inKeysNullMask,
                            const int32_t i,
                            const int32_t hashCoef)
 {
@@ -13,7 +13,7 @@ __device__ int32_t GetHash(DataType* keyTypes,
     {
         uint32_t hash;
         const bool null = (inKeysNullMask[t] != nullptr) &&
-                          ((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1);
+                          NullValues::GetConcreteBitFromBitmask(inKeysNullMask[t], i);
         if (null)
         {
             hash = 0;
@@ -167,7 +167,7 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
 template <>
 void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
                                               int32_t* outDataElementCount,
-                                              int64_t* occupancyMaskPtr,
+                                              int8_t* occupancyMaskPtr,
                                               void** keyCol,
                                               const int32_t elementCount)
 {
@@ -189,7 +189,7 @@ void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
 template <>
 void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
                                           int32_t* outDataElementCount,
-                                          int64_t* occupancyMaskPtr,
+                                          int8_t* occupancyMaskPtr,
                                           void** keyCol,
                                           int32_t elementCount)
 {
@@ -307,7 +307,7 @@ void AllocKeysBuffer(void*** keysBuffer,
     }
 }
 
-void FreeKeysBuffer(void** keysBuffer, int8_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
+void FreeKeysBuffer(void** keysBuffer, int64_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
     std::vector<DataType> keyTypesHost;
@@ -328,7 +328,7 @@ void FreeKeysBuffer(void** keysBuffer, int8_t** keysNullBuffer, DataType* keyTyp
             }
             GPUMemory::free(ptr);
         }
-        int8_t* ptrNullBuffer;
+        int64_t* ptrNullBuffer;
         GPUMemory::copyDeviceToHost(&ptrNullBuffer, keysNullBuffer + i, 1); // copy single pointer
         if (ptrNullBuffer)
         {

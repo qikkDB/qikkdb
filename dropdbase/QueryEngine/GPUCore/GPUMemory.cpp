@@ -53,15 +53,15 @@ void GPUMemory::free(GPUString stringCol)
 
 size_t GPUMemory::CalculateNullMaskSize(size_t dataElementCount, bool for32bit)
 {
-    if (for32bit)
-    {
-        return ((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8)) *
-               (sizeof(int32_t) / sizeof(int8_t));
-    }
-    else
-    {
-        return (dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
-    }
+    /* if (for32bit)
+     {
+         return ((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8)) *
+                (sizeof(int32_t) / sizeof(int8_t));
+     }
+     else
+     {*/
+    return NullValues::GetNullBitMaskSize(dataElementCount);
+    //}
 }
 
 template <>
