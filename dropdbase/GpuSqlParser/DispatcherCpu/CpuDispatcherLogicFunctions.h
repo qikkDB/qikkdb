@@ -2,7 +2,7 @@
 
 #include "../CpuSqlDispatcher.h"
 #include "CpuFilterInterval.h"
-#include "QueryEngine/GPUCore/LogicOperations.h"
+#include "QueryEngine/GPUCore/GPUFilterConditions.cuh"
 #include <tuple>
 
 template <typename OP>
@@ -539,17 +539,17 @@ int32_t CpuSqlDispatcher::LogicalColCol()
             maskMax = AllocateRegister<int8_t>(reg + "_max", 1, false);
 
             maskMin[0] =
-                OP{}.template operator()<T, U>(LogicOperations::logicalOr{}.template operator()<T, U>(
+                OP{}.template operator()<T, U>(FilterConditions::logicalOr{}.template operator()<T, U>(
                                                    reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
                                                    reinterpret_cast<U*>(std::get<0>(colValLeftMax))[0]),
-                                               LogicOperations::logicalOr{}.template operator()<T, U>(
+                                               FilterConditions::logicalOr{}.template operator()<T, U>(
                                                    reinterpret_cast<T*>(std::get<0>(colValRightMin))[0],
                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]));
             maskMax[0] =
-                OP{}.template operator()<T, U>(LogicOperations::logicalOr{}.template operator()<T, U>(
+                OP{}.template operator()<T, U>(FilterConditions::logicalOr{}.template operator()<T, U>(
                                                    reinterpret_cast<T*>(std::get<0>(colValLeftMin))[0],
                                                    reinterpret_cast<U*>(std::get<0>(colValLeftMax))[0]),
-                                               LogicOperations::logicalOr{}.template operator()<T, U>(
+                                               FilterConditions::logicalOr{}.template operator()<T, U>(
                                                    reinterpret_cast<T*>(std::get<0>(colValRightMin))[0],
                                                    reinterpret_cast<U*>(std::get<0>(colValRightMax))[0]));
         }

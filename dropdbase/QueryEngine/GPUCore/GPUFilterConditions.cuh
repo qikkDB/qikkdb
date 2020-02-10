@@ -128,4 +128,28 @@ struct notEqual
         }
     }
 };
+
+/// A logical binary AND operation
+struct logicalAnd
+{
+    static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
+
+    template <typename T, typename U>
+    __device__ __host__ int8_t operator()(T a, U b) const
+    {
+        return a && b;
+    }
+};
+
+/// A logical binary OR operation
+struct logicalOr
+{
+    static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
+
+    template <typename T, typename U>
+    __device__ __host__ int8_t operator()(T a, U b) const
+    {
+        return a || b;
+    }
+};
 } // namespace FilterConditions

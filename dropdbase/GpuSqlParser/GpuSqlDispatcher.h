@@ -184,7 +184,7 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLongitudeToTileXFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLatitudeToTileYFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileXToLongitudeFunctions_;
-    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileYToLatitudeFunctions_;    
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileYToLatitudeFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions_;
@@ -569,11 +569,11 @@ public:
 
     void AddRootFunction(DataType base, DataType exponent);
 
-	void AddGeoLongitudeToTileXFunction(DataType longitude, DataType zoom);
+    void AddGeoLongitudeToTileXFunction(DataType longitude, DataType zoom);
 
     void AddGeoLatitudeToTileYFunction(DataType latitude, DataType zoom);
 
-	void AddGeoTileXToLongitudeFunction(DataType tileX, DataType zoom);
+    void AddGeoTileXToLongitudeFunction(DataType tileX, DataType zoom);
 
     void AddGeoTileYToLatitudeFunction(DataType tileY, DataType zoom);
 
@@ -962,9 +962,6 @@ public:
 
     template <typename OP, typename L, typename R>
     InstructionStatus Filter();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus Logical();
 
     template <typename OP, typename L, typename R>
     InstructionStatus Arithmetic();
