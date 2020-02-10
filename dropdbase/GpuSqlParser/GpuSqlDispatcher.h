@@ -1082,12 +1082,6 @@ public:
     InstructionStatus ArithmeticUnary();
 
     template <typename OP>
-    InstructionStatus StringUnaryNumericCol();
-
-    template <typename OP>
-    InstructionStatus StringUnaryNumericConst();
-
-    template <typename OP>
     InstructionStatus StringBinaryColCol();
 
     template <typename OP>
@@ -1199,12 +1193,6 @@ public:
     InstructionStatus DateToStringCol();
 
     InstructionStatus DateToStringConst();
-
-    template <typename OP>
-    InstructionStatus DateExtractCol();
-
-    template <typename OP>
-    InstructionStatus DateExtractConst();
 
     template <typename T>
     InstructionStatus GroupByCol();

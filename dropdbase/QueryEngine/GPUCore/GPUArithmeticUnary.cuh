@@ -74,3 +74,36 @@ public:
         output = OP{}(inCol, dataElementCount);
     }
 };
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int32_t>::value &&
+                                                 std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+{
+public:
+    /// String unary operations which return string, for column
+    /// <param name="output">output string column</param>
+    /// <param name="inCol">input string column (GPUString)</param>
+    /// <param name="dataElementCount">input string count</param>
+    static void ArithmeticUnary(int32_t* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
+    {
+        if constexpr (std::is_pointer<U>::value)
+        {
+            Context& context = Context::getInstance();
+            kernel_lengths_from_indices<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
+                outCol, inCol.stringIndices, dataElementCount);
+            CheckCudaError(cudaGetLastError());
+        }
+        else
+        {
+            // Copy single index to host
+            int64_t hostIndex;
+            GPUMemory::copyDeviceToHost(&hostIndex, inCol.stringIndices, 1);
+            // Cast to int32 and copy to return result
+            int32_t length = static_cast<int32_t>(hostIndex);
+            GPUMemory::copyHostToDevice(outCol, &length, 1);
+        }
+    }
+};

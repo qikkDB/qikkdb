@@ -4,17 +4,6 @@
 #include <array>
 #include "DispatcherMacros.h"
 
-BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::lenFunctions_)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int32_t)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int64_t)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, float)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, double)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, ColmnarDB::Types::ComplexPolygon)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::StringUnaryNumeric, StringUnaryNumericOperations::len)
-DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int8_t)
-END_DISPATCH_TABLE
-
 BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::leftFunctions_)
 DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, int32_t)
 DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, int64_t)

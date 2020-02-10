@@ -324,4 +324,15 @@ DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryO
 DISPATCHER_UNARY_ERROR(StringUnaryOperations::reverse, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::lenFunctions_)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int32_t)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int64_t)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, float)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, double)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryNumericOperations::len, std::string)
+DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int8_t)
+END_DISPATCH_TABLE
+
 #undef MERGED

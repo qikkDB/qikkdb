@@ -279,39 +279,7 @@ namespace StringUnaryNumericOperations
 /// Length of string
 struct len
 {
+    typedef int32_t RetType;
     // no function needed
 };
 } // namespace StringUnaryNumericOperations
-
-
-/// Class for all string unary operations
-class GPUStringUnary
-{
-public:
-    /// String unary operations which return number, for column
-    /// <param name="outCol">output number column</param>
-    /// <param name="inCol">input string column (GPUString)</param>
-    /// <param name="dataElementCount">input string count</param>
-    template <typename OP>
-    static void Col(int32_t* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount)
-    {
-        Context& context = Context::getInstance();
-        kernel_lengths_from_indices<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            outCol, inCol.stringIndices, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-
-    /// String unary operations which return number, for constant
-    /// <param name="outCol">output number constant</param>
-    /// <param name="inConst">input string constant (GPUString)</param>
-    template <typename OP>
-    static void Const(int32_t* outCol, GPUMemory::GPUString inConst)
-    {
-        // Copy single index to host
-        int64_t hostIndex;
-        GPUMemory::copyDeviceToHost(&hostIndex, inConst.stringIndices, 1);
-        // Cast to int32 and copy to return result
-        int32_t length = static_cast<int32_t>(hostIndex);
-        GPUMemory::copyHostToDevice(outCol, &length, 1);
-    }
-};
