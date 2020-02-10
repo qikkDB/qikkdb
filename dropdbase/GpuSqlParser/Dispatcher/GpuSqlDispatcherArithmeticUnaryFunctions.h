@@ -5,7 +5,7 @@
 template <typename OP, typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 {
-    InstructionArgument<T> left = InstructionArgumentLoadHelper<T>::LoadInstructionArgument(*this);
+    InstructionArgument<T> left = DispatcherInstructionHelper<T>::LoadInstructionArgument(*this);
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {
@@ -28,7 +28,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
             InstructionResult<ResultType> result =
-                InstructionArgumentLoadHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize,
+                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize,
                                                                                      allocateNullMask,
                                                                                      {std::get<3>(left)});
             if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
@@ -42,7 +42,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
                 }
                 GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                        std::get<0>(left), retSize);
-                InstructionArgumentLoadHelper<ResultType>::StoreInstructionResult(result, *this, reg,
+                DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                   retSize, allocateNullMask,
                                                                                   {std::get<3>(left)});
             }
@@ -58,14 +58,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
         }
 
         InstructionResult<ResultType> result =
-            InstructionArgumentLoadHelper<ResultType>::AllocateInstructionResult(*this, reg,
+            DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg,
                                                                                  retSize, false, {});
 
         if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
         {
             GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                    std::get<0>(left), retSize);
-            InstructionArgumentLoadHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
+            DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
                                                                               false, {std::get<3>(left)});
         }
     }

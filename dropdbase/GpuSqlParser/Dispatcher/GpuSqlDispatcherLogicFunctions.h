@@ -12,8 +12,8 @@
 template <typename OP, typename L, typename R>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
 {
-    InstructionArgument<R> right = InstructionArgumentLoadHelper<R>::LoadInstructionArgument(*this);
-    InstructionArgument<L> left = InstructionArgumentLoadHelper<L>::LoadInstructionArgument(*this);
+    InstructionArgument<R> right = DispatcherInstructionHelper<R>::LoadInstructionArgument(*this);
+    InstructionArgument<L> left = DispatcherInstructionHelper<L>::LoadInstructionArgument(*this);
 
     if (std::get<2>(left) != InstructionStatus::CONTINUE)
     {
@@ -34,7 +34,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::min(std::get<1>(left).ElementCount, std::get<1>(right).ElementCount);
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
-            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+            InstructionResult<int8_t> result = DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
@@ -62,6 +62,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 }
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
+                DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
+                                                                              retSize, allocateNullMask,
+                                                                              {std::get<3>(left),
+                                                                               std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<L>(std::get<3>(left));
@@ -74,7 +78,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
-            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+            InstructionResult<int8_t> result = DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
@@ -87,6 +91,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 }
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
+                DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
+                                                                              retSize, allocateNullMask,
+                                                                              {std::get<3>(left),
+                                                                               std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<L>(std::get<3>(left));
@@ -98,7 +106,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             const int32_t retSize = std::get<1>(right).ElementCount;
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
-            InstructionResult<int8_t> result = InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(
+            InstructionResult<int8_t> result = DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
@@ -111,6 +119,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 }
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
+                DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
+                                                                              retSize, allocateNullMask,
+                                                                              {std::get<3>(left),
+                                                                               std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<R>(std::get<3>(right));
@@ -125,11 +137,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         }
 
         InstructionResult<int8_t> result =
-            InstructionArgumentLoadHelper<int8_t>::AllocateInstructionResult(*this, reg, retSize, false, {});
+            DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(*this, reg, retSize, false, {});
         if (std::get<0>(result))
         {
             GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left), std::get<0>(right),
                                         nullptr, retSize);
+            DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
+                                                                          retSize, false, {});
         }
     }
 

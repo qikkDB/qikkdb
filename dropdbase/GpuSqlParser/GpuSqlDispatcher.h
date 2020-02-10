@@ -707,7 +707,7 @@ public:
     }
 
     template <typename T, class Enable = void>
-    class InstructionArgumentLoadHelper
+    class DispatcherInstructionHelper
     {
     public:
         static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
@@ -802,7 +802,7 @@ public:
     };
 
     template <typename T>
-    class InstructionArgumentLoadHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value>::type>
+    class DispatcherInstructionHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value>::type>
     {
     public:
         static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
