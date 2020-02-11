@@ -213,4 +213,27 @@ DISPATCHER_INVALID_TYPE(ArithmeticOperations::geoTileYToLatitude, std::string)
 DISPATCHER_INVALID_TYPE(ArithmeticOperations::geoTileYToLatitude, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::leftFunctions_)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, int32_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, int64_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, float)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, double)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, StringBinaryOperations::left, std::string, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::left, ColmnarDB::Types::ComplexPolygon)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::rightFunctions_)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, int32_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, int64_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, float)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, double)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, StringBinaryOperations::right, std::string, 1, 1, 0, 0, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, ColmnarDB::Types::ComplexPolygon)
+END_DISPATCH_TABLE
+
+
 #undef MERGED

@@ -1093,18 +1093,6 @@ public:
     template <typename OP>
     InstructionStatus StringBinaryConstConst();
 
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericColCol();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericColConst();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericConstCol();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericConstConst();
-
     template <typename OP, typename R, typename T, typename U>
     InstructionStatus AggregationGroupBy();
 

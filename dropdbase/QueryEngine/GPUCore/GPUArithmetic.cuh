@@ -15,6 +15,7 @@
 #include "../NullConstants.cuh"
 #include "../../MathConstants.h"
 #include "ArithmeticOperations.h"
+#include "GPUStringBinary.cuh"
 
 namespace ArithmeticOperations
 {
@@ -22,6 +23,8 @@ namespace ArithmeticOperations
 /// Arithmetic operation add
 struct add
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
@@ -42,6 +45,8 @@ struct add
 /// Arithmetic operation subtraction
 struct sub
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
@@ -62,6 +67,8 @@ struct sub
 /// Arithmetic operation multiply
 struct mul
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
@@ -115,6 +122,8 @@ struct mul
 /// Arithmetic operation divide
 struct div
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
@@ -133,6 +142,8 @@ struct div
 /// Arithmetic operation modulo
 struct mod
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
     {
@@ -155,6 +166,8 @@ struct mod
 /// Bitwise operation and
 struct bitwiseAnd
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
     {
@@ -165,6 +178,8 @@ struct bitwiseAnd
 /// Bitwise operation or
 struct bitwiseOr
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
     {
@@ -175,6 +190,8 @@ struct bitwiseOr
 /// Bitwise operation xor
 struct bitwiseXor
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
     {
@@ -186,6 +203,8 @@ struct bitwiseXor
 /// Bitwise operation left shift
 struct bitwiseLeftShift
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
     {
@@ -196,6 +215,8 @@ struct bitwiseLeftShift
 /// Bitwise operation right shift
 struct bitwiseRightShift
 {
+    typedef void RetType;
+
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
     {
@@ -206,6 +227,8 @@ struct bitwiseRightShift
 /// Mathematical function logarithm
 struct logarithm
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
@@ -217,6 +240,8 @@ struct logarithm
 /// Mathematical function arcus tangent
 struct arctangent2
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
@@ -228,6 +253,8 @@ struct arctangent2
 /// Mathematical function power
 struct power
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
@@ -239,6 +266,8 @@ struct power
 /// Mathematical function root
 struct root
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
@@ -250,6 +279,8 @@ struct root
 /// Mathematical function root
 struct roundDecimal
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
@@ -263,6 +294,8 @@ struct roundDecimal
 /// Converts longitude in degrees to tile X at zoom
 struct geoLongitudeToTileX
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = false;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U longitude, V zoom, int32_t* errorFlag, T min, T max) const
@@ -275,6 +308,8 @@ struct geoLongitudeToTileX
 /// Converts latitude in degrees to tile Y at zoom
 struct geoLatitudeToTileY
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = false;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
@@ -287,6 +322,8 @@ struct geoLatitudeToTileY
 /// Converts tile X at zoom to longitude in degrees
 struct geoTileXToLongitude
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U tileX, V zoom, int32_t* errorFlag, T min, T max) const
@@ -299,6 +336,8 @@ struct geoTileXToLongitude
 /// Converts tile Y at zoom to latitude in degrees
 struct geoTileYToLatitude
 {
+    typedef void RetType;
+
     static constexpr bool isFloatRetType = true;
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U tileY, V zoom, int32_t* errorFlag, T min, T max) const
@@ -386,7 +425,7 @@ class GPUArithmetic<OP,
                     V,
                     typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
                                             std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                            std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+                                            std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
     /// Arithmetic operation with two columns
@@ -395,7 +434,23 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
+    static void Arithmetic(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount)
     {
+        if constexpr (std::is_pointer<U>::value && std::is_pointer<V>::value)
+        {
+            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, dataElementCount);
+        }
+        else if constexpr (std::is_pointer<U>::value && !std::is_pointer<V>::value)
+        {
+            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, 1);
+        }
+        else if constexpr (!std::is_pointer<U>::value && std::is_pointer<V>::value)
+        {
+            GPUStringBinary::Run<OP, V>(outCol, ACol, 1, BCol, dataElementCount);
+        }
+        else
+        {
+            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, 1);
+        }
     }
 };

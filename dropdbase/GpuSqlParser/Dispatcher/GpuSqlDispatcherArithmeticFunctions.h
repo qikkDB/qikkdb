@@ -31,12 +31,15 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         std::is_integral<typename std::remove_pointer<L>::type>::value &&
             std::is_integral<typename std::remove_pointer<R>::type>::value;
     typedef typename std::conditional<
-        bothTypesFloatOrBothIntegral,
-        typename std::conditional<sizeof(typename std::remove_pointer<L>::type) >= sizeof(typename std::remove_pointer<R>::type),
-                                  typename std::remove_pointer<L>::type, typename std::remove_pointer<R>::type>::type,
-        typename std::conditional<std::is_floating_point<typename std::remove_pointer<L>::type>::value, typename std::remove_pointer<L>::type,
-                                  typename std::conditional<std::is_floating_point<typename std::remove_pointer<R>::type>::value,
-                                                            typename std::remove_pointer<R>::type, void>::type>::type>::type ResultType;
+        std::is_same<typename OP::RetType, void>::value,
+        typename std::conditional<
+            bothTypesFloatOrBothIntegral,
+            typename std::conditional<sizeof(typename std::remove_pointer<L>::type) >= sizeof(typename std::remove_pointer<R>::type),
+                                      typename std::remove_pointer<L>::type, typename std::remove_pointer<R>::type>::type,
+            typename std::conditional<std::is_floating_point<typename std::remove_pointer<L>::type>::value, typename std::remove_pointer<L>::type,
+                                      typename std::conditional<std::is_floating_point<typename std::remove_pointer<R>::type>::value,
+                                                                typename std::remove_pointer<R>::type, void>::type>::type>::type,
+        typename OP::RetType>::type ResultType;
 
     if constexpr (std::is_pointer<L>::value && std::is_pointer<R>::value)
     {
