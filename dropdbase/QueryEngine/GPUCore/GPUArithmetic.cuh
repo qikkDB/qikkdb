@@ -407,14 +407,18 @@ class GPUArithmetic<OP,
                                             std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
 {
 public:
-    /// Arithmetic operation with two columns
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="ACol">buffer with left side operands</param>
-    /// <param name="BCol">buffer with right side operands</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
-    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
+    static void
+    Arithmetic(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
     {
+        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        {
+            GPUStringBinary::Run<OP>(outCol, ACol, std::is_pointer<U>::value, BCol,
+                                     std::is_pointer<V>::value, dataElementCount);
+        }
+        else
+        {
+            GPUStringBinary::Run<OP>(outCol, ACol, true, BCol, true, dataElementCount);
+        }
     }
 };
 
@@ -428,12 +432,6 @@ class GPUArithmetic<OP,
                                             std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
-    /// Arithmetic operation with two columns
-    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
-    /// <param name="output">output GPU buffer</param>
-    /// <param name="ACol">buffer with left side operands</param>
-    /// <param name="BCol">buffer with right side operands</param>
-    /// <param name="dataElementCount">data element count of the input block</param>
     static void Arithmetic(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount)
     {
         if constexpr (std::is_pointer<U>::value && std::is_pointer<V>::value)

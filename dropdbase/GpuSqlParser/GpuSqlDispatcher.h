@@ -1081,18 +1081,6 @@ public:
     template <typename OP, typename T>
     InstructionStatus ArithmeticUnary();
 
-    template <typename OP>
-    InstructionStatus StringBinaryColCol();
-
-    template <typename OP>
-    InstructionStatus StringBinaryColConst();
-
-    template <typename OP>
-    InstructionStatus StringBinaryConstCol();
-
-    template <typename OP>
-    InstructionStatus StringBinaryConstConst();
-
     template <typename OP, typename R, typename T, typename U>
     InstructionStatus AggregationGroupBy();
 

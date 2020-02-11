@@ -235,5 +235,16 @@ DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, StringBinaryOperations::right, std
 DISPATCHER_INVALID_TYPE(StringBinaryOperations::right, ColmnarDB::Types::ComplexPolygon)
 END_DISPATCH_TABLE
 
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::concatFunctions)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, int32_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, int64_t)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, float)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, double)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, StringBinaryOperations::concat, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, ColmnarDB::Types::ComplexPolygon)
+END_DISPATCH_TABLE
+
 
 #undef MERGED
