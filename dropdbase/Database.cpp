@@ -307,17 +307,17 @@ void Database::SetSaveNecessaryToFalseForEverything()
 }
 
 /// <summary>
-/// Save only .db file to disk.
+/// Save only DB_EXTENSION file to disk.
 /// </summary>
 /// <param name="path">Path to database storage directory.</param>
 void Database::PersistOnlyDbFile(const char* path)
 {
     boost::filesystem::create_directories(path);
 
-    const std::string filePath = std::string(path) + name_ + ".db";
+    const std::string filePath = std::string(path + name_ + DB_EXTENSION);
 
-    // write file .db
-    BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << filePath;
+    // write file DB_EXTENSION
+    BOOST_LOG_TRIVIAL(debug) << "Saving " << DB_EXTENSION << " file with name : " << filePath;
     std::ofstream dbFile(filePath, std::ios::binary);
 
     if (dbFile.is_open())
@@ -398,10 +398,9 @@ void Database::PersistOnlyDbFile(const char* path)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error)
-            << "Could not open file " << filePath
-            << " for writing. Persisting .db file was not successful. Check if the process "
-               "have write access into the folder or file.";
+        BOOST_LOG_TRIVIAL(error) << "Could not open file " << filePath << " for writing. Persisting "
+                                 << " file was not successful. Check if the process "
+                                    "have write access into the folder or file.";
     }
 }
 
@@ -422,7 +421,7 @@ void Database::Persist(const char* path)
 
     PersistOnlyDbFile(path);
 
-    // write files .col:
+    // write files COLUMN_DATA_EXTENSION:
     for (auto& table : tables)
     {
         auto& columns = table.second.GetColumns();
@@ -443,7 +442,7 @@ void Database::Persist(const char* path)
         table.second.SetSaveNecessaryToFalse();
     }
 
-    if (boost::filesystem::exists(boost::filesystem::path(path + name + ".db")))
+    if (boost::filesystem::exists(boost::filesystem::path(path + name + DB_EXTENSION)))
     {
         BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
     }
@@ -473,7 +472,7 @@ void Database::PersistOnlyModified(const char* path)
     // always persist at least db file
     PersistOnlyDbFile(path);
 
-    // write files .col:
+    // write files COLUMN_DATA_EXTENSION:
     for (auto& table : tables)
     {
         if (table.second.GetSaveNecessary())
@@ -501,7 +500,7 @@ void Database::PersistOnlyModified(const char* path)
         }
     }
 
-    if (boost::filesystem::exists(boost::filesystem::path(path + name + ".db")))
+    if (boost::filesystem::exists(boost::filesystem::path(path + name + DB_EXTENSION)))
     {
         BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
     }
@@ -546,8 +545,8 @@ void Database::SaveModifiedToDisk()
 }
 
 /// <summary>
-/// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
-/// so all databases have to be in the same dorectory to be loaded using this procedure.
+/// Load databases from disk storage. Databases DB_EXTENSION and COLUMN_DATA_EXTENSION files have to be in the same
+/// directory, so all databases have to be in the same dorectory to be loaded using this procedure.
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
@@ -559,7 +558,7 @@ void Database::LoadDatabasesFromDisk()
         for (auto& p : boost::filesystem::directory_iterator(path))
         {
             auto extension = p.path().extension();
-            if (extension == ".db")
+            if (extension == DB_EXTENSION)
             {
                 auto database =
                     Database::LoadDatabase(p.path().filename().stem().generic_string().c_str(), path.c_str());
@@ -592,7 +591,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
 
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
-    if (boost::filesystem::remove(path + name_ + ".db"))
+    if (boost::filesystem::remove(path + name_ + DB_EXTENSION))
     {
         std::string prefix(name_ + SEPARATOR + oldTableName + SEPARATOR);
         std::string prefix2(path + name_ + SEPARATOR + oldTableName + SEPARATOR);
@@ -615,15 +614,15 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
     else
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Renaming table: Main (.db) file of db " << name_
+            << "Renaming table: Main (" << DB_EXTENSION << ") file of db " << name_
             << " was NOT removed from disk. No such file (if the database was not yet saved, "
                "ignore this warning) or no write access.";
     }
 }
 
 /// <summary>
-/// Delete database from disk. Deletes .db and .col files which belong to the specified database.
-/// Database is not deleted from memory.
+/// Delete database from disk. Deletes DB_EXTENSION and COLUMN_DATA_EXTENSION files which belong to
+/// the specified database. Database is not deleted from memory.
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
@@ -633,14 +632,15 @@ void Database::DeleteDatabaseFromDisk()
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
     if (boost::filesystem::exists(path))
     {
-        // Delete main .db file
-        if (boost::filesystem::remove(path + name_ + ".db"))
+        // Delete main DB_EXTENSION file
+        if (boost::filesystem::remove(path + name_ + DB_EXTENSION))
         {
-            BOOST_LOG_TRIVIAL(info) << "Main (.db) file of db " << name_ << " was successfully removed from disk.";
+            BOOST_LOG_TRIVIAL(info) << "Main (" << DB_EXTENSION << ") file of db " << name_
+                                    << " was successfully removed from disk.";
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << "Main (.db) file of db "
+            BOOST_LOG_TRIVIAL(warning) << "Main (" << DB_EXTENSION << ") file of db "
                                        << name_ << " was NOT removed from disk. No such file or write access.";
         }
 
@@ -672,9 +672,10 @@ void Database::DeleteDatabaseFromDisk()
 
 /// <summary>
 /// <param name="tableName">Name of the table to be deleted.</param>
-/// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
-/// To alter .db file, this action also calls a function PersistOnlyDbFile().
-/// Table needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
+/// Delete table from disk. Deletes COLUMN_DATA_EXTENSION files which belong to the specified table
+/// of currently loaded database. To alter DB_EXTENSION file, this action also calls a function
+/// PersistOnlyDbFile(). Table needs to be deleted from memory before calling this method, so that
+/// DB_EXTENSION file can be updated correctly.
 /// </summary>
 void Database::DeleteTableFromDisk(const char* tableName)
 {
@@ -708,26 +709,27 @@ void Database::DeleteTableFromDisk(const char* tableName)
         BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
     }
 
-    // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
-    if (boost::filesystem::exists(path + name_ + ".db"))
+    // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a DB_EXTENSION file, so it is not only in memory
+    if (boost::filesystem::exists(path + name_ + DB_EXTENSION))
     {
         PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
     }
 }
 
 /// <summary>
-/// <param name="tableName">Name of the table which have the specified column that will be deleted.</param>
-/// <param name="columnName">Name of the column file (*.col) without the ".col" suffix that will be deleted.</param>
-/// Delete column of a table. Deletes single .col file which belongs to specified column and specified table.
-/// To alter .db file, this action also calls a function Persist.
-/// Column needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
+/// <param name="tableName">Name of the table which have the specified column that will be
+/// deleted.</param> <param name="columnName">Name of the column file without the
+/// COLUMN_DATA_EXTENSION suffix that will be deleted.</param> Delete column of a table. Deletes
+/// single COLUMN_DATA_EXTENSION file which belongs to specified column and specified table. To
+/// alter DB_EXTENSION file, this action also calls a function Persist. Column needs to be deleted
+/// from memory before calling this method, so that DB_EXTENSION file can be updated correctly.
 /// </summary>
 void Database::DeleteColumnFromDisk(const char* tableName, const char* columnName)
 {
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
-    std::string filePath =
-        path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR + std::string(columnName) + ".col";
+    std::string filePath = path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR +
+                           std::string(columnName) + COLUMN_DATA_EXTENSION;
 
     if (boost::filesystem::exists(filePath))
     {
@@ -747,8 +749,8 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
         BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists.";
     }
 
-    // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a .db file, so it is not only in memory
-    if (boost::filesystem::exists(path + name_ + ".db"))
+    // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a DB_EXTENSION file, so it is not only in memory
+    if (boost::filesystem::exists(path + name_ + DB_EXTENSION))
     {
         PersistOnlyDbFile(Configuration::GetInstance().GetDatabaseDir().c_str());
     }
@@ -826,7 +828,7 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
             threads[j].join();
         }
 
-        // delete (original) .col files with old block size which are persisted on disk, if they are persisted
+        // delete (original) COLUMN_DATA_EXTENSION files with old block size which are persisted on disk, if they are persisted
         DeleteTableFromDisk(tableName.c_str());
 
         // initialize sorting Columns to be empty
@@ -854,14 +856,14 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
 /// <summary>
 /// Load database from disk into memory.
 /// </summary>
-/// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
+/// <param name="fileDbName">Name of the database file without the DB_EXTENSION suffix.</param>
 /// <param name="path">Path to directory in which database files are.</param>
 /// <returns>Shared pointer of database.</returns>
 std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const char* path)
 {
-    const std::string filePath = std::string(path) + std::string(fileDbName) + ".db";
+    const std::string filePath = std::string(path) + std::string(fileDbName) + DB_EXTENSION;
 
-    // read file .db
+    // read file DB_EXTENSION
     std::ifstream dbFile(filePath, std::ios::binary);
 
     dbFile.seekg(0, dbFile.end);
@@ -958,8 +960,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 const bool isHidden = columnJSON["hidden"].asBool();
 
                 columnNames.push_back(columnName);
-                threads.emplace_back(Database::LoadColumn, path, dbName.c_str(), persistenceFormatVersion, columnType,
-                                     isNullable, isUnique, std::ref(table), columnName);
+                threads.emplace_back(Database::LoadColumn, path, dbName.c_str(), persistenceFormatVersion,
+                                     columnType, isNullable, isUnique, std::ref(table), columnName);
             }
 
             for (int i = 0; i < columnNames.size(); i++)
@@ -982,15 +984,14 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// <summary>
 /// Load column of a table into memory from disk.
 /// </summary>
-/// <param name="path">Path directory, where column file (*.col) is.</param>
+/// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
 /// <param name="dbName">Name of the database.</param>
-/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
-/// into disk.</param>
-/// <param name="type">Type of column according to DataType enumeration.</param>
-/// <param name="isNullable">Flag if a column can have NULL values.</param>
-/// <param name="isUnique">Flag if a column can have only unique values and not a single one NULL value.</param>
-/// <param name="table">Instance of table into which the column should be
-/// added.</param> <param name="columnName">Names of particular column.</param>
+/// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
+/// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according to
+/// DataType enumeration.</param> <param name="isNullable">Flag if a column can have NULL
+/// values.</param> <param name="isUnique">Flag if a column can have only unique values and not a
+/// single one NULL value.</param> <param name="table">Instance of table into which the column
+/// should be added.</param> <param name="columnName">Names of particular column.</param>
 void Database::LoadColumn(const char* path,
                           const char* dbName,
                           const int32_t persistenceFormatVersion,
@@ -1001,9 +1002,9 @@ void Database::LoadColumn(const char* path,
                           const std::string columnName)
 {
     const int32_t oneChunkSize = 8 * 1024 * 1024;
-    // read files .col:
+    // read files COLUMN_DATA_EXTENSION:
     const std::string filePath = std::string(path) + std::string(dbName) + SEPARATOR +
-                                 table.GetName() + SEPARATOR + columnName + ".col";
+                                 table.GetName() + SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
 
     std::ifstream colFile(filePath, std::ios::binary);
 
@@ -1012,7 +1013,8 @@ void Database::LoadColumn(const char* path,
     if (fileSize != 0)
     {
         colFile.seekg(0, colFile.beg);
-        BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << filePath << ".";
+        BOOST_LOG_TRIVIAL(info)
+            << "Loading " << COLUMN_DATA_EXTENSION << " file with name : " << filePath << ".";
 
         int32_t emptyBlockIndex = 0;
 
@@ -2187,11 +2189,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                            std::string name,
                            const std::pair<const std::string, Table>& table)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Saving .col file with name: " << pathStr << name << SEPARATOR
-                             << table.first << SEPARATOR << column.second->GetName() << ".col";
+    BOOST_LOG_TRIVIAL(debug) << "Saving " << COLUMN_DATA_EXTENSION
+                             << " file with name : " << pathStr << name << SEPARATOR << table.first
+                             << SEPARATOR << column.second->GetName() << COLUMN_DATA_EXTENSION;
 
     std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
-                              column.second->GetName() + ".col",
+                              column.second->GetName() + COLUMN_DATA_EXTENSION,
                           std::ios::binary);
 
     if (colFile.is_open())
@@ -2592,8 +2595,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
         BOOST_LOG_TRIVIAL(error)
             << "Could not open file " +
                    std::string(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
-                               column.second->GetName() + ".col") +
-                   " for writing. Persisting .col file was not successful. Check if the process "
-                   "have write access into the folder or file.";
+                               column.second->GetName() + COLUMN_DATA_EXTENSION) +
+                   " for writing. Persisting "
+            << COLUMN_DATA_EXTENSION
+            << " file was not successful. Check if the process "
+               "have write access into the folder or file.";
     }
 }

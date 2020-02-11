@@ -91,19 +91,25 @@ protected:
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
 
         // test changes on disk:
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + ".db")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + newColName + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + newestColName + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
+        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + Database::DB_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR +
+                                    newColName + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName + Database::SEPARATOR +
+                                    newestColName + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
 
         // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);
@@ -143,31 +149,43 @@ protected:
         ASSERT_TRUE(alterDatabase->GetTables().find(newestTableName) != alterDatabase->GetTables().end());
 
         // test changes on disk:
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + ".db")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newestTableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newestTableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newestTableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newestTableName + Database::SEPARATOR + "colD" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newTableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newTableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newTableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + newTableName + Database::SEPARATOR + "colD" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + "SimpleTable" + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + "SimpleTable" + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + "SimpleTable" + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + dbName + Database::SEPARATOR + "SimpleTable" + Database::SEPARATOR + "colD" + ".col")));
+        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + dbName + Database::DB_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newestTableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newestTableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newestTableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newestTableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newTableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newTableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newTableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + newTableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + "SimpleTable" +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + "SimpleTable" +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + "SimpleTable" +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + dbName + Database::SEPARATOR + "SimpleTable" +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
 
         // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);
@@ -208,33 +226,48 @@ protected:
         ASSERT_TRUE(Database::Exists(newestDatabaseName));
 
         // test changes on disk:
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(path + newestDatabaseName + ".db")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(path + newDatabaseName + ".db")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(path + "AlterTestDb" + ".db")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + newestDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + newestDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + newestDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_TRUE(boost::filesystem::exists(boost::filesystem::path(
-            path + newestDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + newDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + newDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + newDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + newDatabaseName + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + "AlterTestDb" + Database::SEPARATOR + tableName + Database::SEPARATOR + "colA" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + "AlterTestDb" + Database::SEPARATOR + tableName + Database::SEPARATOR + "colB" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + "AlterTestDb" + Database::SEPARATOR + tableName + Database::SEPARATOR + "colC" + ".col")));
-        ASSERT_FALSE(boost::filesystem::exists(boost::filesystem::path(
-            path + "AlterTestDb" + Database::SEPARATOR + tableName + Database::SEPARATOR + "colD" + ".col")));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + newestDatabaseName + Database::DB_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + newDatabaseName + Database::DB_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + "AlterTestDb" + Database::DB_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + newestDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + newestDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + newestDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_TRUE(boost::filesystem::exists(
+            boost::filesystem::path(path + newestDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + newDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + newDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + newDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + newDatabaseName + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + "AlterTestDb" + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colA" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + "AlterTestDb" + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colB" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + "AlterTestDb" + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colC" + Database::COLUMN_DATA_EXTENSION)));
+        ASSERT_FALSE(boost::filesystem::exists(
+            boost::filesystem::path(path + "AlterTestDb" + Database::SEPARATOR + tableName +
+                                    Database::SEPARATOR + "colD" + Database::COLUMN_DATA_EXTENSION)));
 
         // clear directory to make sure, there are no old database files, but do not remove directory:
         boost::filesystem::path path_to_remove(path);

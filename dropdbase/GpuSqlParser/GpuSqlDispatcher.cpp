@@ -1626,11 +1626,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
 
         // rename column on disk, if the database was persisted already:
         auto& path = Configuration::GetInstance().GetDatabaseDir();
-        if (boost::filesystem::remove(path + database_->GetName() + ".db"))
+        if (boost::filesystem::remove(path + database_->GetName() + Database::DB_EXTENSION))
         {
             std::string prefix(path + database_->GetName() + Database::SEPARATOR + tableName + Database::SEPARATOR);
-            const boost::filesystem::path& oldPath{prefix + renameColumnNameFrom + ".col"};
-            const boost::filesystem::path& newPath{prefix + renameColumnNameTo + ".col"};
+            const boost::filesystem::path& oldPath{prefix + renameColumnNameFrom + Database::COLUMN_DATA_EXTENSION};
+            const boost::filesystem::path& newPath{prefix + renameColumnNameTo + Database::COLUMN_DATA_EXTENSION};
             boost::filesystem::rename(oldPath, newPath);
 
             // update changes in .db file:
@@ -1639,7 +1639,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Renaming column: Main (.db) file of db " << database_->GetName()
+                << "Renaming column: Main " << Database::DB_EXTENSION << " file of db " << database_->GetName()
                 << " was NOT removed from disk. No such file (if the database was not yet saved, "
                    "ignore this warning) or no write access.";
         }
@@ -1704,9 +1704,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
         auto& path = Configuration::GetInstance().GetDatabaseDir();
 
         // delete main .db file, persist a new .db file and rename .col files:
-        if (boost::filesystem::remove(path + databaseName + ".db"))
+        if (boost::filesystem::remove(path + databaseName + Database::DB_EXTENSION))
         {
-            BOOST_LOG_TRIVIAL(info) << "Renaming database: Main (.db) file of db " << databaseName
+            BOOST_LOG_TRIVIAL(info) << "Renaming database: Main " << Database::DB_EXTENSION << " file of db "
+                                    << databaseName
                                     << " was successfully removed from disk.";
             // persist updated .db file
             Database::GetDatabaseByName(newDatabaseName)->PersistOnlyDbFile(path.c_str());
@@ -1728,7 +1729,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Renaming database: Main (.db) file of db " << databaseName
+                << "Renaming database: Main " << Database::DB_EXTENSION << " file of db " << databaseName
                 << " was NOT removed from disk. No such file (if the database was not yet saved, "
                    "ignore this warning) or no write access.";
         }

@@ -29,9 +29,9 @@ private:
     /// <summary>
     /// Load column of a table into memory from disk.
     /// </summary>
-    /// <param name="path">Path directory, where column file (*.col) is.</param>
+    /// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
     /// <param name="dbName">Name of the database.</param>
-    /// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
+    /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and COLUMN_DATA_EXTENSION files
     /// into disk.</param>
     /// <param name="type">Type of column according to DataType enumeration.</param>
     /// <param name="isNullable">Flag if a column can have NULL values.</param>
@@ -62,6 +62,11 @@ private:
 public:
     static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
     static constexpr const char* SEPARATOR = "@";
+    static constexpr const char* DB_EXTENSION = ".db";
+    static constexpr const char* COLUMN_DATA_EXTENSION = ".data";
+    static constexpr const char* COLUMN_ADDRESS_EXTENSION = ".adrs";
+    static constexpr const char* STRING_DATA_EXTENSION = ".strdata";
+    static constexpr const char* STRING_ADDRESS_EXTENSION = ".stradrs";
     static std::mutex dbMutex_;
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -109,7 +114,7 @@ public:
     void SetSaveNecessaryToFalseForEverything();
 
     /// <summary>
-    /// Save only .db file to disk.
+    /// Save only DB_EXTENSION file to disk.
     /// </summary>
     /// <param name="path">Path to database storage directory.</param>
     void PersistOnlyDbFile(const char* path);
@@ -137,7 +142,7 @@ public:
     static void SaveModifiedToDisk();
 
     /// <summary>
-    /// Load databases from disk storage. Databases .db and .col files have to be in the same directory,
+    /// Load databases from disk storage. Databases DB_EXTENSION and COLUMN_DATA_EXTENSION files have to be in the same directory,
     /// so all databases have to be in the same directory to be loaded using this procedure.
     /// </summary>
     static void LoadDatabasesFromDisk();
@@ -150,26 +155,26 @@ public:
     void RenameTable(const std::string& oldTablename, const std::string& newTableName);
 
     /// <summary>
-    /// Delete database from disk. Deletes .db and .col files which belong to the specified
+    /// Delete database from disk. Deletes DB_EXTENSION and COLUMN_DATA_EXTENSION files which belong to the specified
     /// database. Database is not deleted from memory.
     /// </summary>
     void DeleteDatabaseFromDisk();
 
     /// <summary>
     /// <param name="tableName">Name of the table to be deleted.</param>
-    /// Delete table from disk. Deletes .col files which belong to the specified table of currently loaded database.
-    /// To alter .db file, this action also calls a function PersistOnlyDbFile().
-    /// Table needs to be deleted from memory before calling this method, so that .db file can be updated correctly.
+    /// Delete table from disk. Deletes COLUMN_DATA_EXTENSION files which belong to the specified table of currently loaded database.
+    /// To alter DB_EXTENSION file, this action also calls a function PersistOnlyDbFile().
+    /// Table needs to be deleted from memory before calling this method, so that DB_EXTENSION file can be updated correctly.
     /// </summary>
     void DeleteTableFromDisk(const char* tableName);
 
     /// <summary>
     /// <param name="tableName">Name of the table which have the specified column that will be
-    /// deleted.</param> <param name="columnName">Name of the column file (*.col) without the ".col"
-    /// suffix that will be deleted.</param> Delete column of a table. Deletes single .col file
-    /// which belongs to specified column and specified table. To alter .db file, this action also
+    /// deleted.</param> <param name="columnName">Name of the COLUMN_DATA_EXTENSION file without the COLUMN_DATA_EXTENSION
+    /// suffix that will be deleted.</param> Delete column of a table. Deletes single COLUMN_DATA_EXTENSION file
+    /// which belongs to specified column and specified table. To alter DB_EXTENSION file, this action also
     /// calls a function Persist. Column needs to be deleted from memory before calling this method,
-    /// so that .db file can be updated correctly.
+    /// so that DB_EXTENSION file can be updated correctly.
     /// </summary>
     void DeleteColumnFromDisk(const char* tableName, const char* columnName);
 
@@ -191,7 +196,7 @@ public:
     /// <summary>
     /// Load database from disk into memory.
     /// </summary>
-    /// <param name="fileDbName">Name of the database file (*.db) without the ".db" suffix.</param>
+    /// <param name="fileDbName">Name of the database file without the DB_EXTENSION suffix.</param>
     /// <param name="path">Path to directory in which database files are.</param>
     /// <returns>Newly created table.</returns>
     static std::shared_ptr<Database> LoadDatabase(const char* fileDbName, const char* path);

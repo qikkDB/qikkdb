@@ -456,7 +456,7 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     // drop column colBool:
     std::string filePath = Configuration::GetInstance().GetDatabaseDir() + dbName +
-                           Database::SEPARATOR + "TestTable2" + Database::SEPARATOR + "colBool.col";
+                           Database::SEPARATOR + "TestTable2" + Database::SEPARATOR + "colBool" + Database::COLUMN_DATA_EXTENSION;
     ASSERT_TRUE(boost::filesystem::exists(filePath)); // should exist before deletion
     database->DeleteColumnFromDisk(std::string("TestTable2").c_str(), std::string("colBool").c_str());
     ASSERT_FALSE(boost::filesystem::exists(filePath)); // should not exist after deletion
