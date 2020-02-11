@@ -49,7 +49,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PointColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
             {
-                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                     combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
             }
@@ -300,7 +300,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             if (pointCol.GpuNullMaskPtr && std::get<2>(polygonCol))
             {
-                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                     combinedMask, reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr),
                     reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
             }
@@ -493,7 +493,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
             FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
             if (std::get<2>(polygonLeft) && std::get<2>(polygonRight))
             {
-                GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                     combinedMask, reinterpret_cast<int8_t*>(std::get<2>(polygonLeft)),
                     reinterpret_cast<int8_t*>(std::get<2>(polygonRight)), bitMaskSize);
             }
@@ -524,7 +524,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
 template <typename OP, typename T, typename U>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstConst()
 {
-    
+
     auto constWktRight = arguments_.Read<std::string>();
     auto constWktLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();

@@ -279,7 +279,7 @@ struct geoLatitudeToTileY
     template <typename T, typename U, typename V>
     __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
     {
-        return (floorf((1.0 - asinhf(tanf(latitude * pi<float> / 180.0f)) / pi<float>) / 2.0 * powf(2.0f, zoom))); 
+        return (floorf((1.0 - asinhf(tanf(latitude * pi<float> / 180.0f)) / pi<float>) / 2.0 * powf(2.0f, zoom)));
     }
 };
 
@@ -337,6 +337,7 @@ kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Class for binary arithmetic functions
+template <typename OP, typename T, typename U, typename V, class Enable = void>
 class GPUArithmetic
 {
 public:
@@ -346,7 +347,6 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    template <typename OP, typename T, typename U, typename V>
     static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
     {
         ErrorFlagSwapper errorFlagSwapper;
@@ -355,5 +355,47 @@ public:
                 output, ACol, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
                 std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
         errorFlagSwapper.Swap();
+    }
+};
+
+template <typename OP, typename T, typename U, typename V>
+class GPUArithmetic<OP,
+                    T,
+                    U,
+                    V,
+                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                            std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
+                                            std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
+{
+public:
+    /// Arithmetic operation with two columns
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+    /// <param name="output">output GPU buffer</param>
+    /// <param name="ACol">buffer with left side operands</param>
+    /// <param name="BCol">buffer with right side operands</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
+    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
+    {
+    }
+};
+
+template <typename OP, typename T, typename U, typename V>
+class GPUArithmetic<OP,
+                    T,
+                    U,
+                    V,
+                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                            std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
+                                            std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+{
+public:
+    /// Arithmetic operation with two columns
+    /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
+    /// <param name="output">output GPU buffer</param>
+    /// <param name="ACol">buffer with left side operands</param>
+    /// <param name="BCol">buffer with right side operands</param>
+    /// <param name="dataElementCount">data element count of the input block</param>
+    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
+    {
     }
 };

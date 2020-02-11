@@ -44,9 +44,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         {
             const int32_t retSize = std::min(std::get<1>(left).ElementCount, std::get<1>(right).ElementCount);
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
-            InstructionResult<ResultType> result =
-                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
-                    *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -54,7 +53,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
                     {
-                        GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                        GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                             std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                             reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
                     }
@@ -71,7 +70,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                       bitMaskSize);
                     }
                 }
-                GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
+                GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
@@ -87,9 +86,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         {
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
-            InstructionResult<ResultType> result =
-                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
-                    *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -99,7 +97,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
+                GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
@@ -114,9 +112,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         {
             const int32_t retSize = std::get<1>(right).ElementCount;
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
-            InstructionResult<ResultType> result =
-                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
-                    *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
+            InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
+                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
             {
                 if (std::get<1>(result))
@@ -126,7 +123,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                   reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
+                GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
                                                                 std::get<0>(right), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
@@ -144,14 +141,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
         }
 
         InstructionResult<ResultType> result =
-            DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg,
-                                                                                 retSize, false, {});
+            DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
         if (std::get<0>(result))
         {
-            GPUArithmetic::Arithmetic<OP, ResultType, L, R>(std::get<0>(result), std::get<0>(left),
+            GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
                                                             std::get<0>(right), retSize);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
-                                                                              retSize, false, {});
+                                                                            retSize, false, {});
         }
     }
 

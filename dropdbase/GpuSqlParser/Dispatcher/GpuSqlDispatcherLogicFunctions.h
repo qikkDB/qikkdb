@@ -43,7 +43,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
                     {
-                        GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                        GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                             std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                             reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
                     }
@@ -63,9 +63,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
                 DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
-                                                                              retSize, allocateNullMask,
-                                                                              {std::get<3>(left),
-                                                                               std::get<3>(right)});
+                                                                            retSize, allocateNullMask,
+                                                                            {std::get<3>(left),
+                                                                             std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<L>(std::get<3>(left));
@@ -92,9 +92,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
                 DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
-                                                                              retSize, allocateNullMask,
-                                                                              {std::get<3>(left),
-                                                                               std::get<3>(right)});
+                                                                            retSize, allocateNullMask,
+                                                                            {std::get<3>(left),
+                                                                             std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<L>(std::get<3>(left));
@@ -120,9 +120,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
                                             std::get<0>(right), std::get<1>(result), retSize);
                 DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
-                                                                              retSize, allocateNullMask,
-                                                                              {std::get<3>(left),
-                                                                               std::get<3>(right)});
+                                                                            retSize, allocateNullMask,
+                                                                            {std::get<3>(left),
+                                                                             std::get<3>(right)});
             }
         }
         FreeColumnIfRegister<R>(std::get<3>(right));
@@ -142,8 +142,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         {
             GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left), std::get<0>(right),
                                         nullptr, retSize);
-            DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
-                                                                          retSize, false, {});
+            DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg, retSize, false, {});
         }
     }
 

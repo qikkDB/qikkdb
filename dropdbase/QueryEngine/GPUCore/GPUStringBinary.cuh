@@ -71,6 +71,7 @@ namespace StringBinaryOperations
 {
 struct left
 {
+    typedef std::string RetType;
     __device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
     {
         return 0;
@@ -79,6 +80,7 @@ struct left
 
 struct right
 {
+    typedef std::string RetType;
     __device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
     {
         return GetStringLength(oldIndices, i) - newLength;
@@ -87,6 +89,7 @@ struct right
 
 struct concat
 {
+    typedef std::string RetType;
 };
 } // namespace StringBinaryOperations
 

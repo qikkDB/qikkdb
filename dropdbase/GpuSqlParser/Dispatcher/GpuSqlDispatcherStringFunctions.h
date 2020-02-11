@@ -55,7 +55,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericColCol(
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                         combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -97,7 +97,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryNumericColCol(
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                         combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -327,7 +327,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                         combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
@@ -368,7 +368,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::StringBinaryColCol()
                 FillStringRegister(result, reg, retSize, true, combinedMask);
                 if (columnLeft.GpuNullMaskPtr && columnRight.GpuNullMaskPtr)
                 {
-                    GPUArithmetic::Arithmetic<ArithmeticOperations::bitwiseOr>(
+                    GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                         combinedMask, reinterpret_cast<int8_t*>(columnLeft.GpuNullMaskPtr),
                         reinterpret_cast<int8_t*>(columnRight.GpuNullMaskPtr), bitMaskSize);
                 }
