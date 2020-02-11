@@ -515,23 +515,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         }
         else
         {
-            std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> ACol = FindComplexPolygon(col);
+            GpuPolygonAllocation ACol = FindComplexPolygon(col);
 
-            if (std::get<2>(ACol))
+            if (ACol.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = (database_->GetBlockSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 std::unique_ptr<int8_t[]> nullMask(new int8_t[bitMaskSize]);
-                GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, std::get<0>(ACol),
-                                                        reinterpret_cast<int8_t*>(filter_), std::get<1>(ACol),
-                                                        nullMask.get(), std::get<2>(ACol));
+                GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, ACol.GpuPtr,
+                                                        reinterpret_cast<int8_t*>(filter_),
+                                                        ACol.ElementCount, nullMask.get(),
+                                                        reinterpret_cast<int8_t*>(ACol.GpuNullMaskPtr));
                 bitMaskSize = (outSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
             }
             else
             {
-                GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, std::get<0>(ACol),
-                                                        reinterpret_cast<int8_t*>(filter_),
-                                                        std::get<1>(ACol));
+                GPUReconstruct::ReconstructPolyColToWKT(outData.get(), &outSize, ACol.GpuPtr,
+                                                        reinterpret_cast<int8_t*>(filter_), ACol.ElementCount);
             }
             CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';
         }

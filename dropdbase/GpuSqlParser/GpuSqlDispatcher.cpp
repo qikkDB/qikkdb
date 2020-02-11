@@ -1088,8 +1088,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
         return gpuString;
     }
 }
-
-std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComplexPolygon(std::string colName)
+GpuSqlDispatcher::GpuPolygonAllocation GpuSqlDispatcher::FindComplexPolygon(std::string colName)
 {
     GPUMemory::GPUPolygon polygon;
     int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
@@ -1099,8 +1098,7 @@ std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComple
     polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointIdx").GpuPtr);
     polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyIdx").GpuPtr);
 
-    return std::make_tuple(polygon, size,
-                           reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
+    return {polygon, size, allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr};
 }
 
 GpuSqlDispatcher::GpuStringAllocation GpuSqlDispatcher::FindStringColumn(const std::string& colName)

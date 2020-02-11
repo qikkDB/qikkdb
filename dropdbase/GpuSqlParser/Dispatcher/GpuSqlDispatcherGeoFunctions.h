@@ -189,25 +189,24 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColConst()
     auto polygonCol = FindComplexPolygon(colName);
     ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
 
-    GPUMemory::GPUPolygon polygons = std::get<0>(polygonCol);
     NativeGeoPoint* pointConstPtr = InsertConstPointGpu(pointConst);
-    int32_t retSize = std::get<1>(polygonCol);
+    int32_t retSize = polygonCol.ElementCount;
 
     if (!IsRegisterAllocated(reg))
     {
         int8_t* result;
-        if (std::get<2>(polygonCol))
+        if (polygonCol.GpuNullMaskPtr)
         {
             int8_t* nullMask;
             result = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+            GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
             result = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPUPolygonContains::contains(result, polygons, retSize, pointConstPtr, 1);
+        GPUPolygonContains::contains(result, polygonCol.GpuPtr, retSize, pointConstPtr, 1);
     }
     return InstructionStatus::CONTINUE;
 }
@@ -288,38 +287,38 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
     auto polygonCol = FindComplexPolygon(colNamePolygon);
 
 
-    int32_t retSize = std::min(pointCol.ElementCount, std::get<1>(polygonCol));
+    int32_t retSize = std::min(pointCol.ElementCount, polygonCol.ElementCount);
 
     if (!IsRegisterAllocated(reg))
     {
         int8_t* result;
-        if (pointCol.GpuNullMaskPtr || std::get<2>(polygonCol))
+        if (pointCol.GpuNullMaskPtr || polygonCol.GpuNullMaskPtr)
         {
             int8_t* combinedMask;
             result = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-            if (pointCol.GpuNullMaskPtr && std::get<2>(polygonCol))
+            if (pointCol.GpuNullMaskPtr && polygonCol.GpuNullMaskPtr)
             {
                 GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
                     combinedMask, reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr),
-                    reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+                    reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
             }
             else if (pointCol.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(pointCol.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (std::get<2>(polygonCol))
+            else if (polygonCol.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
             }
         }
         else
         {
             result = AllocateRegister<int8_t>(reg, retSize);
         }
-        GPUPolygonContains::contains(result, std::get<0>(polygonCol), std::get<1>(polygonCol),
+        GPUPolygonContains::contains(result, polygonCol.GpuPtr, polygonCol.ElementCount,
                                      reinterpret_cast<NativeGeoPoint*>(pointCol.GpuPtr), pointCol.ElementCount);
     }
     return InstructionStatus::CONTINUE;
@@ -384,18 +383,18 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColConst()
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
 
-    int32_t dataSize = std::get<1>(polygonCol);
+    int32_t dataSize = polygonCol.ElementCount;
 
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUPolygon outPolygon;
-        GPUPolygonClipping::ColConst<OP>(outPolygon, std::get<0>(polygonCol), gpuPolygonConst, dataSize);
-        if (std::get<2>(polygonCol))
+        GPUPolygonClipping::ColConst<OP>(outPolygon, polygonCol.GpuPtr, gpuPolygonConst, dataSize);
+        if (polygonCol.GpuNullMaskPtr)
         {
             int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
             GPUMemory::copyDeviceToDevice(combinedMask,
-                                          reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+                                          reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
             FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
         }
         else
@@ -428,18 +427,18 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstCol()
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
 
-    int32_t dataSize = std::get<1>(polygonCol);
+    int32_t dataSize = polygonCol.ElementCount;
 
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUPolygon outPolygon;
-        GPUPolygonClipping::ColConst<OP>(outPolygon, std::get<0>(polygonCol), gpuPolygonConst, dataSize);
-        if (std::get<2>(polygonCol))
+        GPUPolygonClipping::ColConst<OP>(outPolygon, polygonCol.GpuPtr, gpuPolygonConst, dataSize);
+        if (polygonCol.GpuNullMaskPtr)
         {
             int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
             GPUMemory::copyDeviceToDevice(combinedMask,
-                                          reinterpret_cast<int8_t*>(std::get<2>(polygonCol)), bitMaskSize);
+                                          reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
             FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
         }
         else
@@ -481,31 +480,31 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
     auto polygonLeft = FindComplexPolygon(colNameLeft);
     auto polygonRight = FindComplexPolygon(colNameRight);
 
-    int32_t dataSize = std::min(std::get<1>(polygonLeft), std::get<1>(polygonRight));
+    int32_t dataSize = std::min(polygonLeft.ElementCount, polygonRight.ElementCount);
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUPolygon outPolygon;
-        GPUPolygonClipping::ColCol<OP>(outPolygon, std::get<0>(polygonLeft), std::get<0>(polygonRight), dataSize);
-        if (std::get<2>(polygonLeft) || std::get<2>(polygonRight))
+        GPUPolygonClipping::ColCol<OP>(outPolygon, polygonLeft.GpuPtr, polygonRight.GpuPtr, dataSize);
+        if (polygonLeft.GpuNullMaskPtr || polygonRight.GpuNullMaskPtr)
         {
             int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
             FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
-            if (std::get<2>(polygonLeft) && std::get<2>(polygonRight))
+            if (polygonLeft.GpuNullMaskPtr && polygonRight.GpuNullMaskPtr)
             {
                 GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
-                    combinedMask, reinterpret_cast<int8_t*>(std::get<2>(polygonLeft)),
-                    reinterpret_cast<int8_t*>(std::get<2>(polygonRight)), bitMaskSize);
+                    combinedMask, reinterpret_cast<int8_t*>(polygonLeft.GpuNullMaskPtr),
+                    reinterpret_cast<int8_t*>(polygonRight.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (std::get<2>(polygonLeft))
+            else if (polygonLeft.GpuNullMaskPtr)
             {
                 GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(std::get<2>(polygonLeft)), bitMaskSize);
+                                              reinterpret_cast<int8_t*>(polygonLeft.GpuNullMaskPtr), bitMaskSize);
             }
-            else if (std::get<2>(polygonRight))
+            else if (polygonRight.GpuNullMaskPtr)
             {
-                GPUMemory::copyDeviceToDevice(combinedMask,
-                                              reinterpret_cast<int8_t*>(std::get<2>(polygonRight)), bitMaskSize);
+                GPUMemory::copyDeviceToDevice(combinedMask, reinterpret_cast<int8_t*>(polygonRight.GpuNullMaskPtr),
+                                              bitMaskSize);
             }
         }
         else

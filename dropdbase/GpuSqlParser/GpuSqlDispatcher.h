@@ -82,6 +82,13 @@ private:
         std::uintptr_t GpuNullMaskPtr;
     };
 
+    struct GpuPolygonAllocation
+    {
+        GPUMemory::GPUPolygon GpuPtr;
+        int32_t ElementCount;
+        std::uintptr_t GpuNullMaskPtr;
+    };
+
     enum class InstructionStatus
     {
         CONTINUE = 0,
@@ -101,7 +108,7 @@ private:
         std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
         std::tuple<GPUMemory::GPUString, GpuStringAllocation, InstructionStatus, std::string>,
         typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value,
-                                  std::tuple<GPUMemory::GPUPolygon, std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*>, InstructionStatus, std::string>,
+                                  std::tuple<GPUMemory::GPUPolygon, GpuPolygonAllocation, InstructionStatus, std::string>,
                                   std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type>::type;
 
     template <typename T>
@@ -992,7 +999,7 @@ public:
                                       size_t size,
                                       bool useCache = false,
                                       int8_t* nullMaskPtr = nullptr);
-    std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
+    GpuPolygonAllocation FindComplexPolygon(std::string colName);
     GpuStringAllocation FindStringColumn(const std::string& colName);
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
