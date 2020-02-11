@@ -44,13 +44,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateToStringCol()
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                 int8_t* combinedMask = AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
-                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
+                FillCompositeDataTypeRegister<std::string>(result, reg + KEYS_SUFFIX, retSize, true, combinedMask);
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
+                FillCompositeDataTypeRegister<std::string>(result, reg + KEYS_SUFFIX, retSize, true);
             }
             groupByColumns_.push_back({reg, DataType::COLUMN_STRING});
         }
@@ -68,13 +68,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateToStringCol()
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                 int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-                FillStringRegister(result, reg, retSize, true, combinedMask);
+                FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true, combinedMask);
                 GPUMemory::copyDeviceToDevice(combinedMask,
                                               reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                FillStringRegister(result, reg, retSize, true);
+                FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
             }
         }
     }
@@ -97,7 +97,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DateToStringConst()
     {
         GPUMemory::GPUString result;
         GPUDate::DateToString(&result, cnst, retSize);
-        FillStringRegister(result, reg, retSize, true);
+        FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
     }
     return InstructionStatus::CONTINUE;
 }

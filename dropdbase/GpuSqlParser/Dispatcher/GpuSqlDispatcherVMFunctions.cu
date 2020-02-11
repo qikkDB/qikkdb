@@ -515,7 +515,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         }
         else
         {
-            GpuPolygonAllocation ACol = FindComplexPolygon(col);
+            auto ACol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(col);
 
             if (ACol.GpuNullMaskPtr)
             {
@@ -651,7 +651,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
         if (isOverallLastBlock_)
         {
             // Return key or value col (key if groupByColumns_ contains colName)
-            auto col = FindStringColumn(
+            auto col = FindCompositeDataTypeAllocation<std::string>(
                 colName + (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                                         StringDataTypeComp(colName)) != groupByColumns_.end() ?
                                KEYS_SUFFIX :
@@ -726,7 +726,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
         }
         else
         {
-            auto col = FindStringColumn(colName);
+            auto col = FindCompositeDataTypeAllocation<std::string>(colName);
             outSize = col.ElementCount;
             outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
             if (col.GpuNullMaskPtr)

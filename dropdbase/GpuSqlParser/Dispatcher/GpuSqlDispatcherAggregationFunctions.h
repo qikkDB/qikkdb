@@ -175,7 +175,7 @@ public:
                              GpuSqlDispatcher& dispatcher)
     {
         std::string groupByColumnName = groupByColumns.begin()->first + RECONSTRUCTED_SUFFIX;
-        auto groupByColumn = dispatcher.FindStringColumn(groupByColumnName);
+        auto groupByColumn = dispatcher.FindCompositeDataTypeAllocation<std::string>(groupByColumnName);
 
         int32_t dataSize = std::min(groupByColumn.ElementCount, valueColumn.ElementCount);
 
@@ -201,7 +201,8 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
                          &outValueNullMask);
-        dispatcher.FillStringRegister(outKeys, groupByColumnName + KEYS_SUFFIX, outSize, true, outKeyNullMask);
+        dispatcher.FillCompositeDataTypeRegister<std::string>(outKeys, groupByColumnName + KEYS_SUFFIX,
+                                                              outSize, true, outKeyNullMask);
         if (usingAggregation)
         {
             dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
@@ -243,7 +244,7 @@ public:
             if (groupByColumn.second == DataType::COLUMN_STRING)
             {
                 std::string groupByColumnName = groupByColumn.first + RECONSTRUCTED_SUFFIX;
-                auto stringColumn = dispatcher.FindStringColumn(groupByColumnName);
+                auto stringColumn = dispatcher.FindCompositeDataTypeAllocation<std::string>(groupByColumnName);
                 GPUMemory::GPUString* stringColPtr;
                 GPUMemory::alloc<GPUMemory::GPUString>(&stringColPtr, 1);
 
@@ -322,9 +323,9 @@ public:
                                       outSize, true, reinterpret_cast<uintptr_t>(outKeysNullMasks[i])});
                 break;
             case DataType::COLUMN_STRING:
-                dispatcher.FillStringRegister(*(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])),
-                                              groupByColumns[i].first + KEYS_SUFFIX, outSize, true,
-                                              outKeysNullMasks[i]);
+                dispatcher.FillCompositeDataTypeRegister<std::string>(
+                    *(reinterpret_cast<GPUMemory::GPUString*>(outKeys[i])),
+                    groupByColumns[i].first + KEYS_SUFFIX, outSize, true, outKeysNullMasks[i]);
                 delete reinterpret_cast<GPUMemory::GPUString*>(outKeys[i]); // delete just pointer to struct
                 break;
             case DataType::COLUMN_INT8_T:

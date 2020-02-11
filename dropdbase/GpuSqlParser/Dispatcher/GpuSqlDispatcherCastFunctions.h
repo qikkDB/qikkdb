@@ -108,7 +108,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringCol()
     {
         if (isOverallLastBlock_)
         {
-            auto column = FindStringColumn(colName + KEYS_SUFFIX);
+            auto column = FindCompositeDataTypeAllocation<std::string>(colName + KEYS_SUFFIX);
             int32_t retSize = column.ElementCount;
             OUT* result;
 
@@ -130,7 +130,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringCol()
     }
     else if (isOverallLastBlock_ || !usingGroupBy_ || insideGroupBy_ || insideAggregation_)
     {
-        auto column = FindStringColumn(colName);
+        auto column = FindCompositeDataTypeAllocation<std::string>(colName);
         int32_t retSize = column.ElementCount;
 
         if (!IsRegisterAllocated(reg))
@@ -205,12 +205,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                 int8_t* nullMask = AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
-                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true, nullMask);
+                FillCompositeDataTypeRegister<std::string>(result, reg + KEYS_SUFFIX, retSize, true, nullMask);
                 GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                FillStringRegister(result, reg + KEYS_SUFFIX, retSize, true);
+                FillCompositeDataTypeRegister<std::string>(result, reg + KEYS_SUFFIX, retSize, true);
             }
 
             groupByColumns_.push_back({reg, DataType::COLUMN_STRING});
@@ -230,12 +230,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
             {
                 int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                 int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-                FillStringRegister(result, reg, retSize, true, nullMask);
+                FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true, nullMask);
                 GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
             }
             else
             {
-                FillStringRegister(result, reg, retSize, true);
+                FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
             }
         }
     }

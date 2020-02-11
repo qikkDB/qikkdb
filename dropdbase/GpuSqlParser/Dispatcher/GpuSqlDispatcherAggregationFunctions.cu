@@ -333,7 +333,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "GroupByString: " << columnName << '\n';
 
-    const auto column = FindStringColumn(columnName); // Just copy!
+    const auto column = FindCompositeDataTypeAllocation<std::string>(columnName); // Just copy!
 
     int32_t reconstructOutSize;
     GPUMemory::GPUString reconstructOutReg;
@@ -343,8 +343,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>()
                                              column.ElementCount, &reconstructOutNullMask,
                                              reinterpret_cast<int8_t*>(column.GpuNullMaskPtr));
 
-    FillStringRegister(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
-                       filter_ ? false : true, reconstructOutNullMask);
+    FillCompositeDataTypeRegister<std::string>(reconstructOutReg, columnName + RECONSTRUCTED_SUFFIX, reconstructOutSize,
+                                               filter_ ? false : true, reconstructOutNullMask);
     InsertRegister(columnName + NULL_SUFFIX + RECONSTRUCTED_SUFFIX,
                    PointerAllocation{reinterpret_cast<uintptr_t>(reconstructOutNullMask),
                                      reconstructOutSize, filter_ ? true : false, 0});

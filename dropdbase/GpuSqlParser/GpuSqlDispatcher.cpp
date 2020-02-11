@@ -909,22 +909,37 @@ void GpuSqlDispatcher::AddBetweenFunction(DataType op1, DataType op2, DataType o
     // TODO: Between
 }
 
-void GpuSqlDispatcher::FillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
-                                           const std::string& reg,
-                                           int32_t size,
-                                           bool useCache,
-                                           int8_t* nullMaskPtr)
+template <>
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatcher::CompositeDataType<std::string> column,
+                                                                  const std::string& reg,
+                                                                  int32_t size,
+                                                                  bool useCache,
+                                                                  int8_t* nullMaskPtr)
+{
+    InsertRegister(reg + "_stringIndices",
+                   PointerAllocation{reinterpret_cast<uintptr_t>(column.stringIndices), size,
+                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+    InsertRegister(reg + "_allChars", PointerAllocation{reinterpret_cast<uintptr_t>(column.allChars), size,
+                                                        !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+}
+
+template <>
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
+    GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon> column,
+    const std::string& reg,
+    int32_t size,
+    bool useCache,
+    int8_t* nullMaskPtr)
 {
     InsertRegister(reg + "_polyPoints",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size,
+                   PointerAllocation{reinterpret_cast<uintptr_t>(column.polyPoints), size,
                                      !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_pointIdx",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_polyIdx",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+    InsertRegister(reg + "_pointIdx", PointerAllocation{reinterpret_cast<uintptr_t>(column.pointIdx), size,
+                                                        !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
+    InsertRegister(reg + "_polyIdx", PointerAllocation{reinterpret_cast<uintptr_t>(column.polyIdx), size,
+                                                       !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
+
 
 void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
@@ -936,20 +951,6 @@ void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAl
     {
         throw std::runtime_error("Attempt to overwrite existing register \"" + registerName + "\"");
     }
-}
-
-void GpuSqlDispatcher::FillStringRegister(GPUMemory::GPUString& stringColumn,
-                                          const std::string& reg,
-                                          int32_t size,
-                                          bool useCache,
-                                          int8_t* nullMaskPtr)
-{
-    InsertRegister(reg + "_stringIndices",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_allChars",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::string& colName)
@@ -1026,7 +1027,8 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
             polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
                                                                    size, loadSize_, loadOffset_));
 
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+                                                                            useCache, nullMaskPtr);
 
             return polygon;
         }
@@ -1035,14 +1037,16 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
             GPUMemory::GPUPolygon polygon =
                 ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName,
                                                          blockIndex_, loadSize_, loadOffset_);
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+                                                                            useCache, nullMaskPtr);
             return polygon;
         }
     }
     else
     {
         GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-        FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
+        FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+                                                                        useCache, nullMaskPtr);
         return polygon;
     }
 }
@@ -1069,7 +1073,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
             gpuString.allChars =
                 std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
                                                   stringCount, loadSize_, loadOffset_));
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
+            FillCompositeDataTypeRegister<std::string>(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
         }
         else
@@ -1077,18 +1081,21 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
             GPUMemory::GPUString gpuString =
                 StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName,
                                                 blockIndex_, loadSize_, loadOffset_);
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
+            FillCompositeDataTypeRegister<std::string>(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
         }
     }
     else
     {
         GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, stringCount);
-        FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
+        FillCompositeDataTypeRegister<std::string>(gpuString, colName, stringCount, useCache, nullMaskPtr);
         return gpuString;
     }
 }
-GpuSqlDispatcher::GpuPolygonAllocation GpuSqlDispatcher::FindComplexPolygon(std::string colName)
+
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName)
 {
     GPUMemory::GPUPolygon polygon;
     int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
@@ -1101,7 +1108,9 @@ GpuSqlDispatcher::GpuPolygonAllocation GpuSqlDispatcher::FindComplexPolygon(std:
     return {polygon, size, allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr};
 }
 
-GpuSqlDispatcher::GpuStringAllocation GpuSqlDispatcher::FindStringColumn(const std::string& colName)
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<std::string>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string& colName)
 {
     GPUMemory::GPUString gpuString;
     int32_t size = allocatedPointers_.at(colName + "_stringIndices").ElementCount;
@@ -1142,7 +1151,7 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
 {
     if (filter_)
     {
-        const auto column = FindStringColumn(colName);
+        const auto column = FindCompositeDataTypeAllocation<std::string>(colName);
         GPUMemory::free(column.GpuPtr);
         // Do not free null mask (std::get<2>) because it is stored also as col_nullmask in allocated pointers
     }

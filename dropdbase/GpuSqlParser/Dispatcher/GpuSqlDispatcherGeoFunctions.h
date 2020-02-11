@@ -186,7 +186,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColConst()
     CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "ContainsColConst: " + colName << " " << constWkt << " " << reg << '\n';
 
-    auto polygonCol = FindComplexPolygon(colName);
+    auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
     ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(constWkt);
 
     NativeGeoPoint* pointConstPtr = InsertConstPointGpu(pointConst);
@@ -284,7 +284,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
         << "ContainsColCol: " + colNamePolygon << " " << colNamePoint << " " << reg << '\n';
 
     PointerAllocation pointCol = allocatedPointers_.at(colNamePoint);
-    auto polygonCol = FindComplexPolygon(colNamePolygon);
+    auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colNamePolygon);
 
 
     int32_t retSize = std::min(pointCol.ElementCount, polygonCol.ElementCount);
@@ -379,7 +379,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColConst()
     CudaLogBoost::getInstance(CudaLogBoost::debug)
         << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
-    auto polygonCol = FindComplexPolygon(colName);
+    auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
 
@@ -395,11 +395,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColConst()
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
             GPUMemory::copyDeviceToDevice(combinedMask,
                                           reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
-            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize,
+                                                                            false, combinedMask);
         }
         else
         {
-            FillPolygonRegister(outPolygon, reg, dataSize);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize);
         }
     }
     return InstructionStatus::CONTINUE;
@@ -423,7 +424,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstCol()
         return loadFlag;
     }
 
-    auto polygonCol = FindComplexPolygon(colName);
+    auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
     ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
     GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
 
@@ -439,11 +440,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstCol()
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
             GPUMemory::copyDeviceToDevice(combinedMask,
                                           reinterpret_cast<int8_t*>(polygonCol.GpuNullMaskPtr), bitMaskSize);
-            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize,
+                                                                            false, combinedMask);
         }
         else
         {
-            FillPolygonRegister(outPolygon, reg, dataSize);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize);
         }
     }
 
@@ -477,8 +479,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
         return loadFlag;
     }
 
-    auto polygonLeft = FindComplexPolygon(colNameLeft);
-    auto polygonRight = FindComplexPolygon(colNameRight);
+    auto polygonLeft = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colNameLeft);
+    auto polygonRight = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colNameRight);
 
     int32_t dataSize = std::min(polygonLeft.ElementCount, polygonRight.ElementCount);
     if (!IsRegisterAllocated(reg))
@@ -489,7 +491,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
         {
             int32_t bitMaskSize = ((dataSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* combinedMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-            FillPolygonRegister(outPolygon, reg, dataSize, false, combinedMask);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize,
+                                                                            false, combinedMask);
             if (polygonLeft.GpuNullMaskPtr && polygonRight.GpuNullMaskPtr)
             {
                 GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
@@ -509,7 +512,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColCol()
         }
         else
         {
-            FillPolygonRegister(outPolygon, reg, dataSize);
+            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize);
         }
     }
     return InstructionStatus::CONTINUE;
@@ -539,7 +542,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstConst
     {
         GPUMemory::GPUPolygon outPolygon;
         GPUPolygonClipping::ConstConst<OP>(outPolygon, gpuPolygonConstLeft, gpuPolygonConstRight, dataSize);
-        FillPolygonRegister(outPolygon, reg, dataSize);
+        FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(outPolygon, reg, dataSize);
     }
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "Polygon operation: " << '\n';

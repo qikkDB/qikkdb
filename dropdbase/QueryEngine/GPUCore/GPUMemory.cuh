@@ -59,6 +59,11 @@ struct GPUPolygon
     __device__ __host__ int32_t PolyCountAt(int32_t idx);
 
     __device__ __host__ int32_t TotalPointCountAt(int32_t idx);
+
+    operator bool()
+    {
+        return polyPoints && pointIdx && polyIdx;
+    }
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
@@ -209,8 +214,8 @@ void hostRegister(T** devicePtr, T* hostPtr, size_t dataElementCount)
     CheckCudaError(cudaGetLastError());
 }
 
-/// Un-Register a piece of unpaged host memory to be used for fast memory transfers between host and
-/// device < param name="hostPtr">pointer to host memory to be unmapped/freed into</param>
+/// Un-Register a piece of unpaged host memory to be used for fast memory transfers between host
+/// and device < param name="hostPtr">pointer to host memory to be unmapped/freed into</param>
 template <typename T>
 void hostUnregister(T* hostPtr)
 {

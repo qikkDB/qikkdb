@@ -52,7 +52,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
             return loadFlag;
         }
 
-        auto col = FindStringColumn(colName);
+        auto col = FindCompositeDataTypeAllocation<std::string>(colName);
         size_t inSize = col.ElementCount;
         size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
@@ -190,7 +190,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
             return loadFlag;
         }
 
-        auto col = FindComplexPolygon(colName);
+        auto col = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
         size_t inSize = col.ElementCount;
         size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 

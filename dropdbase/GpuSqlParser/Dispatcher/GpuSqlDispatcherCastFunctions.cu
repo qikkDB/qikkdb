@@ -116,7 +116,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonCol()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPolygonCol: " << colName << " " << reg << '\n';
 
-    auto column = FindComplexPolygon(colName);
+    auto column = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
     int32_t retSize = column.ElementCount;
 
     if (!IsRegisterAllocated(reg))
@@ -127,12 +127,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonCol()
         {
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-            FillStringRegister(result, reg, retSize, true, nullMask);
+            FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true, nullMask);
             GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            FillStringRegister(result, reg, retSize, true);
+            FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
         }
     }
 
@@ -159,7 +159,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonConst()
     {
         GPUMemory::GPUString result;
         GPUReconstruct::ConvertPolyColToWKTCol(&result, gpuPolygon, retSize);
-        FillStringRegister(result, reg, retSize, true);
+        FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
     }
 
     return InstructionStatus::CONTINUE;
@@ -189,12 +189,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointCol()
         {
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
             int8_t* nullMask = AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-            FillStringRegister(result, reg, retSize, true, nullMask);
+            FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true, nullMask);
             GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(column.GpuNullMaskPtr), bitMaskSize);
         }
         else
         {
-            FillStringRegister(result, reg, retSize, true);
+            FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
         }
     }
 
@@ -220,7 +220,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointConst()
     {
         GPUMemory::GPUString result;
         GPUReconstruct::ConvertPointColToWKTCol(&result, gpuPoint, retSize);
-        FillStringRegister(result, reg, retSize, true);
+        FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
     }
 
     return InstructionStatus::CONTINUE;
