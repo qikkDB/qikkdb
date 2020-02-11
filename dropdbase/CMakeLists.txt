@@ -142,5 +142,6 @@ ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_obj PUBLIC jsoncpp_lib)
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
 

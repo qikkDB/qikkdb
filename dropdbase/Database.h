@@ -32,13 +32,20 @@ private:
     /// <param name="path">Path directory, where column file (*.col) is.</param>
     /// <param name="dbName">Name of the database.</param>
     /// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
-    /// into disk.</param> <param name="table">Instance of table into which the column should be
+    /// into disk.</param>
+    /// <param name="type">Type of column according to DataType enumeration.</param>
+    /// <param name="isNullable">Flag if a column can have NULL values.</param>
+    /// <param name="isUnique">Flag if a column can have only unique values and not a single one NULL value.</param>
+    /// <param name="table">Instance of table into which the column should be
     /// added.</param> <param name="columnName">Names of particular column.</param>
     static void LoadColumn(const char* path,
                            const char* dbName,
-                           int32_t persistenceFormatVersion,
+                           const int32_t persistenceFormatVersion,
+                           const int32_t type,
+                           const bool isNullable,
+                           const bool isUnique,
                            Table& table,
-                           const std::string& columnName);
+                           const std::string columnName);
 
     /// <summary>
     /// Write column into disk.
@@ -53,7 +60,7 @@ private:
                             const std::pair<const std::string, Table>& table);
 
 public:
-    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 2;
+    static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
     static constexpr const char* SEPARATOR = "@";
     static std::mutex dbMutex_;
     /// <summary>

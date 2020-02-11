@@ -171,6 +171,9 @@ include_directories(${Boost_INCLUDE_DIRS})
 find_package(yaml-cpp REQUIRED)
 include_directories(${YAML_CPP_INCLUDE_DIRS})
 
+find_package(jsoncpp CONFIG REQUIRED)
+include_directories(${JSONCPP_INCLUDE_DIRS})
+
 include_directories(.)
 include_directories(messages)
 include_directories(Types)

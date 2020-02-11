@@ -9,6 +9,7 @@
 #include <thread>
 #include <stdio.h>
 
+#include "json/json.h"
 #include "ColumnBase.h"
 #include "Configuration.h"
 #include "Database.h"
@@ -311,77 +312,96 @@ void Database::SetSaveNecessaryToFalseForEverything()
 /// <param name="path">Path to database storage directory.</param>
 void Database::PersistOnlyDbFile(const char* path)
 {
-    auto& tables = GetTables();
-    auto& name = GetName();
-    auto pathStr = std::string(path);
-
     boost::filesystem::create_directories(path);
 
-    int32_t blockSize = GetBlockSize();
-    int32_t tableSize = tables.size();
+    const std::string filePath = std::string(path) + name_ + ".db";
 
     // write file .db
-    BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << pathStr << name << ".db";
-    std::ofstream dbFile(pathStr + "/" + name + ".db", std::ios::binary);
+    BOOST_LOG_TRIVIAL(debug) << "Saving .db file with name: " << filePath;
+    std::ofstream dbFile(filePath, std::ios::binary);
 
     if (dbFile.is_open())
     {
-        int32_t dbNameLength = name.length() + 1; // +1 because '\0'
+        Json::Value rootJSON;
+        Json::Value tableArrayJSON(Json::arrayValue);
+        Json::StreamWriterBuilder builder;
+        const std::unique_ptr<Json::StreamWriter> writer(builder.newStreamWriter());
 
-        dbFile.write(reinterpret_cast<const char*>(&PERSISTENCE_FORMAT_VERSION),
-                     sizeof(int32_t)); // write persistence format version
-        dbFile.write(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // write db name length
-        dbFile.write(name.c_str(), dbNameLength); // write db name
-        dbFile.write(reinterpret_cast<char*>(&blockSize), sizeof(int32_t)); // write block size
-        dbFile.write(reinterpret_cast<char*>(&tableSize), sizeof(int32_t)); // write number of tables
-        for (auto& table : tables)
+        rootJSON["persistence_format_version"] = PERSISTENCE_FORMAT_VERSION; // write persistence format version
+        rootJSON["database_name"] = name_; // write db name
+        rootJSON["database_default_block_size"] = blockSize_; // write block size
+        for (auto& table : tables_)
         {
-            auto& columns = table.second.GetColumns();
+            const auto& columns = table.second.GetColumns();
             const auto& sortingColumns = table.second.GetSortingColumns();
-            int32_t tableNameLength = table.first.length() + 1; // +1 because '\0'
-            int32_t columnNumber = columns.size();
-            int32_t sortingColumnNumber = sortingColumns.size();
-            int32_t tableBlockSize = table.second.GetBlockSize();
+            const std::string& tableName = table.second.GetName();
 
-            dbFile.write(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // write table name length
-            dbFile.write(table.first.c_str(), tableNameLength); // write table name
-            dbFile.write(reinterpret_cast<char*>(&tableBlockSize),
-                         sizeof(int32_t)); // write number of columns of the table
-            dbFile.write(reinterpret_cast<char*>(&columnNumber), sizeof(int32_t)); // write number of columns of the table
-            dbFile.write(reinterpret_cast<char*>(&sortingColumnNumber),
-                         sizeof(int32_t)); // write number of sorting columns of the table
+            Json::Value tableJSON;
+            Json::Value indexColumnsArrayJSON(Json::arrayValue);
+            Json::Value columnsArrayJSON(Json::arrayValue);
 
-            if (sortingColumnNumber > 0)
+            tableJSON["table_name"] = tableName; // write table name
+            tableJSON["table_block_size"] = table.second.GetBlockSize(); // write table block size
+            tableJSON["start_up_loading"] = true;
+            tableJSON["save_interval_ms"] = Configuration::GetInstance().GetDBSaveInterval();
+
+            if (sortingColumns.size() > 0)
             {
                 for (const std::string sortingColumn : sortingColumns)
                 {
-                    int32_t sortingColumnLength = sortingColumn.length() + 1; // +1 because '\0'
-
-                    dbFile.write(reinterpret_cast<char*>(&sortingColumnLength),
-                                 sizeof(int32_t)); // write sorting column name length
-                    dbFile.write(sortingColumn.c_str(), sortingColumnLength); // write sorting column name
-                    BOOST_LOG_TRIVIAL(debug)
-                        << "Sorting column (table: " + std::string(table.first.c_str()) +
-                               ") saved: " + std::string(sortingColumn.c_str()) + ".";
+                    Json::Value indexColumnsJSON;
+                    indexColumnsJSON["index_column_name"] = sortingColumn; // write sorting column name
+                    indexColumnsArrayJSON.append(indexColumnsJSON);
                 }
             }
 
+            tableJSON["index_columns"] = indexColumnsArrayJSON;
+
             for (const auto& column : columns)
             {
-                int32_t columnNameLength = column.first.length() + 1; // +1 because '\0'
+                const std::string columnName = column.first;
+                const DataType columnType = column.second->GetColumnType();
 
-                dbFile.write(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); // write column name length
-                dbFile.write(column.first.c_str(), columnNameLength); // write column name
+                Json::Value columnsJSON;
+                columnsJSON["column_name"] = columnName; // write column name
+                columnsJSON["column_type"] = columnType; // write column type
+                columnsJSON["file_path_address_file"] = std::string(path) + name_ + SEPARATOR + tableName +
+                                                        SEPARATOR + columnName + std::string(".adrs");
+                columnsJSON["file_path_data_file"] = std::string(path) + name_ + SEPARATOR + tableName +
+                                                     SEPARATOR + columnName + std::string(".data");
+
+                if (columnType == COLUMN_STRING || columnType == COLUMN_POINT || columnType == COLUMN_POLYGON)
+                {
+                    columnsJSON["file_path_string_address_file"] =
+                        std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName +
+                        std::string(".stradrs");
+                    columnsJSON["file_path_string_data_file"] = std::string(path) + name_ +
+                                                                SEPARATOR + tableName + SEPARATOR +
+                                                                columnName + std::string(".strdata");
+                    columnsJSON["encoding"] = "undefined";
+                }
+
+                columnsJSON["default_entry_value"] = 0;
+                columnsJSON["nullable"] = column.second->GetIsNullable();
+                columnsJSON["unique"] = column.second->GetIsUnique();
+                columnsJSON["hidden"] = false;
+                columnsArrayJSON.append(columnsJSON);
             }
+
+            tableJSON["columns"] = columnsArrayJSON;
+            tableArrayJSON.append(tableJSON);
         }
+        rootJSON["tables"] = tableArrayJSON;
+
+        writer->write(rootJSON, &dbFile);
         dbFile.close();
     }
     else
     {
         BOOST_LOG_TRIVIAL(error)
-            << "Could not open file " + std::string(pathStr + "/" + name + ".db") +
-                   " for writing. Persisting .db file was not successful. Check if the process "
-                   "have write access into the folder or file.";
+            << "Could not open file " << filePath
+            << " for writing. Persisting .db file was not successful. Check if the process "
+               "have write access into the folder or file.";
     }
 }
 
@@ -848,12 +868,22 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     const size_t fileSize = dbFile.tellg();
     if (fileSize != 0)
     {
+        Json::Value root;
+        Json::CharReaderBuilder builder;
+        JSONCPP_STRING errs;
+
         dbFile.seekg(0, dbFile.beg);
+
+        if (!parseFromStream(builder, dbFile, &root, &errs))
+        {
+            BOOST_LOG_TRIVIAL(error) << "Cannot construct database from JSON file: " << filePath << ".";
+            return nullptr;
+        }
+
         BOOST_LOG_TRIVIAL(info) << "Loading database from: " << filePath << ".";
 
-        int32_t persistenceFormatVersion;
-        dbFile.read(reinterpret_cast<char*>(&persistenceFormatVersion),
-                    sizeof(int32_t)); // read persistence format version
+        int32_t persistenceFormatVersion =
+            root["persistence_format_version"].asInt(); // read persistence format version
 
         if (persistenceFormatVersion != Database::PERSISTENCE_FORMAT_VERSION)
         {
@@ -866,85 +896,70 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 << "The database files on disk will be changed after successful persistence.";
         }
 
-        int32_t dbNameLength;
-        dbFile.read(reinterpret_cast<char*>(&dbNameLength), sizeof(int32_t)); // read db name length
+        const std::string dbName = root["database_name"].asString(); // read db name
 
-        std::unique_ptr<char[]> dbName(new char[dbNameLength]);
-        dbFile.read(dbName.get(), dbNameLength); // read db name
+        int32_t databaseBlockSize = root["database_default_block_size"].asInt(); // read block size
 
-        int32_t databaseBlockSize;
-        dbFile.read(reinterpret_cast<char*>(&databaseBlockSize), sizeof(int32_t)); // read block size
+        Json::Value tablesArray(Json::arrayValue);
+        tablesArray = root["tables"];
 
-        int32_t tablesCount;
-        dbFile.read(reinterpret_cast<char*>(&tablesCount), sizeof(int32_t)); // read number of tables
+        std::shared_ptr<Database> database = std::make_shared<Database>(dbName.c_str(), databaseBlockSize);
 
-        std::shared_ptr<Database> database = std::make_shared<Database>(dbName.get(), databaseBlockSize);
-
-        for (int32_t i = 0; i < tablesCount; i++)
+        for (Json::Value tableJSON : tablesArray)
         {
-            int32_t tableNameLength;
-            dbFile.read(reinterpret_cast<char*>(&tableNameLength), sizeof(int32_t)); // read table name length
+            Json::Value indexColumnArray(Json::arrayValue);
+            Json::Value columnArray(Json::arrayValue);
 
-            std::unique_ptr<char[]> tableName(new char[tableNameLength]);
-            dbFile.read(tableName.get(), tableNameLength); // read table name
-            int32_t tableBlockSize;
-
-            if (persistenceFormatVersion > 1)
-            {
-                dbFile.read(reinterpret_cast<char*>(&tableBlockSize), sizeof(int32_t)); // read table block size
-            }
-            else
-            {
-                tableBlockSize = databaseBlockSize;
-            }
+            const std::string tableName = tableJSON["table_name"].asString();
+            const int32_t tableBlockSize = tableJSON["table_block_size"].asInt();
 
             BOOST_LOG_TRIVIAL(info)
-                << "Block size for table: " + std::string(tableName.get()) +
+                << "Block size for table: " + tableName +
                        " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
 
-            database->tables_.emplace(std::make_pair(std::string(tableName.get()),
-                                                     Table(database, tableName.get(), tableBlockSize)));
+            database->tables_.emplace(
+                std::make_pair(tableName, Table(database, tableName.c_str(), tableBlockSize)));
 
-            int32_t columnCount;
-            int32_t sortingColumnCount;
-            dbFile.read(reinterpret_cast<char*>(&columnCount), sizeof(int32_t)); // read number of columns
-            dbFile.read(reinterpret_cast<char*>(&sortingColumnCount), sizeof(int32_t)); // read number of sorting columns
+            indexColumnArray = tableJSON["index_columns"];
+            columnArray = tableJSON["columns"];
 
             std::vector<std::string> columnNames;
             std::vector<std::string> sortingColumnNames;
 
-            for (int32_t j = 0; j < sortingColumnCount; j++)
+            for (Json::Value indexColumnJSON : indexColumnArray)
             {
-                int32_t sortingColumnLength;
-                dbFile.read(reinterpret_cast<char*>(&sortingColumnLength), sizeof(int32_t)); // read sorting column name length
-
-                std::unique_ptr<char[]> sortingColumnName(new char[sortingColumnLength]);
-                dbFile.read(sortingColumnName.get(), sortingColumnLength); // read sorting column name
-                BOOST_LOG_TRIVIAL(debug) << "Sorting column (table: " + std::string(tableName.get()) +
-                                                ") loaded: " + std::string(sortingColumnName.get()) + ".";
-                sortingColumnNames.push_back(sortingColumnName.get());
+                const std::string sortingColumnName = indexColumnJSON["index_column_name"].asString();
+                sortingColumnNames.push_back(sortingColumnName);
             }
 
-            for (int32_t j = 0; j < columnCount; j++)
-            {
-                int32_t columnNameLength;
-                dbFile.read(reinterpret_cast<char*>(&columnNameLength), sizeof(int32_t)); // read column name length
-
-                std::unique_ptr<char[]> columnName(new char[columnNameLength]);
-                dbFile.read(columnName.get(), columnNameLength); // read column name
-
-                columnNames.push_back(columnName.get());
-            }
-
-            auto& table = database->tables_.at(tableName.get());
+            auto& table = database->tables_.at(tableName);
             table.SetSortingColumns(sortingColumnNames);
 
             std::vector<std::thread> threads;
 
-            for (const std::string& columnName : columnNames)
+            for (Json::Value columnJSON : columnArray)
             {
-                threads.emplace_back(Database::LoadColumn, path, dbName.get(),
-                                     persistenceFormatVersion, std::ref(table), std::ref(columnName));
+                const std::string columnName = columnJSON["column_name"].asString();
+                const int32_t columnType = columnJSON["column_type"].asInt();
+                const std::string filePathAddressFile = columnJSON["file_path_address_file"].asString();
+                const std::string filePathDataFile = columnJSON["file_path_data_file"].asString();
+
+                if (columnType == COLUMN_STRING || columnType == COLUMN_POINT || columnType == COLUMN_POLYGON)
+                {
+                    const std::string filePathStrAddressFile =
+                        columnJSON["file_path_string_address_file"].asString();
+                    const std::string filePathStrDataFile =
+                        columnJSON["file_path_string_data_file"].asString();
+                    const std::string encoding = columnJSON["encoding"].asString();
+                }
+
+                const bool isNullable = columnJSON["nullable"].asBool();
+                const bool isUnique = columnJSON["unique"].asBool();
+                const bool isHidden = columnJSON["hidden"].asBool();
+
+                columnNames.push_back(columnName);
+                threads.emplace_back(Database::LoadColumn, path, dbName.c_str(), persistenceFormatVersion, columnType,
+                                     isNullable, isUnique, std::ref(table), columnName);
             }
 
             for (int i = 0; i < columnNames.size(); i++)
@@ -969,14 +984,21 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// </summary>
 /// <param name="path">Path directory, where column file (*.col) is.</param>
 /// <param name="dbName">Name of the database.</param>
-/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files into
-/// disk.</param> <param name="table">Instance of table into which the column should be
+/// <param name="persistenceFormatVersion">Version of format used to persist .db and .col files
+/// into disk.</param>
+/// <param name="type">Type of column according to DataType enumeration.</param>
+/// <param name="isNullable">Flag if a column can have NULL values.</param>
+/// <param name="isUnique">Flag if a column can have only unique values and not a single one NULL value.</param>
+/// <param name="table">Instance of table into which the column should be
 /// added.</param> <param name="columnName">Names of particular column.</param>
 void Database::LoadColumn(const char* path,
                           const char* dbName,
                           const int32_t persistenceFormatVersion,
+                          const int32_t type,
+                          const bool isNullable,
+                          const bool isUnique,
                           Table& table,
-                          const std::string& columnName)
+                          const std::string columnName)
 {
     const int32_t oneChunkSize = 8 * 1024 * 1024;
     // read files .col:
@@ -993,14 +1015,6 @@ void Database::LoadColumn(const char* path,
         BOOST_LOG_TRIVIAL(info) << "Loading .col file with name: " << filePath << ".";
 
         int32_t emptyBlockIndex = 0;
-
-        int32_t type;
-        bool isNullable;
-        bool isUnique;
-
-        colFile.read(reinterpret_cast<char*>(&type), sizeof(int32_t)); // read type of column
-        colFile.read(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // read nullability of column
-        colFile.read(reinterpret_cast<char*>(&isUnique), sizeof(bool)); // read unicity of column
 
         int32_t nullBitMaskAllocationSize =
             ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -2185,10 +2199,6 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
         int32_t type = column.second->GetColumnType();
         bool isNullable = column.second->GetIsNullable();
         bool isUnique = column.second->GetIsUnique();
-
-        colFile.write(reinterpret_cast<char*>(&type), sizeof(int32_t)); // write type of column
-        colFile.write(reinterpret_cast<char*>(&isNullable), sizeof(bool)); // write nullability of column
-        colFile.write(reinterpret_cast<char*>(&isUnique), sizeof(bool)); // write unicity of column
 
         switch (type)
         {
