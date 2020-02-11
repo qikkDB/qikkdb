@@ -31,13 +31,12 @@ private:
     /// </summary>
     /// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
     /// <param name="dbName">Name of the database.</param>
-    /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and COLUMN_DATA_EXTENSION files
-    /// into disk.</param>
-    /// <param name="type">Type of column according to DataType enumeration.</param>
-    /// <param name="isNullable">Flag if a column can have NULL values.</param>
-    /// <param name="isUnique">Flag if a column can have only unique values and not a single one NULL value.</param>
-    /// <param name="table">Instance of table into which the column should be
-    /// added.</param> <param name="columnName">Names of particular column.</param>
+    /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
+    /// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according
+    /// to DataType enumeration.</param> <param name="isNullable">Flag if a column can have NULL
+    /// values.</param> <param name="isUnique">Flag if a column can have only unique values and not
+    /// a single one NULL value.</param> <param name="table">Instance of table into which the column
+    /// should be added.</param> <param name="columnName">Names of particular column.</param>
     static void LoadColumn(const char* path,
                            const char* dbName,
                            const int32_t persistenceFormatVersion,
@@ -155,16 +154,17 @@ public:
     void RenameTable(const std::string& oldTablename, const std::string& newTableName);
 
     /// <summary>
-    /// Delete database from disk. Deletes DB_EXTENSION and COLUMN_DATA_EXTENSION files which belong to the specified
-    /// database. Database is not deleted from memory.
+    /// Delete database from disk. Deletes DB_EXTENSION and COLUMN_DATA_EXTENSION files which belong
+    /// to the specified database. Database is not deleted from memory.
     /// </summary>
     void DeleteDatabaseFromDisk();
 
     /// <summary>
     /// <param name="tableName">Name of the table to be deleted.</param>
-    /// Delete table from disk. Deletes COLUMN_DATA_EXTENSION files which belong to the specified table of currently loaded database.
-    /// To alter DB_EXTENSION file, this action also calls a function PersistOnlyDbFile().
-    /// Table needs to be deleted from memory before calling this method, so that DB_EXTENSION file can be updated correctly.
+    /// Delete table from disk. Deletes COLUMN_DATA_EXTENSION files which belong to the specified
+    /// table of currently loaded database. To alter DB_EXTENSION file, this action also calls a
+    /// function PersistOnlyDbFile(). Table needs to be deleted from memory before calling this
+    /// method, so that DB_EXTENSION file can be updated correctly.
     /// </summary>
     void DeleteTableFromDisk(const char* tableName);
 
