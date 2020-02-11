@@ -103,10 +103,10 @@ __global__ void kernel_reconstruct_string_chars(GPUMemory::GPUString outStringCo
 /// Kernel for mask expanding in order to reconstruct sub-polygons (pointIdx and pointCount arrays).
 /// Expanding is performed by propagating values from inMask based on counts.
 __global__ void
-kernel_generate_poly_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 __global__ void
-kernel_generate_point_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
+kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size);
 
 /// Kernel for predicitng lenghts of WKT strings based on GPUPolygon struct
 __global__ void

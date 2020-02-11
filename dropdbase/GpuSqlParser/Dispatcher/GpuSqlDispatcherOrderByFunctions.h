@@ -111,16 +111,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol()
 
         cuda_ptr<T> reorderedColumn(inSize);
         cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int64_t*>(filter_), inSize);
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
         }
 
 

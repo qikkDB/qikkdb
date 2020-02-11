@@ -137,7 +137,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                 size_t bitMaskSize = NullValues::GetNullBitMaskSize(database_->GetBlockSize());
                 std::unique_ptr<int64_t[]> nullMask(new int64_t[bitMaskSize]);
                 GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
-                                               reinterpret_cast<int64_t*>(filter_), col.ElementCount,
+                                               reinterpret_cast<int8_t*>(filter_), col.ElementCount,
                                                nullMask.get(), reinterpret_cast<int64_t*>(col.GpuNullMaskPtr));
                 bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()),
@@ -146,7 +146,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
             else
             {
                 GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
-                                               reinterpret_cast<int64_t*>(filter_), col.ElementCount);
+                                               reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
             // GPUMemory::hostUnregister(outData.get());
             CudaLogBoost::getInstance(CudaLogBoost::debug) << "dataSize: " << outSize << '\n';

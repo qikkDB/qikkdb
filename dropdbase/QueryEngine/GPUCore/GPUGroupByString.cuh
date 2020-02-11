@@ -159,7 +159,7 @@ __global__ void kernel_collect_string_keys(GPUMemory::GPUString sideBuffer,
                                            int32_t inKeysCount);
 
 
-__global__ void kernel_source_indices_to_mask(int64_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
+__global__ void kernel_source_indices_to_mask(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount);
 
 
 __global__ void kernel_mark_collected_strings(int32_t* sourceIndices, int32_t maxHashCount);

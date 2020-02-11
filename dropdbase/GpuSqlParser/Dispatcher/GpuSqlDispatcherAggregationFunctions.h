@@ -58,7 +58,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     {
         GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize,
                                                reinterpret_cast<IN*>(column.GpuPtr),
-                                               reinterpret_cast<int64_t*>(filter_),
+                                               reinterpret_cast<int8_t*>(filter_),
                                                column.ElementCount, &reconstructOutNullMask,
                                                reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
         // Rewrite pointers and free old ones when needed
@@ -398,7 +398,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationGroupBy()
         int64_t* reconstructOutNullMask;
         GPUReconstruct::reconstructColKeep<V>(&reconstructOutReg, &reconstructOutSize,
                                               reinterpret_cast<V*>(column.GpuPtr),
-                                              reinterpret_cast<int64_t*>(filter_),
+                                              reinterpret_cast<int8_t*>(filter_),
                                               column.ElementCount, &reconstructOutNullMask,
                                               reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
         if (reconstructOutNullMask != reinterpret_cast<int64_t*>(column.GpuNullMaskPtr))
@@ -502,7 +502,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol()
     int64_t* reconstructOutNullMask;
     GPUReconstruct::reconstructColKeep<T>(&reconstructOutReg, &reconstructOutSize,
                                           reinterpret_cast<T*>(column.GpuPtr),
-                                          reinterpret_cast<int64_t*>(filter_), column.ElementCount,
+                                          reinterpret_cast<int8_t*>(filter_), column.ElementCount,
                                           &reconstructOutNullMask,
                                           reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
 

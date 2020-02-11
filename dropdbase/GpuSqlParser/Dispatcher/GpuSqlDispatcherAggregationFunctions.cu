@@ -339,7 +339,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>()
     GPUMemory::GPUString reconstructOutReg;
     int64_t* reconstructOutNullMask;
     GPUReconstruct::ReconstructStringColKeep(&reconstructOutReg, &reconstructOutSize, column.GpuPtr,
-                                             reinterpret_cast<int64_t*>(filter_),
+                                             reinterpret_cast<int8_t*>(filter_),
                                              column.ElementCount, &reconstructOutNullMask,
                                              reinterpret_cast<int64_t*>(column.GpuNullMaskPtr));
 

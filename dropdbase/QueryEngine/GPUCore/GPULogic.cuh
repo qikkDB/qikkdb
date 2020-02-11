@@ -23,7 +23,6 @@ __global__ void kernel_operator_not(int8_t* outCol, T ACol, int64_t* nullBitMask
     {
         if (nullBitMask)
         {
-
             outCol[i] = !maybe_deref<typename std::remove_pointer<T>::type>(ACol, i) &&
                         !(NullValues::GetConcreteBitFromBitmask(nullBitMask, i));
         }

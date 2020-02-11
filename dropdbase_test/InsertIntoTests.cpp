@@ -123,8 +123,6 @@ TEST(InsertIntoTests, InsertIntoTableNullValue)
 	auto& blockList = dynamic_cast<ColumnBase<int32_t>*>(database->GetTables().at("TestTable").GetColumns().at("Col1").get())->GetBlocksList();
 	auto maskPtr = blockList[0]->GetNullBitmask();
 	auto val = maskPtr[0]; 
-	ASSERT_EQ(val, static_cast<char>(0x55));
-	val = maskPtr[1];
-	ASSERT_EQ(val, static_cast<char>(0xAA));
+	ASSERT_EQ(val, 43605);
 	Database::RemoveFromInMemoryDatabaseList("TestDb");
 }

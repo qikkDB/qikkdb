@@ -20,7 +20,7 @@
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">the count of elements in the input block</param>
 template <typename OP, typename T, typename U>
-__global__ void kernel_filter(int64_t* outMask, T ACol, U BCol, int64_t* nullBitMask, int32_t dataElementCount)
+__global__ void kernel_filter(int8_t* outMask, T ACol, U BCol, int64_t* nullBitMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -45,7 +45,7 @@ __global__ void kernel_filter(int64_t* outMask, T ACol, U BCol, int64_t* nullBit
 
 /// Kernel for string comparison (equality, ...)
 template <typename OP>
-__global__ void kernel_filter_string(int64_t* outMask,
+__global__ void kernel_filter_string(int8_t* outMask,
                                      GPUMemory::GPUString inputA,
                                      bool isACol,
                                      GPUMemory::GPUString inputB,

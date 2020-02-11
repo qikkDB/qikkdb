@@ -68,7 +68,7 @@ __global__ void kernel_collect_string_keys(GPUMemory::GPUString sideBuffer,
 }
 
 
-__global__ void kernel_source_indices_to_mask(int64_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount)
+__global__ void kernel_source_indices_to_mask(int8_t* occupancyMask, int32_t* sourceIndices, int32_t maxHashCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;

@@ -482,7 +482,7 @@ public:
 
         size_t nullColSizeRBlock = NullValues::GetNullBitMaskSize(blockSize);
         //(blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
-        size_t nullColSizeSBlock = NullValues::GetShiftMaskIdx(blockSize);
+        size_t nullColSizeSBlock = NullValues::GetNullBitMaskSize(blockSize);
         //(blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
         cuda_ptr<int64_t> d_ColumnNullRBlock(nullColSizeRBlock);

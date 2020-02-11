@@ -122,7 +122,7 @@ __global__ void kernel_predict_wkt_lengths(int32_t* outStringLengths, GPUMemory:
 }
 
 __global__ void
-kernel_generate_poly_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+kernel_generate_poly_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -137,7 +137,7 @@ kernel_generate_poly_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPol
 }
 
 __global__ void
-kernel_generate_point_submask(int64_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
+kernel_generate_point_submask(int8_t* outMask, int8_t* inMask, GPUMemory::GPUPolygon polygon, int32_t size)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -612,7 +612,7 @@ void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
             int32_t inPointSize;
             GPUMemory::copyDeviceToHost(&inPointSize, inCol.pointIdx + inSubpolySize - 1, 1);
 
-            cuda_ptr<int64_t> subpolyMask(inSubpolySize);
+            cuda_ptr<int8_t> subpolyMask(inSubpolySize);
             kernel_generate_poly_submask<<<context.calcGridDim(inDataElementCount), context.getBlockDim()>>>(
                 subpolyMask.get(), inMask, inCol, inDataElementCount);
             CheckCudaError(cudaGetLastError());

@@ -749,7 +749,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
                 nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
             else
-            {
                 GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr,
                                                      reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
@@ -1034,7 +1033,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
                                                                   const std::string& reg,
                                                                   int32_t size,
                                                                   bool useCache,
-                                                                  int8_t* nullMaskPtr)
+                                                                  int64_t* nullMaskPtr)
 {
     InsertRegister(reg + "_stringIndices",
                    PointerAllocation{reinterpret_cast<uintptr_t>(column.stringIndices), size,
@@ -1049,7 +1048,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPo
     const std::string& reg,
     int32_t size,
     bool useCache,
-    int8_t* nullMaskPtr)
+    int64_t* nullMaskPtr)
 {
     InsertRegister(reg + "_polyPoints",
                    PointerAllocation{reinterpret_cast<uintptr_t>(column.polyPoints), size,

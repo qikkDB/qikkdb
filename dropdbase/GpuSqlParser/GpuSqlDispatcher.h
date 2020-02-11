@@ -719,7 +719,7 @@ public:
                                        const std::string& reg,
                                        int32_t size,
                                        bool useCache = false,
-                                       int8_t* nullMaskPtr = nullptr);
+                                       int64_t* nullMaskPtr = nullptr);
 
     /// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
     void InsertRegister(const std::string& registerName, PointerAllocation registerValues);

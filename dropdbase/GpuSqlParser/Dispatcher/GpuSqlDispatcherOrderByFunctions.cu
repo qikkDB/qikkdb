@@ -62,23 +62,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
 
         GPUMemory::GPUString reorderedColumn;
         cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int64_t*>(filter_), inSize);
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                        col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
@@ -132,16 +132,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
         cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int64_t*>(filter_), inSize);
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderByIdx(reorderedColumn.get(), reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
@@ -192,7 +192,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         auto col = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
         size_t inSize = col.ElementCount;
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
@@ -200,23 +200,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         GPUMemory::GPUPolygon reorderedColumn;
         cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
-        cuda_ptr<int64_t> reorderedFilterMask(nullptr);
+        cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
 
         if (filter_)
         {
-            reorderedFilterMask = cuda_ptr<int64_t>(inSize);
+            reorderedFilterMask = cuda_ptr<int8_t>(inSize);
             GPUOrderBy::ReOrderByIdx(reorderedFilterMask.get(),
                                      reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                     reinterpret_cast<int64_t*>(filter_), inSize);
+                                     reinterpret_cast<int8_t*>(filter_), inSize);
         }
 
         GPUOrderBy::ReOrderPolygonByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                         col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPolyColToWKT(outData->getData(), &outSize, reorderedColumn,

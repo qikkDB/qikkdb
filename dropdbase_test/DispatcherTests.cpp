@@ -15013,7 +15013,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
     std::vector<std::string> data = {"1", "0",           "TRUE", "trUe", "FAlSE", "false",
                                      "5", "ffaallsssee", "25",   "-101", "3.6"};
     std::vector<int8_t> convertedData = {1, 0, 1, 1, 0, 0, 1, std::numeric_limits<int8_t>::min(),
-                                         1, 1, 1};
+                                          1, 1, 1};
 
     for (int32_t i = 0; i < data.size(); i++)
     {
@@ -15069,7 +15069,6 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
     GpuSqlCustomParser parser2(database, "INSERT INTO testTable (col) VALUES (1);");
     GpuSqlCustomParser parser3(database, "INSERT INTO testTable (col) VALUES (NULL);");
 
-    std::vector<float> expectedResultsCol;
     for (int32_t i = 0; i < 11; i++)
     {
         resultPtr = parser2.Parse();
@@ -15092,12 +15091,12 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
     auto blocksBeforeCast =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
-    std::vector<std::unique_ptr<int8_t[]>> oldBitmasks;
+    std::vector<std::unique_ptr<int64_t[]>> oldBitmasks;
 
     for (int32_t i = 0; i < blocksBeforeCast.size(); i++)
     {
         size_t bitmaskSize = blocksBeforeCast[i]->GetNullBitmaskSize();
-        std::unique_ptr<int8_t[]> bitmask = std::make_unique<int8_t[]>(bitmaskSize);
+        std::unique_ptr<int64_t[]> bitmask = std::make_unique<int64_t[]>(bitmaskSize);
         std::copy(blocksBeforeCast[i]->GetNullBitmask(),
                   blocksBeforeCast[i]->GetNullBitmask() + bitmaskSize, bitmask.get());
         oldBitmasks.push_back(std::move(bitmask));
@@ -15116,8 +15115,8 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
     {
         for (int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
         {
-            int bitMaskIdx = (j / (sizeof(char) * 8));
-            int shiftIdx = (j % (sizeof(char) * 8));
+            int bitMaskIdx = NullValues::GetBitMaskIdx(j);
+            int shiftIdx = NullValues::GetShiftMaskIdx(j);
 
             ASSERT_EQ((oldBitmasks[i][bitMaskIdx] >> shiftIdx) & 1,
                       (blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
@@ -15522,8 +15521,7 @@ TEST(DispatcherTests, AlterTableAddColumn)
     auto& blocksC = dynamic_cast<ColumnBase<int32_t>*>(columnIntC.get())->GetBlocksList();
 
     ASSERT_EQ(blocksC[0]->GetSize(), 15);
-    ASSERT_EQ(blocksC[0]->GetNullBitmask()[0], -1);
-    ASSERT_EQ(blocksC[0]->GetNullBitmask()[1], 127);
+    ASSERT_EQ(blocksC[0]->GetNullBitmask()[0], 32767);
     ASSERT_EQ(blocksC[1]->GetSize(), 2);
     ASSERT_EQ(blocksC[1]->GetNullBitmask()[0], 3);
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterAdd;");
@@ -15649,9 +15647,9 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksB[0]->GetSize(), 11);
     ASSERT_EQ(blocksAa[0]->GetSize(), 11);
 
-    ASSERT_EQ(blocksA[0]->GetNullBitmaskSize(), 2);
-    ASSERT_EQ(blocksB[0]->GetNullBitmaskSize(), 2);
-    ASSERT_EQ(blocksAa[0]->GetNullBitmaskSize(), 2);
+    ASSERT_EQ(blocksA[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksB[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksAa[0]->GetNullBitmaskSize(), 1);
 
     for (int32_t i = 0; i < 6; i++)
     {
@@ -15675,13 +15673,9 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i + 6], 3);
     }
 
-    ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], -64);
-    ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], 1984);
+    ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], 1984);
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[0], 63);
-
-    ASSERT_EQ(blocksA[0]->GetNullBitmask()[1], 7);
-    ASSERT_EQ(blocksB[0]->GetNullBitmask()[1], 7);
-    ASSERT_EQ(blocksAa[0]->GetNullBitmask()[1], 0);
 
     //---------------------------------------------------------
     // Alter table to add one string column - it should be filled with null values
@@ -15709,10 +15703,10 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksAa[0]->GetSize(), 11);
     ASSERT_EQ(blocksString[0]->GetSize(), 11);
 
-    ASSERT_EQ(blocksA[0]->GetNullBitmaskSize(), 2);
-    ASSERT_EQ(blocksB[0]->GetNullBitmaskSize(), 2);
-    ASSERT_EQ(blocksAa[0]->GetNullBitmaskSize(), 2);
-    ASSERT_EQ(blocksString[0]->GetNullBitmaskSize(), 2);
+    ASSERT_EQ(blocksA[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksB[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksAa[0]->GetNullBitmaskSize(), 1);
+    ASSERT_EQ(blocksString[0]->GetNullBitmaskSize(), 1);
 
     for (int32_t i = 0; i < 6; i++)
     {
@@ -15740,17 +15734,12 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(payloadsColString.stringpayload().stringdata()[i + 6], " ");
     }
 
-    ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], -64);
-    ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blocksA[0]->GetNullBitmask()[0], 1984);
+    ASSERT_EQ(blocksB[0]->GetNullBitmask()[0], 1984);
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[0], 63);
-    ASSERT_EQ(blocksString[0]->GetNullBitmask()[0], -1);
+    ASSERT_EQ(blocksString[0]->GetNullBitmask()[0], 2047);
 
-    ASSERT_EQ(blocksA[0]->GetNullBitmask()[1], 7);
-    ASSERT_EQ(blocksB[0]->GetNullBitmask()[1], 7);
-    ASSERT_EQ(blocksAa[0]->GetNullBitmask()[1], 0);
-    ASSERT_EQ(blocksString[0]->GetNullBitmask()[1], 7);
-
-    //---------------------------------------------------------
+	//---------------------------------------------------------
     // Insert into new column "colString", other columns should be filled with null values
     GpuSqlCustomParser parserInsert3(database,
                                      "insert into testTable (colString) values (\"abc\");");
@@ -15796,11 +15785,6 @@ TEST(DispatcherTests, InsertInto)
         ASSERT_EQ(payloadsColAa.intpayload().intdata()[i + 11], -2147483648);
         ASSERT_EQ(payloadsColString.stringpayload().stringdata()[i + 11], "abc");
     }
-
-    ASSERT_EQ(blocksA[0]->GetNullBitmask()[1], 63);
-    ASSERT_EQ(blocksB[0]->GetNullBitmask()[1], 63);
-    ASSERT_EQ(blocksAa[0]->GetNullBitmask()[1], 56);
-    ASSERT_EQ(blocksString[0]->GetNullBitmask()[1], 7);
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE InsertIntoDb;");
     resultPtr = parserDropDb.Parse();

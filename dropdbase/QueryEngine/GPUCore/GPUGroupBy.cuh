@@ -86,11 +86,9 @@ __global__ void group_by_kernel(K* keys,
                           *errorFlag != static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL);
          i += stride)
     {
-        const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
-        const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
-        const bool nullKey = (inKeysNullMask != nullptr) && ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1);
-        const bool nullValue =
-            (inValuesNullMask != nullptr) && ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1);
+        const bool nullKey = (inKeysNullMask != nullptr) && (NullValues::GetConcreteBitFromBitmask(inKeysNullMask, i));
+        const bool nullValue = (inValuesNullMask != nullptr) &&
+                               (NullValues::GetConcreteBitFromBitmask(inValuesNullMask, i));
         int32_t foundIndex = -1;
 
         if (!nullKey)
@@ -200,7 +198,7 @@ __global__ void group_by_kernel(K* keys,
 // TODO remake to filter colConst
 /// Helper kernel for mask creation from key buffer of the hash table.
 template <typename K>
-__global__ void is_bucket_occupied_kernel(int64_t* occupancyMask, K* keys, int32_t maxHashCount)
+__global__ void is_bucket_occupied_kernel(int8_t* occupancyMask, K* keys, int32_t maxHashCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -217,7 +215,7 @@ __global__ void kernel_merge_multiplied_arrays(V* mergedValues,
                                                int64_t* mergedOccurrences,
                                                V* inValues,
                                                int64_t* inOccurrences,
-                                               int64_t* occupancyMask,
+                                               int8_t* occupancyMask,
                                                const int32_t maxHashCount,
                                                const int32_t arrayMultiplier)
 {
@@ -259,7 +257,7 @@ __global__ void kernel_merge_multiplied_arrays(V* mergedValues,
 template <typename AGG, typename V, bool USE_VALUES, bool USE_OCCURRENCES>
 std::tuple<cuda_ptr<V>, cuda_ptr<int64_t>> MergeMultipliedArrays(V* inValues,
                                                                  int64_t* inOccurrences,
-                                                                 int64_t* occupancyMask,
+                                                                 int8_t* occupancyMask,
                                                                  const int32_t maxHashCount,
                                                                  const int32_t arrayMultiplier)
 {
@@ -430,7 +428,7 @@ public:
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(K* keys, int64_t* keysNullMask, V* values, int64_t* valuesNullMask, int64_t* occurrences, int32_t* elementCount)
     {
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_, 0);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_, 0);
         is_bucket_occupied_kernel<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                     Context::getInstance().getBlockDim()>>>(occupancyMask.get(),
                                                                             keys_, keyBufferSize_);
@@ -480,7 +478,7 @@ public:
                       "GPUGroupBy.GetResults V (values) must be integral or floating point");
 
         // Create buffer for bucket compression - reconstruct
-        cuda_ptr<int64_t> occupancyMask(keyBufferSize_, 0);
+        cuda_ptr<int8_t> occupancyMask(keyBufferSize_, 0);
 
         // Calculate occupancy mask
         is_bucket_occupied_kernel<<<Context::getInstance().calcGridDim(keyBufferSize_),

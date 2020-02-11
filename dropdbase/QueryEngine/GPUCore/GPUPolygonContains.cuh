@@ -81,7 +81,7 @@ __global__ void kernel_point_in_polygon(int8_t* outMask,
 }
 */
 
-__global__ void kernel_point_in_polygon(int64_t* outMask,
+__global__ void kernel_point_in_polygon(int8_t* outMask,
                                         GPUMemory::GPUPolygon polygonCol,
                                         int32_t polygonCount,
                                         NativeGeoPoint* geoPointCol,
@@ -115,7 +115,7 @@ public:
     /// against polygons on the same array index.
     /// </remarks>
     static void
-    contains(int64_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount, NativeGeoPoint* geoPointCol, int32_t pointCount)
+    contains(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount, NativeGeoPoint* geoPointCol, int32_t pointCount)
     {
         Context& context = Context::getInstance();
 
@@ -145,13 +145,13 @@ public:
     /// against every point. If point count is equal to polygon count, points are checked one to one
     /// against polygons on the same array index.
     /// </remarks>
-    static void containsConst(int64_t* outMask, GPUMemory::GPUPolygon polygonCol, NativeGeoPoint* geoPointCol, int32_t retSize)
+    static void containsConst(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, NativeGeoPoint* geoPointCol, int32_t retSize)
     {
         Context& context = Context::getInstance();
 
         kernel_point_in_polygon<<<context.calcGridDim(1), context.getBlockDim()>>>(outMask, polygonCol,
                                                                                    1, geoPointCol, 1);
-        int64_t result;
+        int8_t result;
         GPUMemory::copyDeviceToHost(&result, outMask, 1);
         GPUMemory::memset(outMask, result, retSize);
 

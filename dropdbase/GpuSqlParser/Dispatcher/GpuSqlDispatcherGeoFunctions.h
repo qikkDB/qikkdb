@@ -196,17 +196,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColConst()
 
     if (!IsRegisterAllocated(reg))
     {
-        int64_t* result;
+        int8_t* result;
         if (std::get<2>(polygonCol))
         {
             int64_t* nullMask;
-            result = AllocateRegister<int64_t>(reg, retSize, &nullMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
             GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int64_t*>(std::get<2>(polygonCol)), bitMaskSize);
         }
         else
         {
-            result = AllocateRegister<int64_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, polygons, retSize, pointConstPtr, 1);
     }
@@ -241,18 +241,18 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstCol()
 
     if (!IsRegisterAllocated(reg))
     {
-        int64_t* result;
+        int8_t* result;
         if (columnPoint.GpuNullMaskPtr)
         {
             int64_t* nullMask;
-            result = AllocateRegister<int64_t>(reg, retSize, &nullMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &nullMask);
             int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
             GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int64_t*>(columnPoint.GpuNullMaskPtr),
                                           bitMaskSize);
         }
         else
         {
-            result = AllocateRegister<int64_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, gpuPolygon, 1,
                                      reinterpret_cast<NativeGeoPoint*>(columnPoint.GpuPtr), retSize);
@@ -293,11 +293,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
 
     if (!IsRegisterAllocated(reg))
     {
-        int64_t* result;
+        int8_t* result;
         if (pointCol.GpuNullMaskPtr || std::get<2>(polygonCol))
         {
             int64_t* combinedMask;
-            result = AllocateRegister<int64_t>(reg, retSize, &combinedMask);
+            result = AllocateRegister<int8_t>(reg, retSize, &combinedMask);
             int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
             if (pointCol.GpuNullMaskPtr && std::get<2>(polygonCol))
             {
@@ -318,7 +318,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsColCol()
         }
         else
         {
-            result = AllocateRegister<int64_t>(reg, retSize);
+            result = AllocateRegister<int8_t>(reg, retSize);
         }
         GPUPolygonContains::contains(result, std::get<0>(polygonCol), std::get<1>(polygonCol),
                                      reinterpret_cast<NativeGeoPoint*>(pointCol.GpuPtr), pointCol.ElementCount);
@@ -354,7 +354,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstConst()
     }
     if (!IsRegisterAllocated(reg))
     {
-        int64_t* result = AllocateRegister<int64_t>(reg, retSize);
+        int8_t* result = AllocateRegister<int8_t>(reg, retSize);
         GPUPolygonContains::containsConst(result, gpuPolygon, constNativeGeoPoint, retSize);
     }
     return InstructionStatus::CONTINUE;

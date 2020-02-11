@@ -238,6 +238,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<int32_t> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -283,6 +284,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<int64_t> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -328,6 +330,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<double> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -373,6 +376,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<float> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -418,6 +422,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<int8_t> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -486,6 +491,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<ColmnarDB::Types::Point> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -531,6 +537,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                 std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -587,6 +594,7 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
                 std::vector<std::string> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -632,6 +640,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
                 std::vector<std::string> castedDataToCopy;
                 std::unique_ptr<int64_t[]> newNullMask =
                     std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {

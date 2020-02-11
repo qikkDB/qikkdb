@@ -143,8 +143,8 @@ public:
         {
             int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
             bitMask_ = std::unique_ptr<int64_t[]>(new int64_t[bitMaskCapacity]);
-            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(int64_t)); 
-            GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity); 
+            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(int64_t));
+            GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
             isNullMaskRegistered_ = true;
         }
     }
@@ -204,7 +204,7 @@ public:
         return bitMask_.get();
     }
 
-	std::unique_ptr<int64_t[]> GetNullBitmaskPtr()
+    std::unique_ptr<int64_t[]> GetNullBitmaskPtr()
     {
         return std::move(bitMask_);
     }
@@ -270,7 +270,8 @@ public:
     {
         if (EmptyBlockSpace() < data.size())
         {
-            throw std::length_error("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertData(): Attempted to insert data larger "
+                                    "than remaining block size");
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
@@ -286,12 +287,13 @@ public:
     {
         if (EmptyBlockSpace() < length)
         {
-            throw std::length_error("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertDataInterval(): Attempted to insert data "
+                                    "larger than remaining block size");
         }
 
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
 
-		size_ += length;
+        size_ += length;
         saveNecessary_ = true;
     }
 
@@ -317,7 +319,7 @@ public:
             if (bitMask_)
             {
                 int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
-                GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
+				GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
                 isNullMaskRegistered_ = true;
             }
             setBlockStatistics(0, 0);

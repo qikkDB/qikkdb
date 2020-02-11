@@ -57,13 +57,13 @@ void TestGenerateIndexesKeep(std::vector<M> mask, std::vector<T> correctOutput)
     }
 }
 
-void TestReconstructPolyCol(std::vector<int64_t> mask, std::vector<std::string> polygonsWkt,
+void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> polygonsWkt,
 	std::vector<std::vector<std::vector<NativeGeoPoint>>> correctPoints)
 {
 	// Initialize CUDA context
 	Context::getInstance();
 	const int32_t ELEMENT_COUNT = mask.size();
-	cuda_ptr<int64_t> maskDevice(ELEMENT_COUNT);
+	cuda_ptr<int8_t> maskDevice(ELEMENT_COUNT);
 	int32_t outCount;
 	GPUMemory::copyHostToDevice(maskDevice.get(), mask.data(), ELEMENT_COUNT);
 
@@ -139,26 +139,26 @@ void TestReconstructPolyCol(std::vector<int64_t> mask, std::vector<std::string> 
 
 TEST(GPUReconstructTests, GenerateIndexesFullMask)
 {
-    TestGenerateIndexes(std::vector<int64_t>{1, 1, 1, 1}, std::vector<int32_t>{0, 1, 2, 3});
+    TestGenerateIndexes(std::vector<int8_t>{1, 1, 1, 1}, std::vector<int32_t>{0, 1, 2, 3});
 }
 
 TEST(GPUReconstructTests, GenerateIndexesEmptyMask)
 {
-    TestGenerateIndexes(std::vector<int64_t>{0, 0, 0, 0, 0, 0}, std::vector<int32_t>{});
+    TestGenerateIndexes(std::vector<int8_t>{0, 0, 0, 0, 0, 0}, std::vector<int32_t>{});
 }
 
 TEST(GPUReconstructTests, GenerateIndexesMixMask)
 {
-    TestGenerateIndexes(std::vector<int64_t>{0, 1, 0, 0, 1, 1, 1, 1}, std::vector<int32_t>{1, 4, 5, 6, 7});
+    TestGenerateIndexes(std::vector<int8_t>{0, 1, 0, 0, 1, 1, 1, 1}, std::vector<int32_t>{1, 4, 5, 6, 7});
 }
 
 TEST(GPUReconstructTests, GenerateIndexesBigMask)
 {
-    std::vector<int64_t> mask;
+    std::vector<int8_t> mask;
     std::vector<int32_t> correctOutput;
     for (int32_t i = 0; i < (1 << 18); i++)
     {
-        int64_t maskTrue = i % 2;
+        int8_t maskTrue = i % 2;
         mask.emplace_back(maskTrue);
         if (maskTrue)
         {
@@ -170,7 +170,7 @@ TEST(GPUReconstructTests, GenerateIndexesBigMask)
 
 TEST(GPUReconstructTests, GenerateIndexesKeepMixMask)
 {
-    TestGenerateIndexesKeep(std::vector<int64_t>{0, 1, 0, 0, 1, 1, 1, 1}, std::vector<int32_t>{1, 4, 5, 6, 7});
+    TestGenerateIndexesKeep(std::vector<int8_t>{0, 1, 0, 0, 1, 1, 1, 1}, std::vector<int32_t>{1, 4, 5, 6, 7});
 }
 
 TEST(GPUReconstructTests, ReconstructPolyColHalfMask)
