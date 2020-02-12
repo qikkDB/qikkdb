@@ -76,6 +76,13 @@ private:
     };
 
     template <typename T>
+    using AllocatedDataType = typename std::conditional<
+        std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value,
+        typename std::conditional<std::is_pointer<T>::value, NativeGeoPoint, typename std::add_pointer<NativeGeoPoint>::type>::type,
+        T>::type;
+
+
+    template <typename T>
     using CompositeDataType = typename std::conditional<
         std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
         GPUMemory::GPUString,
@@ -114,13 +121,13 @@ private:
     using InstructionArgument = typename std::conditional<
         isCompositeDataType<T>,
         std::tuple<CompositeDataType<typename std::remove_pointer<T>::type>, CompositeDataTypeAllocation<typename std::remove_pointer<T>::type>, InstructionStatus, std::string>,
-        std::tuple<T, PointerAllocation, InstructionStatus, std::string>>::type;
+        std::tuple<AllocatedDataType<T>, PointerAllocation, InstructionStatus, std::string>>::type;
 
     template <typename T>
     using InstructionResult = typename std::conditional<
         isCompositeDataType<T>,
         std::pair<CompositeDataType<typename std::remove_pointer<T>::type>, int8_t*>,
-        std::pair<typename std::conditional<std::is_pointer<T>::value, T, typename std::add_pointer<T>::type>::type, int8_t*>>::type;
+        std::pair<typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, typename std::add_pointer<AllocatedDataType<T>>::type>::type, int8_t*>>::type;
 
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
@@ -727,7 +734,7 @@ public:
 
                 if (loadFlag != InstructionStatus::CONTINUE)
                 {
-                    return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
+                    return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
                 }
 
                 if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
@@ -745,11 +752,12 @@ public:
                     column = dispatcher.allocatedPointers_.at(colName);
                 }
 
-                return {reinterpret_cast<T>(column.GpuPtr), column, loadFlag, colName};
+                return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
             }
             else
             {
-                return {dispatcher.arguments_.Read<T>(), column, InstructionStatus::CONTINUE, ""};
+                return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column,
+                        InstructionStatus::CONTINUE, ""};
             }
         }
 
@@ -759,7 +767,7 @@ public:
                                                               bool allocateNullMask,
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
-            T* result = nullptr;
+            AllocatedDataType<T>* result = nullptr;
             int8_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;

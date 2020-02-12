@@ -452,3 +452,29 @@ public:
         }
     }
 };
+
+template <typename OP, typename T, typename U, typename V>
+class GPUArithmetic<OP,
+                    T,
+                    U,
+                    V,
+                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value &&
+                                            std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
+                                            std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+{
+public:
+    static void Arithmetic(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount)
+    {
+        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        {
+            kernel_convert_lat_lon_to_point<<<Context::getInstance().calcGridDim(dataElementCount),
+                                              Context::getInstance().getBlockDim()>>>(outCol, LatCol, LonCol,
+                                                                                      dataElementCount);
+        }
+        else
+        {
+            GPUMemory::fillArray<NativeGeoPoint>(outCol, {LatCol, LonCol}, dataElementCount);
+        }
+        CheckCudaError(cudaGetLastError());
+    }
+};

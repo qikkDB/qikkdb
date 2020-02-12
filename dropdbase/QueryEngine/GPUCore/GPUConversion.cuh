@@ -11,6 +11,14 @@
 #include "GPUMemory.cuh"
 #include "MaybeDeref.cuh"
 
+namespace ConversionOperations
+{
+struct latLotToPoint
+{
+    typedef ColmnarDB::Types::Point RetType;
+};
+} // namespace ConversionOperations
+
 /// Make Point column from latitude and longitude columns
 /// <param name="outCol">output NativeGeoPoint column</param>
 /// <param name="LatCol">input latitude column</param>
