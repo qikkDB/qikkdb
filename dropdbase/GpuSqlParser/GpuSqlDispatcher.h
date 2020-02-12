@@ -183,7 +183,7 @@ private:
     std::vector<OrderByBlocks>& orderByBlocks_;
 
     std::unordered_map<std::string, std::unique_ptr<IVariantArray>> reconstructedOrderByColumnsMerged_;
-    std::unordered_map<std::string, std::unique_ptr<int8_t[]>> reconstructedOrderByColumnsNullMerged_;
+    std::unordered_map<std::string, std::unique_ptr<int64_t[]>> reconstructedOrderByColumnsNullMerged_;
 
     std::unordered_map<int32_t, std::pair<std::string, OrderBy::Order>> orderByColumns_;
     std::vector<std::vector<int32_t>> orderByIndices_;

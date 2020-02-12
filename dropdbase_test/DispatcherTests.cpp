@@ -15188,9 +15188,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     {
         for (int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
         {
-            int bitMaskIdx = (j / (sizeof(char) * 8));
-            int shiftIdx = (j % (sizeof(char) * 8));
-            newBitmasks.push_back((blocksAfterCast[i]->GetNullBitmask()[bitMaskIdx] >> shiftIdx) & 1);
+            newBitmasks.push_back(NullValues::GetConcreteBitFromBitmask(blocksAfterCast[i]->GetNullBitmask(), j));
         }
     }
 

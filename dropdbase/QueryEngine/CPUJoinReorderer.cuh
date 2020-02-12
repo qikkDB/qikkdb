@@ -102,10 +102,10 @@ public:
                 [](std::vector<int64_t>& outNullBlockVector, const ColumnBase<T>& inCol,
                    int32_t inBlockIdx, const std::vector<std::vector<int32_t>>& inColJoinIndices,
                    const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
-                    for (int32_t i = 64 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 64 * threadCount)
+                    for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
                     {
                         // Avodid write conflicts by assigning 8 rows to one core
-                        for (int32_t j = 0; j < 64; j++)
+                        for (int32_t j = 0; j < 8; j++)
                         {
                             const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
                             const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
@@ -113,7 +113,7 @@ public:
                             const int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                 inCol.GetBlocksList()[columnBlockId]->GetNullBitmask(), columnRowId);
 
-                            outNullBlockVector[(i + j) / 64] |= (nullBit << j);
+                            outNullBlockVector[(i + j) / 64] |= (nullBit << j * sizeof(int64_t));
                         }
                     }
                 },

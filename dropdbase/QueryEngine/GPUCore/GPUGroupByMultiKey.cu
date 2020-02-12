@@ -80,13 +80,12 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        const bool nullA =
-            (keysANullMask[t] != nullptr) &&
-            ((keysANullMask[t][indexA / (sizeof(int8_t) * 8)] >> (indexA % (sizeof(int8_t) * 8))) & 1);
+        const bool nullA = (keysANullMask[t] != nullptr) &&
+                           (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexA));
         const bool nullB =
             (keysBNullMask[t] != nullptr) &&
             (compressedBNullMask ?
-                 ((keysBNullMask[t][indexB / (sizeof(int8_t) * 8)] >> (indexB % (sizeof(int8_t) * 8))) & 1) :
+                 (NullValues::GetConcreteBitFromBitmask(keysBNullMask[t], indexB)) :
                  keysBNullMask[t][indexB]);
         switch (keyTypes[t])
         {

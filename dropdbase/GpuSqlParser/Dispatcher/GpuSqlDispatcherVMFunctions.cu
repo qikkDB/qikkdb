@@ -591,7 +591,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
                 size_t bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
                 nullMaskString = std::string(reinterpret_cast<char*>(
                                                  reconstructedOrderByColumnsNullMerged_.at(colName).get()),
-                                             bitMaskSize);
+                                             bitMaskSize * (sizeof(int64_t) / sizeof(char)));
             }
             else
             {
@@ -612,7 +612,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
                                                          ACol.ElementCount, nullMask.get(),
                                                          reinterpret_cast<int64_t*>(ACol.GpuNullMaskPtr));
                 bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize);
+                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()),
+                                             bitMaskSize * (sizeof(int64_t) / sizeof(char)));
             }
             else
             {
@@ -1020,8 +1021,9 @@ void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int64_t>& mask, int64_t shi
         {
             uint8_t newCarryBit = mask[i] & 1;
             mask[i] >>= 1;
-            mask[i] &= 0x7F;
-            mask[i] |= (carryBit << 7);
+            uint64_t a = 9223372036854775807;
+            mask[i] &= a;
+            mask[i] |= (carryBit << 63);
             carryBit = newCarryBit;
         }
     }

@@ -58,11 +58,10 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                           *errorFlag != static_cast<int32_t>(QueryEngineErrorType::GPU_HASH_TABLE_FULL);
          i += stride)
     {
-        const int32_t bitMaskIdx = (i / (sizeof(int8_t) * 8));
-        const int32_t shiftIdx = (i % (sizeof(int8_t) * 8));
-        const bool nullKey = (inKeysNullMask != nullptr) && ((inKeysNullMask[bitMaskIdx] >> shiftIdx) & 1);
-        const bool nullValue =
-            (inValuesNullMask != nullptr) && ((inValuesNullMask[bitMaskIdx] >> shiftIdx) & 1);
+        const bool nullKey =
+            (inKeysNullMask != nullptr) && (NullValues::GetConcreteBitFromBitmask(inKeysNullMask, i));
+        const bool nullValue = (inValuesNullMask != nullptr) &&
+                               (NullValues::GetConcreteBitFromBitmask(inValuesNullMask, i));
         int32_t foundIndex = -1;
         int32_t inKeyLength = 0;
 
@@ -549,8 +548,7 @@ public:
                     else
                     {
                         GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                               (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
-                                                   (sizeof(int8_t) * 8));
+                                               NullValues::GetNullBitMaskSize(*outDataElementCount));
                     }
                 }
             }

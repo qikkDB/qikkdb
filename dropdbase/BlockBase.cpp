@@ -283,7 +283,8 @@ void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
         isFullOfNullValue_ = true;
         for (int i = 0; i < size_; i++)
         {
-            bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+            //bool isNull = bitMask_[NullValues::GetBitMaskIdx(i)] & (1 << (NullValues::GetShiftMaskIdx(i)));
+            bool isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
@@ -329,7 +330,7 @@ void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
         isFullOfNullValue_ = true;
         for (int i = 0; i < size_; i++)
         {
-            bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+            bool isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
@@ -374,7 +375,7 @@ void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldD
         isFullOfNullValue_ = true;
         for (int i = 0; i < size_; i++)
         {
-            bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+            bool isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
@@ -418,7 +419,7 @@ void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t old
         isFullOfNullValue_ = true;
         for (int i = 0; i < size_; i++)
         {
-            bool isNull = bitMask_[i / (sizeof(int8_t) * 8)] & (1 << (i % (sizeof(int8_t) * 8)));
+            bool isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;

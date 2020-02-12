@@ -570,8 +570,7 @@ public:
                     else
                     {
                         GPUMemory::allocAndSet(outValuesNullMask, 0,
-                                               (*outDataElementCount + sizeof(int8_t) * 8 - 1) /
-                                                   (sizeof(int8_t) * 8));
+                                               NullValues::GetNullBitMaskSize(*outDataElementCount));
                     }
                 }
             }
