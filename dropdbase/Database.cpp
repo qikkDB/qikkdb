@@ -8,6 +8,7 @@
 #include <sys/types.h>
 #include <thread>
 #include <stdio.h>
+#include <limits>
 
 #include "json/json.h"
 #include "ColumnBase.h"
@@ -175,9 +176,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
 /// </summary>
 void Database::SetSaveNecessaryToFalseForEverything()
 {
-    auto& tables = GetTables();
-
-    for (auto& table : tables)
+    for (auto& table : tables_)
     {
         table.second.SetSaveNecessaryToFalse();
 
@@ -410,19 +409,12 @@ void Database::PersistOnlyDbFile(const char* path)
 /// <param name="path">Path to database storage directory.</param>
 void Database::Persist(const char* path)
 {
-    auto& tables = GetTables();
-    auto& name = GetName();
-    auto pathStr = std::string(path);
-
-    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " tables.";
-
-    int32_t blockSize = GetBlockSize();
-    int32_t tableSize = tables.size();
+    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name_ << " and " << tables_.size() << " tables.";
 
     PersistOnlyDbFile(path);
 
     // write files COLUMN_DATA_EXTENSION:
-    for (auto& table : tables)
+    for (auto& table : tables_)
     {
         auto& columns = table.second.GetColumns();
 
@@ -430,7 +422,8 @@ void Database::Persist(const char* path)
 
         for (const auto& column : columns)
         {
-            threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name, std::ref(table));
+            threads.emplace_back(Database::WriteColumn, table.second.GetBlockSize(),
+                                 std::ref(column), std::string(path), name_, std::ref(table));
             column.second.get()->SetSaveNecessaryToFalse();
         }
 
@@ -442,15 +435,15 @@ void Database::Persist(const char* path)
         table.second.SetSaveNecessaryToFalse();
     }
 
-    if (boost::filesystem::exists(boost::filesystem::path(path + name + DB_EXTENSION)))
+    if (boost::filesystem::exists(boost::filesystem::path(path + name_ + DB_EXTENSION)))
     {
-        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
+        BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully saved into disk.";
     }
     else
     {
         BOOST_LOG_TRIVIAL(info)
             << "Database "
-            << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+            << name_ << " was NOT saved into disk. Check if you have write access into the destination folder.";
     }
 }
 
@@ -460,20 +453,13 @@ void Database::Persist(const char* path)
 /// <param name="path">Path to database storage directory.</param>
 void Database::PersistOnlyModified(const char* path)
 {
-    auto& tables = GetTables();
-    auto& name = GetName();
-    auto pathStr = std::string(path);
-
-    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name << " and " << tables.size() << " table/s.";
-
-    int32_t blockSize = GetBlockSize();
-    int32_t tableSize = tables.size();
+    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name_ << " and " << tables_.size() << " table/s.";
 
     // always persist at least db file
     PersistOnlyDbFile(path);
 
     // write files COLUMN_DATA_EXTENSION:
-    for (auto& table : tables)
+    for (auto& table : tables_)
     {
         if (table.second.GetSaveNecessary())
         {
@@ -485,8 +471,9 @@ void Database::PersistOnlyModified(const char* path)
             {
                 if (column.second.get()->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteColumn, std::ref(column), pathStr, name,
-                                         std::ref(table));
+                    table.second.GetBlockSize();
+                    threads.emplace_back(Database::WriteColumn, table.second.GetBlockSize(),
+                                         std::ref(column), std::string(path), name_, std::ref(table));
                     column.second.get()->SetSaveNecessaryToFalse();
                 }
             }
@@ -500,15 +487,15 @@ void Database::PersistOnlyModified(const char* path)
         }
     }
 
-    if (boost::filesystem::exists(boost::filesystem::path(path + name + DB_EXTENSION)))
+    if (boost::filesystem::exists(boost::filesystem::path(path + name_ + DB_EXTENSION)))
     {
-        BOOST_LOG_TRIVIAL(info) << "Database " << name << " was successfully saved into disk.";
+        BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully saved into disk.";
     }
     else
     {
         BOOST_LOG_TRIVIAL(info)
             << "Database "
-            << name << " was NOT saved into disk. Check if you have write access into the destination folder.";
+            << name_ << " was NOT saved into disk. Check if you have write access into the destination folder.";
     }
 }
 
@@ -987,10 +974,11 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
 /// <param name="dbName">Name of the database.</param>
 /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
-/// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according to
-/// DataType enumeration.</param> <param name="isNullable">Flag if a column can have NULL
-/// values.</param> <param name="isUnique">Flag if a column can have only unique values and not a
-/// single one NULL value.</param> <param name="table">Instance of table into which the column
+/// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according
+/// to DataType enumeration.</param>
+/// <param name="isNullable">Flag if a column can have NULL values.</param>
+/// <param name="isUnique">Flag if a column can have only unique values and not
+/// a single one NULL value.</param> <param name="table">Instance of table into which the column
 /// should be added.</param> <param name="columnName">Names of particular column.</param>
 void Database::LoadColumn(const char* path,
                           const char* dbName,
@@ -1211,12 +1199,6 @@ void Database::LoadColumn(const char* path,
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
                 int32_t nullBitMaskLength;
-                // this is needed because of how EOF is checked:
-                if (colFile.eof())
-                {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << filePath << " has finished successfully.";
-                    break;
-                }
 
                 if (isNullable)
                 {
@@ -1241,6 +1223,8 @@ void Database::LoadColumn(const char* path,
                 int64_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength),
                              sizeof(int64_t)); // read byte data length (data block length)
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
 
                 if (index != emptyBlockIndex) // there is null block
                 {
@@ -1251,116 +1235,59 @@ void Database::LoadColumn(const char* path,
                 else // read data from block
                 {
                     auto& block = columnPoint.AddBlock(groupId);
-                    int64_t byteIndex = 0;
-                    int32_t dataCount = 0;
+                    block.SetIsCompressed(isCompressed);
+                    std::vector<ColmnarDB::Types::Point> dataPoint;
 
-                    int64_t remainingDataLength = dataLength;
-
-                    while (byteIndex < dataLength)
+                    if (dataLength > columnPoint.GetBlockSize())
                     {
-                        int32_t currentChunkSize =
-                            oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
-
-                        std::vector<ColmnarDB::Types::Point> dataPoint;
-                        std::unique_ptr<char[]> data(new char[currentChunkSize]);
-
-                        colFile.read(data.get(), currentChunkSize);
-
-                        int32_t byteIndexForChunks = 0;
-                        int32_t remainingChunkSize = currentChunkSize;
-                        int32_t dataCountInOneChunk = 0;
-                        while (byteIndexForChunks < currentChunkSize)
-                        {
-                            int32_t entryByteLength = 0;
-                            if (byteIndexForChunks + sizeof(int32_t) - 1 >= currentChunkSize)
-                            {
-                                int32_t restSize = (byteIndexForChunks + sizeof(int32_t) - currentChunkSize);
-                                currentChunkSize += restSize;
-                                std::unique_ptr<char[]> dataRest(new char[restSize]);
-                                colFile.read(dataRest.get(), restSize);
-                                memcpy(&entryByteLength, &data[byteIndexForChunks], sizeof(int32_t) - restSize);
-                                memcpy(reinterpret_cast<char*>(&entryByteLength) + sizeof(int32_t) - restSize,
-                                       dataRest.get(), restSize);
-                            }
-                            else
-                            {
-                                entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]);
-                            }
-                            std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
-
-                            byteIndex += sizeof(int32_t);
-                            byteIndexForChunks += sizeof(int32_t);
-
-                            if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
-                            {
-                                int32_t dataLeftInCurrentChunk = currentChunkSize - byteIndexForChunks > 0 ?
-                                                                     currentChunkSize - byteIndexForChunks :
-                                                                     0;
-                                std::unique_ptr<char[]> dataRest(new char[entryByteLength - dataLeftInCurrentChunk]);
-                                currentChunkSize += entryByteLength - dataLeftInCurrentChunk;
-                                colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
-
-                                colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
-                                if (dataLeftInCurrentChunk > 0)
-                                {
-                                    memcpy(byteArray.get(), &data[byteIndexForChunks], dataLeftInCurrentChunk);
-                                }
-                                memcpy(byteArray.get() + dataLeftInCurrentChunk, &dataRest[0],
-                                       entryByteLength - dataLeftInCurrentChunk);
-
-                                ColmnarDB::Types::Point entryDataPoint;
-                                entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
-                                dataPoint.push_back(entryDataPoint);
-
-                                byteIndexForChunks += entryByteLength;
-                                remainingChunkSize = 0;
-                            }
-                            else
-                            {
-                                memcpy(byteArray.get(), &data[byteIndexForChunks], entryByteLength);
-                                remainingChunkSize -= entryByteLength;
-
-                                ColmnarDB::Types::Point entryDataPoint;
-                                entryDataPoint.ParseFromArray(byteArray.get(), entryByteLength);
-                                dataPoint.push_back(entryDataPoint);
-
-                                byteIndexForChunks += entryByteLength;
-                            }
-
-                            dataCountInOneChunk++;
-                            dataCount++;
-                            byteIndex += entryByteLength;
-
-                            if (dataCount > columnPoint.GetBlockSize())
-                            {
-                                throw std::runtime_error("Loaded data (" + filePath + ") from disk does not fit into existing block");
-                                break;
-                            }
-                        }
-                        remainingDataLength -= currentChunkSize;
-
-                        if (isUnique)
-                        {
-                            if (isNullable)
-                            {
-                                throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
-                            }
-
-                            for (int32_t i = 0; i < dataPoint.size(); i++)
-                            {
-                                if (!columnPoint.IsDuplicate(dataPoint[i]))
-                                {
-                                    columnPoint.InsertIntoHashmap(dataPoint[i]);
-                                }
-                                else
-                                {
-                                    throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
-                                                             PointFactory::WktFromPoint(dataPoint[i]));
-                                }
-                            }
-                        }
-                        block.InsertData(dataPoint);
+                        throw std::runtime_error("Loaded data (" + filePath +
+                                                 ") from disk does not fit into existing block");
+                        break;
                     }
+
+                    // read actual entries:
+                    for (int32_t i = 0; i < dataLength; i++)
+                    {
+                        double latitude;
+                        double longitude;
+
+                        colFile.read(reinterpret_cast<char*>(&latitude), sizeof(float)); // read latitude
+                        colFile.read(reinterpret_cast<char*>(&longitude), sizeof(float)); // read longitude
+
+                        ColmnarDB::Types::Point entryDataPoint = PointFactory::FromLatLon(latitude, longitude);
+                        dataPoint.push_back(entryDataPoint);
+                    }
+
+                    // read empty data:
+                    for (int32_t i = dataLength; i < columnPoint.GetBlockSize(); i++)
+                    {
+                        double value;
+
+                        colFile.read(reinterpret_cast<char*>(&value), sizeof(float)); // read latitude
+                        colFile.read(reinterpret_cast<char*>(&value), sizeof(float)); // read longitude
+                    }
+
+                    if (isUnique)
+                    {
+                        if (isNullable)
+                        {
+                            throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and has not NOT NULL constraint");
+                        }
+
+                        for (int32_t i = 0; i < dataPoint.size(); i++)
+                        {
+                            if (!columnPoint.IsDuplicate(dataPoint[i]))
+                            {
+                                columnPoint.InsertIntoHashmap(dataPoint[i]);
+                            }
+                            else
+                            {
+                                throw std::runtime_error("Loaded column: " + filePath + " has UNIQUE constraint and duplicate values: " +
+                                                         PointFactory::WktFromPoint(dataPoint[i]));
+                            }
+                        }
+                    }
+                    block.InsertData(dataPoint);
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
@@ -1584,8 +1511,8 @@ void Database::LoadColumn(const char* path,
 
                 int32_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
-                int8_t isCompressed;
-                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int8_t min;
                 colFile.read(reinterpret_cast<char*>(&min), sizeof(int8_t)); // read statistics min
                 int8_t max;
@@ -1603,10 +1530,12 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int8_t[]> data = nullptr;
-                    data = std::unique_ptr<int8_t[]>(new int8_t[columnInt.GetBlockSize()]);
+                    std::unique_ptr<int8_t[]> data = std::unique_ptr<int8_t[]>(new int8_t[dataLength]);
+                    std::unique_ptr<double[]> emptyData(new double[columnInt.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int8_t)); // read entry data
+                    colFile.read(reinterpret_cast<char*>(emptyData.get()),
+                                 (columnInt.GetBlockSize() - dataLength) * sizeof(int8_t)); // read empty entries as well
 
                     if (dataLength > columnInt.GetBlockSize())
                     {
@@ -1635,9 +1564,8 @@ void Database::LoadColumn(const char* path,
                                       });
                     }
 
-                    auto& block =
-                        columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
-                                           groupId, false, static_cast<bool>(isCompressed), false);
+                    auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
+                                                     groupId, false, isCompressed, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -1688,8 +1616,8 @@ void Database::LoadColumn(const char* path,
 
                 int32_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
-                int8_t isCompressed;
-                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int32_t min;
                 colFile.read(reinterpret_cast<char*>(&min), sizeof(int32_t)); // read statistics min
                 int32_t max;
@@ -1707,10 +1635,12 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int32_t[]> data = nullptr;
-                    data = std::unique_ptr<int32_t[]>(new int32_t[columnInt.GetBlockSize()]);
+                    std::unique_ptr<int32_t[]> data = std::unique_ptr<int32_t[]>(new int32_t[dataLength]);
+                    std::unique_ptr<double[]> emptyData(new double[columnInt.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int32_t)); // read entry data
+                    colFile.read(reinterpret_cast<char*>(emptyData.get()),
+                                 (columnInt.GetBlockSize() - dataLength) * sizeof(int32_t)); // read empty entries as well
 
                     if (dataLength > columnInt.GetBlockSize())
                     {
@@ -1739,9 +1669,8 @@ void Database::LoadColumn(const char* path,
                                       });
                     }
 
-                    auto& block =
-                        columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
-                                           groupId, false, static_cast<bool>(isCompressed), false);
+                    auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
+                                                     groupId, false, isCompressed, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -1792,8 +1721,8 @@ void Database::LoadColumn(const char* path,
 
                 int32_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
-                int8_t isCompressed;
-                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int64_t min;
                 colFile.read(reinterpret_cast<char*>(&min), sizeof(int64_t)); // read statistics min
                 int64_t max;
@@ -1811,10 +1740,12 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int64_t[]> data = nullptr;
-                    data = std::unique_ptr<int64_t[]>(new int64_t[columnLong.GetBlockSize()]);
+                    std::unique_ptr<int64_t[]> data = std::unique_ptr<int64_t[]>(new int64_t[dataLength]);
+                    std::unique_ptr<double[]> emptyData(new double[columnLong.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int64_t)); // read entry data
+                    colFile.read(reinterpret_cast<char*>(emptyData.get()),
+                                 (columnLong.GetBlockSize() - dataLength) * sizeof(int64_t)); // read empty entries as well
 
                     if (dataLength > columnLong.GetBlockSize())
                     {
@@ -1843,9 +1774,8 @@ void Database::LoadColumn(const char* path,
                                       });
                     }
 
-                    auto& block =
-                        columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(),
-                                            groupId, false, static_cast<bool>(isCompressed), false);
+                    auto& block = columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(),
+                                                      groupId, false, isCompressed, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -1896,8 +1826,8 @@ void Database::LoadColumn(const char* path,
 
                 int32_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
-                int8_t isCompressed;
-                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 float min;
                 colFile.read(reinterpret_cast<char*>(&min), sizeof(float)); // read statistics min
                 float max;
@@ -1915,10 +1845,12 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<float[]> data = nullptr;
-                    data = std::unique_ptr<float[]>(new float[columnFloat.GetBlockSize()]);
+                    std::unique_ptr<float[]> data = std::unique_ptr<float[]>(new float[dataLength]);
+                    std::unique_ptr<double[]> emptyData(new double[columnFloat.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(float)); // read entry data
+                    colFile.read(reinterpret_cast<char*>(emptyData.get()),
+                                 (columnFloat.GetBlockSize() - dataLength) * sizeof(float)); // read empty entries as well
 
                     if (dataLength > columnFloat.GetBlockSize())
                     {
@@ -1947,9 +1879,8 @@ void Database::LoadColumn(const char* path,
                                       });
                     }
 
-                    auto& block =
-                        columnFloat.AddBlock(std::move(data), dataLength, columnFloat.GetBlockSize(),
-                                             groupId, false, static_cast<bool>(isCompressed), false);
+                    auto& block = columnFloat.AddBlock(std::move(data), dataLength, columnFloat.GetBlockSize(),
+                                                       groupId, false, isCompressed, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -2000,8 +1931,8 @@ void Database::LoadColumn(const char* path,
 
                 int32_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
-                int8_t isCompressed;
-                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // read whether compressed
+                bool isCompressed;
+                colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 double min;
                 colFile.read(reinterpret_cast<char*>(&min), sizeof(double)); // read statistics min
                 double max;
@@ -2019,10 +1950,12 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<double[]> data = nullptr;
-                    data = std::unique_ptr<double[]>(new double[columnDouble.GetBlockSize()]);
+                    std::unique_ptr<double[]> data = std::unique_ptr<double[]>(new double[dataLength]);
+                    std::unique_ptr<double[]> emptyData(new double[columnDouble.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(double)); // read entry data
+                    colFile.read(reinterpret_cast<char*>(emptyData.get()),
+                                 (columnDouble.GetBlockSize() - dataLength) * sizeof(double)); // read empty entries as well
 
                     if (dataLength > columnDouble.GetBlockSize())
                     {
@@ -2053,7 +1986,7 @@ void Database::LoadColumn(const char* path,
 
                     auto& block = columnDouble.AddBlock(std::move(data), dataLength,
                                                         columnDouble.GetBlockSize(), groupId, false,
-                                                        static_cast<bool>(isCompressed), false);
+                                                        isCompressed, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -2180,11 +2113,13 @@ void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 /// <summary>
 /// Write column into disk.
 /// </summary>
+/// <param name="blockSize">Block size of table to which the column belongs to.</param>
 /// <param name="column">Column to be written.</param>
 /// <param name="pathStr">Path to database storage directory.</param>
 /// <param name="name">Names of particular column.</param>
 /// <param name="table">Names of particular table.</param>
-void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+void Database::WriteColumn(const int32_t blockSize,
+                           const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                            std::string pathStr,
                            std::string name,
                            const std::pair<const std::string, Table>& table)
@@ -2193,54 +2128,60 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                              << " file with name : " << pathStr << name << SEPARATOR << table.first
                              << SEPARATOR << column.second->GetName() << COLUMN_DATA_EXTENSION;
 
-    std::ofstream colFile(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
-                              column.second->GetName() + COLUMN_DATA_EXTENSION,
-                          std::ios::binary);
+    std::ofstream colDataFile(pathStr + name + SEPARATOR + table.first + SEPARATOR +
+                                  column.second->GetName() + COLUMN_DATA_EXTENSION,
+                              std::ios::binary);
 
-    if (colFile.is_open())
+    std::ofstream colAddressFile(pathStr + name + SEPARATOR + table.first + SEPARATOR +
+                                     column.second->GetName() + COLUMN_ADDRESS_EXTENSION,
+                                 std::ios::binary);
+
+    if (colDataFile.is_open())
     {
-        int32_t type = column.second->GetColumnType();
-        bool isNullable = column.second->GetIsNullable();
-        bool isUnique = column.second->GetIsUnique();
-
-        switch (type)
+        if (colAddressFile.is_open())
         {
-        case COLUMN_POLYGON:
-        {
-            int32_t index = 0;
 
-            const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+            int32_t type = column.second->GetColumnType();
+            bool isNullable = column.second->GetIsNullable();
+            bool isUnique = column.second->GetIsUnique();
 
-            for (const auto& block : colPolygon.GetBlocksList())
+            switch (type)
             {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index;
+            case COLUMN_POLYGON:
+            {
+                int32_t index = 0;
 
-                auto data = block->GetData();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int64_t dataByteSize = 0;
+                const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
+                    dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
-                for (int32_t i = 0; i < dataLength; i++)
+                for (const auto& block : colPolygon.GetBlocksList())
                 {
-                    dataByteSize += data[i].ByteSize();
-                }
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index;
 
-                int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+                    auto data = block->GetData();
+                    int32_t groupId = block->GetGroupId();
+                    int32_t dataLength = block->GetSize();
+                    int64_t dataByteSize = 0;
 
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    for (int32_t i = 0; i < dataLength; i++)
+                    {
+                        dataByteSize += data[i].ByteSize();
+                    }
+
+                    int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write block index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
                     if (isNullable)
                     {
                         int32_t nullBitMaskLength =
                             (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                          sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
                     }
-                    colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
+                    colDataFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
                     for (size_t i = 0; i < dataLength; i++)
                     {
                         int32_t entryByteLength = data[i].ByteSize();
@@ -2248,347 +2189,416 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
                         data[i].SerializeToArray(byteArray.get(), entryByteLength);
 
-                        colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
-                        colFile.write(byteArray.get(), entryByteLength); // write entry data
+                        colDataFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
+                        colDataFile.write(byteArray.get(), entryByteLength); // write entry data
                     }
                     index += 1;
                 }
             }
-        }
-        break;
+            break;
 
-        case COLUMN_POINT:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
-
-            for (const auto& block : colPoint.GetBlocksList())
+            case COLUMN_POINT:
             {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index;
+                int32_t index = 0;
 
-                auto data = block->GetData();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int64_t dataByteSize = 0;
+                const ColumnBase<ColmnarDB::Types::Point>& colPoint =
+                    dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
 
-                for (int32_t i = 0; i < dataLength; i++)
+                for (const auto& block : colPoint.GetBlocksList())
                 {
-                    dataByteSize += data[i].ByteSize();
-                }
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index;
 
-                int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+                    auto data = block->GetData();
+                    int32_t groupId = block->GetGroupId();
+                    int32_t blockCurrentSize = block->GetSize();
+                    bool isCompressed = block->IsCompressed();
 
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+
                     if (isNullable)
                     {
                         int32_t nullBitMaskLength =
                             (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                          sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
                     }
-                    colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
-                    for (size_t i = 0; i < dataLength; i++)
+
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+
+                    // write entries:
+                    for (size_t i = 0; i < blockCurrentSize; i++)
                     {
-                        int32_t entryByteLength = data[i].ByteSize();
-                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
+                        float latitude = data[i].geopoint().latitude();
+                        float longitude = data[i].geopoint().longitude();
 
-                        data[i].SerializeToArray(byteArray.get(), entryByteLength);
+                        colDataFile.write(reinterpret_cast<char*>(&latitude), sizeof(float)); // write latitude
+                        colDataFile.write(reinterpret_cast<char*>(&longitude), sizeof(float)); // write longitude
+                    }
 
-                        colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
-                        colFile.write(byteArray.get(), entryByteLength); // write entry data
+                    // padding to block size with std::numeric_limits<float>::max() values:
+                    for (size_t i = blockCurrentSize; i < blockSize; i++)
+                    {
+                        float value = std::numeric_limits<float>::max();
+
+                        colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write latitude
+                        colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
                     }
                     index += 1;
                 }
             }
-        }
-        break;
+            break;
 
-        case COLUMN_STRING:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<std::string>& colStr =
-                dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
-
-            for (const auto& block : colStr.GetBlocksList())
+            case COLUMN_STRING:
             {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index;
+                int32_t index = 0;
 
-                auto data = block->GetData();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int64_t dataByteSize = 0;
+                const ColumnBase<std::string>& colStr =
+                    dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
 
-                for (int32_t i = 0; i < dataLength; i++)
+                for (const auto& block : colStr.GetBlocksList())
                 {
-                    dataByteSize += data[i].length() + 1;
-                }
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index;
 
-                int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+                    auto data = block->GetData();
+                    int32_t groupId = block->GetGroupId();
+                    int32_t dataLength = block->GetSize();
+                    int64_t dataByteSize = 0;
 
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    for (int32_t i = 0; i < dataLength; i++)
+                    {
+                        dataByteSize += data[i].length() + 1;
+                    }
+
+                    int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
                         int32_t nullBitMaskLength =
                             (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                          sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
                     }
-                    colFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
+                    colDataFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
                     for (size_t i = 0; i < dataLength; i++)
                     {
                         int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
 
-                        colFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
-                        colFile.write(data[i].c_str(), entryByteLength); // write entry data
+                        colDataFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
+                        colDataFile.write(data[i].c_str(), entryByteLength); // write entry data
                     }
                     index += 1;
                 }
             }
-        }
-        break;
-
-        case COLUMN_INT8_T:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
-
-            for (const auto& block : colInt.GetBlocksList())
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index;
-
-                auto data = block->GetData();
-                int8_t isCompressed = (int8_t)block->IsCompressed();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int8_t min = block->GetMin();
-                int8_t max = block->GetMax();
-                float avg = block->GetAvg();
-                int8_t sum = block->GetSum();
-
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-                    if (isNullable)
-                    {
-                        int32_t nullBitMaskLength =
-                            (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
-                    }
-                    colFile.write(reinterpret_cast<char*>(&dataLength),
-                                  sizeof(int32_t)); // write block length (number of entries)
-                    colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
-                    colFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
-                    colFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
-                    colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
-                    colFile.write(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // write statistics sum
-                    colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int8_t)); // write block of data
-                    index += 1;
-                }
-            }
-        }
-        break;
-
-        case COLUMN_INT:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<int32_t>& colInt = dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
-
-            for (const auto& block : colInt.GetBlocksList())
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index;
-
-                auto data = block->GetData();
-                int8_t isCompressed = (int8_t)block->IsCompressed();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int32_t min = block->GetMin();
-                int32_t max = block->GetMax();
-                float avg = block->GetAvg();
-                int32_t sum = block->GetSum();
-
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-                    if (isNullable)
-                    {
-                        int32_t nullBitMaskLength =
-                            (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
-                    }
-                    colFile.write(reinterpret_cast<char*>(&dataLength),
-                                  sizeof(int32_t)); // write block length (number of entries)
-                    colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
-                    colFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
-                    colFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
-                    colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
-                    colFile.write(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // write statistics sum
-                    colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int32_t)); // write block of data
-                    index += 1;
-                }
-            }
-        }
-        break;
-
-        case COLUMN_LONG:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<int64_t>& colLong = dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
-
-            for (const auto& block : colLong.GetBlocksList())
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index;
-
-                auto data = block->GetData();
-                int8_t isCompressed = (int8_t)block->IsCompressed();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                int64_t min = block->GetMin();
-                int64_t max = block->GetMax();
-                float avg = block->GetAvg();
-                int64_t sum = block->GetSum();
-
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-                    if (isNullable)
-                    {
-                        int32_t nullBitMaskLength =
-                            (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
-                    }
-                    colFile.write(reinterpret_cast<char*>(&dataLength),
-                                  sizeof(int32_t)); // write block length (number of entries)
-                    colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
-                    colFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
-                    colFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
-                    colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
-                    colFile.write(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // write statistics sum
-                    colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(int64_t)); // write block of data
-                    index += 1;
-                }
-            }
-        }
-        break;
-
-        case COLUMN_FLOAT:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
-
-            for (const auto& block : colFloat.GetBlocksList())
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index;
-
-                auto data = block->GetData();
-                int8_t isCompressed = (int8_t)block->IsCompressed();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                float min = block->GetMin();
-                float max = block->GetMax();
-                float avg = block->GetAvg();
-                float sum = block->GetSum();
-
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-                    if (isNullable)
-                    {
-                        int32_t nullBitMaskLength =
-                            (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
-                    }
-                    colFile.write(reinterpret_cast<char*>(&dataLength),
-                                  sizeof(int32_t)); // write block length (number of entries)
-                    colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
-                    colFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
-                    colFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
-                    colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
-                    colFile.write(reinterpret_cast<char*>(&sum), sizeof(float)); // write statistics sum
-                    colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(float)); // write block of data
-                    index += 1;
-                }
-            }
-        }
-        break;
-
-        case COLUMN_DOUBLE:
-        {
-            int32_t index = 0;
-
-            const ColumnBase<double>& colDouble = dynamic_cast<const ColumnBase<double>&>(*(column.second));
-
-            for (const auto& block : colDouble.GetBlocksList())
-            {
-                BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index;
-
-                auto data = block->GetData();
-                int8_t isCompressed = (int8_t)block->IsCompressed();
-                int32_t groupId = block->GetGroupId();
-                int32_t dataLength = block->GetSize();
-                double min = block->GetMin();
-                double max = block->GetMax();
-                float avg = block->GetAvg();
-                double sum = block->GetSum();
-
-                if (dataLength > 0)
-                {
-                    colFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
-                    colFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-                    if (isNullable)
-                    {
-                        int32_t nullBitMaskLength =
-                            (block->GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                        colFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
-                        colFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask
-                    }
-                    colFile.write(reinterpret_cast<char*>(&dataLength),
-                                  sizeof(int32_t)); // write block length (number of entries)
-                    colFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(int8_t)); // write whether compressed
-                    colFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
-                    colFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max
-                    colFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
-                    colFile.write(reinterpret_cast<char*>(&sum), sizeof(double)); // write statistics sum
-                    colFile.write(reinterpret_cast<const char*>(data), dataLength * sizeof(double)); // write block of data
-                    index += 1;
-                }
-            }
-        }
-        break;
-
-        default:
-            throw std::domain_error("Unsupported data type (when persisting database): " + std::to_string(type));
             break;
-        }
 
-        colFile.close();
+            case COLUMN_INT8_T:
+            {
+                int32_t index = 0;
+
+                const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
+
+                for (const auto& block : colInt.GetBlocksList())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index;
+
+                    auto data = block->GetData();
+                    size_t blockCurrentSize = block->GetSize();
+                    std::unique_ptr<int8_t[]> emptyData(new int8_t[blockSize - blockCurrentSize]);
+                    std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                              std::numeric_limits<int8_t>::max());
+                    bool isCompressed = block->IsCompressed();
+                    int32_t groupId = block->GetGroupId();
+                    int8_t min = block->GetMin();
+                    int8_t max = block->GetMax();
+                    float avg = block->GetAvg();
+                    int8_t sum = block->GetSum();
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    if (isNullable)
+                    {
+                        int32_t nullBitMaskLength =
+                            (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
+                    }
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                    colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
+                    colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
+                    colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                    colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // write statistics sum
+                    colDataFile.write(reinterpret_cast<const char*>(data),
+                                      blockCurrentSize * sizeof(int8_t)); // write block of data
+                    colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                      (blockSize - blockCurrentSize) * sizeof(int8_t)); // write empty entries as well
+
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                                             sizeof(bool) + sizeof(float) + 5 * sizeof(int8_t);
+                    colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    index += 1;
+                }
+            }
+            break;
+
+            case COLUMN_INT:
+            {
+                int32_t index = 0;
+
+                const ColumnBase<int32_t>& colInt =
+                    dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
+
+                for (const auto& block : colInt.GetBlocksList())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index;
+
+                    auto data = block->GetData();
+                    size_t blockCurrentSize = block->GetSize();
+                    std::unique_ptr<int32_t[]> emptyData(new int32_t[blockSize - blockCurrentSize]);
+                    std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                              std::numeric_limits<int32_t>::max());
+                    bool isCompressed = block->IsCompressed();
+                    int32_t groupId = block->GetGroupId();
+                    int32_t min = block->GetMin();
+                    int32_t max = block->GetMax();
+                    float avg = block->GetAvg();
+                    int32_t sum = block->GetSum();
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    if (isNullable)
+                    {
+                        int32_t nullBitMaskLength =
+                            (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
+                    }
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                    colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
+                    colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
+                    colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                    colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // write statistics sum
+                    colDataFile.write(reinterpret_cast<const char*>(data),
+                                      blockCurrentSize * sizeof(int32_t)); // write block of data
+                    colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                      (blockSize - blockCurrentSize) * sizeof(int32_t)); // write empty entries as well
+
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                    uint64_t blockPosition = 9 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                                             sizeof(bool) + sizeof(float);
+                    colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    index += 1;
+                }
+            }
+            break;
+
+            case COLUMN_LONG:
+            {
+                int32_t index = 0;
+
+                const ColumnBase<int64_t>& colLong =
+                    dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
+
+                for (const auto& block : colLong.GetBlocksList())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index;
+
+                    auto data = block->GetData();
+                    size_t blockCurrentSize = block->GetSize();
+                    std::unique_ptr<int64_t[]> emptyData(new int64_t[blockSize - blockCurrentSize]);
+                    std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                              std::numeric_limits<int64_t>::max());
+                    bool isCompressed = block->IsCompressed();
+                    int32_t groupId = block->GetGroupId();
+                    int64_t min = block->GetMin();
+                    int64_t max = block->GetMax();
+                    float avg = block->GetAvg();
+                    int64_t sum = block->GetSum();
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    if (isNullable)
+                    {
+                        int32_t nullBitMaskLength =
+                            (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
+                    }
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                    colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
+                    colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
+                    colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                    colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // write statistics sum
+                    colDataFile.write(reinterpret_cast<const char*>(data),
+                                      blockCurrentSize * sizeof(int64_t)); // write block of data
+                    colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                      (blockSize - blockCurrentSize) * sizeof(int64_t)); // write empty entries as well
+
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                                             sizeof(bool) + sizeof(float) + 5 * sizeof(int64_t);
+                    colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    index += 1;
+                }
+            }
+            break;
+
+            case COLUMN_FLOAT:
+            {
+                int32_t index = 0;
+
+                const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
+
+                for (const auto& block : colFloat.GetBlocksList())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index;
+
+                    auto data = block->GetData();
+                    size_t blockCurrentSize = block->GetSize();
+                    std::unique_ptr<float[]> emptyData(new float[blockSize - blockCurrentSize]);
+                    std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                              std::numeric_limits<float>::max());
+                    bool isCompressed = block->IsCompressed();
+                    int32_t groupId = block->GetGroupId();
+                    float min = block->GetMin();
+                    float max = block->GetMax();
+                    float avg = block->GetAvg();
+                    float sum = block->GetSum();
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    if (isNullable)
+                    {
+                        int32_t nullBitMaskLength =
+                            (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
+                    }
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                    colDataFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
+                    colDataFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
+                    colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                    colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(float)); // write statistics sum
+                    colDataFile.write(reinterpret_cast<const char*>(data),
+                                      blockCurrentSize * sizeof(float)); // write block of data
+                    colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                      (blockSize - blockCurrentSize) * sizeof(float)); // write empty entries as well
+
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                                             sizeof(bool) + 6 * sizeof(float);
+                    colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    index += 1;
+                }
+            }
+            break;
+
+            case COLUMN_DOUBLE:
+            {
+                int32_t index = 0;
+
+                const ColumnBase<double>& colDouble =
+                    dynamic_cast<const ColumnBase<double>&>(*(column.second));
+
+                for (const auto& block : colDouble.GetBlocksList())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index;
+
+                    auto data = block->GetData();
+                    size_t blockCurrentSize = block->GetSize();
+                    std::unique_ptr<double[]> emptyData(new double[blockSize - blockCurrentSize]);
+                    std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                              std::numeric_limits<double>::max());
+                    bool isCompressed = block->IsCompressed();
+                    int32_t groupId = block->GetGroupId();
+                    double min = block->GetMin();
+                    double max = block->GetMax();
+                    float avg = block->GetAvg();
+                    double sum = block->GetSum();
+
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                    if (isNullable)
+                    {
+                        int32_t nullBitMaskLength =
+                            (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
+                                          nullBitMaskLength); // write nullBitMask
+                    }
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                      sizeof(int32_t)); // write block length (number of entries)
+                    colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                    colDataFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
+                    colDataFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max
+                    colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                    colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(double)); // write statistics sum
+                    colDataFile.write(reinterpret_cast<const char*>(data),
+                                      blockCurrentSize * sizeof(double)); // write block of data
+                    colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                      (blockSize - blockCurrentSize) * sizeof(double)); // write empty entries as well
+
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                                             sizeof(bool) + sizeof(float) + 5 * sizeof(double);
+                    colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    index += 1;
+                }
+            }
+            break;
+
+            default:
+                throw std::domain_error("Unsupported data type (when persisting database): " +
+                                        std::to_string(type));
+                break;
+            }
+
+            colAddressFile.close();
+            colDataFile.close();
+        }
+        else
+        {
+            colDataFile.close();
+            BOOST_LOG_TRIVIAL(error)
+                << "Could not open file " +
+                       std::string(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
+                                   column.second->GetName() + COLUMN_ADDRESS_EXTENSION) +
+                       " for writing. Persisting "
+                << COLUMN_ADDRESS_EXTENSION
+                << " file was not successful. Check if the process "
+                   "have write access into the folder or file.";
+        }
     }
     else
     {

@@ -223,6 +223,16 @@ public:
         saveNecessary_ = false;
     }
 
+    void SetIsCompressed(bool isCompressed)
+    {
+        isCompressed_ = isCompressed;
+    }
+
+    bool GetIsCompressed() const
+    {
+        return isCompressed_;
+    }
+
     /// <summary>
     /// Find out the amount of empty space in current block.
     /// </summary>
@@ -264,7 +274,8 @@ public:
     {
         if (EmptyBlockSpace() < data.size())
         {
-            throw std::length_error("BlockBase.h/InsertData(): Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertData(): Attempted to insert data larger "
+                                    "than remaining block size");
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
@@ -280,12 +291,13 @@ public:
     {
         if (EmptyBlockSpace() < length)
         {
-            throw std::length_error("BlockBase.h/InsertDataInterval(): Attempted to insert data larger than remaining block size");
+            throw std::length_error("BlockBase.h/InsertDataInterval(): Attempted to insert data "
+                                    "larger than remaining block size");
         }
 
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
 
-		size_ += length;
+        size_ += length;
         saveNecessary_ = true;
     }
 

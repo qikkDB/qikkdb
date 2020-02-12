@@ -33,8 +33,9 @@ private:
     /// <param name="dbName">Name of the database.</param>
     /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
     /// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according
-    /// to DataType enumeration.</param> <param name="isNullable">Flag if a column can have NULL
-    /// values.</param> <param name="isUnique">Flag if a column can have only unique values and not
+    /// to DataType enumeration.</param>
+    /// <param name="isNullable">Flag if a column can have NULL values.</param>
+    /// <param name="isUnique">Flag if a column can have only unique values and not
     /// a single one NULL value.</param> <param name="table">Instance of table into which the column
     /// should be added.</param> <param name="columnName">Names of particular column.</param>
     static void LoadColumn(const char* path,
@@ -49,11 +50,13 @@ private:
     /// <summary>
     /// Write column into disk.
     /// </summary>
+    /// <param name="blockSize">Block size of table to which the column belongs to.</param>
     /// <param name="column">Column to be written.</param>
     /// <param name="pathStr">Path to database storage directory.</param>
     /// <param name="name">Names of particular column.</param>
     /// <param name="table">Names of particular table.</param>
-    static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+    static void WriteColumn(const int32_t blockSize,
+                            const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                             std::string pathStr,
                             std::string name,
                             const std::pair<const std::string, Table>& table);
