@@ -17,6 +17,7 @@
 #include "ArithmeticOperations.h"
 #include "GPUConversion.cuh"
 #include "GPUStringBinary.cuh"
+#include "GPUPolygonClipping.cuh"
 
 namespace ArithmeticOperations
 {
@@ -479,5 +480,27 @@ public:
                                                  dataElementCount);
         }
         CheckCudaError(cudaGetLastError());
+    }
+};
+
+template <typename OP, typename T, typename U, typename V>
+class GPUArithmetic<
+    OP,
+    T,
+    U,
+    V,
+    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                            std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                            std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+{
+public:
+    static void Arithmetic(GPUMemory::GPUPolygon& polygonOut,
+                           GPUMemory::GPUPolygon& polygonAin,
+                           GPUMemory::GPUPolygon& polygonBin,
+                           int32_t dataElementCount)
+    {
+        GPUPolygonClipping::clip<OP>(polygonOut, polygonAin, polygonBin,
+                                     std::is_pointer<U>::value ? dataElementCount : 1,
+                                     std::is_pointer<V>::value ? dataElementCount : 1);
     }
 };

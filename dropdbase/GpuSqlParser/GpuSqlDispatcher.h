@@ -1125,18 +1125,6 @@ public:
     template <typename T, typename U>
     InstructionStatus ContainsConstConst();
 
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationConstConst();
-
     template <typename OUT, typename IN>
     InstructionStatus CastNumericCol();
 
