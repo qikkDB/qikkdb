@@ -232,8 +232,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstCol()
         << "ContainsConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     PointerAllocation columnPoint = allocatedPointers_.at(colName);
-    ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWkt);
 
     int32_t retSize = columnPoint.ElementCount;
 
@@ -340,10 +339,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ContainsConstConst()
         << "ContainsConstConst: " + constPolygonWkt << " " << constPointWkt << " " << reg << '\n';
 
     ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constPointWkt);
-    ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constPolygonWkt);
 
     NativeGeoPoint* constNativeGeoPoint = InsertConstPointGpu(constPoint);
-    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
+    GPUMemory::GPUPolygon gpuPolygon =
+        InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constPolygonWkt);
 
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
@@ -380,8 +379,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationColConst()
         << "PolygonOPConstCol: " + constWkt << " " << colName << " " << reg << '\n';
 
     auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
-    ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygonConst =
+        InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWkt);
 
     int32_t dataSize = polygonCol.ElementCount;
 
@@ -425,8 +424,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstCol()
     }
 
     auto polygonCol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
-    ColmnarDB::Types::ComplexPolygon polygonConst = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygonConst = InsertConstPolygonGpu(polygonConst);
+    GPUMemory::GPUPolygon gpuPolygonConst =
+        InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWkt);
 
     int32_t dataSize = polygonCol.ElementCount;
 
@@ -531,10 +530,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::PolygonOperationConstConst
     auto constWktLeft = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    ColmnarDB::Types::ComplexPolygon polygonConstLeft = ComplexPolygonFactory::FromWkt(constWktLeft);
-    ColmnarDB::Types::ComplexPolygon polygonConstRight = ComplexPolygonFactory::FromWkt(constWktRight);
-    GPUMemory::GPUPolygon gpuPolygonConstLeft = InsertConstPolygonGpu(polygonConstLeft);
-    GPUMemory::GPUPolygon gpuPolygonConstRight = InsertConstPolygonGpu(polygonConstRight);
+    GPUMemory::GPUPolygon gpuPolygonConstLeft =
+        InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWktLeft);
+    GPUMemory::GPUPolygon gpuPolygonConstRight =
+        InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWktRight);
 
     int32_t dataSize = 1;
 

@@ -146,8 +146,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPolygonConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPolygonConst: " << constWkt << " " << reg << '\n';
 
-    ColmnarDB::Types::ComplexPolygon constPolygon = ComplexPolygonFactory::FromWkt(constWkt);
-    GPUMemory::GPUPolygon gpuPolygon = InsertConstPolygonGpu(constPolygon);
+    GPUMemory::GPUPolygon gpuPolygon = InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(constWkt);
 
     int32_t retSize = GetBlockSize();
 

@@ -1171,12 +1171,23 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
     allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, const size_t size)
+template <>
+GpuSqlDispatcher::CompositeDataType<std::string>
+GpuSqlDispatcher::InsertConstCompositeDataType<std::string>(const std::string& str, size_t size)
 {
     std::vector<std::string> strings(size, str);
     std::string name = "constString" + std::to_string(constStringCounter_);
     constStringCounter_++;
     return InsertString(database_->GetName(), name, strings.data(), size);
+}
+
+template <>
+GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(const std::string& str, size_t size)
+{
+    std::string name = "constPolygon" + std::to_string(constPolygonCounter_);
+    constPolygonCounter_++;
+    return InsertComplexPolygon(database_->GetName(), name, {ComplexPolygonFactory::FromWkt(str)}, size);
 }
 
 /// Clears all allocated buffers

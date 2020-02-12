@@ -28,10 +28,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
             const int32_t retSize = std::get<1>(left).ElementCount;
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
             InstructionResult<ResultType> result =
-                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize,
-                                                                                     allocateNullMask,
-                                                                                     {std::get<3>(left)});
-            if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
+                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, allocateNullMask,
+                                                                                   {std::get<3>(left)});
+            if (isCompositeDataType<ResultType> || std::get<0>(result))
             {
                 if (std::get<1>(result))
                 {
@@ -43,8 +42,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
                 GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                        std::get<0>(left), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
-                                                                                  retSize, allocateNullMask,
-                                                                                  {std::get<3>(left)});
+                                                                                retSize, allocateNullMask,
+                                                                                {std::get<3>(left)});
             }
         }
         FreeColumnIfRegister<T>(std::get<3>(left));
@@ -58,15 +57,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
         }
 
         InstructionResult<ResultType> result =
-            DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg,
-                                                                                 retSize, false, {});
+            DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
 
-        if (std::is_same<typename std::remove_pointer<T>::type, std::string>::value || std::get<0>(result))
+        if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
             GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
                                                                    std::get<0>(left), retSize);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
-                                                                              false, {std::get<3>(left)});
+                                                                            false, {std::get<3>(left)});
         }
     }
 

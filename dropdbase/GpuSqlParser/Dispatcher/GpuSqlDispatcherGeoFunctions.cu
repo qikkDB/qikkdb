@@ -79,14 +79,3 @@ NativeGeoPoint* GpuSqlDispatcher::InsertConstPointGpu(ColmnarDB::Types::Point& p
     GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativePoint), 1);
     return gpuPointer;
 }
-
-// TODO change to return GPUMemory::GPUPolygon struct
-/// Copy polygon column to GPU memory - create polygon gpu representation temporary buffers from protobuf polygon object
-/// <param name="polygon">Polygon object (protobuf type)</param>
-/// <returns>Struct with GPU pointers to start of polygon arrays</returns>
-GPUMemory::GPUPolygon GpuSqlDispatcher::InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon)
-{
-    std::string name = "constPolygon" + std::to_string(constPolygonCounter_);
-    constPolygonCounter_++;
-    return InsertComplexPolygon(database_->GetName(), name, {polygon}, 1);
-}

@@ -49,7 +49,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
             InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (std::get<0>(result))
+            if (isCompositeDataType<ResultType> || std::get<0>(result))
             {
                 if (std::get<1>(result))
                 {
@@ -91,7 +91,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
             InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (std::get<0>(result))
+            if (isCompositeDataType<ResultType> || std::get<0>(result))
             {
                 if (std::get<1>(result))
                 {
@@ -117,7 +117,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
             InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (std::get<0>(result))
+            if (isCompositeDataType<ResultType> || std::get<0>(result))
             {
                 if (std::get<1>(result))
                 {
@@ -145,7 +145,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
 
         InstructionResult<ResultType> result =
             DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
-        if (std::get<0>(result))
+        if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
             GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
                                                             std::get<0>(right), retSize);

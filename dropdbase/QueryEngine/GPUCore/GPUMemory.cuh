@@ -42,13 +42,13 @@ namespace GPUMemory
 struct GPUPolygon
 {
     /// Points of polygons
-    NativeGeoPoint* polyPoints;
+    NativeGeoPoint* polyPoints = nullptr;
 
     /// Start indices of each polygon in point array
-    int32_t* pointIdx;
+    int32_t* pointIdx = nullptr;
 
     /// Start indices of each complex polygon in polygon array
-    int32_t* polyIdx;
+    int32_t* polyIdx = nullptr;
 
     __device__ __host__ int32_t PointIdxAt(int32_t idx);
 
@@ -70,10 +70,10 @@ struct GPUPolygon
 struct GPUString
 {
     /// All chars from all strings condensed
-    char* allChars;
+    char* allChars = nullptr;
     /// Start indices of each string in allChars array,
     /// shifted by 1 string to left (last one is total count of chars)
-    int64_t* stringIndices;
+    int64_t* stringIndices = nullptr;
 
     operator bool()
     {

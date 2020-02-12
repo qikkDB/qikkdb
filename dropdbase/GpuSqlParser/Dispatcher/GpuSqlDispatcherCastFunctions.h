@@ -161,7 +161,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastStringConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastStringConst: " << reg << '\n';
 
-    GPUMemory::GPUString gpuString = InsertConstStringGpu(cnst);
+    GPUMemory::GPUString gpuString = InsertConstCompositeDataType<std::string>(cnst);
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
     {

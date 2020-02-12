@@ -69,10 +69,10 @@ class GpuSqlDispatcher
 private:
     struct PointerAllocation
     {
-        std::uintptr_t GpuPtr;
-        int32_t ElementCount;
-        bool ShouldBeFreed;
-        std::uintptr_t GpuNullMaskPtr;
+        std::uintptr_t GpuPtr = 0;
+        int32_t ElementCount = 0;
+        bool ShouldBeFreed = false;
+        std::uintptr_t GpuNullMaskPtr = 0;
     };
 
     template <typename T>
@@ -85,9 +85,9 @@ private:
     template <typename T>
     struct CompositeDataTypeAllocation
     {
-        CompositeDataType<T> GpuPtr;
-        int32_t ElementCount;
-        std::uintptr_t GpuNullMaskPtr;
+        CompositeDataType<T> GpuPtr{};
+        int32_t ElementCount = 0;
+        std::uintptr_t GpuNullMaskPtr = 0;
     };
 
     enum class InstructionStatus
@@ -807,12 +807,12 @@ public:
     };
 
     template <typename T>
-    class DispatcherInstructionHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value>::type>
+    class DispatcherInstructionHelper<T, typename std::enable_if<isCompositeDataType<T>>::type>
     {
     public:
         static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
         {
-            CompositeDataTypeAllocation<std::string> column = {{nullptr, nullptr}, 0, 0};
+            CompositeDataTypeAllocation<typename std::remove_pointer<T>::type> column;
 
             if constexpr (std::is_pointer<T>::value)
             {
@@ -831,152 +831,16 @@ public:
                 {
                     if (dispatcher.isOverallLastBlock_)
                     {
-                        column = dispatcher.FindCompositeDataTypeAllocation<std::string>(colName + KEYS_SUFFIX);
+                        column =
+                            dispatcher.FindCompositeDataTypeAllocation<typename std::remove_pointer<T>::type>(
+                                colName + KEYS_SUFFIX);
                     }
                 }
                 else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
                          dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
                 {
-                    column = dispatcher.FindCompositeDataTypeAllocation<std::string>(colName);
-                }
-
-                return {column.GpuPtr, column, loadFlag, colName};
-            }
-            else
-            {
-                const T cnst = dispatcher.arguments_.Read<T>();
-                const int32_t retSize = dispatcher.GetBlockSize();
-                if (retSize == 0)
-                {
-                    return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
-                }
-
-                GPUMemory::GPUString gpuString = dispatcher.InsertConstStringGpu(cnst, retSize);
-                column = {gpuString, 0, 0};
-                return {gpuString, column, InstructionStatus::CONTINUE, ""};
-            }
-        }
-
-        static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
-                                                              const std::string& reg,
-                                                              int32_t retSize,
-                                                              bool allocateNullMask,
-                                                              const std::vector<std::string>& instructionOperandColumns)
-        {
-            GPUMemory::GPUString result;
-            int8_t* nullMask = nullptr;
-
-            bool areGroupByColumns = false;
-
-            for (auto& operandColumn : instructionOperandColumns)
-            {
-                areGroupByColumns =
-                    areGroupByColumns ||
-                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
-                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
-            }
-
-            if (areGroupByColumns && !dispatcher.insideAggregation_)
-            {
-                if (dispatcher.isOverallLastBlock_)
-                {
-                    if (allocateNullMask)
-                    {
-                        const int32_t bitMaskSize =
-                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
-                    }
-                    dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
-                }
-            }
-            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
-            {
-                if (!dispatcher.IsRegisterAllocated(reg))
-                {
-                    if (allocateNullMask)
-                    {
-                        const int32_t bitMaskSize =
-                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
-                    }
-                }
-            }
-            return {result, nullMask};
-        }
-
-        static void StoreInstructionResult(InstructionResult<T> instructionResult,
-                                           GpuSqlDispatcher& dispatcher,
-                                           const std::string& reg,
-                                           int32_t retSize,
-                                           bool allocateNullMask,
-                                           const std::vector<std::string>& instructionOperandColumns)
-        {
-            bool areGroupByColumns = false;
-
-            for (auto& operandColumn : instructionOperandColumns)
-            {
-                areGroupByColumns =
-                    areGroupByColumns ||
-                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
-                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
-            }
-
-            if (areGroupByColumns && !dispatcher.insideAggregation_)
-            {
-                if (dispatcher.isOverallLastBlock_)
-                {
-                    dispatcher.FillCompositeDataTypeRegister<std::string>(
-                        std::get<0>(instructionResult), reg + KEYS_SUFFIX, retSize, true,
-                        allocateNullMask ? std::get<1>(instructionResult) : nullptr);
-                }
-            }
-            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
-            {
-                if (!dispatcher.IsRegisterAllocated(reg))
-                {
-                    dispatcher.FillCompositeDataTypeRegister<std::string>(
-                        std::get<0>(instructionResult), reg, retSize, true,
-                        allocateNullMask ? std::get<1>(instructionResult) : nullptr);
-                }
-            }
-        }
-    };
-
-    template <typename T>
-    class DispatcherInstructionHelper<T, typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
-    {
-    public:
-        static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
-        {
-            CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon> column = {{nullptr, nullptr, nullptr}, 0, 0};
-
-            if constexpr (std::is_pointer<T>::value)
-            {
-                auto colName = dispatcher.arguments_.Read<std::string>();
-                GpuSqlDispatcher::InstructionStatus loadFlag =
-                    dispatcher.LoadCol<typename std::remove_pointer<T>::type>(colName);
-
-                if (loadFlag != InstructionStatus::CONTINUE)
-                {
-                    return {column.GpuPtr, column, loadFlag, colName};
-                }
-
-                if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
-                                 StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
-                    !dispatcher.insideAggregation_)
-                {
-                    if (dispatcher.isOverallLastBlock_)
-                    {
-                        column = dispatcher.FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(
-                            colName + KEYS_SUFFIX);
-                    }
-                }
-                else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
-                {
-                    column = dispatcher.FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
+                    column =
+                        dispatcher.FindCompositeDataTypeAllocation<typename std::remove_pointer<T>::type>(colName);
                 }
 
                 return {column.GpuPtr, column, loadFlag, colName};
@@ -990,10 +854,9 @@ public:
                     return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
                 }
 
-                GPUMemory::GPUPolygon gpuPolygon =
-                    dispatcher.InsertConstPolygonGpu(ComplexPolygonFactory::FromWkt(cnst));
-                column = {gpuPolygon, 0, 0};
-                return {gpuPolygon, column, InstructionStatus::CONTINUE, ""};
+                CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
+                column = {gpuComposite, 0, 0};
+                return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
             }
         }
 
@@ -1003,7 +866,7 @@ public:
                                                               bool allocateNullMask,
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
-            GPUMemory::GPUPolygon result;
+            CompositeDataType<typename std::remove_pointer<T>::type> result;
             int8_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;
@@ -1066,7 +929,7 @@ public:
             {
                 if (dispatcher.isOverallLastBlock_)
                 {
-                    dispatcher.FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
+                    dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
                         std::get<0>(instructionResult), reg + KEYS_SUFFIX, retSize, true,
                         allocateNullMask ? std::get<1>(instructionResult) : nullptr);
                 }
@@ -1076,7 +939,7 @@ public:
             {
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
-                    dispatcher.FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
+                    dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
                         std::get<0>(instructionResult), reg, retSize, true,
                         allocateNullMask ? std::get<1>(instructionResult) : nullptr);
                 }
@@ -1143,8 +1006,9 @@ public:
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
-    GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
+
+    template <typename T>
+    CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
 
     template <typename T>
     InstructionStatus OrderByConst();
@@ -1526,3 +1390,12 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPo
     int32_t size,
     bool useCache,
     int8_t* nullMaskPtr);
+
+template <>
+GpuSqlDispatcher::CompositeDataType<std::string>
+GpuSqlDispatcher::InsertConstCompositeDataType<std::string>(const std::string& str, size_t size);
+
+template <>
+GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(const std::string& str,
+                                                                                 size_t size);
