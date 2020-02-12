@@ -76,10 +76,10 @@ private:
     };
 
     template <typename T>
-    using AllocatedDataType = typename std::conditional<
-        std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value,
-        typename std::conditional<std::is_pointer<T>::value, NativeGeoPoint, typename std::add_pointer<NativeGeoPoint>::type>::type,
-        T>::type;
+    using AllocatedDataType =
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value,
+                                  typename std::conditional<std::is_pointer<T>::value, NativeGeoPoint*, NativeGeoPoint>::type,
+                                  T>::type;
 
 
     template <typename T>
@@ -127,7 +127,7 @@ private:
     using InstructionResult = typename std::conditional<
         isCompositeDataType<T>,
         std::pair<CompositeDataType<typename std::remove_pointer<T>::type>, int8_t*>,
-        std::pair<typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, typename std::add_pointer<AllocatedDataType<T>>::type>::type, int8_t*>>::type;
+        std::pair<typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type, int8_t*>>::type;
 
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
@@ -1016,6 +1016,7 @@ public:
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
     NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
+    NativeGeoPoint* InsertConstPointGpu(NativeGeoPoint nativeGeoPoint);
 
     template <typename T>
     CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
@@ -1109,19 +1110,6 @@ public:
 
     template <typename OP, typename T, typename U>
     InstructionStatus AggregationConst();
-
-    ////
-
-    // point from columns
-
-    template <typename T, typename U>
-    InstructionStatus PointColCol();
-
-    template <typename T, typename U>
-    InstructionStatus PointColConst();
-
-    template <typename T, typename U>
-    InstructionStatus PointConstCol();
 
     // contains
 

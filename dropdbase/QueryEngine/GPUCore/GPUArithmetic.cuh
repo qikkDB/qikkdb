@@ -15,6 +15,7 @@
 #include "../NullConstants.cuh"
 #include "../../MathConstants.h"
 #include "ArithmeticOperations.h"
+#include "GPUConversion.cuh"
 #include "GPUStringBinary.cuh"
 
 namespace ArithmeticOperations
@@ -473,7 +474,9 @@ public:
         }
         else
         {
-            GPUMemory::fillArray<NativeGeoPoint>(outCol, {LatCol, LonCol}, dataElementCount);
+            GPUMemory::fillArray<NativeGeoPoint>(outCol,
+                                                 {static_cast<float>(LatCol), static_cast<float>(LonCol)},
+                                                 dataElementCount);
         }
         CheckCudaError(cudaGetLastError());
     }

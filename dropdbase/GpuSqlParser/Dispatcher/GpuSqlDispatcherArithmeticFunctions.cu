@@ -246,5 +246,16 @@ DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, StringBinaryOperations::concat, st
 DISPATCHER_INVALID_TYPE(StringBinaryOperations::concat, ColmnarDB::Types::ComplexPolygon)
 END_DISPATCH_TABLE
 
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::pointFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ConversionOperations::latLonToPoint, int32_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ConversionOperations::latLonToPoint, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ConversionOperations::latLonToPoint, float, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, ConversionOperations::latLonToPoint, double, 1, 1, 1, 1, 0, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(ConversionOperations::latLonToPoint, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(ConversionOperations::latLonToPoint, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(ConversionOperations::latLonToPoint, std::string)
+DISPATCHER_INVALID_TYPE(ConversionOperations::latLonToPoint, int8_t)
+END_DISPATCH_TABLE
+
 
 #undef MERGED
