@@ -785,8 +785,9 @@ public:
                 if (dispatcher.isOverallLastBlock_)
                 {
                     result = allocateNullMask ?
-                                 dispatcher.AllocateRegister<T>(reg + KEYS_SUFFIX, retSize, &nullMask) :
-                                 dispatcher.AllocateRegister<T>(reg + KEYS_SUFFIX, retSize);
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg + KEYS_SUFFIX,
+                                                                                   retSize, &nullMask) :
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg + KEYS_SUFFIX, retSize);
 
                     dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
                 }
@@ -796,8 +797,9 @@ public:
             {
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
-                    result = allocateNullMask ? dispatcher.AllocateRegister<T>(reg, retSize, &nullMask) :
-                                                dispatcher.AllocateRegister<T>(reg, retSize);
+                    result = allocateNullMask ?
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg, retSize, &nullMask) :
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg, retSize);
                 }
             }
             return {result, nullMask};
