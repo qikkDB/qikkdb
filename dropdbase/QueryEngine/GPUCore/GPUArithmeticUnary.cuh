@@ -81,7 +81,8 @@ template <typename OP, typename T, typename U>
 class GPUArithmeticUnary<OP,
                          T,
                          U,
-                         typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int32_t>::value &&
+                         typename std::enable_if<std::is_same<OP, StringUnaryNumericOperations::len>::value &&
+                                                 std::is_same<typename std::remove_pointer<T>::type, int32_t>::value &&
                                                  std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
 {
 public:
@@ -237,5 +238,45 @@ public:
     static void ArithmeticUnary(GPUMemory::GPUString& outCol, GPUMemory::GPUPolygon inCol, int32_t dataElementCount)
     {
         GPUReconstruct::ConvertPolyColToWKTCol(outCol, inCol, dataElementCount);
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<T>>::value &&
+                                                 std::is_arithmetic<typename std::remove_pointer<T>::type>::value &&
+                                                 std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
+{
+public:
+    static void ArithmeticUnary(T* outCol, U inCol, int32_t dataElementCount)
+    {
+        kernel_cast_numeric<<<Context::getInstance().calcGridDim(dataElementCount),
+                              Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
+        CheckCudaError(cudaGetLastError());
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<
+    OP,
+    T,
+    U,
+    typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<T>>::value &&
+                            (std::is_arithmetic<typename std::remove_pointer<T>::type>::value ||
+                             std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value) &&
+                            std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+{
+public:
+    static void ArithmeticUnary(
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value, NativeGeoPoint*, T*>::type outCol,
+        GPUMemory::GPUString inCol,
+        int32_t dataElementCount)
+    {
+        kernel_cast_string<<<Context::getInstance().calcGridDim(dataElementCount),
+                             Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
+
+        CheckCudaError(cudaGetLastError());
     }
 };

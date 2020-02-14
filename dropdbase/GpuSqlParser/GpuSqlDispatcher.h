@@ -1109,18 +1109,6 @@ public:
     template <typename OP, typename T, typename U>
     InstructionStatus AggregationConst();
 
-    template <typename OUT, typename IN>
-    InstructionStatus CastNumericCol();
-
-    template <typename OUT, typename IN>
-    InstructionStatus CastNumericConst();
-
-    template <typename OUT>
-    InstructionStatus CastStringCol();
-
-    template <typename OUT>
-    InstructionStatus CastStringConst();
-
     InstructionStatus Between();
 
     template <typename T>
