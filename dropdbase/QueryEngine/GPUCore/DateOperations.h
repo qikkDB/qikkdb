@@ -38,7 +38,7 @@ __constant__ const int64_t START_DAYS_OF_MONTHS[] = {
 struct toString
 {
     static constexpr bool isMonotonous = false;
-    typedef void RetType;
+    typedef std::string RetType;
 
     template <typename T, typename U>
     __device__ __host__ T operator()(U dateTime) const

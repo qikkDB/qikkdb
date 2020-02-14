@@ -335,4 +335,15 @@ DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, StringUnaryN
 DISPATCHER_UNARY_ERROR(StringUnaryNumericOperations::len, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::dateToStringFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, DateOperations::toString, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, float)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, double)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::toString, int8_t)
+END_DISPATCH_TABLE
+
 #undef MERGED

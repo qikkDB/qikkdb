@@ -1148,10 +1148,6 @@ public:
     template <typename OP>
     InstructionStatus NullMaskCol();
 
-    InstructionStatus DateToStringCol();
-
-    InstructionStatus DateToStringConst();
-
     template <typename T>
     InstructionStatus GroupByCol();
 
