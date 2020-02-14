@@ -504,3 +504,38 @@ public:
                                      std::is_pointer<V>::value ? dataElementCount : 1);
     }
 };
+
+template <typename OP, typename T, typename U, typename V>
+class GPUArithmetic<OP,
+                    T,
+                    U,
+                    V,
+                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
+                                            std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                            std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::Point>::value>::type>
+{
+public:
+    static void
+    Arithmetic(int8_t* outMask,
+               GPUMemory::GPUPolygon polygonCol,
+               typename std::conditional<std::is_pointer<V>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
+               int32_t dataElementCount)
+    {
+        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        {
+            kernel_point_in_polygon<<<Context::getInstance().calcGridDim(dataElementCount),
+                                      Context::getInstance().getBlockDim()>>>(
+                outMask, polygonCol, std::is_pointer<U>::value ? dataElementCount : 1, geoPointCol,
+                std::is_pointer<V>::value ? dataElementCount : 1);
+        }
+        else
+        {
+            kernel_point_in_polygon<<<Context::getInstance().calcGridDim(1), Context::getInstance().getBlockDim()>>>(
+                outMask, polygonCol, 1, geoPointCol, 1);
+            int8_t result;
+            GPUMemory::copyDeviceToHost(&result, outMask, 1);
+            GPUMemory::memset(outMask, result, dataElementCount);
+        }
+        CheckCudaError(cudaGetLastError());
+    }
+};

@@ -279,5 +279,16 @@ DISPATCHER_INVALID_TYPE(PolygonFunctions::polyUnion, std::string)
 DISPATCHER_INVALID_TYPE(PolygonFunctions::polyUnion, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::containsFunctions_)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, int32_t)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, int64_t)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, float)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, double)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, ColmnarDB::Types::Point)
+DISPATCHER_TYPE(GpuSqlDispatcher::Arithmetic, PolygonFunctions::contains, ColmnarDB::Types::ComplexPolygon, 0, 0, 0, 0, 1, 0, 0, 0)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, std::string)
+DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, int8_t)
+END_DISPATCH_TABLE
+
 
 #undef MERGED

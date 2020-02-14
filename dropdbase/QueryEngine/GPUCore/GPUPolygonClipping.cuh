@@ -42,6 +42,11 @@ struct polyUnion
         turnTable[1] = false;
     }
 };
+
+struct contains
+{
+    typedef int8_t RetType;
+};
 } // namespace PolygonFunctions
 
 // A point in the linked list of polygons
@@ -129,6 +134,20 @@ __global__ void kernel_label_intersections(LLPolyVertex* llPolygonBuffers,
                                            bool isPrimaryConst,
                                            bool isSecondaryConst,
                                            int32_t dataElementCount);
+
+template <typename T>
+__global__ void
+kernel_point_in_polygon(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount, T geoPointCol, int32_t pointCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
+    {
+        int32_t polyIdx = (polygonCount == 1) ? 0 : i;
+        outMask[i] = is_point_in_complex_polygon_at(maybe_deref(geoPointCol, i), polygonCol, polyIdx);
+    }
+}
 
 // Clip the polygons in different phases
 template <typename OP>

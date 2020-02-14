@@ -1111,20 +1111,6 @@ public:
     template <typename OP, typename T, typename U>
     InstructionStatus AggregationConst();
 
-    // contains
-
-    template <typename T, typename U>
-    InstructionStatus ContainsColConst();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsConstCol();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsColCol();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsConstConst();
-
     template <typename OUT, typename IN>
     InstructionStatus CastNumericCol();
 
