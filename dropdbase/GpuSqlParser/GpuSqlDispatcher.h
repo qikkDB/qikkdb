@@ -1115,25 +1115,11 @@ public:
     template <typename OUT, typename IN>
     InstructionStatus CastNumericConst();
 
-    template <typename IN>
-    InstructionStatus CastNumericToStringCol();
-
-    template <typename IN>
-    InstructionStatus CastNumericToStringConst();
-
     template <typename OUT>
     InstructionStatus CastStringCol();
 
     template <typename OUT>
     InstructionStatus CastStringConst();
-
-    InstructionStatus CastPointCol();
-
-    InstructionStatus CastPointConst();
-
-    InstructionStatus CastPolygonCol();
-
-    InstructionStatus CastPolygonConst();
 
     InstructionStatus Between();
 

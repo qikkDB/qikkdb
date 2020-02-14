@@ -395,7 +395,7 @@ public:
     /// <param name="outStringCol">output GPUString column</param>
     /// <param name="inPolygonCol">input GPUPolygon column</param>
     /// <param name="dataElementCount">input data element (complex polygon) count</param>
-    static void ConvertPolyColToWKTCol(GPUMemory::GPUString* outStringCol,
+    static void ConvertPolyColToWKTCol(GPUMemory::GPUString& outStringCol,
                                        GPUMemory::GPUPolygon inPolygonCol,
                                        int32_t dataElementCount);
 

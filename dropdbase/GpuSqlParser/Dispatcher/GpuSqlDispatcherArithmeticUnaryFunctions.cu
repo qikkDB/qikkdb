@@ -346,4 +346,15 @@ DISPATCHER_UNARY_ERROR(DateOperations::toString, std::string)
 DISPATCHER_UNARY_ERROR(DateOperations::toString, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::castToStringFunctions_)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, int64_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, float)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, double)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::ArithmeticUnary, CastOperations::toString, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(CastOperations::toString, std::string)
+DISPATCHER_UNARY_ERROR(CastOperations::toString, int8_t)
+END_DISPATCH_TABLE
+
 #undef MERGED

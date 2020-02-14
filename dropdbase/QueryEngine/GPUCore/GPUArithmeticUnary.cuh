@@ -196,17 +196,46 @@ template <typename OP, typename T, typename U>
 class GPUArithmeticUnary<OP,
                          T,
                          U,
-                         typename std::enable_if<std::is_same<OP, CastOperations::ToString>::value &&
+                         typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
                                                  std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
                                                  std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
 {
 public:
-    /// String unary operations which return string, for column
-    /// <param name="output">output string column</param>
-    /// <param name="inCol">input string column (GPUString)</param>
-    /// <param name="dataElementCount">input string count</param>
     static void ArithmeticUnary(GPUMemory::GPUString& outCol, U inCol, int32_t dataElementCount)
     {
         GPUCast::CastNumericToString(outCol, inCol, dataElementCount);
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
+                                                 std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                                 std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::Point>::value>::type>
+{
+public:
+    static void
+    ArithmeticUnary(GPUMemory::GPUString& outCol,
+                    typename std::conditional<std::is_pointer<U>::value, NativeGeoPoint*, NativeGeoPoint>::type inCol,
+                    int32_t dataElementCount)
+    {
+        GPUReconstruct::ConvertPointColToWKTCol(outCol, inCol, dataElementCount);
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
+                                                 std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                                 std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+{
+public:
+    static void ArithmeticUnary(GPUMemory::GPUString& outCol, GPUMemory::GPUPolygon inCol, int32_t dataElementCount)
+    {
+        GPUReconstruct::ConvertPolyColToWKTCol(outCol, inCol, dataElementCount);
     }
 };

@@ -195,7 +195,7 @@ struct FromString
     __device__ OUT operator()(char* str, int32_t length) const;
 };
 
-struct ToString
+struct toString
 {
     typedef std::string RetType;
 };

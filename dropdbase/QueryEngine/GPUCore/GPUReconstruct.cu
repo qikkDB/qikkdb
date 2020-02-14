@@ -530,7 +530,7 @@ void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLen
 }
 
 
-void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString* outStringCol,
+void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString& outStringCol,
                                             GPUMemory::GPUPolygon inPolygonCol,
                                             int32_t dataElementCount)
 {
@@ -544,23 +544,23 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString* outStringCol,
         CheckCudaError(cudaGetLastError());
 
         // Alloc and compute string indices as a prefix sum of the string lengths
-        GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
-        PrefixSum(outStringCol->stringIndices, stringLengths.get(), dataElementCount);
+        GPUMemory::alloc(&(outStringCol.stringIndices), dataElementCount);
+        PrefixSum(outStringCol.stringIndices, stringLengths.get(), dataElementCount);
 
         // Get total char count and alloc array for all chars
         int64_t totalCharCount;
-        GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
-        GPUMemory::alloc(&(outStringCol->allChars), totalCharCount);
+        GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol.stringIndices + dataElementCount - 1, 1);
+        GPUMemory::alloc(&(outStringCol.allChars), totalCharCount);
 
         // Finally convert polygons to WKTs
         kernel_convert_poly_to_wkt<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            *outStringCol, inPolygonCol, dataElementCount);
+            outStringCol, inPolygonCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
     else
     {
-        outStringCol->allChars = nullptr;
-        outStringCol->stringIndices = nullptr;
+        outStringCol.allChars = nullptr;
+        outStringCol.stringIndices = nullptr;
     }
 }
 
@@ -703,7 +703,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
         }
     }
     GPUMemory::GPUString gpuWkt;
-    ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
+    ConvertPolyColToWKTCol(gpuWkt, reconstructedPolygonCol, *outDataElementCount);
     if (inMask)
     {
         GPUMemory::free(reconstructedPolygonCol);
