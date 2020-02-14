@@ -17,6 +17,7 @@
 #include "GPUStringUnary.cuh"
 #include "DateOperations.h"
 #include "GPUDate.cuh"
+#include "GPUCast.cuh"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -113,7 +114,8 @@ template <typename OP, typename T, typename U>
 class GPUArithmeticUnary<OP,
                          T,
                          U,
-                         typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                         typename std::enable_if<std::is_same<OP, DateOperations::toString>::value &&
+                                                 std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
                                                  std::is_same<typename std::remove_pointer<U>::type, int64_t>::value>::type>
 {
 public:
@@ -187,5 +189,24 @@ public:
             output.allChars = nullptr;
             output.allChars = nullptr;
         }
+    }
+};
+
+template <typename OP, typename T, typename U>
+class GPUArithmeticUnary<OP,
+                         T,
+                         U,
+                         typename std::enable_if<std::is_same<OP, CastOperations::ToString>::value &&
+                                                 std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                                 std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
+{
+public:
+    /// String unary operations which return string, for column
+    /// <param name="output">output string column</param>
+    /// <param name="inCol">input string column (GPUString)</param>
+    /// <param name="dataElementCount">input string count</param>
+    static void ArithmeticUnary(GPUMemory::GPUString& outCol, U inCol, int32_t dataElementCount)
+    {
+        GPUCast::CastNumericToString(outCol, inCol, dataElementCount);
     }
 };

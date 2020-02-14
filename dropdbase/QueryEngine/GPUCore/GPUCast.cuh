@@ -195,6 +195,11 @@ struct FromString
     __device__ OUT operator()(char* str, int32_t length) const;
 };
 
+struct ToString
+{
+    typedef std::string RetType;
+};
+
 template <>
 __device__ int32_t FromString::operator()<int32_t>(char* str, int32_t length) const;
 
@@ -268,7 +273,7 @@ public:
     }
 
     template <typename IN>
-    static void CastNumericToString(GPUMemory::GPUString* outCol, IN inCol, int32_t dataElementCount)
+    static void CastNumericToString(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount)
     {
         static_assert(std::is_arithmetic<typename std::remove_pointer<IN>::type>::value,
                       "InCol must be arithmetic data type");
@@ -279,18 +284,16 @@ public:
             stringLengths.get(), inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        GPUMemory::alloc(&(outCol->stringIndices), dataElementCount);
-        GPUReconstruct::PrefixSum(outCol->stringIndices, stringLengths.get(), dataElementCount);
+        GPUMemory::alloc(&(outCol.stringIndices), dataElementCount);
+        GPUReconstruct::PrefixSum(outCol.stringIndices, stringLengths.get(), dataElementCount);
 
 
         int64_t totalCharCount;
-        GPUMemory::copyDeviceToHost(&totalCharCount, outCol->stringIndices + dataElementCount - 1, 1);
-        GPUMemory::alloc(&(outCol->allChars), totalCharCount);
-
-        std::cout << "total char count: " << totalCharCount << std::endl;
+        GPUMemory::copyDeviceToHost(&totalCharCount, outCol.stringIndices + dataElementCount - 1, 1);
+        GPUMemory::alloc(&(outCol.allChars), totalCharCount);
 
         kernel_cast_numeric_to_string<<<Context::getInstance().calcGridDim(dataElementCount),
-                                        Context::getInstance().getBlockDim()>>>(*outCol, inCol, dataElementCount);
+                                        Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
 

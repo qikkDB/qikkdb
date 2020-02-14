@@ -183,7 +183,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointCol()
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUReconstruct::ConvertPointColToWKTCol(&result, reinterpret_cast<NativeGeoPoint*>(column.GpuPtr), retSize);
+        GPUReconstruct::ConvertPointColToWKTCol(result, reinterpret_cast<NativeGeoPoint*>(column.GpuPtr), retSize);
         if (column.GpuNullMaskPtr)
         {
             int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
@@ -202,13 +202,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointCol()
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointConst()
 {
-    auto constWkt = arguments_.Read<std::string>();
+    auto constWkt = arguments_.Read<NativeGeoPoint>();
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPointConst: " << constWkt << " " << reg << '\n';
-
-    ColmnarDB::Types::Point constPoint = PointFactory::FromWkt(constWkt);
-    NativeGeoPoint* gpuPoint = InsertConstPointGpu(constPoint);
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "CastPointConst: "
+                                                   << " " << reg << '\n';
 
     int32_t retSize = GetBlockSize();
     if (retSize == 0)
@@ -218,7 +216,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastPointConst()
     if (!IsRegisterAllocated(reg))
     {
         GPUMemory::GPUString result;
-        GPUReconstruct::ConvertPointColToWKTCol(&result, gpuPoint, retSize);
+        GPUReconstruct::ConvertPointColToWKTCol(result, constWkt, retSize);
         FillCompositeDataTypeRegister<std::string>(result, reg, retSize, true);
     }
 

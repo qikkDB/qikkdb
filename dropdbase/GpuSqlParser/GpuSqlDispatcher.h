@@ -1015,8 +1015,6 @@ public:
     CompositeDataTypeAllocation<T> FindCompositeDataTypeAllocation(const std::string& colName);
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
-    NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
-    NativeGeoPoint* InsertConstPointGpu(NativeGeoPoint nativeGeoPoint);
 
     template <typename T>
     CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);

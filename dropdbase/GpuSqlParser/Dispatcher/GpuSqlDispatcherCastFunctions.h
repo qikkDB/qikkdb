@@ -199,7 +199,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
             PointerAllocation column = allocatedPointers_.at(colName + KEYS_SUFFIX);
             int32_t retSize = column.ElementCount;
             GPUMemory::GPUString result;
-            GPUCast::CastNumericToString(&result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+            GPUCast::CastNumericToString(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
 
             if (column.GpuNullMaskPtr)
             {
@@ -224,7 +224,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CastNumericToStringCol()
         if (!IsRegisterAllocated(reg))
         {
             GPUMemory::GPUString result;
-            GPUCast::CastNumericToString(&result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
+            GPUCast::CastNumericToString(result, reinterpret_cast<IN*>(column.GpuPtr), retSize);
 
             if (column.GpuNullMaskPtr)
             {

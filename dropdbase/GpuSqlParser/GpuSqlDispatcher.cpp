@@ -1190,30 +1190,6 @@ GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>
     return InsertComplexPolygon(database_->GetName(), name, {ComplexPolygonFactory::FromWkt(str)}, size);
 }
 
-NativeGeoPoint* GpuSqlDispatcher::InsertConstPointGpu(ColmnarDB::Types::Point& point)
-{
-    NativeGeoPoint nativePoint;
-    nativePoint.latitude = point.geopoint().latitude();
-    nativePoint.longitude = point.geopoint().longitude();
-
-    NativeGeoPoint* gpuPointer =
-        AllocateRegister<NativeGeoPoint>("constPoint" + std::to_string(constPointCounter_), 1);
-    constPointCounter_++;
-
-    GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativePoint), 1);
-    return gpuPointer;
-}
-
-NativeGeoPoint* GpuSqlDispatcher::InsertConstPointGpu(NativeGeoPoint nativeGeoPoint)
-{
-    NativeGeoPoint* gpuPointer =
-        AllocateRegister<NativeGeoPoint>("constPoint" + std::to_string(constPointCounter_), 1);
-    constPointCounter_++;
-
-    GPUMemory::copyHostToDevice(gpuPointer, reinterpret_cast<NativeGeoPoint*>(&nativeGeoPoint), 1);
-    return gpuPointer;
-}
-
 /// Clears all allocated buffers
 /// Resets memory stream reading index to prepare for execution on the next block of data
 void GpuSqlDispatcher::CleanUpGpuPointers()
