@@ -72,40 +72,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
         FreeColumnIfRegister<R>(std::get<3>(right));
     }
 
-    else if constexpr (std::is_pointer<L>::value)
+    else if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
     {
-        if (std::get<0>(left))
+        typedef typename std::conditional<std::is_pointer<L>::value, L, R>::type ColType;
+        InstructionArgument<ColType> col;
+        if constexpr (std::is_pointer<L>::value)
         {
-            const int32_t retSize = std::get<1>(left).ElementCount;
-            const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
-            InstructionResult<int8_t> result = DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(
-                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (std::get<0>(result))
-            {
-                if (std::get<1>(result))
-                {
-                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                  reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                                                  bitMaskSize);
-                }
-                GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
-                                            std::get<0>(right), std::get<1>(result), retSize);
-                DispatcherInstructionHelper<int8_t>::StoreInstructionResult(result, *this, reg,
-                                                                            retSize, allocateNullMask,
-                                                                            {std::get<3>(left),
-                                                                             std::get<3>(right)});
-            }
+            col = left;
         }
-        FreeColumnIfRegister<L>(std::get<3>(left));
-    }
+        else
+        {
+            col = right;
+        }
 
-    else if constexpr (std::is_pointer<R>::value)
-    {
-        if (std::get<0>(right))
+        if (std::get<0>(col))
         {
-            const int32_t retSize = std::get<1>(right).ElementCount;
-            const bool allocateNullMask = std::get<1>(right).GpuNullMaskPtr;
+            const int32_t retSize = std::get<1>(col).ElementCount;
+            const bool allocateNullMask = std::get<1>(col).GpuNullMaskPtr;
             InstructionResult<int8_t> result = DispatcherInstructionHelper<int8_t>::AllocateInstructionResult(
                 *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             if (std::get<0>(result))
@@ -114,7 +97,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                 {
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                  reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
+                                                  reinterpret_cast<int8_t*>(std::get<1>(col).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
                 GPUFilter<OP, L, R>::Filter(std::get<0>(result), std::get<0>(left),
@@ -125,7 +108,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                                                                              std::get<3>(right)});
             }
         }
-        FreeColumnIfRegister<R>(std::get<3>(right));
+        FreeColumnIfRegister<ColType>(std::get<3>(col));
     }
 
     else
