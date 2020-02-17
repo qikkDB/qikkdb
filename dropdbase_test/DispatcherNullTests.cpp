@@ -82,11 +82,11 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
-    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
-    //ASSERT_EQ(nullBitMask.size(), expectedMask.size());
+    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1").nullmask();
+    // ASSERT_EQ(nullBitMask.size(), expectedMask.size());
     for (int i = 0; i < expectedMask.size(); i++)
     {
-        ASSERT_FLOAT_EQ(expectedMask[i], nullBitMask[i]);
+        ASSERT_EQ(expectedMask[i], nullBitMask[i]);
     }
     Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
@@ -185,7 +185,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     std::stable_sort(expectedResults.begin(), expectedResults.end());
 
@@ -281,16 +281,16 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
     auto& payload1 = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     auto& payload2 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2").nullmask();
 
     auto& payload3 = result->payloads().at("TestTable.Col3");
-    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3").nullmask();
 
     auto& payload4 = result->payloads().at("TestTable.Col4");
-    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4").nullmask();
 
 
     ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
@@ -426,16 +426,16 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
     auto& payload1 = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     auto& payload2 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2").nullmask();
 
     auto& payload3 = result->payloads().at("TestTable.Col3");
-    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3").nullmask();
 
     auto& payload4 = result->payloads().at("TestTable.Col4");
-    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4").nullmask();
 
 
     ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
@@ -559,10 +559,10 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 
 
     auto& payloadA = result->payloads().at("TestTableR.ColA");
-    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA").nullmask();
 
     auto& payloadB = result->payloads().at("TestTableS.ColB");
-    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
+    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB").nullmask();
 
     ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
     for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
@@ -747,10 +747,10 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
         database->GetTables().at("TestTableS").GetColumns().at("ColB").get());
 
     auto& payloadA = result->payloads().at("TestTableR.ColA");
-    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA").nullmask();
 
     auto& payloadB = result->payloads().at("TestTableS.ColB");
-    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
+    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB").nullmask();
 
     ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
     for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
@@ -819,8 +819,8 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -899,8 +899,8 @@ TEST(DispatcherNullTests, GroupByNullKeyAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1002,8 +1002,8 @@ TEST(DispatcherNullTests, GroupByNullValueSum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1099,8 +1099,8 @@ TEST(DispatcherNullTests, GroupByNullValueAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1189,8 +1189,8 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("COUNT(colVals)");
 
@@ -1269,8 +1269,8 @@ TEST(DispatcherNullTests, GroupByStringNullKeySum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1368,8 +1368,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueSum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1464,8 +1464,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1551,8 +1551,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueCount)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("COUNT(colVals)");
 
@@ -1636,12 +1636,10 @@ void TestGBMK(std::string aggregationOperation,
         << "colKeysB null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains(aggregationOperation + "(colVals)"))
         << "colVals null mask does not exist";
-    const std::string& keysANullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysA");
-    const std::string& keysBNullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysB");
-    const std::string& valuesNullMaskResult =
-        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)");
+    auto& keysANullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysA").nullmask();
+    auto& keysBNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysB").nullmask();
+    auto& valuesNullMaskResult =
+        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)").nullmask();
     auto& keysAResult = responseMessage->payloads().at("TestTable.colKeysA");
     auto& keysBResult = responseMessage->payloads().at("TestTable.colKeysB");
     auto& valuesResult = responseMessage->payloads().at(aggregationOperation + "(colVals)");
@@ -1732,12 +1730,10 @@ void TestGBMKCount(std::vector<int32_t> keysA,
         << "colKeysB null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains(aggregationOperation + "(colVals)"))
         << "colVals null mask does not exist";
-    const std::string& keysANullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysA");
-    const std::string& keysBNullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysB");
-    const std::string& valuesNullMaskResult =
-        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)");
+    auto& keysANullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysA").nullmask();
+    auto& keysBNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysB").nullmask();
+    auto& valuesNullMaskResult =
+        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)").nullmask();
     auto& keysAResult = responseMessage->payloads().at("TestTable.colKeysA");
     auto& keysBResult = responseMessage->payloads().at("TestTable.colKeysB");
     auto& valuesResult = responseMessage->payloads().at(aggregationOperation + "(colVals)");

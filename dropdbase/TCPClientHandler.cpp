@@ -162,9 +162,17 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         {
             int start = NullValues::GetNullBitMaskSize(sentRecords_);
             int nullMaskBufferSize = NullValues::GetNullBitMaskSize(bufferSize);
-            auto nullBitMask =
-                completeResult->nullbitmasks().at(payload.first).substr(start, nullMaskBufferSize);
-            smallPayload->mutable_nullbitmasks()->insert({payload.first, nullBitMask});
+            ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
+            std::vector<int64_t> nullMaskBuffer(
+                completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start,
+                completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start + nullMaskBufferSize);
+
+			for (size_t i = 0; i <= nullMaskBufferSize; i++)
+            {
+                nullMasks.add_nullmask(nullMaskBuffer[i]);
+            }
+
+            smallPayload->mutable_nullbitmasks()->insert({payload.first, nullMasks});
         }
     }
     sentRecords_ += FRAGMENT_SIZE;

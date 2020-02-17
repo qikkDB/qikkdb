@@ -438,7 +438,7 @@ public:
                              ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
     static void MergePayloadBitmask(const std::string& key,
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                    const std::string& nullMask);
+                                    std::vector<int64_t> nullMask);
 
 
     GpuSqlDispatcher(const std::shared_ptr<Database>& database,
@@ -1010,7 +1010,7 @@ public:
     void MergePayloadToSelfResponse(const std::string& key,
                                     const std::string& realName,
                                     ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                    const std::string& nullBitMaskString = "");
+                                    std::vector<int64_t> nullMask = {});
 
     GPUMemory::GPUPolygon InsertComplexPolygon(const std::string& databaseName,
                                                const std::string& colName,

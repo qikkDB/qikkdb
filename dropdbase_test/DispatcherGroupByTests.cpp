@@ -1053,8 +1053,8 @@ protected:
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKey");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colValue)");
-        const std::string& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey");
-        const std::string& valuesNullMaskResult = result->nullbitmasks().at(aggregationFunction + "(colValue)");
+        auto& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey").nullmask();
+        auto& valuesNullMaskResult = result->nullbitmasks().at(aggregationFunction + "(colValue)").nullmask();
 
         ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
             << " wrong number of keys";
@@ -1135,8 +1135,8 @@ protected:
             dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKey");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colValue)");
-        const std::string& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey");
-        const std::string& valuesNullMaskResult = result->nullbitmasks().at(aggregationFunction + "(colValue)");
+        auto& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey").nullmask();
+        auto& valuesNullMaskResult = result->nullbitmasks().at(aggregationFunction + "(colValue)").nullmask();
 
         ASSERT_EQ(expectedResult.size(), payloadKeys.stringpayload().stringdata_size())
             << " wrong number of keys";

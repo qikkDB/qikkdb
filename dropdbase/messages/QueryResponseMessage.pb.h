@@ -52,7 +52,7 @@ struct TableStruct_messages_2fQueryResponseMessage_2eproto {
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::AuxillaryParseTableField aux[]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
-  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[13]
+  static const ::PROTOBUF_NAMESPACE_ID::internal::ParseTable schema[14]
     PROTOBUF_SECTION_VARIABLE(protodesc_cold);
   static const ::PROTOBUF_NAMESPACE_ID::internal::FieldMetadata field_metadata[];
   static const ::PROTOBUF_NAMESPACE_ID::internal::SerializationTable serialization_table[];
@@ -62,6 +62,9 @@ extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table
 namespace ColmnarDB {
 namespace NetworkClient {
 namespace Message {
+class QueryNullmaskPayload;
+class QueryNullmaskPayloadDefaultTypeInternal;
+extern QueryNullmaskPayloadDefaultTypeInternal _QueryNullmaskPayload_default_instance_;
 class QueryResponseDateTimePayload;
 class QueryResponseDateTimePayloadDefaultTypeInternal;
 extern QueryResponseDateTimePayloadDefaultTypeInternal _QueryResponseDateTimePayload_default_instance_;
@@ -105,6 +108,7 @@ extern QueryResponseStringPayloadDefaultTypeInternal _QueryResponseStringPayload
 }  // namespace NetworkClient
 }  // namespace ColmnarDB
 PROTOBUF_NAMESPACE_OPEN
+template<> ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload>(Arena*);
 template<> ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload>(Arena*);
@@ -1252,6 +1256,148 @@ class QueryResponseStringPayload :
 };
 // -------------------------------------------------------------------
 
+class QueryNullmaskPayload :
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload) */ {
+ public:
+  QueryNullmaskPayload();
+  virtual ~QueryNullmaskPayload();
+
+  QueryNullmaskPayload(const QueryNullmaskPayload& from);
+  QueryNullmaskPayload(QueryNullmaskPayload&& from) noexcept
+    : QueryNullmaskPayload() {
+    *this = ::std::move(from);
+  }
+
+  inline QueryNullmaskPayload& operator=(const QueryNullmaskPayload& from) {
+    CopyFrom(from);
+    return *this;
+  }
+  inline QueryNullmaskPayload& operator=(QueryNullmaskPayload&& from) noexcept {
+    if (GetArenaNoVirtual() == from.GetArenaNoVirtual()) {
+      if (this != &from) InternalSwap(&from);
+    } else {
+      CopyFrom(from);
+    }
+    return *this;
+  }
+
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* descriptor() {
+    return GetDescriptor();
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Descriptor* GetDescriptor() {
+    return GetMetadataStatic().descriptor;
+  }
+  static const ::PROTOBUF_NAMESPACE_ID::Reflection* GetReflection() {
+    return GetMetadataStatic().reflection;
+  }
+  static const QueryNullmaskPayload& default_instance();
+
+  static void InitAsDefaultInstance();  // FOR INTERNAL USE ONLY
+  static inline const QueryNullmaskPayload* internal_default_instance() {
+    return reinterpret_cast<const QueryNullmaskPayload*>(
+               &_QueryNullmaskPayload_default_instance_);
+  }
+  static constexpr int kIndexInFileMessages =
+    8;
+
+  friend void swap(QueryNullmaskPayload& a, QueryNullmaskPayload& b) {
+    a.Swap(&b);
+  }
+  inline void Swap(QueryNullmaskPayload* other) {
+    if (other == this) return;
+    InternalSwap(other);
+  }
+
+  // implements Message ----------------------------------------------
+
+  inline QueryNullmaskPayload* New() const final {
+    return CreateMaybeMessage<QueryNullmaskPayload>(nullptr);
+  }
+
+  QueryNullmaskPayload* New(::PROTOBUF_NAMESPACE_ID::Arena* arena) const final {
+    return CreateMaybeMessage<QueryNullmaskPayload>(arena);
+  }
+  void CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) final;
+  void CopyFrom(const QueryNullmaskPayload& from);
+  void MergeFrom(const QueryNullmaskPayload& from);
+  PROTOBUF_ATTRIBUTE_REINITIALIZES void Clear() final;
+  bool IsInitialized() const final;
+
+  size_t ByteSizeLong() const final;
+  const char* _InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) final;
+  ::PROTOBUF_NAMESPACE_ID::uint8* InternalSerializeWithCachedSizesToArray(
+      ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const final;
+  int GetCachedSize() const final { return _cached_size_.Get(); }
+
+  private:
+  inline void SharedCtor();
+  inline void SharedDtor();
+  void SetCachedSize(int size) const final;
+  void InternalSwap(QueryNullmaskPayload* other);
+  friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
+  static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
+    return "ColmnarDB.NetworkClient.Message.QueryNullmaskPayload";
+  }
+  private:
+  inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
+    return nullptr;
+  }
+  inline void* MaybeArenaPtr() const {
+    return nullptr;
+  }
+  public:
+
+  ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadata() const final;
+  private:
+  static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
+    ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_messages_2fQueryResponseMessage_2eproto);
+    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[kIndexInFileMessages];
+  }
+
+  public:
+
+  // nested types ----------------------------------------------------
+
+  // accessors -------------------------------------------------------
+
+  enum : int {
+    kNullMaskFieldNumber = 1,
+  };
+  // repeated sint64 nullMask = 1;
+  int nullmask_size() const;
+  private:
+  int _internal_nullmask_size() const;
+  public:
+  void clear_nullmask();
+  private:
+  ::PROTOBUF_NAMESPACE_ID::int64 _internal_nullmask(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >&
+      _internal_nullmask() const;
+  void _internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::int64 value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >*
+      _internal_mutable_nullmask();
+  public:
+  ::PROTOBUF_NAMESPACE_ID::int64 nullmask(int index) const;
+  void set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::int64 value);
+  void add_nullmask(::PROTOBUF_NAMESPACE_ID::int64 value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >&
+      nullmask() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >*
+      mutable_nullmask();
+
+  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+ private:
+  class _Internal;
+
+  ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 > nullmask_;
+  mutable std::atomic<int> _nullmask_cached_byte_size_;
+  mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
+  friend struct ::TableStruct_messages_2fQueryResponseMessage_2eproto;
+};
+// -------------------------------------------------------------------
+
 class QueryResponsePayload :
     public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.QueryResponsePayload) */ {
  public:
@@ -1306,7 +1452,7 @@ class QueryResponsePayload :
                &_QueryResponsePayload_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    8;
+    9;
 
   friend void swap(QueryResponsePayload& a, QueryResponsePayload& b) {
     a.Swap(&b);
@@ -1559,7 +1705,7 @@ public:
   private:
   static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
     ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_messages_2fQueryResponseMessage_2eproto);
-    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[9];
+    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[10];
   }
 
   public:
@@ -1568,15 +1714,15 @@ public:
 // -------------------------------------------------------------------
 
 class QueryResponseMessage_NullBitMasksEntry_DoNotUse : public ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<QueryResponseMessage_NullBitMasksEntry_DoNotUse, 
-    std::string, std::string,
+    std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload,
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_MESSAGE,
     0 > {
 public:
   typedef ::PROTOBUF_NAMESPACE_ID::internal::MapEntry<QueryResponseMessage_NullBitMasksEntry_DoNotUse, 
-    std::string, std::string,
+    std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload,
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
+    ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_MESSAGE,
     0 > SuperType;
   QueryResponseMessage_NullBitMasksEntry_DoNotUse();
   QueryResponseMessage_NullBitMasksEntry_DoNotUse(::PROTOBUF_NAMESPACE_ID::Arena* arena);
@@ -1591,7 +1737,7 @@ public:
   private:
   static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
     ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_messages_2fQueryResponseMessage_2eproto);
-    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[10];
+    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[11];
   }
 
   public:
@@ -1623,7 +1769,7 @@ public:
   private:
   static ::PROTOBUF_NAMESPACE_ID::Metadata GetMetadataStatic() {
     ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&::descriptor_table_messages_2fQueryResponseMessage_2eproto);
-    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[11];
+    return ::descriptor_table_messages_2fQueryResponseMessage_2eproto.file_level_metadata[12];
   }
 
   public:
@@ -1673,7 +1819,7 @@ class QueryResponseMessage :
                &_QueryResponseMessage_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    12;
+    13;
 
   friend void swap(QueryResponseMessage& a, QueryResponseMessage& b) {
     a.Swap(&b);
@@ -1777,21 +1923,21 @@ class QueryResponseMessage :
   ::PROTOBUF_NAMESPACE_ID::Map< std::string, float >*
       mutable_timing();
 
-  // map<string, bytes> nullBitMasks = 3;
+  // map<string, .ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
   int nullbitmasks_size() const;
   private:
   int _internal_nullbitmasks_size() const;
   public:
   void clear_nullbitmasks();
   private:
-  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >&
       _internal_nullbitmasks() const;
-  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >*
       _internal_mutable_nullbitmasks();
   public:
-  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+  const ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >&
       nullbitmasks() const;
-  ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+  ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >*
       mutable_nullbitmasks();
 
   // repeated string columnOrder = 4;
@@ -1837,9 +1983,9 @@ class QueryResponseMessage :
       0 > timing_;
   ::PROTOBUF_NAMESPACE_ID::internal::MapField<
       QueryResponseMessage_NullBitMasksEntry_DoNotUse,
-      std::string, std::string,
+      std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload,
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_STRING,
-      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_BYTES,
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::TYPE_MESSAGE,
       0 > nullbitmasks_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string> columnorder_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
@@ -2263,6 +2409,57 @@ inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField<std::string>*
 QueryResponseStringPayload::mutable_stringdata() {
   // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData)
   return &stringdata_;
+}
+
+// -------------------------------------------------------------------
+
+// QueryNullmaskPayload
+
+// repeated sint64 nullMask = 1;
+inline int QueryNullmaskPayload::_internal_nullmask_size() const {
+  return nullmask_.size();
+}
+inline int QueryNullmaskPayload::nullmask_size() const {
+  return _internal_nullmask_size();
+}
+inline void QueryNullmaskPayload::clear_nullmask() {
+  nullmask_.Clear();
+}
+inline ::PROTOBUF_NAMESPACE_ID::int64 QueryNullmaskPayload::_internal_nullmask(int index) const {
+  return nullmask_.Get(index);
+}
+inline ::PROTOBUF_NAMESPACE_ID::int64 QueryNullmaskPayload::nullmask(int index) const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
+  return _internal_nullmask(index);
+}
+inline void QueryNullmaskPayload::set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::int64 value) {
+  nullmask_.Set(index, value);
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
+}
+inline void QueryNullmaskPayload::_internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  nullmask_.Add(value);
+}
+inline void QueryNullmaskPayload::add_nullmask(::PROTOBUF_NAMESPACE_ID::int64 value) {
+  _internal_add_nullmask(value);
+  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >&
+QueryNullmaskPayload::_internal_nullmask() const {
+  return nullmask_;
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >&
+QueryNullmaskPayload::nullmask() const {
+  // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
+  return _internal_nullmask();
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >*
+QueryNullmaskPayload::_internal_mutable_nullmask() {
+  return &nullmask_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::int64 >*
+QueryNullmaskPayload::mutable_nullmask() {
+  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
+  return _internal_mutable_nullmask();
 }
 
 // -------------------------------------------------------------------
@@ -2717,7 +2914,7 @@ QueryResponseMessage::mutable_payloads() {
   return _internal_mutable_payloads();
 }
 
-// map<string, bytes> nullBitMasks = 3;
+// map<string, .ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
 inline int QueryResponseMessage::_internal_nullbitmasks_size() const {
   return nullbitmasks_.size();
 }
@@ -2727,20 +2924,20 @@ inline int QueryResponseMessage::nullbitmasks_size() const {
 inline void QueryResponseMessage::clear_nullbitmasks() {
   nullbitmasks_.Clear();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >&
 QueryResponseMessage::_internal_nullbitmasks() const {
   return nullbitmasks_.GetMap();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >&
+inline const ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >&
 QueryResponseMessage::nullbitmasks() const {
   // @@protoc_insertion_point(field_map:ColmnarDB.NetworkClient.Message.QueryResponseMessage.nullBitMasks)
   return _internal_nullbitmasks();
 }
-inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >*
 QueryResponseMessage::_internal_mutable_nullbitmasks() {
   return nullbitmasks_.MutableMap();
 }
-inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, std::string >*
+inline ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >*
 QueryResponseMessage::mutable_nullbitmasks() {
   // @@protoc_insertion_point(field_mutable_map:ColmnarDB.NetworkClient.Message.QueryResponseMessage.nullBitMasks)
   return _internal_mutable_nullbitmasks();
@@ -2852,6 +3049,8 @@ QueryResponseMessage::mutable_columnorder() {
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // -------------------------------------------------------------------
 
 // -------------------------------------------------------------------

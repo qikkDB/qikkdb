@@ -418,7 +418,9 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
 
             if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
             {
-                const std::string& partialBitMask = partialMessage->nullbitmasks().at(key);
+                std::vector<int64_t> partialBitMask(
+                    partialMessage->nullbitmasks().at(key).nullmask().begin(),
+                    partialMessage->nullbitmasks().at(key).nullmask().end());
                 GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
             }
             GpuSqlDispatcher::MergePayload(key, aliasTable.at(key), responseMessage.get(), payload);

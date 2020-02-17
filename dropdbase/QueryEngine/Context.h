@@ -80,7 +80,6 @@ private:
         {
             deviceCount_ = 1;
         }
-
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';

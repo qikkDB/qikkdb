@@ -22,11 +22,11 @@ __device__ __host__ void NullValues::SetBitInBitMask(int64_t* bitMask,
 {
     if (newBit)
     {
-        bitMask[bitMaskIdx] |= (1 << shiftMaskIdx);
+       bitMask[bitMaskIdx] |= (1UL << shiftMaskIdx);
     }
     else
     {
-        bitMask[bitMaskIdx] &= ~(1 << shiftMaskIdx);
+        bitMask[bitMaskIdx] &= ~(1UL << shiftMaskIdx);
 	}
 }
 

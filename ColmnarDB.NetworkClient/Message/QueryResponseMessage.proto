@@ -36,6 +36,10 @@ message QueryResponseStringPayload {
     repeated string stringData = 1;
 }
 
+message QueryNullmaskPayload {
+	repeated sint64 nullMask = 1;
+}
+
 message QueryResponsePayload {
     oneof payload {
         QueryResponseIntPayload intPayload = 2;
@@ -51,7 +55,7 @@ message QueryResponsePayload {
 
 message QueryResponseMessage {
     map<string, QueryResponsePayload> payloads = 1;
-    map<string, bytes> nullBitMasks = 3;
+    map<string, QueryNullmaskPayload> nullBitMasks = 3;
     map<string, float> timing = 2;
 	repeated string columnOrder = 4;
 }

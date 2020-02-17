@@ -96,7 +96,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                 std::unique_ptr<int64_t[]> nullMask(new int64_t[bitMaskSize]);
                 GPUMemory::copyDeviceToHost(nullMask.get(),
                                             reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), bitMaskSize);
-                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()), bitMaskSize * (sizeof(int64_t) / sizeof(char)));
+                nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()),
+                                             bitMaskSize * (sizeof(int64_t) / sizeof(char)));
             }
         }
         else
@@ -140,8 +141,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                                                reinterpret_cast<int8_t*>(filter_), col.ElementCount,
                                                nullMask.get(), reinterpret_cast<int64_t*>(col.GpuNullMaskPtr));
                 bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
+
+                /*uint8_t* stream = new uint8_t[bitMaskSize * (sizeof(int64_t) / sizeof(char))];
+                for (size_t i = 0; i < bitMaskSize; i++)
+                {
+                    memcpy(stream, &nullMask.get()[i], 8);
+                }*/
+
                 nullMaskString = std::string(reinterpret_cast<char*>(nullMask.get()),
                                              bitMaskSize * (sizeof(int64_t) / sizeof(char)));
+                /*nullMaskString = std::string(reinterpret_cast<char*>(stream),
+                                             bitMaskSize * (sizeof(int64_t) / sizeof(char)));*/
             }
             else
             {
