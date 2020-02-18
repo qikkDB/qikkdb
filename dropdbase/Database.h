@@ -67,8 +67,8 @@ public:
     static constexpr const char* DB_EXTENSION = ".db";
     static constexpr const char* COLUMN_DATA_EXTENSION = ".data";
     static constexpr const char* COLUMN_ADDRESS_EXTENSION = ".adrs";
-    static constexpr const char* STRING_DATA_EXTENSION = ".strdata";
-    static constexpr const char* STRING_ADDRESS_EXTENSION = ".stradrs";
+    static constexpr const char* FRAGMENT_DATA_EXTENSION = ".fragdata";
+    static constexpr const int32_t FRAGMENT_SIZE_BYTES = 1048576;
     static std::mutex dbMutex_;
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
