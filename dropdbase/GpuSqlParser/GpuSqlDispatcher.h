@@ -1105,12 +1105,6 @@ public:
 
     InstructionStatus Between();
 
-    template <typename T>
-    InstructionStatus LogicalNotCol();
-
-    template <typename T>
-    InstructionStatus LogicalNotConst();
-
     template <typename OP>
     InstructionStatus NullMaskCol();
 

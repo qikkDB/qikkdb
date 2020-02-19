@@ -39,7 +39,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize);
+                GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize,
+                                                   std::get<1>(result));
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
                                                                                 {std::get<3>(left)});
@@ -60,7 +61,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
 
         if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
-            GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize);
+            GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize,
+                                               std::get<1>(result));
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
                                                                             false, {std::get<3>(left)});
         }

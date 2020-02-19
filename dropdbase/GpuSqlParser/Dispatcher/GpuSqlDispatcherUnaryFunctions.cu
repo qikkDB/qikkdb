@@ -434,4 +434,15 @@ DISPATCHER_UNARY_ERROR(int8_t, std::string)
 DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, CastOperations::toNumeric<int8_t>, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::logicalNotFunctions_)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, FilterConditions::logicalNot, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, FilterConditions::logicalNot, int64_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, FilterConditions::logicalNot, float)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, FilterConditions::logicalNot, double)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(std::string)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, FilterConditions::logicalNot, int8_t)
+END_DISPATCH_TABLE
+
 #undef MERGED

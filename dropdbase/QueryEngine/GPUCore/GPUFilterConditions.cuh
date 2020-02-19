@@ -160,4 +160,12 @@ struct logicalOr
         return a || b;
     }
 };
+
+struct logicalNot
+{
+    static constexpr bool isMonotonous = false;
+    typedef int8_t RetType;
+};
+
+
 } // namespace FilterConditions

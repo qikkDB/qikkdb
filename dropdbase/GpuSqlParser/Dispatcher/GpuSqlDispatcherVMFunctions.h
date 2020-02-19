@@ -5,6 +5,7 @@
 #include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../../QueryEngine/CPUJoinReorderer.cuh"
+#include "../../QueryEngine/GPUCore/GPUNullMask.cuh"
 #include "../../IVariantArray.h"
 #include "../../VariantArray.h"
 #include "../../Database.h"
@@ -259,7 +260,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                                 ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 
                             offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
-                            
+
                             std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                              block->GetNullBitmask() + offsetBitMaskCapacity);
                             ShiftNullMaskLeft(maskToOffset, loadOffset_);
@@ -319,7 +320,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry),
+                                                                          outMaskSize, *col, blockIndex_,
                                                                           joinIndices_->at(table),
                                                                           database_->GetBlockSize());
                     }
@@ -334,6 +336,41 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
             AddCachedRegister(colName, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
             noLoad_ = false;
         }
+    }
+    return InstructionStatus::CONTINUE;
+}
+
+template <typename OP>
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NullMaskCol: " << colName << " " << reg << '\n';
+
+    if (colName.front() == '$')
+    {
+        throw NullMaskOperationInvalidOperandException();
+    }
+
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadColNullMask(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
+    {
+        return loadFlag;
+    }
+
+    PointerAllocation columnMask = allocatedPointers_.at(colName + NULL_SUFFIX);
+    size_t nullMaskSize = (columnMask.ElementCount + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
+
+    if (!IsRegisterAllocated(reg))
+    {
+        int8_t* outFilterMask;
+
+        int8_t* nullMask;
+        outFilterMask = AllocateRegister<int8_t>(reg, columnMask.ElementCount, &nullMask);
+        GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr), nullMaskSize);
+        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
+                             nullMaskSize, columnMask.ElementCount);
     }
     return InstructionStatus::CONTINUE;
 }

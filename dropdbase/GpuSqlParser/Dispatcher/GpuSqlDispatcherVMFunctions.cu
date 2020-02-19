@@ -36,6 +36,10 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::dropTableFunction_ = &GpuSq
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterTableFunction_ = &GpuSqlDispatcher::AlterTable;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::alterDatabaseFunction_ = &GpuSqlDispatcher::AlterDatabase;
 GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::createIndexFunction_ = &GpuSqlDispatcher::CreateIndex;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::isNullFunction_ =
+    &GpuSqlDispatcher::NullMaskCol<NullMaskOperations::isNull>;
+GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::isNotNullFunction_ =
+    &GpuSqlDispatcher::NullMaskCol<NullMaskOperations::isNotNull>;
 
 template <>
 GpuSqlDispatcher::InstructionStatus
