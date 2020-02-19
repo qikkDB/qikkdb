@@ -1025,8 +1025,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colAddressFile.eof())
             {
-                int32_t tempBlockIdx;
-                colAddressFile.read(reinterpret_cast<char*>(&tempBlockIdx), sizeof(int32_t)); // read fragment's block index
+                uint32_t tempBlockIdx;
+                colAddressFile.read(reinterpret_cast<char*>(&tempBlockIdx), sizeof(uint32_t)); // read fragment's block index
 
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
@@ -1042,8 +1042,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1071,8 +1071,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
 
                 if (index != emptyBlockIndex) // there is null block
                 {
@@ -1141,7 +1141,7 @@ void Database::LoadColumn(const char* path,
                         dataPolygon.push_back(ComplexPolygonFactory::FromWkt(dataStr));
                     }
 
-					if (isUnique)
+                    if (isUnique)
                     {
                         if (isNullable)
                         {
@@ -1186,8 +1186,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1215,9 +1215,9 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
+                uint64_t dataLength;
                 colFile.read(reinterpret_cast<char*>(&dataLength),
-                             sizeof(int32_t)); // read byte data length (data block length)
+                             sizeof(uint64_t)); // read number of entries
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
 
@@ -1301,8 +1301,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colAddressFile.eof())
             {
-                int32_t tempBlockIdx;
-                colAddressFile.read(reinterpret_cast<char*>(&tempBlockIdx), sizeof(int32_t)); // read fragment's block index
+                uint32_t tempBlockIdx;
+                colAddressFile.read(reinterpret_cast<char*>(&tempBlockIdx), sizeof(uint32_t)); // read fragment's block index
 
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
@@ -1318,8 +1318,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1347,8 +1347,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
 
                 if (index != emptyBlockIndex) // there is null block
                 {
@@ -1452,8 +1452,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1481,8 +1481,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int8_t min;
@@ -1558,8 +1558,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1587,8 +1587,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int32_t min;
@@ -1664,8 +1664,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1693,8 +1693,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 int64_t min;
@@ -1770,8 +1770,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1799,8 +1799,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 float min;
@@ -1876,8 +1876,8 @@ void Database::LoadColumn(const char* path,
 
             while (!colFile.eof())
             {
-                int32_t index;
-                colFile.read(reinterpret_cast<char*>(&index), sizeof(int32_t)); // read block index
+                uint32_t index;
+                colFile.read(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // read block index
 
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
@@ -1905,8 +1905,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int32_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
+                uint64_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(uint64_t)); // read data length (number of entries)
                 bool isCompressed;
                 colFile.read(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // read whether compressed
                 double min;
@@ -2125,7 +2125,7 @@ void Database::WriteColumn(const int32_t blockSize,
             {
             case COLUMN_POLYGON:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                     dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
@@ -2143,7 +2143,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     size_t blockCurrentSize = block->GetSize();
                     int64_t dataByteSize = 0;
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write block index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write block index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
 
                     if (isNullable)
@@ -2156,7 +2156,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
 
-                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(int32_t)); // write number of entries
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(uint64_t)); // write number of entries
 
                     if (colFragDataFile.is_open())
                     {
@@ -2168,7 +2168,7 @@ void Database::WriteColumn(const int32_t blockSize,
                             // write block index (ID) into COLUMN_ADDRESS_EXTENSION file for a new fragment
                             if (newFragment)
                             {
-                                colAddressFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t));
+                                colAddressFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t));
 
                                 newFragment = false;
                             }
@@ -2280,7 +2280,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_POINT:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<ColmnarDB::Types::Point>& colPoint =
                     dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
@@ -2291,10 +2291,10 @@ void Database::WriteColumn(const int32_t blockSize,
 
                     auto data = block->GetData();
                     int32_t groupId = block->GetGroupId();
-                    int32_t blockCurrentSize = block->GetSize();
+                    size_t blockCurrentSize = block->GetSize();
                     bool isCompressed = block->IsCompressed();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
 
                     if (isNullable)
@@ -2308,7 +2308,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
 
                     // write entries:
@@ -2333,7 +2333,8 @@ void Database::WriteColumn(const int32_t blockSize,
                     const int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) +
+                                             sizeof(uint32_t) + nullBitMaskLength * sizeof(char) +
                                              sizeof(bool) + 2 * blockSize * sizeof(float);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     index += 1;
@@ -2343,7 +2344,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_STRING:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<std::string>& colStr =
                     dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
@@ -2361,7 +2362,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     size_t blockCurrentSize = block->GetSize();
                     int64_t dataByteSize = 0;
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
 
                     if (isNullable)
@@ -2375,7 +2376,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
 
 
                     if (colFragDataFile.is_open())
@@ -2389,7 +2390,7 @@ void Database::WriteColumn(const int32_t blockSize,
                             // write block index (ID) into COLUMN_ADDRESS_EXTENSION file for a new fragment
                             if (newFragment)
                             {
-                                colAddressFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t));
+                                colAddressFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t));
 
                                 newFragment = false;
                             }
@@ -2498,7 +2499,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_INT8_T:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
 
@@ -2518,7 +2519,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     float avg = block->GetAvg();
                     int8_t sum = block->GetSum();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
@@ -2529,7 +2530,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
                     colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
                     colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
@@ -2543,9 +2544,9 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + sizeof(float) + 4 * sizeof(int8_t) +
-                                             blockSize * sizeof(int8_t);
+                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                             sizeof(float) + 4 * sizeof(int8_t) + blockSize * sizeof(int8_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     index += 1;
                 }
@@ -2554,7 +2555,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_INT:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<int32_t>& colInt =
                     dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
@@ -2575,7 +2576,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     float avg = block->GetAvg();
                     int32_t sum = block->GetSum();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
@@ -2586,7 +2587,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
                     colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
                     colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
@@ -2600,8 +2601,9 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 8 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + sizeof(float) + blockSize * sizeof(int32_t);
+                    uint64_t blockPosition = 6 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                             sizeof(float) + blockSize * sizeof(int32_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     index += 1;
                 }
@@ -2610,7 +2612,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_LONG:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<int64_t>& colLong =
                     dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
@@ -2631,7 +2633,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     float avg = block->GetAvg();
                     int64_t sum = block->GetSum();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
@@ -2642,7 +2644,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
                     colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
                     colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
@@ -2656,7 +2658,8 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
+                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) +
+                                             sizeof(uint32_t) + nullBitMaskLength * sizeof(char) +
                                              sizeof(bool) + sizeof(float) + 4 * sizeof(int64_t) +
                                              blockSize * sizeof(int64_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
@@ -2667,7 +2670,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_FLOAT:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
 
@@ -2687,7 +2690,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     float avg = block->GetAvg();
                     float sum = block->GetSum();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
@@ -2698,7 +2701,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
                     colDataFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
                     colDataFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
@@ -2712,8 +2715,9 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + 5 * sizeof(float) + blockSize * sizeof(float);
+                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                             5 * sizeof(float) + blockSize * sizeof(float);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     index += 1;
                 }
@@ -2722,7 +2726,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
             case COLUMN_DOUBLE:
             {
-                int32_t index = 0;
+                uint32_t index = 0;
 
                 const ColumnBase<double>& colDouble =
                     dynamic_cast<const ColumnBase<double>&>(*(column.second));
@@ -2743,7 +2747,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     float avg = block->GetAvg();
                     double sum = block->GetSum();
 
-                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write index
+                    colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
@@ -2754,7 +2758,7 @@ void Database::WriteColumn(const int32_t blockSize,
                                           nullBitMaskLength); // write nullBitMask
                     }
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                                      sizeof(int32_t)); // write block length (number of entries)
+                                      sizeof(uint64_t)); // write block length (number of entries)
                     colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
                     colDataFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
                     colDataFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max
@@ -2768,9 +2772,9 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 4 * sizeof(int32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + sizeof(float) + 4 * sizeof(double) +
-                                             blockSize * sizeof(double);
+                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                             sizeof(float) + 4 * sizeof(double) + blockSize * sizeof(double);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     index += 1;
                 }
