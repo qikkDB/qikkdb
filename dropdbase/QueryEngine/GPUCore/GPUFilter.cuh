@@ -11,7 +11,7 @@
 #include "GPUFilterConditions.cuh"
 #include "MaybeDeref.cuh"
 #include "GPUStringUnary.cuh"
-#include "GPUArithmetic.cuh"
+#include "GPUBinary.cuh"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 

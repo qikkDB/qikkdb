@@ -1,13 +1,13 @@
 #pragma once
 #include "../GpuSqlDispatcher.h"
-#include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
+#include "../../QueryEngine/GPUCore/GPUBinary.cuh"
 
 /// Implementation of generic binary arithmetic function dispatching given by the functor OP
 /// Implementation for column constant case
 /// Pops data from argument memory stream and loads data to GPU on demand
 /// <returns name="statusCode">Finish status code of the operation</returns>
 template <typename OP, typename L, typename R>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
 {
     InstructionArgument<R> right = DispatcherInstructionHelper<R>::LoadInstructionArgument(*this);
     InstructionArgument<L> left = DispatcherInstructionHelper<L>::LoadInstructionArgument(*this);
@@ -23,7 +23,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
     }
 
     auto reg = arguments_.Read<std::string>();
-    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Arithmetic: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Binary: " << reg << '\n';
 
     constexpr bool bothTypesFloatOrBothIntegral =
         std::is_floating_point<typename std::remove_pointer<L>::type>::value &&
@@ -56,7 +56,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
                     {
-                        GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
+                        GPUBinary<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Binary(
                             std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                             reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
                     }
@@ -73,8 +73,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                       bitMaskSize);
                     }
                 }
-                GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
-                                                                std::get<0>(right), retSize);
+                GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
+                                                        std::get<0>(right), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             }
@@ -111,8 +111,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
                                                   reinterpret_cast<int8_t*>(std::get<1>(col).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
-                                                                std::get<0>(right), retSize);
+                GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
+                                                        std::get<0>(right), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             }
@@ -132,8 +132,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Arithmetic()
             DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
         if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
-            GPUArithmetic<OP, ResultType, L, R>::Arithmetic(std::get<0>(result), std::get<0>(left),
-                                                            std::get<0>(right), retSize);
+            GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
+                                                    std::get<0>(right), retSize);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                             retSize, false, {});
         }

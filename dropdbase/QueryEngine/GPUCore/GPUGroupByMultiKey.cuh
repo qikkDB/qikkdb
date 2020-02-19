@@ -875,7 +875,7 @@ public:
                     // Divide by counts to get averages for buckets
                     try
                     {
-                        GPUArithmetic<ArithmeticOperations::div, O, V*, int64_t*>::Arithmetic(
+                        GPUBinary<ArithmeticOperations::div, O, V*, int64_t*>::Binary(
                             outValuesGPU.get(), mergedValues.get(), mergedOccurrences.get(), keyBufferSize_);
                     }
                     catch (const query_engine_error& err)
@@ -1264,8 +1264,9 @@ public:
                     GPUMemory::alloc(outValues, *outDataElementCount);
                     try
                     {
-                        GPUArithmetic<ArithmeticOperations::div, O, V*, int64_t*>::Arithmetic(
-                            *outValues, valuesMerged, occurencesMerged, *outDataElementCount);
+                        GPUBinary<ArithmeticOperations::div, O, V*, int64_t*>::Binary(*outValues, valuesMerged,
+                                                                                      occurencesMerged,
+                                                                                      *outDataElementCount);
                     }
                     catch (const query_engine_error& err)
                     {

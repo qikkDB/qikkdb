@@ -10,7 +10,7 @@
 
 #include "../Context.h"
 #include "GPUMemory.cuh"
-#include "GPUArithmetic.cuh"
+#include "GPUBinary.cuh"
 #include "GPUReconstruct.cuh"
 
 #include "ErrorFlagSwapper.h"
@@ -531,7 +531,7 @@ public:
                     // Divide by counts to get averages for buckets
                     try
                     {
-                        GPUArithmetic<ArithmeticOperations::div, O, V*, int64_t*>::Arithmetic(
+                        GPUBinary<ArithmeticOperations::div, O, V*, int64_t*>::Binary(
                             outValuesGPU.get(), mergedValues.get(), mergedOccurrences.get(), keyBufferSize_);
                     }
                     catch (const query_engine_error& err)
@@ -729,8 +729,9 @@ public:
                     GPUMemory::alloc(outValues, *outDataElementCount);
                     try
                     {
-                        GPUArithmetic<ArithmeticOperations::div, O, V*, int64_t*>::Arithmetic(
-                            *outValues, valuesMerged, occurrencesMerged, *outDataElementCount);
+                        GPUBinary<ArithmeticOperations::div, O, V*, int64_t*>::Binary(*outValues, valuesMerged,
+                                                                                      occurrencesMerged,
+                                                                                      *outDataElementCount);
                     }
                     catch (const query_engine_error& err)
                     {

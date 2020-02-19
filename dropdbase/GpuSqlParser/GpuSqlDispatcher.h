@@ -1095,10 +1095,10 @@ public:
     InstructionStatus Filter();
 
     template <typename OP, typename L, typename R>
-    InstructionStatus Arithmetic();
+    InstructionStatus Binary();
 
     template <typename OP, typename T>
-    InstructionStatus ArithmeticUnary();
+    InstructionStatus Unary();
 
     template <typename OP, typename R, typename T, typename U>
     InstructionStatus AggregationGroupBy();

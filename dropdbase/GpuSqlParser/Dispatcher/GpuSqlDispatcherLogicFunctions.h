@@ -2,7 +2,7 @@
 #include "../GpuSqlDispatcher.h"
 #include "../../QueryEngine/GPUCore/GPULogic.cuh"
 #include "../../QueryEngine/GPUCore/GPUFilter.cuh"
-#include "../../QueryEngine/GPUCore/GPUArithmetic.cuh"
+#include "../../QueryEngine/GPUCore/GPUBinary.cuh"
 #include "../../QueryEngine/GPUCore/GPUNullMask.cuh"
 #include "../../QueryEngine/GPUCore/GPUMemory.cuh"
 #include "../../QueryEngine/GPUCore/GPUFilterConditions.cuh"
@@ -43,7 +43,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Filter()
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
                     if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
                     {
-                        GPUArithmetic<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Arithmetic(
+                        GPUBinary<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Binary(
                             std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                             reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
                     }

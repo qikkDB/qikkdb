@@ -1,9 +1,9 @@
 #pragma once
 #include "../GpuSqlDispatcher.h"
-#include "../../QueryEngine/GPUCore/GPUArithmeticUnary.cuh"
+#include "../../QueryEngine/GPUCore/GPUUnary.cuh"
 
 template <typename OP, typename T>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
 {
     InstructionArgument<T> left = DispatcherInstructionHelper<T>::LoadInstructionArgument(*this);
 
@@ -14,7 +14,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 
     auto reg = arguments_.Read<std::string>();
 
-    CudaLogBoost::getInstance(CudaLogBoost::debug) << "ArithmeticUnary: " << reg << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "Unary: " << reg << '\n';
 
     // TODO STD conditional :: if OP == abs return type = T
 
@@ -39,8 +39,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
                                                   reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
-                                                                       std::get<0>(left), retSize);
+                GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
                                                                                 {std::get<3>(left)});
@@ -61,8 +60,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ArithmeticUnary()
 
         if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
-            GPUArithmeticUnary<OP, ResultType, T>::ArithmeticUnary(std::get<0>(result),
-                                                                   std::get<0>(left), retSize);
+            GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
                                                                             false, {std::get<3>(left)});
         }

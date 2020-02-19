@@ -11,7 +11,7 @@
 #include "../Context.h"
 #include "cuda_ptr.h"
 #include "GPUMemory.cuh"
-#include "GPUArithmetic.cuh"
+#include "GPUBinary.cuh"
 #include "GPUReconstruct.cuh"
 #include "../OrderByType.h"
 #include "../../IVariantArray.h"

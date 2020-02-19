@@ -379,7 +379,7 @@ kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* 
 
 /// Class for binary arithmetic functions
 template <typename OP, typename T, typename U, typename V, class Enable = void>
-class GPUArithmetic
+class GPUBinary
 {
 public:
     /// Arithmetic operation with two columns
@@ -388,7 +388,7 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount)
+    static void Binary(T* output, U ACol, V BCol, int32_t dataElementCount)
     {
         ErrorFlagSwapper errorFlagSwapper;
         kernel_arithmetic<OP>
@@ -400,17 +400,16 @@ public:
 };
 
 template <typename OP, typename T, typename U, typename V>
-class GPUArithmetic<OP,
-                    T,
-                    U,
-                    V,
-                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                            std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                            std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
 {
 public:
-    static void
-    Arithmetic(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
+    static void Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
@@ -425,16 +424,16 @@ public:
 };
 
 template <typename OP, typename T, typename U, typename V>
-class GPUArithmetic<OP,
-                    T,
-                    U,
-                    V,
-                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                            std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                            std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
+                                        std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
-    static void Arithmetic(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount)
+    static void Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount)
     {
         if constexpr (std::is_pointer<U>::value && std::is_pointer<V>::value)
         {
@@ -456,16 +455,16 @@ public:
 };
 
 template <typename OP, typename T, typename U, typename V>
-class GPUArithmetic<OP,
-                    T,
-                    U,
-                    V,
-                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value &&
-                                            std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
-                                            std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
-    static void Arithmetic(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount)
+    static void Binary(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
@@ -484,20 +483,19 @@ public:
 };
 
 template <typename OP, typename T, typename U, typename V>
-class GPUArithmetic<
-    OP,
-    T,
-    U,
-    V,
-    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                            std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                            std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
 {
 public:
-    static void Arithmetic(GPUMemory::GPUPolygon& polygonOut,
-                           GPUMemory::GPUPolygon& polygonAin,
-                           GPUMemory::GPUPolygon& polygonBin,
-                           int32_t dataElementCount)
+    static void Binary(GPUMemory::GPUPolygon& polygonOut,
+                       GPUMemory::GPUPolygon& polygonAin,
+                       GPUMemory::GPUPolygon& polygonBin,
+                       int32_t dataElementCount)
     {
         GPUPolygonClipping::clip<OP>(polygonOut, polygonAin, polygonBin,
                                      std::is_pointer<U>::value ? dataElementCount : 1,
@@ -506,20 +504,20 @@ public:
 };
 
 template <typename OP, typename T, typename U, typename V>
-class GPUArithmetic<OP,
-                    T,
-                    U,
-                    V,
-                    typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
-                                            std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                            std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::Point>::value>::type>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::Point>::value>::type>
 {
 public:
     static void
-    Arithmetic(int8_t* outMask,
-               GPUMemory::GPUPolygon polygonCol,
-               typename std::conditional<std::is_pointer<V>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
-               int32_t dataElementCount)
+    Binary(int8_t* outMask,
+           GPUMemory::GPUPolygon polygonCol,
+           typename std::conditional<std::is_pointer<V>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
+           int32_t dataElementCount)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
