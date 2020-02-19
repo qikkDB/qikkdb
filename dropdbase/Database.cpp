@@ -1016,9 +1016,29 @@ void Database::LoadColumn(const char* path,
         case COLUMN_POLYGON:
         {
             table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
-
             auto& columnPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
                 *table.GetColumns().at(columnName));
+            std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
+            const std::string fileFragDataPath = std::string(path) + std::string(dbName) + SEPARATOR +
+                                                 table.GetName() + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
+            std::ifstream fragFile(fileFragDataPath, std::ios::binary);
+
+            while (!colAddressFile.eof())
+            {
+                int32_t tempBlockIdx;
+                colAddressFile.read(reinterpret_cast<char*>(&tempBlockIdx), sizeof(int32_t)); // read fragment's block index
+
+                // this is needed because of how EOF is checked:
+                if (colAddressFile.eof())
+                {
+                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << fileAddressPath
+                                             << " has finished successfully.";
+                    break;
+                }
+
+                fragBlockIndices.push_back(tempBlockIdx);
+            }
+            colAddressFile.close();
 
             while (!colFile.eof())
             {
@@ -1051,8 +1071,8 @@ void Database::LoadColumn(const char* path,
                     break;
                 }
 
-                int64_t dataLength;
-                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int64_t)); // read data length (data block length)
+                int32_t dataLength;
+                colFile.read(reinterpret_cast<char*>(&dataLength), sizeof(int32_t)); // read data length (number of entries)
 
                 if (index != emptyBlockIndex) // there is null block
                 {
@@ -1063,120 +1083,87 @@ void Database::LoadColumn(const char* path,
                 else // read data from block
                 {
                     auto& block = columnPolygon.AddBlock(groupId);
-                    int64_t byteIndex = 0;
-                    int32_t dataCount = 0;
+                    std::vector<std::string> dataString;
 
-                    int64_t remainingDataLength = dataLength;
-                    while (byteIndex < dataLength)
+                    // for each fragment, read data, if it belongs to the current block index:
+                    for (int32_t fragIdx = 0; fragIdx < fragBlockIndices.size(); fragIdx++)
                     {
-                        int32_t currentChunkSize =
-                            oneChunkSize < remainingDataLength ? oneChunkSize : remainingDataLength;
-
-                        std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
-                        std::unique_ptr<char[]> data(new char[currentChunkSize]);
-
-                        colFile.read(data.get(), currentChunkSize);
-
-                        int32_t byteIndexForChunks = 0;
-                        int32_t remainingChunkSize = currentChunkSize;
-                        int32_t dataCountInOneChunk = 0;
-                        while (byteIndexForChunks < currentChunkSize)
+                        if (index == fragBlockIndices[fragIdx])
                         {
-                            int32_t entryByteLength = 0;
-                            if (byteIndexForChunks + sizeof(int32_t) - 1 >= currentChunkSize)
+                            fragFile.seekg(fragIdx * static_cast<int64_t>(FRAGMENT_SIZE_BYTES)); // seek the start of the fragment
+
+                            int32_t readBytes = 0;
+
+                            while (readBytes < FRAGMENT_SIZE_BYTES)
                             {
-                                int32_t restSize = (byteIndexForChunks + sizeof(int32_t) - currentChunkSize);
-                                currentChunkSize += restSize;
-                                std::unique_ptr<char[]> dataRest(new char[restSize]);
-                                colFile.read(dataRest.get(), restSize);
-                                memcpy(&entryByteLength, &data[byteIndexForChunks], sizeof(int32_t) - restSize);
-                                memcpy(reinterpret_cast<char*>(&entryByteLength) + sizeof(int32_t) - restSize,
-                                       dataRest.get(), restSize);
-                            }
-                            else
-                            {
-                                entryByteLength = *reinterpret_cast<int32_t*>(&data[byteIndexForChunks]);
-                            }
-                            std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
-
-
-                            byteIndex += sizeof(int32_t);
-                            byteIndexForChunks += sizeof(int32_t);
-
-                            if ((currentChunkSize - byteIndexForChunks) < entryByteLength)
-                            {
-                                int32_t dataLeftInCurrentChunk = currentChunkSize - byteIndexForChunks > 0 ?
-                                                                     currentChunkSize - byteIndexForChunks :
-                                                                     0;
-                                std::unique_ptr<char[]> dataRest(new char[entryByteLength - dataLeftInCurrentChunk]);
-                                currentChunkSize += entryByteLength - dataLeftInCurrentChunk;
-                                colFile.read(dataRest.get(), entryByteLength - dataLeftInCurrentChunk);
-
-                                if (dataLeftInCurrentChunk > 0)
+                                if (readBytes + sizeof(int32_t) <= FRAGMENT_SIZE_BYTES)
                                 {
-                                    memcpy(byteArray.get(), &data[byteIndexForChunks], dataLeftInCurrentChunk);
-                                }
-                                memcpy(byteArray.get() + dataLeftInCurrentChunk, &dataRest[0],
-                                       entryByteLength - dataLeftInCurrentChunk);
 
+                                    int32_t entryByteLength;
+                                    fragFile.read(reinterpret_cast<char*>(&entryByteLength),
+                                                  sizeof(int32_t)); // read length of string entry data
+                                    readBytes += sizeof(int32_t);
 
-                                ColmnarDB::Types::ComplexPolygon entryDataPolygon;
-                                entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
-                                dataPolygon.push_back(entryDataPolygon);
-
-                                byteIndexForChunks += entryByteLength;
-                                remainingChunkSize = 0;
-                            }
-                            else
-                            {
-                                memcpy(byteArray.get(), &data[byteIndexForChunks], entryByteLength);
-                                remainingChunkSize -= entryByteLength;
-
-                                ColmnarDB::Types::ComplexPolygon entryDataPolygon;
-                                entryDataPolygon.ParseFromArray(byteArray.get(), entryByteLength);
-                                dataPolygon.push_back(entryDataPolygon);
-
-                                byteIndexForChunks += entryByteLength;
-                            }
-
-                            dataCountInOneChunk++;
-                            dataCount++;
-                            byteIndex += entryByteLength;
-
-                            if (dataCount > columnPolygon.GetBlockSize())
-                            {
-                                throw std::runtime_error("Loaded data (" + fileDataPath + ") from disk does not fit into existing block");
-                                break;
-                            }
-                        }
-                        remainingDataLength -= currentChunkSize;
-
-                        if (isUnique)
-                        {
-                            if (isNullable)
-                            {
-                                throw std::runtime_error(
-                                    "Loaded column: " + fileDataPath +
-                                    " has UNIQUE constraint and has not NOT NULL constraint");
-                            }
-
-                            for (int32_t i = 0; i < dataPolygon.size(); i++)
-                            {
-                                if (!columnPolygon.IsDuplicate(dataPolygon[i]))
-                                {
-                                    columnPolygon.InsertIntoHashmap(dataPolygon[i]);
+                                    // if entryByteLength > 0 that means, there is a valid entry, that is still in use and have to be read
+                                    if (entryByteLength > 0)
+                                    {
+                                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
+                                        fragFile.read(byteArray.get(), entryByteLength);
+                                        std::string entryDataString(byteArray.get());
+                                        dataString.push_back(entryDataString);
+                                        readBytes += entryByteLength * sizeof(char);
+                                    }
+                                    else
+                                    {
+                                        // skip the invalid entry (just move pointer in file):
+                                        entryByteLength = -entryByteLength;
+                                        if (entryByteLength > 0) // to check, if it is not zero (it can be)
+                                        {
+                                            fragFile.seekg(static_cast<int64_t>(fragFile.tellg()) + entryByteLength);
+                                            readBytes += entryByteLength * sizeof(char);
+                                        }
+                                    }
                                 }
                                 else
                                 {
-                                    throw std::runtime_error(
-                                        "Loaded column: " + fileDataPath + " has UNIQUE constraint and duplicate values: " +
-                                        ComplexPolygonFactory::WktFromPolygon(dataPolygon[i]));
+                                    // there is no left bytes for int32_t header in fragment:
+                                    readBytes = FRAGMENT_SIZE_BYTES;
                                 }
                             }
                         }
-
-                        block.InsertData(dataPolygon);
                     }
+
+                    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+
+                    // convert string data into complex polygons:
+                    for (std::string dataStr : dataString)
+                    {
+                        dataPolygon.push_back(ComplexPolygonFactory::FromWkt(dataStr));
+                    }
+
+					if (isUnique)
+                    {
+                        if (isNullable)
+                        {
+                            throw std::runtime_error("Loaded column: " + columnName + " has UNIQUE constraint and has not NOT NULL constraint");
+                        }
+
+                        for (int32_t i = 0; i < dataPolygon.size(); i++)
+                        {
+                            if (!columnPolygon.IsDuplicate(dataPolygon[i]))
+                            {
+                                columnPolygon.InsertIntoHashmap(dataPolygon[i]);
+                            }
+                            else
+                            {
+                                throw std::runtime_error(
+                                    "Loaded column: " + columnName + " has UNIQUE constraint and duplicate values: " +
+                                    ComplexPolygonFactory::WktFromPolygon(dataPolygon[i]));
+                            }
+                        }
+                    }
+
+                    block.InsertData(dataPolygon);
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
@@ -1185,6 +1172,8 @@ void Database::LoadColumn(const char* path,
 
                 emptyBlockIndex += 1;
             }
+
+            fragFile.close();
         }
         break;
 
@@ -2141,24 +2130,22 @@ void Database::WriteColumn(const int32_t blockSize,
                 const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                     dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
+                std::ofstream colFragDataFile(pathStr + name + SEPARATOR + table.first + SEPARATOR +
+                                                  column.second->GetName() + FRAGMENT_DATA_EXTENSION,
+                                              std::ios::binary);
+
                 for (const auto& block : colPolygon.GetBlocksList())
                 {
                     BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index;
 
                     auto data = block->GetData();
                     int32_t groupId = block->GetGroupId();
-                    int32_t dataLength = block->GetSize();
+                    size_t blockCurrentSize = block->GetSize();
                     int64_t dataByteSize = 0;
-
-                    for (int32_t i = 0; i < dataLength; i++)
-                    {
-                        dataByteSize += data[i].ByteSize();
-                    }
-
-                    int64_t dataRawLength = dataByteSize + dataLength * sizeof(int32_t);
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t)); // write block index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
+
                     if (isNullable)
                     {
                         int32_t nullBitMaskLength =
@@ -2168,19 +2155,126 @@ void Database::WriteColumn(const int32_t blockSize,
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
-                    colDataFile.write(reinterpret_cast<char*>(&dataRawLength), sizeof(int64_t)); // write block length in bytes
-                    for (size_t i = 0; i < dataLength; i++)
+
+                    colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(int32_t)); // write number of entries
+
+                    if (colFragDataFile.is_open())
                     {
-                        int32_t entryByteLength = data[i].ByteSize();
-                        std::unique_ptr<char[]> byteArray(new char[entryByteLength]);
+                        bool newFragment = true;
 
-                        data[i].SerializeToArray(byteArray.get(), entryByteLength);
+                        // write string data (entries in WKT format) into polygon fragment data file:
+                        for (int32_t i = 0; i < blockCurrentSize; i++)
+                        {
+                            // write block index (ID) into COLUMN_ADDRESS_EXTENSION file for a new fragment
+                            if (newFragment)
+                            {
+                                colAddressFile.write(reinterpret_cast<char*>(&index), sizeof(int32_t));
 
-                        colDataFile.write(reinterpret_cast<char*>(&entryByteLength), sizeof(int32_t)); // write entry length
-                        colDataFile.write(byteArray.get(), entryByteLength); // write entry data
+                                newFragment = false;
+                            }
+
+                            // transform protobuf message into WKT strings:
+                            std::string wktPolygon = ComplexPolygonFactory::WktFromPolygon(data[i]);
+
+                            // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                            dataByteSize += wktPolygon.length() + 1 + sizeof(int32_t);
+
+                            if (dataByteSize <= FRAGMENT_SIZE_BYTES)
+                            {
+                                // writing entries that fit into a fragment
+                                int32_t entryByteLength = wktPolygon.length() + 1; // +1 because '\0'
+
+                                colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                      sizeof(int32_t)); // write entry length
+                                colFragDataFile.write(wktPolygon.c_str(), entryByteLength); // write entry data
+                            }
+                            else
+                            {
+                                // there is still some data which will be saved into next fragment:
+                                // padding the not full fragment to it's maximum size, so the size of fragment is always fixed:
+                                if (dataByteSize - (wktPolygon.length() + 1 + sizeof(int32_t)) < FRAGMENT_SIZE_BYTES)
+                                {
+                                    const int32_t freeSpaceByteLength =
+                                        FRAGMENT_SIZE_BYTES -
+                                        (dataByteSize - (wktPolygon.length() + 1 + sizeof(int32_t)));
+
+                                    // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                                    if (freeSpaceByteLength >= sizeof(int32_t))
+                                    {
+                                        int32_t freeSpaceByteLengthNeg =
+                                            -(freeSpaceByteLength - sizeof(int32_t));
+                                        std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                        colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                              sizeof(int32_t)); // write entry length
+                                        colFragDataFile.write(emptyStringData.c_str(),
+                                                              freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                                    }
+                                    else
+                                    {
+                                        // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                        // do not write int32_t header, because there is no space for it
+                                        std::string emptyStringData(freeSpaceByteLength, '*');
+                                        colFragDataFile.write(emptyStringData.c_str(),
+                                                              freeSpaceByteLength); // write empty data
+                                    }
+                                }
+
+                                // write the actual entry into another fragment (create a new fragment) and change data byte size:
+                                // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                                dataByteSize = wktPolygon.length() + 1 + sizeof(int32_t);
+                                newFragment = true;
+
+                                // writing entries that fit into a fragment
+                                int32_t entryByteLength = wktPolygon.length() + 1; // +1 because '\0'
+                                colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                      sizeof(int32_t)); // write entry length
+                                colFragDataFile.write(wktPolygon.c_str(), entryByteLength); // write entry data
+                            }
+
+                            // padding the not full fragment, when there is no data to be saved in another fragmet
+                            if (i == blockCurrentSize - 1)
+                            {
+                                const int32_t freeSpaceByteLength = FRAGMENT_SIZE_BYTES - dataByteSize;
+
+                                // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                                if (freeSpaceByteLength >= sizeof(int32_t))
+                                {
+                                    int32_t freeSpaceByteLengthNeg = -(freeSpaceByteLength - sizeof(int32_t));
+                                    std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                    colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                          sizeof(int32_t)); // write entry length
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                                }
+                                else
+                                {
+                                    // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                    // do not write int32_t header, because there is no space for it
+                                    std::string emptyStringData(freeSpaceByteLength, '*');
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength); // write empty data
+                                }
+                            }
+                        }
                     }
+                    else
+                    {
+                        BOOST_LOG_TRIVIAL(error)
+                            << "Could not open file " +
+                                   std::string(pathStr + "/" + name + SEPARATOR + table.first + SEPARATOR +
+                                               column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
+                                   " for writing. Persisting "
+                            << FRAGMENT_DATA_EXTENSION
+                            << " file was not successful. Check if the process "
+                               "have write access into the folder or file.";
+                    }
+
                     index += 1;
                 }
+
+                colFragDataFile.close();
             }
             break;
 
@@ -2398,7 +2492,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     index += 1;
                 }
 
-				colFragDataFile.close();
+                colFragDataFile.close();
             }
             break;
 
