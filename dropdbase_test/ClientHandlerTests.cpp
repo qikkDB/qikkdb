@@ -108,7 +108,7 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	auto queryResponsePtr = handlerPtr->HandleInfoMessage(tempWorker, getNextResultMessage);
 	ASSERT_NE(dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get()), static_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(nullptr));
 	auto& payload = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get())->payloads().at("test.test").intpayload().intdata();
-	auto nullMaskPayload = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get())->nullbitmasks().at("test.test");
+	auto nullMaskPayload = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(queryResponsePtr.get())->nullbitmasks().at("test.test").nullmask();
 	ASSERT_EQ(payload.size(), 3);
 	ASSERT_EQ(payload[1], 2);
 	ASSERT_EQ(payload[2], 3);
