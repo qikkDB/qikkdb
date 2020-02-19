@@ -357,6 +357,7 @@ private:
     static void ShiftNullMaskLeft(std::vector<int64_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
     int32_t GetUnaryDispatchTableIndex(DataType type);
+    void ClearCachedBlocks(const std::string& tableName, const std::string& columnName, const int32_t fromBlockIdx = 0);
 
     /// If GROUP BY Hash table is filled, restart of the thread
     /// blocks processing is needed - reset flags and start

@@ -335,6 +335,25 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
     return 2 * lConst + constOffset;
 }
 
+void GpuSqlDispatcher::ClearCachedBlocks(const std::string& tableName, const std::string& columnName, const int32_t fromBlockIdx)
+{
+    int32_t blockCount =
+        database_->GetTables().at(tableName).GetColumns().at(columnName).get()->GetBlockCount();
+    for (int32_t i = fromBlockIdx; i < blockCount; i++)
+    {
+        Context::getInstance()
+            .getCacheForDevice(i % Context::getInstance().getDeviceCount())
+            .clearCachedBlock(database_->GetName(), tableName + "." + columnName, i);
+
+        if (database_->GetTables().at(tableName).GetColumns().at(columnName).get()->GetIsNullable())
+        {
+            Context::getInstance()
+                .getCacheForDevice(i % Context::getInstance().getDeviceCount())
+                .clearCachedBlock(database_->GetName(), tableName + "." + columnName + NULL_SUFFIX, i);
+        }
+    }
+}
+
 void GpuSqlDispatcher::ResetBlocksProcessing()
 {
     CudaLogBoost::getInstance(CudaLogBoost::info)
@@ -1508,7 +1527,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropTable()
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
 {
-    Context& context = Context::getInstance();
     std::string tableName = arguments_.Read<std::string>();
 
     int32_t addColumnsCount = arguments_.Read<int32_t>();
@@ -1546,22 +1564,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
             auto newColumn =
                 database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
 
-			int32_t blockCount =
-                database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get()->GetBlockCount();
-			for (int32_t i = 0; i < blockCount; i++)
-            {
-                context.getCacheForDevice(i % context.getDeviceCount())
-                    .clearCachedBlock(database_->GetName(), tableName + "." + alterColumnName, i);
+            ClearCachedBlocks(tableName, alterColumnName);
 
-                if (database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get()->GetIsNullable())
-                {
-                    context.getCacheForDevice(i % context.getDeviceCount())
-                        .clearCachedBlock(database_->GetName(),
-                                          tableName + "." + alterColumnName + NULL_SUFFIX, i);
-                }
-            }
-
-			try
+            try
             {
                 switch (originType)
                 {
@@ -1917,8 +1922,8 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
                 (carryBits << (64 - shiftCount));
             ShiftNullMaskLeft(nullMask, shiftCount);
             std::vector<int64_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
-            
-			for (size_t i = 0; i < nullMask.size(); i++)
+
+            for (size_t i = 0; i < nullMask.size(); i++)
             {
                 responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(newNullMask[i]);
             }
