@@ -130,6 +130,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
         else
         {
             PointerAllocation col = allocatedPointers_.at(colName);
+            GPUMemory::PrintGpuBuffer("WTF data: ", reinterpret_cast<T*>(col.GpuPtr), col.ElementCount);
             int32_t inSize = col.ElementCount;
             outData = std::unique_ptr<T[]>(new T[inSize]);
             // ToDo: Podmienene zapnut podla velkost buffera
