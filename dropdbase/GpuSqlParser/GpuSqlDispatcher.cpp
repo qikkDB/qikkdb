@@ -1508,6 +1508,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropTable()
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
 {
+    Context& context = Context::getInstance();
     std::string tableName = arguments_.Read<std::string>();
 
     int32_t addColumnsCount = arguments_.Read<int32_t>();
@@ -1545,58 +1546,82 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
             auto newColumn =
                 database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
 
-            switch (originType)
+			int32_t blockCount =
+                database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get()->GetBlockCount();
+			for (int32_t i = 0; i < blockCount; i++)
             {
-            case COLUMN_INT:
-            {
-                dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
+                context.getCacheForDevice(i % context.getDeviceCount())
+                    .clearCachedBlock(database_->GetName(), tableName + "." + alterColumnName, i);
+
+                if (database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get()->GetIsNullable())
+                {
+                    context.getCacheForDevice(i % context.getDeviceCount())
+                        .clearCachedBlock(database_->GetName(),
+                                          tableName + "." + alterColumnName + NULL_SUFFIX, i);
+                }
             }
 
-            case COLUMN_LONG:
+			try
             {
-                dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                switch (originType)
+                {
+                case COLUMN_INT:
+                {
+                    dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_FLOAT:
-            {
-                dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_LONG:
+                {
+                    dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_DOUBLE:
-            {
-                dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_FLOAT:
+                {
+                    dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_POINT:
-            {
-                dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_DOUBLE:
+                {
+                    dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_POLYGON:
-            {
-                dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_POINT:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_STRING:
-            {
-                dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_POLYGON:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_INT8_T:
-            {
-                dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
+                case COLUMN_STRING:
+                {
+                    dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_INT8_T:
+                {
+                    dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+                default:
+                    throw std::runtime_error(
+                        "Attempt to execute unsupported column type conversion.");
+                    break;
+                }
             }
-            default:
-                throw std::runtime_error("Attempt to execute unsupported column type conversion.");
-                break;
+            catch (const std::runtime_error& e)
+            {
+                database_->GetTables().at(tableName).EraseColumn(alterColumnName + "_temp");
+                throw;
             }
 
             database_->GetTables().at(tableName).EraseColumn(alterColumnName);
