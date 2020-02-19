@@ -1,11 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
 using ColmnarDB.NetworkClient;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ColmnarDB.ConsoleClient
 {
@@ -34,6 +38,9 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         public static void Main(string[] args)
         {
+            ipAddress = GetConfigurationParameter<string>("host");
+            port = GetConfigurationParameter<short>("port");
+
             int timeout = 30000;
             if (args.Length >= 2)
             {
@@ -386,6 +393,28 @@ namespace ColmnarDB.ConsoleClient
             }
 
             return importParameters;
+
+        }
+
+        private static T GetConfigurationParameter<T>(string parameterName)
+        {
+            Assembly asm = Assembly.GetCallingAssembly();
+            
+            string configFileDirectory = Path.GetDirectoryName(asm.Location);
+            string configFileName = string.Format("{0}.json", Path.GetFileNameWithoutExtension(asm.Location));
+
+            string configFilePath = Path.Combine(configFileDirectory, configFileName);
+
+            if (File.Exists(configFilePath))
+            {
+                string configData = File.ReadAllText(configFilePath);
+
+                JObject configObj = (JObject)(JsonConvert.DeserializeObject(configData));
+
+                return configObj[parameterName].Value<T>();
+            }
+
+            return default(T);
         }
     }
 }

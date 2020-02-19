@@ -37,4 +37,10 @@
     <PackageReference Include="ReadLine" Version="2.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ColmnarDB.ConsoleClient.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
