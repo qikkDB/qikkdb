@@ -1088,12 +1088,6 @@ public:
 
     void CleanUpGpuPointers();
 
-
-    //// FILTERS WITH FUNCTORS
-
-    template <typename OP, typename L, typename R>
-    InstructionStatus Filter();
-
     template <typename OP, typename L, typename R>
     InstructionStatus Binary();
 

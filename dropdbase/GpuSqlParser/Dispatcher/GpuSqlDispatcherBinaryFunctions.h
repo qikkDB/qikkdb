@@ -74,7 +74,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
                     }
                 }
                 GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                        std::get<0>(right), retSize);
+                                                        std::get<0>(right), retSize, std::get<1>(result));
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             }
@@ -112,7 +112,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
                                                   bitMaskSize);
                 }
                 GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                        std::get<0>(right), retSize);
+                                                        std::get<0>(right), retSize, std::get<1>(result));
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
                     result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
             }
@@ -133,7 +133,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
         if (isCompositeDataType<ResultType> || std::get<0>(result))
         {
             GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                    std::get<0>(right), retSize);
+                                                    std::get<0>(right), retSize, std::get<1>(result));
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                             retSize, false, {});
         }

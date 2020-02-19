@@ -18,6 +18,7 @@
 #include "GPUConversion.cuh"
 #include "GPUStringBinary.cuh"
 #include "GPUPolygonClipping.cuh"
+#include "GPUFilter.cuh"
 
 namespace ArithmeticOperations
 {
@@ -377,6 +378,17 @@ kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+template <typename OP>
+constexpr bool isFilterOp = std::is_same<OP, FilterConditions::greater>::value ||
+                            std::is_same<OP, FilterConditions::greaterEqual>::value ||
+                            std::is_same<OP, FilterConditions::less>::value ||
+                            std::is_same<OP, FilterConditions::lessEqual>::value ||
+                            std::is_same<OP, FilterConditions::equal>::value ||
+                            std::is_same<OP, FilterConditions::notEqual>::value ||
+                            std::is_same<OP, FilterConditions::logicalAnd>::value ||
+                            std::is_same<OP, FilterConditions::logicalOr>::value;
+
 /// Class for binary arithmetic functions
 template <typename OP, typename T, typename U, typename V, class Enable = void>
 class GPUBinary
@@ -388,7 +400,7 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Binary(T* output, U ACol, V BCol, int32_t dataElementCount)
+    static void Binary(T* output, U ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
     {
         ErrorFlagSwapper errorFlagSwapper;
         kernel_arithmetic<OP>
@@ -409,7 +421,11 @@ class GPUBinary<OP,
                                         std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
 {
 public:
-    static void Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
+    static void Binary(GPUMemory::GPUString& outCol,
+                       GPUMemory::GPUString ACol,
+                       GPUMemory::GPUString BCol,
+                       int32_t dataElementCount,
+                       int8_t* nullBitMask)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
@@ -433,7 +449,8 @@ class GPUBinary<OP,
                                         std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
-    static void Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount)
+    static void
+    Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
         if constexpr (std::is_pointer<U>::value && std::is_pointer<V>::value)
         {
@@ -464,7 +481,7 @@ class GPUBinary<OP,
                                         std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
 {
 public:
-    static void Binary(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount)
+    static void Binary(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
@@ -495,7 +512,8 @@ public:
     static void Binary(GPUMemory::GPUPolygon& polygonOut,
                        GPUMemory::GPUPolygon& polygonAin,
                        GPUMemory::GPUPolygon& polygonBin,
-                       int32_t dataElementCount)
+                       int32_t dataElementCount,
+                       int8_t* nullBitMask)
     {
         GPUPolygonClipping::clip<OP>(polygonOut, polygonAin, polygonBin,
                                      std::is_pointer<U>::value ? dataElementCount : 1,
@@ -517,7 +535,8 @@ public:
     Binary(int8_t* outMask,
            GPUMemory::GPUPolygon polygonCol,
            typename std::conditional<std::is_pointer<V>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
-           int32_t dataElementCount)
+           int32_t dataElementCount,
+           int8_t* nullBitMask)
     {
         if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
         {
@@ -535,5 +554,60 @@ public:
             GPUMemory::memset(outMask, result, dataElementCount);
         }
         CheckCudaError(cudaGetLastError());
+    }
+};
+
+template <typename OP, typename T, typename U, typename V>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+{
+public:
+    static void Binary(int8_t* outMask, U ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask)
+    {
+        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        {
+            kernel_filter<OP>
+                <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                    outMask, ACol, BCol, nullBitMask, dataElementCount);
+        }
+        else
+        {
+            GPUMemory::memset(outMask, OP{}(maybe_deref(ACol, 0), maybe_deref(BCol, 0)), dataElementCount);
+        }
+        CheckCudaError(cudaGetLastError());
+    }
+};
+
+template <typename OP, typename T, typename U, typename V>
+class GPUBinary<OP,
+                T,
+                U,
+                V,
+                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
+                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
+{
+public:
+    static void
+    Binary(int8_t* outMask, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount, int8_t* nullBitMask)
+    {
+        kernel_filter_string<OP>
+            <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
+                outMask, ACol, std::is_pointer<U>::value, BCol, std::is_pointer<V>::value,
+                nullBitMask, dataElementCount);
+        CheckCudaError(cudaGetLastError());
+
+        if constexpr (!std::is_pointer<U>::value && !std::is_pointer<V>::value)
+        {
+            // Expand mask - copy the one result to whole mask
+            int8_t numberFromMask;
+            GPUMemory::copyDeviceToHost(&numberFromMask, outMask, 1);
+            GPUMemory::memset(outMask, numberFromMask, dataElementCount);
+        }
     }
 };

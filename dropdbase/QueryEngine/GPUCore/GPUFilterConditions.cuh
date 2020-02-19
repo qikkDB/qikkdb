@@ -8,6 +8,7 @@ namespace FilterConditions
 /// A greater than operator > functor
 struct greater
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -24,6 +25,7 @@ struct greater
 /// A greater than or equal operator >= functor
 struct greaterEqual
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -40,6 +42,7 @@ struct greaterEqual
 /// A less than operator < functor
 struct less
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -56,6 +59,7 @@ struct less
 /// A less than or equal operator <= functor
 struct lessEqual
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -72,6 +76,7 @@ struct lessEqual
 /// An equality operator == functor
 struct equal
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::INNER;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -102,6 +107,7 @@ struct equal
 /// An unequality operator != functor
 struct notEqual
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::OUTER;
     template <typename T, typename U>
     __device__ __host__ int8_t operator()(T a, U b) const
@@ -132,6 +138,7 @@ struct notEqual
 /// A logical binary AND operation
 struct logicalAnd
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 
     template <typename T, typename U>
@@ -144,6 +151,7 @@ struct logicalAnd
 /// A logical binary OR operation
 struct logicalOr
 {
+    typedef int8_t RetType;
     static constexpr CpuFilterInterval interval = CpuFilterInterval::NONE;
 
     template <typename T, typename U>

@@ -290,5 +290,93 @@ DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, std::string)
 DISPATCHER_INVALID_TYPE(PolygonFunctions::contains, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::greaterFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::greater, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::greater, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greater, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::lessFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::less, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::less, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::less, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::greaterEqualFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::greaterEqual, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::greaterEqual, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::greaterEqual, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::lessEqualFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::lessEqual, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::lessEqual, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::lessEqual, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::equalFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::equal, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::equal, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::equal, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::notEqualFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::notEqual, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::notEqual, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, std::string, 0, 0, 0, 0, 0, 0, 1, 0)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::notEqual, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::logicalAndFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalAnd, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalAnd, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalAnd, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalAnd, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalAnd, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalAnd, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalAnd, std::string)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalAnd, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
+BEGIN_DISPATCH_TABLE(GpuSqlDispatcher::logicalOrFunctions_)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalOr, int32_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalOr, int64_t, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalOr, float, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalOr, double, 1, 1, 1, 1, 0, 0, 0, 1)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalOr, ColmnarDB::Types::Point)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalOr, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(FilterConditions::logicalOr, std::string)
+DISPATCHER_TYPE(GpuSqlDispatcher::Binary, FilterConditions::logicalOr, int8_t, 1, 1, 1, 1, 0, 0, 0, 1)
+END_DISPATCH_TABLE
+
 
 #undef MERGED
