@@ -59,8 +59,8 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     std::unordered_map<std::string, DataType> columns;
     columns.emplace("Col1", COLUMN_INT);
     database->CreateTable(columns, "TestTable");
-    std::vector<int8_t> expectedMask;
-    int8_t bitMaskPart = 0;
+    std::vector<int64_t> expectedMask;
+    int64_t bitMaskPart = 0;
     int nullCount = 0;
     for (int i = 0; i < 16; i++)
     {
@@ -192,7 +192,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
     ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
     for (int32_t i = 0; i < expectedResults.size(); i++)
     {
-        int8_t nullBit = (nullBitMask[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit = NullValues::GetConcreteBitFromBitmask(nullBitMask.begin(), i);
         if (!nullBit)
         {
             ASSERT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
@@ -300,7 +300,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
 
     for (int32_t i = 0; i < expectedResults1.size(); i++)
     {
-        int8_t nullBit1 = (nullBitMask1[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit1 = NullValues::GetConcreteBitFromBitmask(nullBitMask1.begin(), i);
         if (!nullBit1)
         {
             ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]);
@@ -310,7 +310,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults1[i], 0);
         }
 
-        int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit2 = NullValues::GetConcreteBitFromBitmask(nullBitMask2.begin(), i);
         if (!nullBit2)
         {
             ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
@@ -320,7 +320,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults2[i], "0");
         }
 
-        int8_t nullBit3 = (nullBitMask3[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit3 = NullValues::GetConcreteBitFromBitmask(nullBitMask3.begin(), i);
         if (!nullBit3)
         {
             ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
@@ -330,7 +330,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults3[i], "0");
         }
 
-        int8_t nullBit4 = (nullBitMask4[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit4 = NullValues::GetConcreteBitFromBitmask(nullBitMask4.begin(), i);
         if (!nullBit4)
         {
             ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);
@@ -567,8 +567,8 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
     ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
     for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
     {
-        int8_t nullBitA = (nullBitMaskA[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
-        int8_t nullBitB = (nullBitMaskB[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBitA = NullValues::GetConcreteBitFromBitmask(nullBitMaskA.begin(), i);
+        int8_t nullBitB = NullValues::GetConcreteBitFromBitmask(nullBitMaskB.begin(), i);
 
         ASSERT_EQ(nullBitA, nullBitB);
 

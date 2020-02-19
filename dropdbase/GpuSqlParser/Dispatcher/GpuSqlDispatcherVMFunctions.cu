@@ -529,10 +529,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
                                                         reinterpret_cast<int8_t*>(filter_),
                                                         ACol.ElementCount, nullMask.get(),
                                                         reinterpret_cast<int64_t*>(ACol.GpuNullMaskPtr));
-
-                bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
+                nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
                 nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
-
             }
             else
             {
@@ -591,7 +589,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
                 outSize = reconstructedColumn->GetSize();
 
                 nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskPtr = reconstructedOrderByColumnsNullMerged_.at(colName).get();
+                nullMaskVector =
+                    std::vector<int64_t>(reconstructedOrderByColumnsNullMerged_.at(colName).get(),
+                                         reconstructedOrderByColumnsNullMerged_.at(colName).get() + nullMaskPtrSize);
             }
             else
             {

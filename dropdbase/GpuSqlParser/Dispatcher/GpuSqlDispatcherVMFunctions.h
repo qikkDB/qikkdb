@@ -69,8 +69,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 
     int32_t outSize;
     std::unique_ptr<T[]> outData;
-    int64_t* nullMaskPtr = nullptr;
     int32_t nullMaskPtrSize = 0;
+    std::vector<int64_t> nullMaskVector = {};
     if (usingGroupBy_)
     {
         if (isOverallLastBlock_)
@@ -98,7 +98,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                 GPUMemory::copyDeviceToHost(nullMask.get(),
                                             reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), bitMaskSize);
                 nullMaskPtrSize = bitMaskSize;
-                nullMaskPtr = nullMask.get();
+                nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
         }
         else
@@ -118,7 +118,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                 outSize = reconstructedColumn->GetSize();
 
                 nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskPtr = reconstructedOrderByColumnsNullMerged_.at(colName).get();
+                nullMaskVector =
+                    std::vector<int64_t>(reconstructedOrderByColumnsNullMerged_.at(colName).get(),
+                                         reconstructedOrderByColumnsNullMerged_.at(colName).get() + nullMaskPtrSize);
             }
             else
             {
@@ -140,7 +142,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                                                reinterpret_cast<int8_t*>(filter_), col.ElementCount,
                                                nullMask.get(), reinterpret_cast<int64_t*>(col.GpuNullMaskPtr));
                 nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskPtr = nullMask.get();
+                nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
             else
             {
@@ -156,7 +158,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
         InsertIntoPayload(payload, outData, outSize, payloadType);
-        std::vector<int64_t> nullMaskVector(nullMaskPtr, nullMaskPtr + nullMaskPtrSize);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskVector);
     }
     return InstructionStatus::CONTINUE;

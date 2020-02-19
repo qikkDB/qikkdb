@@ -1886,9 +1886,9 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         {
             int shiftCount = 64 - (dataLength % 64);
             std::vector<int64_t> nullMaskVec(nullMask.begin(), nullMask.end());
-            int8_t carryBits = nullMaskVec[0] & ((1 << shiftCount) - 1);
+            int64_t carryBits = nullMaskVec[0] & ((1 << shiftCount) - 1);
             responseMessage->mutable_nullbitmasks()->at(key).mutable_nullmask()->at(
-                responseMessage->mutable_nullbitmasks()->at(key).nullmask_size()) |=
+                responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() - 1) |=
                 (carryBits << (64 - shiftCount));
             ShiftNullMaskLeft(nullMask, shiftCount);
             std::vector<int64_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
@@ -2045,7 +2045,7 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
         realTrimmedName = realName.substr(1, std::string::npos);
     }
 
-    if (!nullMask.empty() == 0)
+    if (!nullMask.empty())
     {
         MergePayloadBitmask(trimmedKey, &responseMessage_, nullMask);
     }
