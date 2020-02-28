@@ -96,6 +96,10 @@ private:
     std::string name_;
     int64_t size_; // current number of not empty rows in a column, sumerized all blocks currentSize_
     int32_t blockSize_;
+    std::string fileAddressPath_;
+    std::string fileDataPath_;
+    std::string fileFragmentPath_; // used just in COLUMN_STRING and COLUMN_POLYGON
+    std::string encoding_; // used just in COLUMN_STRING and COLUMN_POLYGON, it is encoding of persisted string data
     std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
     std::unordered_set<T> uniqueHashmap_;
 
@@ -180,6 +184,46 @@ public:
     virtual bool GetIsNullable() const override
     {
         return isNullable_;
+    }
+
+    virtual const std::string& GetFileAddressPath() const override
+    {
+        return fileAddressPath_;
+    }
+
+    virtual const std::string& GetFileDataPath() const override
+    {
+        return fileDataPath_;
+    }
+
+    virtual const std::string& GetFileFragmentPath() const override
+    {
+        return fileFragmentPath_;
+    }
+
+    virtual const std::string& GetEncoding() const override
+    {
+        return encoding_;
+    }
+
+    virtual void SetFileAddressPath(std::string newFilePath) override
+    {
+        fileAddressPath_ = newFilePath;
+    }
+
+    virtual void SetFileDataPath(std::string newFilePath) override
+    {
+        fileDataPath_ = newFilePath;
+    }
+
+    virtual void SetFileFragmentPath(std::string newFilePath) override
+    {
+        fileFragmentPath_ = newFilePath;
+    }
+
+    virtual void SetEncoding(std::string newFilePath) override
+    {
+        encoding_ = newFilePath;
     }
 
     /// <summary>
@@ -414,8 +458,9 @@ public:
                 const int32_t shiftIdx = (srcRowIndex % (sizeof(int8_t) * 8)); // which bit it is
                 const bool isNullValue = (nullBitMask[bitMaskIdx] >> shiftIdx) & 1;
 
-                InsertDataOnSpecificPositionResizing(dstBlockIndex,
-                    dstRowIndex, srcBlocks[srcBlockIndex]->GetData()[srcRowIndex], -1, isNullValue);
+                InsertDataOnSpecificPositionResizing(dstBlockIndex, dstRowIndex,
+                                                     srcBlocks[srcBlockIndex]->GetData()[srcRowIndex],
+                                                     -1, isNullValue);
                 srcRowIndex++;
                 dstRowIndex++;
 
@@ -582,7 +627,7 @@ public:
         // setColumnStatistics();
     }
 
-	/// <summary>
+    /// <summary>
     /// Inserts data on proper position in column without splitting blocks, used when resizing block size
     /// </summary>
     /// <param name="indexBlock">index of block where data will be inserted</param>
@@ -591,17 +636,18 @@ public:
     /// <param name="groupId">id of binary index group<param>
     /// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPositionResizing(int32_t indexBlock,
-											  int32_t indexInBlock,
-											  const T& columnData,
-											  int32_t groupId = -1,
-										      bool isNullValue = false)
+                                              int32_t indexInBlock,
+                                              const T& columnData,
+                                              int32_t groupId = -1,
+                                              bool isNullValue = false)
     {
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
-		
-		if (block.IsFull())
+
+        if (block.IsFull())
         {
-            BOOST_LOG_TRIVIAL(debug)
-                << "The block with index " << indexBlock << " is full and data cannot be inserted into it when resizing block size for column named: " << name_ << ".";
+            BOOST_LOG_TRIVIAL(debug) << "The block with index "
+                                     << indexBlock << " is full and data cannot be inserted into it when resizing block size for column named: "
+                                     << name_ << ".";
         }
 
         size_ += 1;

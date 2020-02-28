@@ -364,20 +364,87 @@ void Database::PersistOnlyDbFile(const char* path)
                 Json::Value columnsJSON;
                 columnsJSON["column_name"] = columnName; // write column name
                 columnsJSON["column_type"] = columnType; // write column type
-                columnsJSON["file_path_address_file"] = std::string(path) + name_ + SEPARATOR + tableName +
-                                                        SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION;
-                columnsJSON["file_path_data_file"] = std::string(path) + name_ + SEPARATOR + tableName +
-                                                     SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
+
+                const std::string fileAddressPath = column.second->GetFileAddressPath();
+                const std::string fileDataPath = column.second->GetFileDataPath();
+
+                if (fileAddressPath.size() == 0)
+                {
+                    columnsJSON["file_path_address_file"] = std::string(path) + name_ + SEPARATOR +
+                                                            tableName + SEPARATOR + columnName +
+                                                            COLUMN_ADDRESS_EXTENSION;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Default address file path ( "
+                        << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION
+                        << " ) has been persisted for column " << columnName << " of table "
+                        << tableName << " of database " << name_ << ".";
+                }
+                else
+                {
+                    columnsJSON["file_path_address_file"] = fileAddressPath;
+                    BOOST_LOG_TRIVIAL(debug) << "Specific address file path ( " << fileAddressPath
+                                             << " ) has been persisted for column " << columnName << " of table "
+                                             << tableName << " of database " << name_ << ".";
+                }
+
+                if (fileDataPath.size() == 0)
+                {
+                    columnsJSON["file_path_data_file"] = std::string(path) + name_ + SEPARATOR + tableName +
+                                                         SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Default data file path ( "
+                        << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_DATA_EXTENSION
+                        << " ) has been persisted for column " << columnName << " of table "
+                        << tableName << " of database " << name_ << ".";
+                }
+                else
+                {
+                    columnsJSON["file_path_data_file"] = fileDataPath;
+                    BOOST_LOG_TRIVIAL(debug)
+                        << "Specific data file path ( " << fileDataPath << " ) has been persisted for column "
+                        << columnName << " of table " << tableName << " of database " << name_ << ".";
+                }
+
 
                 if (columnType == COLUMN_STRING || columnType == COLUMN_POLYGON)
                 {
-                    columnsJSON["file_path_string_address_file"] =
-                        std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName +
-                        std::string(".stradrs");
-                    columnsJSON["file_path_string_data_file"] = std::string(path) + name_ +
-                                                                SEPARATOR + tableName + SEPARATOR +
-                                                                columnName + FRAGMENT_DATA_EXTENSION;
-                    columnsJSON["encoding"] = "undefined";
+                    const std::string fileFragmentPath = column.second->GetFileFragmentPath();
+                    const std::string encoding = column.second->GetEncoding();
+
+                    if (fileFragmentPath.size() == 0)
+                    {
+                        columnsJSON["file_path_string_data_file"] =
+                            std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR +
+                            columnName + FRAGMENT_DATA_EXTENSION;
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Default fragment file path ( "
+                            << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION
+                            << " ) has been persisted for column " << columnName << " of table "
+                            << tableName << " of database " << name_ << ".";
+                    }
+                    else
+                    {
+                        columnsJSON["file_path_string_data_file"] = fileFragmentPath;
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Specific fragment file path ( " << fileFragmentPath
+                            << " ) has been persisted for column " << columnName << " of table "
+                            << tableName << " of database " << name_ << ".";
+                    }
+
+                    if (encoding.size() == 0 || encoding == "undefined")
+                    {
+                        columnsJSON["encoding"] = "undefined";
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Default encoding (undefined) has been persisted for column " << columnName
+                            << " of table " << tableName << " of database " << name_ << ".";
+                    }
+                    else
+                    {
+                        columnsJSON["encoding"] = encoding;
+                        BOOST_LOG_TRIVIAL(debug)
+                            << "Specific encoding ( " << encoding << " ) has been persisted for column "
+                            << columnName << " of table " << tableName << " of database " << name_ << ".";
+                    }
                 }
 
                 columnsJSON["default_entry_value"] = 0;
@@ -933,13 +1000,13 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 const std::string filePathAddressFile = columnJSON["file_path_address_file"].asString();
                 const std::string filePathDataFile = columnJSON["file_path_data_file"].asString();
 
+                // usable just for COLUMN_STRING and COLUMN_POLYGON:
+                std::string filePathStrDataFile = "error_reading";
+                std::string encoding = "error_reading";
                 if (columnType == COLUMN_STRING || columnType == COLUMN_POLYGON)
                 {
-                    const std::string filePathStrAddressFile =
-                        columnJSON["file_path_string_address_file"].asString();
-                    const std::string filePathStrDataFile =
-                        columnJSON["file_path_string_data_file"].asString();
-                    const std::string encoding = columnJSON["encoding"].asString();
+                    filePathStrDataFile = columnJSON["file_path_string_data_file"].asString();
+                    encoding = columnJSON["encoding"].asString();
                 }
 
                 const bool isNullable = columnJSON["nullable"].asBool();
@@ -947,7 +1014,8 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 const bool isHidden = columnJSON["hidden"].asBool();
 
                 columnNames.push_back(columnName);
-                threads.emplace_back(Database::LoadColumn, path, dbName.c_str(), persistenceFormatVersion,
+                threads.emplace_back(Database::LoadColumn, filePath, filePathAddressFile, filePathDataFile,
+                                     filePathStrDataFile, encoding, persistenceFormatVersion,
                                      columnType, isNullable, isUnique, std::ref(table), columnName);
             }
 
@@ -971,8 +1039,11 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// <summary>
 /// Load column of a table into memory from disk.
 /// </summary>
-/// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
-/// <param name="dbName">Name of the database.</param>
+/// <param name="fileDbPath">Path to DB_EXTENSION file.</param>
+/// <param name="fileAddressPath">Path to COLUMN_ADDRESS_EXTENSION file.</param>
+/// <param name="fileDataPath">Path to COLUMN_DATA_EXTENSION file.</param>
+/// <param name="fileFragmentPath">Path to FRAGMENT_DATA_EXTENSION file.</param>
+/// <param name="encoding">Encoding of the string data in FRAGMENT_DATA_EXTENSION file.</param>
 /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
 /// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according
 /// to DataType enumeration.</param>
@@ -980,8 +1051,11 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// <param name="isUnique">Flag if a column can have only unique values and not
 /// a single one NULL value.</param> <param name="table">Instance of table into which the column
 /// should be added.</param> <param name="columnName">Names of particular column.</param>
-void Database::LoadColumn(const char* path,
-                          const char* dbName,
+void Database::LoadColumn(const std::string fileDbPath,
+                          const std::string fileAddressPath,
+                          const std::string fileDataPath,
+                          const std::string fileFragmentPath,
+                          const std::string encoding,
                           const int32_t persistenceFormatVersion,
                           const int32_t type,
                           const bool isNullable,
@@ -989,40 +1063,42 @@ void Database::LoadColumn(const char* path,
                           Table& table,
                           const std::string columnName)
 {
-    const int32_t oneChunkSize = 8 * 1024 * 1024;
-    const std::string fileDataPath = std::string(path) + std::string(dbName) + SEPARATOR +
-                                     table.GetName() + SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
-    const std::string fileAddressPath = std::string(path) + std::string(dbName) + SEPARATOR +
-                                        table.GetName() + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION;
-
     std::ifstream colFile(fileDataPath, std::ios::binary);
     std::ifstream colAddressFile(fileAddressPath, std::ios::binary);
 
+    colAddressFile.seekg(0, colAddressFile.end);
+    const size_t fileAddressSize = colAddressFile.tellg();
+    colAddressFile.seekg(0, colAddressFile.beg);
+
     colFile.seekg(0, colFile.end);
-    const size_t fileSize = colFile.tellg();
-    if (fileSize != 0)
+    const size_t fileDataSize = colFile.tellg();
+    colFile.seekg(0, colFile.beg);
+
+    BOOST_LOG_TRIVIAL(info)
+        << "Loading " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
+
+    int32_t emptyBlockIndex = 0;
+
+    int32_t nullBitMaskAllocationSize =
+        ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+    switch (type)
     {
-        colFile.seekg(0, colFile.beg);
-        BOOST_LOG_TRIVIAL(info)
-            << "Loading " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
+    case COLUMN_POLYGON:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
+        auto& columnPolygon =
+            dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
+        std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
+        std::ifstream fragFile(fileFragmentPath, std::ios::binary);
 
-        int32_t emptyBlockIndex = 0;
+        columnPolygon.SetFileAddressPath(fileAddressPath);
+        columnPolygon.SetFileDataPath(fileDataPath);
+        columnPolygon.SetFileFragmentPath(fileFragmentPath);
+        columnPolygon.SetEncoding(encoding);
 
-        int32_t nullBitMaskAllocationSize =
-            ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-
-        switch (type)
+        if (fileAddressSize > 0)
         {
-        case COLUMN_POLYGON:
-        {
-            table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
-            auto& columnPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
-                *table.GetColumns().at(columnName));
-            std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
-            const std::string fileFragDataPath = std::string(path) + std::string(dbName) + SEPARATOR +
-                                                 table.GetName() + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
-            std::ifstream fragFile(fileFragDataPath, std::ios::binary);
-
             while (!colAddressFile.eof())
             {
                 uint32_t tempBlockIdx;
@@ -1039,7 +1115,16 @@ void Database::LoadColumn(const char* path,
                 fragBlockIndices.push_back(tempBlockIdx);
             }
             colAddressFile.close();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
 
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1172,18 +1257,30 @@ void Database::LoadColumn(const char* path,
 
                 emptyBlockIndex += 1;
             }
-
-            fragFile.close();
         }
-        break;
-
-        case COLUMN_POINT:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_POINT, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
 
-            auto& columnPoint =
-                dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
+        fragFile.close();
+    }
+    break;
 
+    case COLUMN_POINT:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_POINT, isNullable, isUnique);
+
+        auto& columnPoint =
+            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
+
+        columnPoint.SetFileAddressPath(fileAddressPath);
+        columnPoint.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1288,17 +1385,29 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        case COLUMN_STRING:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable, isUnique);
-            auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
-            std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
-            const std::string fileFragDataPath = std::string(path) + std::string(dbName) + SEPARATOR +
-                                                 table.GetName() + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
-            std::ifstream fragFile(fileFragDataPath, std::ios::binary);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
+    }
+    break;
 
+    case COLUMN_STRING:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable, isUnique);
+        auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
+        std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
+        std::ifstream fragFile(fileFragmentPath, std::ios::binary);
+
+        columnString.SetFileAddressPath(fileAddressPath);
+        columnString.SetFileDataPath(fileDataPath);
+        columnString.SetFileFragmentPath(fileFragmentPath);
+        columnString.SetEncoding(encoding);
+
+        if (fileAddressSize > 0)
+        {
             while (!colAddressFile.eof())
             {
                 uint32_t tempBlockIdx;
@@ -1315,7 +1424,16 @@ void Database::LoadColumn(const char* path,
                 fragBlockIndices.push_back(tempBlockIdx);
             }
             colAddressFile.close();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
 
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1439,16 +1557,29 @@ void Database::LoadColumn(const char* path,
 
                 emptyBlockIndex += 1;
             }
-
-            fragFile.close();
         }
-        break;
-
-        case COLUMN_INT8_T:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_INT8_T, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
 
-            auto& columnInt = dynamic_cast<ColumnBase<int8_t>&>(*table.GetColumns().at(columnName));
+        fragFile.close();
+    }
+    break;
+
+    case COLUMN_INT8_T:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_INT8_T, isNullable, isUnique);
+
+        auto& columnInt = dynamic_cast<ColumnBase<int8_t>&>(*table.GetColumns().at(columnName));
+
+        columnInt.SetFileAddressPath(fileAddressPath);
+        columnInt.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
 
             while (!colFile.eof())
             {
@@ -1502,8 +1633,10 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int8_t[]> data = std::unique_ptr<int8_t[]>(new int8_t[dataLength]);
-                    std::unique_ptr<double[]> emptyData(new double[columnInt.GetBlockSize() - dataLength]);
+                    std::unique_ptr<int8_t[]> data =
+                        std::unique_ptr<int8_t[]>(new int8_t[columnInt.GetBlockSize()]);
+                    std::unique_ptr<int8_t[]> emptyData =
+                        std::unique_ptr<int8_t[]>(new int8_t[columnInt.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int8_t)); // read entry data
                     colFile.read(reinterpret_cast<char*>(emptyData.get()),
@@ -1548,14 +1681,26 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        case COLUMN_INT:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_INT, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
+    }
+    break;
 
-            auto& columnInt = dynamic_cast<ColumnBase<int32_t>&>(*table.GetColumns().at(columnName));
+    case COLUMN_INT:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_INT, isNullable, isUnique);
 
+        auto& columnInt = dynamic_cast<ColumnBase<int32_t>&>(*table.GetColumns().at(columnName));
+
+        columnInt.SetFileAddressPath(fileAddressPath);
+        columnInt.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1608,8 +1753,10 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int32_t[]> data = std::unique_ptr<int32_t[]>(new int32_t[dataLength]);
-                    std::unique_ptr<double[]> emptyData(new double[columnInt.GetBlockSize() - dataLength]);
+                    std::unique_ptr<int32_t[]> data =
+                        std::unique_ptr<int32_t[]>(new int32_t[columnInt.GetBlockSize()]);
+                    std::unique_ptr<int32_t[]> emptyData =
+                        std::unique_ptr<int32_t[]>(new int32_t[columnInt.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int32_t)); // read entry data
                     colFile.read(reinterpret_cast<char*>(emptyData.get()),
@@ -1654,14 +1801,26 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        case COLUMN_LONG:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_LONG, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
+    }
+    break;
 
-            auto& columnLong = dynamic_cast<ColumnBase<int64_t>&>(*table.GetColumns().at(columnName));
+    case COLUMN_LONG:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_LONG, isNullable, isUnique);
 
+        auto& columnLong = dynamic_cast<ColumnBase<int64_t>&>(*table.GetColumns().at(columnName));
+
+        columnLong.SetFileAddressPath(fileAddressPath);
+        columnLong.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1714,8 +1873,10 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<int64_t[]> data = std::unique_ptr<int64_t[]>(new int64_t[dataLength]);
-                    std::unique_ptr<double[]> emptyData(new double[columnLong.GetBlockSize() - dataLength]);
+                    std::unique_ptr<int64_t[]> data =
+                        std::unique_ptr<int64_t[]>(new int64_t[columnLong.GetBlockSize()]);
+                    std::unique_ptr<int64_t[]> emptyData =
+                        std::unique_ptr<int64_t[]>(new int64_t[columnLong.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(int64_t)); // read entry data
                     colFile.read(reinterpret_cast<char*>(emptyData.get()),
@@ -1760,14 +1921,26 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        case COLUMN_FLOAT:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_FLOAT, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
+    }
+    break;
 
-            auto& columnFloat = dynamic_cast<ColumnBase<float>&>(*table.GetColumns().at(columnName));
+    case COLUMN_FLOAT:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_FLOAT, isNullable, isUnique);
 
+        auto& columnFloat = dynamic_cast<ColumnBase<float>&>(*table.GetColumns().at(columnName));
+
+        columnFloat.SetFileAddressPath(fileAddressPath);
+        columnFloat.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1820,8 +1993,10 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<float[]> data = std::unique_ptr<float[]>(new float[dataLength]);
-                    std::unique_ptr<double[]> emptyData(new double[columnFloat.GetBlockSize() - dataLength]);
+                    std::unique_ptr<float[]> data =
+                        std::unique_ptr<float[]>(new float[columnFloat.GetBlockSize()]);
+                    std::unique_ptr<float[]> emptyData =
+                        std::unique_ptr<float[]>(new float[columnFloat.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(float)); // read entry data
                     colFile.read(reinterpret_cast<char*>(emptyData.get()),
@@ -1866,14 +2041,26 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        case COLUMN_DOUBLE:
+        else
         {
-            table.CreateColumn(columnName.c_str(), COLUMN_DOUBLE, isNullable, isUnique);
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
+        }
+    }
+    break;
 
-            auto& columnDouble = dynamic_cast<ColumnBase<double>&>(*table.GetColumns().at(columnName));
+    case COLUMN_DOUBLE:
+    {
+        table.CreateColumn(columnName.c_str(), COLUMN_DOUBLE, isNullable, isUnique);
 
+        auto& columnDouble = dynamic_cast<ColumnBase<double>&>(*table.GetColumns().at(columnName));
+
+        columnDouble.SetFileAddressPath(fileAddressPath);
+        columnDouble.SetFileDataPath(fileDataPath);
+
+        if (fileDataSize > 0)
+        {
             while (!colFile.eof())
             {
                 uint32_t index;
@@ -1926,8 +2113,10 @@ void Database::LoadColumn(const char* path,
                 }
                 else // read data from block
                 {
-                    std::unique_ptr<double[]> data = std::unique_ptr<double[]>(new double[dataLength]);
-                    std::unique_ptr<double[]> emptyData(new double[columnDouble.GetBlockSize() - dataLength]);
+                    std::unique_ptr<double[]> data =
+                        std::unique_ptr<double[]>(new double[columnDouble.GetBlockSize()]);
+                    std::unique_ptr<double[]> emptyData =
+                        std::unique_ptr<double[]>(new double[columnDouble.GetBlockSize() - dataLength]);
 
                     colFile.read(reinterpret_cast<char*>(data.get()), dataLength * sizeof(double)); // read entry data
                     colFile.read(reinterpret_cast<char*>(emptyData.get()),
@@ -1973,21 +2162,23 @@ void Database::LoadColumn(const char* path,
                 emptyBlockIndex += 1;
             }
         }
-        break;
-
-        default:
-            BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - "
-                                     << std::string(path) << std::string(dbName) << "): " << type;
-            throw std::domain_error("Unsupported data type (when loading database - " + std::string(path) +
-                                    std::string(dbName) + "): " + std::to_string(type));
+        else
+        {
+            BOOST_LOG_TRIVIAL(warning)
+                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "If the column should have zero blocks of data, this behavior is correct.";
         }
+    }
+    break;
 
-        colFile.close();
+    default:
+        BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - " << fileDbPath
+                                 << ") encountered type number: " << type;
+        throw std::domain_error("Unsupported data type (when loading database - " + fileDbPath +
+                                ") encountered type number: " + std::to_string(type));
     }
-    else
-    {
-        BOOST_LOG_TRIVIAL(error) << "File " + fileDataPath + " is empty and so cannot be loaded.";
-    }
+
+    colFile.close();
 }
 
 /// <summary>
@@ -2281,6 +2472,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_POINT:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<ColmnarDB::Types::Point>& colPoint =
                     dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
@@ -2333,10 +2525,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     const int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) +
-                                             sizeof(uint32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + 2 * blockSize * sizeof(float);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                     2 * blockSize * sizeof(float);
                     index += 1;
                 }
             }
@@ -2500,6 +2693,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_INT8_T:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
 
@@ -2511,7 +2705,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int8_t[]> emptyData(new int8_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<int8_t>::max());
+                              std::numeric_limits<uint8_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int8_t min = block->GetMin();
@@ -2544,10 +2738,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
-                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
-                                             sizeof(float) + 4 * sizeof(int8_t) + blockSize * sizeof(int8_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                     sizeof(float) + 3 * sizeof(int8_t) + blockSize * sizeof(int8_t);
                     index += 1;
                 }
             }
@@ -2556,6 +2751,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_INT:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<int32_t>& colInt =
                     dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
@@ -2568,7 +2764,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int32_t[]> emptyData(new int32_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<int32_t>::max());
+                              std::numeric_limits<uint32_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int32_t min = block->GetMin();
@@ -2601,10 +2797,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 6 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
-                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
-                                             sizeof(float) + blockSize * sizeof(int32_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 5 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                     sizeof(float) + blockSize * sizeof(int32_t);
                     index += 1;
                 }
             }
@@ -2613,6 +2810,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_LONG:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<int64_t>& colLong =
                     dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
@@ -2625,7 +2823,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int64_t[]> emptyData(new int64_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<int64_t>::max());
+                              std::numeric_limits<uint64_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int64_t min = block->GetMin();
@@ -2658,11 +2856,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) +
-                                             sizeof(uint32_t) + nullBitMaskLength * sizeof(char) +
-                                             sizeof(bool) + sizeof(float) + 4 * sizeof(int64_t) +
-                                             blockSize * sizeof(int64_t);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) + sizeof(float) +
+                                     3 * sizeof(int64_t) + blockSize * sizeof(int64_t);
                     index += 1;
                 }
             }
@@ -2671,6 +2869,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_FLOAT:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
 
@@ -2715,10 +2914,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
-                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
-                                             5 * sizeof(float) + blockSize * sizeof(float);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                     4 * sizeof(float) + blockSize * sizeof(float);
                     index += 1;
                 }
             }
@@ -2727,6 +2927,7 @@ void Database::WriteColumn(const int32_t blockSize,
             case COLUMN_DOUBLE:
             {
                 uint32_t index = 0;
+                uint64_t blockPosition = 0;
 
                 const ColumnBase<double>& colDouble =
                     dynamic_cast<const ColumnBase<double>&>(*(column.second));
@@ -2772,10 +2973,11 @@ void Database::WriteColumn(const int32_t blockSize,
                     int32_t nullBitMaskLength =
                         (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
 
-                    uint64_t blockPosition = 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
-                                             nullBitMaskLength * sizeof(char) + sizeof(bool) +
-                                             sizeof(float) + 4 * sizeof(double) + blockSize * sizeof(double);
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+
+                    blockPosition += 2 * sizeof(int32_t) + sizeof(uint64_t) + sizeof(uint32_t) +
+                                     nullBitMaskLength * sizeof(char) + sizeof(bool) +
+                                     sizeof(float) + 3 * sizeof(double) + blockSize * sizeof(double);
                     index += 1;
                 }
             }

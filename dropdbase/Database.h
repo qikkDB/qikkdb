@@ -29,8 +29,11 @@ private:
     /// <summary>
     /// Load column of a table into memory from disk.
     /// </summary>
-    /// <param name="path">Path directory, where COLUMN_DATA_EXTENSION file is.</param>
-    /// <param name="dbName">Name of the database.</param>
+    /// <param name="fileDbPath">Path to DB_EXTENSION file.</param>
+    /// <param name="fileAddressPath">Path to COLUMN_ADDRESS_EXTENSION file.</param>
+    /// <param name="fileDataPath">Path to COLUMN_DATA_EXTENSION file.</param>
+    /// <param name="fileFragmentPath">Path to FRAGMENT_DATA_EXTENSION file.</param>
+    /// <param name="encoding">Encoding of the string data in FRAGMENT_DATA_EXTENSION file.</param>
     /// <param name="persistenceFormatVersion">Version of format used to persist DB_EXTENSION and
     /// COLUMN_DATA_EXTENSION files into disk.</param> <param name="type">Type of column according
     /// to DataType enumeration.</param>
@@ -38,8 +41,11 @@ private:
     /// <param name="isUnique">Flag if a column can have only unique values and not
     /// a single one NULL value.</param> <param name="table">Instance of table into which the column
     /// should be added.</param> <param name="columnName">Names of particular column.</param>
-    static void LoadColumn(const char* path,
-                           const char* dbName,
+    static void LoadColumn(const std::string fileDbPath,
+                           const std::string fileAddressPath,
+                           const std::string fileDataPath,
+                           const std::string fileFragmentPath,
+                           const std::string encoding,
                            const int32_t persistenceFormatVersion,
                            const int32_t type,
                            const bool isNullable,

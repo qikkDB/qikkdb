@@ -10,7 +10,13 @@
       "cmakeCommandArgs": "",
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
-      "variables": []
+      "variables": [
+        {
+          "name": "CMAKE_CUDA_COMPILER",
+          "value": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/bin/nvcc.exe",
+          "type": "FILEPATH"
+        }
+      ]
     },
     {
       "name": "x64-Release",
@@ -22,7 +28,13 @@
       "buildCommandArgs": "-v",
       "ctestCommandArgs": "",
       "inheritEnvironments": [ "msvc_x64_x64" ],
-      "variables": []
+      "variables": [
+        {
+          "name": "CMAKE_CUDA_COMPILER",
+          "value": "C:/Program Files/NVIDIA GPU Computing Toolkit/CUDA/v10.2/bin/nvcc.exe",
+          "type": "FILEPATH"
+        }
+      ]
     }
   ]
 }

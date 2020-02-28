@@ -58,6 +58,8 @@ TEST_F(DatabaseTests, IntegrationTest)
     columnsTable1.insert({"colInteger", COLUMN_INT});
     columnsTable1.insert({"colDouble", COLUMN_DOUBLE});
     columnsTable1.insert({"colString", COLUMN_STRING});
+    columnsTable1.insert({"colIntegerEmpty", COLUMN_INT});
+    columnsTable1.insert({"colStringEmpty", COLUMN_STRING});
     database->CreateTable(columnsTable1, "TestTable1");
 
     // create second table with initialized columns:
@@ -194,13 +196,15 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     // high level stuff:
     ASSERT_EQ(loadedTables.size(), 2);
-    ASSERT_EQ(firstTableColumns.size(), 3);
+    ASSERT_EQ(firstTableColumns.size(), 5);
     ASSERT_EQ(secondTableColumns.size(), 8);
 
     // first table block counts:
     ASSERT_EQ((firstTableColumns.at("colInteger").get())->GetBlockCount(), blockNum);
     ASSERT_EQ((firstTableColumns.at("colDouble").get())->GetBlockCount(), blockNum);
     ASSERT_EQ((firstTableColumns.at("colString").get())->GetBlockCount(), blockNum);
+    ASSERT_EQ((firstTableColumns.at("colIntegerEmpty").get())->GetBlockCount(), 0);
+    ASSERT_EQ((firstTableColumns.at("colStringEmpty").get())->GetBlockCount(), 0);
 
     ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())
                   ->GetBlocksList()
@@ -232,11 +236,17 @@ TEST_F(DatabaseTests, IntegrationTest)
                   .at(1)
                   ->BlockCapacity(),
               4);
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colIntegerEmpty").get())->GetBlocksList().size(),
+              0);
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colStringEmpty").get())->GetBlocksList().size(),
+              0);
 
     // first table nullability of columns:
     ASSERT_TRUE((firstTableColumns.at("colInteger").get())->GetIsNullable());
     ASSERT_TRUE((firstTableColumns.at("colDouble").get())->GetIsNullable());
     ASSERT_TRUE((firstTableColumns.at("colString").get())->GetIsNullable());
+    ASSERT_TRUE((firstTableColumns.at("colIntegerEmpty").get())->GetIsNullable());
+    ASSERT_TRUE((firstTableColumns.at("colStringEmpty").get())->GetIsNullable());
 
     // first table colInteger:
     for (int i = 0; i < blockNum; i++)

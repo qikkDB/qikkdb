@@ -27,6 +27,14 @@ public:
     virtual void SetSaveNecessaryToTrue() = 0;
     virtual void SetColumnName(std::string newName) = 0;
     virtual void ResizeColumn(IColumn* srcColumnArg) = 0;
+    virtual const std::string& GetFileAddressPath() const = 0;
+    virtual const std::string& GetFileDataPath() const = 0;
+    virtual const std::string& GetFileFragmentPath() const = 0;
+    virtual const std::string& GetEncoding() const = 0;
+    virtual void SetFileAddressPath(const std::string newFilePath) = 0;
+    virtual void SetFileDataPath(const std::string newFilePath) = 0;
+    virtual void SetFileFragmentPath(const std::string newFilePath) = 0;
+    virtual void SetEncoding(const std::string newEncoding) = 0;
 
     virtual ~IColumn(){};
 };
