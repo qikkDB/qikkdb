@@ -9,7 +9,7 @@
 #include "ITCPWorker.h"
 #include <atomic>
 #include "Configuration.h"
-#include "Database.h"
+
 class IClientHandler;
 
 /// <summary>
@@ -57,32 +57,6 @@ private:
         });
     }
 
-    void AutoSaveDB()
-    {
-        autoSaveDeadline_.async_wait([this](const boost::system::error_code& error) {
-            if (error == boost::asio::error::operation_aborted)
-            {
-                return;
-            }
-            // Check whether the deadline has passed. We compare the deadline
-            // against the current time since a new asynchronous operation may
-            // have moved the deadline before this actor had a chance to run.
-            if (autoSaveDeadline_.expiry() <= boost::asio::steady_timer::clock_type::now())
-            {
-                // The deadline has passed. Save databases.
-                BOOST_LOG_TRIVIAL(info) << "Autosaving databases...";
-                Database::SaveModifiedToDisk();
-                autoSaveDeadline_.expires_after(
-                    std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
-                AutoSaveDB();
-            }
-            else
-            {
-                // Put the actor back to sleep.
-                AutoSaveDB();
-            }
-        });
-    }
 
 public:
     /// <summary>
@@ -104,8 +78,7 @@ public:
         if (saveDBAutomatically_ && Configuration::GetInstance().GetDBSaveInterval() > 0)
         {
             autoSaveDeadline_.expires_after(
-                std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
-            AutoSaveDB();
+                std::chrono::milliseconds(Configuration::GetInstance().GetDBSaveInterval()));
         }
         ioContext_.run();
     }

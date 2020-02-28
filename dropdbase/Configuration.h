@@ -37,7 +37,7 @@ private:
     short listenPort_ = 12345;
     int32_t timeout_ = 3600000;
     int32_t GPUCachePercent_ = 75;
-    int32_t DBSaveInterval_ = 1000;
+    int32_t DBSaveInterval_ = 600000;  // default save interval per tables in milliseconds
 
     void LoadConfigurationFile();
 

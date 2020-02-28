@@ -2,11 +2,15 @@
 #include "IColumn.h"
 #include "DataType.h"
 #include "ConstraintType.h"
+#include "Configuration.h"
+
 #include <memory>
 #include <string>
 #include <unordered_map>
 #include <mutex>
 #include <vector>
+#include <boost/log/trivial.hpp>
+#include <boost/asio.hpp>
 #ifndef __CUDACC__
 #include <any>
 #endif
@@ -34,6 +38,9 @@ private:
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
     bool saveNecesarry_;
+    // save interval in milliseconds, default value is from configuration file, but can be overriden via .db file:
+    int32_t saveInterval_ = Configuration::GetInstance().GetDBSaveInterval();
+    boost::asio::steady_timer autoSaveDeadline_;
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
@@ -82,12 +89,16 @@ public:
     const std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>>&
     GetConstraints() const;
     std::unordered_set<ConstraintType> GetConstraintsForColumn(const std::string& columnName);
+    int32_t GetSaveInterval() const;
+    void SetSaveInterval(int32_t newSaveInterval);
 
     /// <summary>
     /// Removes column from columns (in memory).
     /// </summary>
     /// <param name="columnName">Name of column to be removed.</param>
     void EraseColumn(std::string& columnName);
+
+    void AutoSaveTable();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database

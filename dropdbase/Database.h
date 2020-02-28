@@ -58,12 +58,10 @@ private:
     /// </summary>
     /// <param name="blockSize">Block size of table to which the column belongs to.</param>
     /// <param name="column">Column to be written.</param>
-    /// <param name="pathStr">Path to database storage directory.</param>
     /// <param name="name">Names of particular column.</param>
     /// <param name="table">Names of particular table.</param>
     static void WriteColumn(const int32_t blockSize,
                             const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                            std::string pathStr,
                             std::string name,
                             const std::pair<const std::string, Table>& table);
 
@@ -122,10 +120,9 @@ public:
     void SetSaveNecessaryToFalseForEverything();
 
     /// <summary>
-    /// Save only DB_EXTENSION file to disk.
+    /// Save only DB_EXTENSION file to disk into directory defined in configuration file.
     /// </summary>
-    /// <param name="path">Path to database storage directory.</param>
-    void PersistOnlyDbFile(const char* path);
+    void PersistOnlyDbFile();
 
     /// <summary>
     /// Save database from memory to disk.
@@ -136,18 +133,13 @@ public:
     /// <summary>
     /// Save modified blocks and columns of the database from memory to disk.
     /// </summary>
-    /// <param name="path">Path to database storage directory.</param>
-    void PersistOnlyModified(const char* path);
+    /// <param name="tableName">Name of table which modified columns will be saved.</param>
+    void PersistOnlyModified(const std::string tableName);
 
     /// <summary>
     /// Save all databases currently in memory to disk. All databases will be saved in the same directory.
     /// </summary>
     static void SaveAllToDisk();
-
-    /// <summary>
-    /// Save only modified blocks and columns to disk. All databases will be saved in the same directory.
-    /// </summary>
-    static void SaveModifiedToDisk();
 
     /// <summary>
     /// Load databases from disk storage. Databases DB_EXTENSION and COLUMN_DATA_EXTENSION files have to be in the same directory,
