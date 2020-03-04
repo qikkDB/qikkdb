@@ -310,7 +310,7 @@ void Database::SetSaveNecessaryToFalseForEverything()
 /// </summary>
 void Database::PersistOnlyDbFile()
 {
-    const char* path = Configuration::GetInstance().GetDatabaseDir().c_str();
+    const std::string path = Configuration::GetInstance().GetDatabaseDir();
 
     boost::filesystem::create_directories(path);
 
@@ -371,12 +371,12 @@ void Database::PersistOnlyDbFile()
 
                 if (fileAddressPath.size() == 0)
                 {
-                    columnsJSON["file_path_address_file"] = std::string(path) + name_ + SEPARATOR +
+                    columnsJSON["file_path_address_file"] = path + name_ + SEPARATOR +
                                                             tableName + SEPARATOR + columnName +
                                                             COLUMN_ADDRESS_EXTENSION;
                     BOOST_LOG_TRIVIAL(debug)
                         << "Default address file path ( "
-                        << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION
+                        << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION
                         << " ) has been persisted for column " << columnName << " of table "
                         << tableName << " of database " << name_ << ".";
                 }
@@ -390,11 +390,11 @@ void Database::PersistOnlyDbFile()
 
                 if (fileDataPath.size() == 0)
                 {
-                    columnsJSON["file_path_data_file"] = std::string(path) + name_ + SEPARATOR + tableName +
+                    columnsJSON["file_path_data_file"] = path + name_ + SEPARATOR + tableName +
                                                          SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
                     BOOST_LOG_TRIVIAL(debug)
                         << "Default data file path ( "
-                        << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_DATA_EXTENSION
+                        << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_DATA_EXTENSION
                         << " ) has been persisted for column " << columnName << " of table "
                         << tableName << " of database " << name_ << ".";
                 }
@@ -415,11 +415,11 @@ void Database::PersistOnlyDbFile()
                     if (fileFragmentPath.size() == 0)
                     {
                         columnsJSON["file_path_string_data_file"] =
-                            std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR +
+                            path + name_ + SEPARATOR + tableName + SEPARATOR +
                             columnName + FRAGMENT_DATA_EXTENSION;
                         BOOST_LOG_TRIVIAL(debug)
                             << "Default fragment file path ( "
-                            << std::string(path) + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION
+                            << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION
                             << " ) has been persisted for column " << columnName << " of table "
                             << tableName << " of database " << name_ << ".";
                     }
@@ -474,8 +474,7 @@ void Database::PersistOnlyDbFile()
 /// <summary>
 /// Save database from memory to disk.
 /// </summary>
-/// <param name="path">Path to database storage directory.</param>
-void Database::Persist(const char* path)
+void Database::Persist()
 {
     BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name_ << " and " << tables_.size() << " tables.";
 
@@ -503,7 +502,8 @@ void Database::Persist(const char* path)
         table.second.SetSaveNecessaryToFalse();
     }
 
-    if (boost::filesystem::exists(boost::filesystem::path(path + name_ + DB_EXTENSION)))
+    if (boost::filesystem::exists(boost::filesystem::path(
+            Configuration::GetInstance().GetDatabaseDir() + name_ + DB_EXTENSION)))
     {
         BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully saved into disk.";
     }
@@ -592,7 +592,7 @@ void Database::SaveAllToDisk()
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
-        database.second->Persist(path);
+        database.second->Persist();
     }
     BOOST_LOG_TRIVIAL(info) << "Saving loaded databases to disk has finished.";
 }
@@ -894,7 +894,7 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
         RenameTable(("temp_" + tableName).c_str(), tableName);
 
         // save all changes to disk
-        Persist(Configuration::GetInstance().GetDatabaseDir().c_str());
+        Persist();
 
         BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " HAS BEEN changed from "
                                 << table.GetBlockSize() << " to " << newBlockSize << ".";
@@ -2305,9 +2305,8 @@ void Database::WriteColumn(const int32_t blockSize,
     // default data path if not specified by user:
     if (fileAddressPath.size() == 0)
     {
-        std::string fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
-                                      dbName + SEPARATOR + tableName + SEPARATOR +
-                                      column.second->GetName() + COLUMN_ADDRESS_EXTENSION;
+        fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
+                          tableName + SEPARATOR + column.second->GetName() + COLUMN_ADDRESS_EXTENSION;
     }
 
     std::ofstream colAddressFile(fileAddressPath, std::ios::binary);

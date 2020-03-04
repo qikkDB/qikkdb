@@ -68,7 +68,7 @@ protected:
                     alterDatabase->GetTables().at("SimpleTable").GetColumns().end());
 
         // persist database, rename again, and test changes in memory and on disk
-        alterDatabase->Persist(path.c_str());
+        alterDatabase->Persist();
 
         std::string newestColName = newColName + "_secondTry";
 
@@ -137,7 +137,7 @@ protected:
         ASSERT_TRUE(alterDatabase->GetTables().find(newTableName) != alterDatabase->GetTables().end());
 
         // persist database, rename again, and test changes in memory and on disk
-        alterDatabase->Persist(path.c_str());
+        alterDatabase->Persist();
         std::string newestTableName = newTableName + "_secondTry";
 
         GpuSqlCustomParser parser2(alterDatabase, "ALTER TABLE " + newTableName + " RENAME TO " +
@@ -213,7 +213,7 @@ protected:
         ASSERT_TRUE(Database::Exists(newDatabaseName));
 
         // persist database, rename again, and test changes in memory and on disk
-        alterDatabase->Persist(path.c_str());
+        alterDatabase->Persist();
         std::string newestDatabaseName = newDatabaseName + "_secondTry";
 
         GpuSqlCustomParser parser2(nullptr, "ALTER DATABASE " + newDatabaseName + " RENAME TO " +

@@ -132,8 +132,7 @@ public:
     /// <summary>
     /// Save database from memory to disk.
     /// </summary>
-    /// <param name="path">Path to database storage directory.</param>
-    void Persist(const char* path);
+    void Persist();
 
     /// <summary>
     /// Save modified blocks and columns of the database from memory to disk.
