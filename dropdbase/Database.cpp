@@ -491,7 +491,7 @@ void Database::Persist(const char* path)
         for (const auto& column : columns)
         {
             threads.emplace_back(Database::WriteColumn, table.second.GetBlockSize(),
-                                 std::ref(column), std::string(path), name_, std::ref(table));
+                                 std::ref(column), name_, std::ref(table.second));
             column.second.get()->SetSaveNecessaryToFalse();
         }
 
@@ -516,6 +516,26 @@ void Database::Persist(const char* path)
 }
 
 /// <summary>
+/// Save modified columns of all loaded database to disk.
+/// </summary>
+void Database::SaveModifiedToDisk()
+{
+    std::unique_lock<std::mutex> lock(dbMutex_);
+    BOOST_LOG_TRIVIAL(info) << "Saving modified columns of loaded databases to disk has started...";
+    auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
+    for (auto& database : Context::getInstance().GetLoadedDatabases())
+    {
+        auto& tablesHashMap = database.second->GetTables();
+
+        for (auto& tablePair : tablesHashMap)
+        {
+            database.second->PersistOnlyModified(tablePair.first);
+        }
+    }
+    BOOST_LOG_TRIVIAL(info) << "Saving modified columns of loaded databases to disk has finished.";
+}
+
+/// <summary>
 /// Save modified blocks and columns of the database from memory to disk.
 /// </summary>
 /// <param name="tableName">Name of table which modified columns will be saved.</param>
@@ -527,8 +547,7 @@ void Database::PersistOnlyModified(const std::string tableName)
     PersistOnlyDbFile();
 
     // write files COLUMN_DATA_EXTENSION:
-    const auto tableHashMap = tables_.find(tableName);
-    auto& table = tableHashMap->second;
+    auto& table = tables_.at(tableName);
 
     if (table.GetSaveNecessary())
     {
@@ -543,7 +562,6 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             if (column.second.get()->GetSaveNecessary())
             {
-                table.GetBlockSize();
                 threads.emplace_back(Database::WriteColumn, table.GetBlockSize(), std::ref(column),
                                      name_, std::ref(table));
                 column.second.get()->SetSaveNecessaryToFalse();
@@ -950,7 +968,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
             const std::string tableName = tableJSON["table_name"].asString();
             const int32_t tableBlockSize = tableJSON["table_block_size"].asInt();
-            const uint32_t tableSaveInterval = tableJSON["save_interval_ms"].asInt();
+            const int32_t tableSaveInterval = tableJSON["save_interval_ms"].asInt();
 
             BOOST_LOG_TRIVIAL(info)
                 << "Block size for table: " + tableName +
@@ -2266,28 +2284,29 @@ void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 /// </summary>
 /// <param name="blockSize">Block size of table to which the column belongs to.</param>
 /// <param name="column">Column to be written.</param>
-/// <param name="name">Names of particular column.</param>
-/// <param name="table">Names of particular table.</param>
+/// <param name="dbName">Name of the database.</param>
+/// <param name="table">Name of the particular table.</param>
 void Database::WriteColumn(const int32_t blockSize,
                            const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                           std::string name,
-                           const std::pair<const std::string, Table>& table)
+                           const std::string dbName,
+                           const Table& table)
 {
     std::string fileDataPath = column.second->GetFileDataPath();
     std::string fileAddressPath = column.second->GetFileAddressPath();
+    const std::string tableName = table.GetName();
 
     // default data path if not specified by user:
     if (fileDataPath.size() == 0)
     {
-        fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name + SEPARATOR +
-                       table.first + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+        fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
+                       tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
     }
 
     // default data path if not specified by user:
     if (fileAddressPath.size() == 0)
     {
-        std::string fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name +
-                                      SEPARATOR + table.first + SEPARATOR +
+        std::string fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
+                                      dbName + SEPARATOR + tableName + SEPARATOR +
                                       column.second->GetName() + COLUMN_ADDRESS_EXTENSION;
     }
 
@@ -2304,9 +2323,9 @@ void Database::WriteColumn(const int32_t blockSize,
         if (colAddressFile.is_open())
         {
 
-            int32_t type = column.second->GetColumnType();
-            bool isNullable = column.second->GetIsNullable();
-            bool isUnique = column.second->GetIsUnique();
+            const int32_t type = column.second->GetColumnType();
+            const bool isNullable = column.second->GetIsNullable();
+            const bool isUnique = column.second->GetIsUnique();
 
             switch (type)
             {
@@ -2323,7 +2342,7 @@ void Database::WriteColumn(const int32_t blockSize,
                 if (fileFragmentPath.size() == 0)
                 {
                     fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
-                                       name + SEPARATOR + table.first + SEPARATOR +
+                                       dbName + SEPARATOR + tableName + SEPARATOR +
                                        column.second->GetName() + FRAGMENT_DATA_EXTENSION;
                 }
 
@@ -2459,7 +2478,7 @@ void Database::WriteColumn(const int32_t blockSize,
                         BOOST_LOG_TRIVIAL(error)
                             << "Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
-                                               name + SEPARATOR + table.first + SEPARATOR +
+                                               dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
                                    " for writing. Persisting "
                             << FRAGMENT_DATA_EXTENSION
@@ -2553,7 +2572,7 @@ void Database::WriteColumn(const int32_t blockSize,
                 if (fileFragmentPath.size() == 0)
                 {
                     fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
-                                       name + SEPARATOR + table.first + SEPARATOR +
+                                       dbName + SEPARATOR + tableName + SEPARATOR +
                                        column.second->GetName() + FRAGMENT_DATA_EXTENSION;
                 }
 
@@ -2689,7 +2708,7 @@ void Database::WriteColumn(const int32_t blockSize,
                         BOOST_LOG_TRIVIAL(error)
                             << "Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
-                                               name + SEPARATOR + table.first + SEPARATOR +
+                                               dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
                                    " for writing. Persisting "
                             << FRAGMENT_DATA_EXTENSION
@@ -3011,8 +3030,8 @@ void Database::WriteColumn(const int32_t blockSize,
             colDataFile.close();
             BOOST_LOG_TRIVIAL(error)
                 << "Could not open file " +
-                       std::string(Configuration::GetInstance().GetDatabaseDir() + name + SEPARATOR +
-                                   table.first + SEPARATOR + column.second->GetName() + COLUMN_ADDRESS_EXTENSION) +
+                       std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR + tableName +
+                                   SEPARATOR + column.second->GetName() + COLUMN_ADDRESS_EXTENSION) +
                        " for writing. Persisting "
                 << COLUMN_ADDRESS_EXTENSION
                 << " file was not successful. Check if the process "
@@ -3023,8 +3042,8 @@ void Database::WriteColumn(const int32_t blockSize,
     {
         BOOST_LOG_TRIVIAL(error)
             << "Could not open file " +
-                   std::string(Configuration::GetInstance().GetDatabaseDir() + name + SEPARATOR +
-                               table.first + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
+                   std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
                    " for writing. Persisting "
             << COLUMN_DATA_EXTENSION
             << " file was not successful. Check if the process "

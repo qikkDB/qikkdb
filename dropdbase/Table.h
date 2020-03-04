@@ -9,8 +9,6 @@
 #include <unordered_map>
 #include <mutex>
 #include <vector>
-#include <boost/log/trivial.hpp>
-#include <boost/asio.hpp>
 #ifndef __CUDACC__
 #include <any>
 #endif
@@ -40,7 +38,6 @@ private:
     bool saveNecesarry_;
     // save interval in milliseconds, default value is from configuration file, but can be overriden via .db file:
     int32_t saveInterval_ = Configuration::GetInstance().GetDBSaveInterval();
-    boost::asio::steady_timer autoSaveDeadline_;
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
@@ -97,8 +94,6 @@ public:
     /// </summary>
     /// <param name="columnName">Name of column to be removed.</param>
     void EraseColumn(std::string& columnName);
-
-    void AutoSaveTable();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database

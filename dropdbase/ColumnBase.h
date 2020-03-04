@@ -481,7 +481,7 @@ public:
         {
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
-                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
+                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<uint64_t>(blockSize_ - dstRowIndex))
                 {
                     // srcBlock[i].size_ > dstBlock
                     size_ += blockSize_ - dstRowIndex;

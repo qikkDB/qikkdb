@@ -58,12 +58,12 @@ private:
     /// </summary>
     /// <param name="blockSize">Block size of table to which the column belongs to.</param>
     /// <param name="column">Column to be written.</param>
-    /// <param name="name">Names of particular column.</param>
-    /// <param name="table">Names of particular table.</param>
+    /// <param name="dbName">Name of the database.</param>
+    /// <param name="table">Name of the particular table.</param>
     static void WriteColumn(const int32_t blockSize,
                             const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                            std::string name,
-                            const std::pair<const std::string, Table>& table);
+                            const std::string dbName,
+                            const Table& table);
 
 public:
     static constexpr const int32_t PERSISTENCE_FORMAT_VERSION = 1;
@@ -118,6 +118,11 @@ public:
     /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
     /// </summary>
     void SetSaveNecessaryToFalseForEverything();
+
+	/// <summary>
+    /// Save modified columns of all loaded database to disk.
+    /// </summary>
+    static void SaveModifiedToDisk();
 
     /// <summary>
     /// Save only DB_EXTENSION file to disk into directory defined in configuration file.

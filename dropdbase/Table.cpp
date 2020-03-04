@@ -1642,34 +1642,6 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
-void Table::AutoSaveTable()
-{
-    autoSaveDeadline_.async_wait([this](const boost::system::error_code& error) {
-        if (error == boost::asio::error::operation_aborted)
-        {
-            return;
-        }
-        // Check whether the deadline has passed. We compare the deadline
-        // against the current time since a new asynchronous operation may
-        // have moved the deadline before this actor had a chance to run.
-        if (autoSaveDeadline_.expiry() <= boost::asio::steady_timer::clock_type::now())
-        {
-            // The deadline has passed. Save databases.
-            BOOST_LOG_TRIVIAL(info) << "Autosaving table named " << name << " of database named "
-                                    << database->GetName() << ".";
-            database->PersistOnlyModified(name);
-            autoSaveDeadline_.expires_after(
-                std::chrono::milliseconds(Configuration::GetInstance().GetDBSaveInterval()));
-            AutoSaveTable();
-        }
-        else
-        {
-            // Put the actor back to sleep.
-            AutoSaveTable();
-        }
-    });
-}
-
 /// <summary>
 /// Insert new column with proper data type into the table.
 /// </summary>

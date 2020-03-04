@@ -1634,7 +1634,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
             boost::filesystem::rename(oldPath, newPath);
 
             // update changes in .db file:
-            database_->PersistOnlyDbFile(path.c_str());
+            database_->PersistOnlyDbFile();
         }
         else
         {
@@ -1710,7 +1710,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterDatabase()
             BOOST_LOG_TRIVIAL(info) << "Renaming database: Main " << Database::DB_EXTENSION << " file of db "
                                     << databaseName << " was successfully removed from disk.";
             // persist updated .db file
-            Database::GetDatabaseByName(newDatabaseName)->PersistOnlyDbFile(path.c_str());
+            Database::GetDatabaseByName(newDatabaseName)->PersistOnlyDbFile();
 
             std::string prefix(databaseName + Database::SEPARATOR);
             std::string prefix2(path + databaseName + Database::SEPARATOR);
