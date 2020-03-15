@@ -12,14 +12,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
     InstructionArgument<R> right = DispatcherInstructionHelper<R>::LoadInstructionArgument(*this);
     InstructionArgument<L> left = DispatcherInstructionHelper<L>::LoadInstructionArgument(*this);
 
-    if (std::get<2>(left) != InstructionStatus::CONTINUE)
+    if (left.LoadStatus != InstructionStatus::CONTINUE)
     {
-        return std::get<2>(left);
+        return left.LoadStatus;
     }
 
-    if (std::get<2>(right) != InstructionStatus::CONTINUE)
+    if (right.LoadStatus != InstructionStatus::CONTINUE)
     {
-        return std::get<2>(right);
+        return right.LoadStatus;
     }
 
     auto reg = arguments_.Read<std::string>();
@@ -43,44 +43,47 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
 
     if constexpr (std::is_pointer<L>::value && std::is_pointer<R>::value)
     {
-        if (std::get<0>(left) && std::get<0>(right))
+        if (left.Data && right.Data)
         {
-            const int32_t retSize = std::min(std::get<1>(left).ElementCount, std::get<1>(right).ElementCount);
-            const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr || std::get<1>(right).GpuNullMaskPtr;
-            InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
-                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (isCompositeDataType<ResultType> || std::get<0>(result))
+            const int32_t retSize =
+                std::min(left.DataAllocation.ElementCount, right.DataAllocation.ElementCount);
+            const bool allocateNullMask = left.DataAllocation.GpuNullMaskPtr || right.DataAllocation.GpuNullMaskPtr;
+            InstructionResult<ResultType> result =
+                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, allocateNullMask,
+                                                                                   {left.Name, right.Name});
+            if (isCompositeDataType<ResultType> || result.Data)
             {
-                if (std::get<1>(result))
+                if (result.NullMaskPtr)
                 {
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    if (std::get<1>(left).GpuNullMaskPtr && std::get<1>(right).GpuNullMaskPtr)
+                    if (left.DataAllocation.GpuNullMaskPtr && right.DataAllocation.GpuNullMaskPtr)
                     {
                         GPUBinary<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Binary(
-                            std::get<1>(result), reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
-                            reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr), bitMaskSize);
+                            result.NullMaskPtr, reinterpret_cast<int8_t*>(left.DataAllocation.GpuNullMaskPtr),
+                            reinterpret_cast<int8_t*>(right.DataAllocation.GpuNullMaskPtr), bitMaskSize);
                     }
-                    else if (std::get<1>(left).GpuNullMaskPtr)
+                    else if (left.DataAllocation.GpuNullMaskPtr)
                     {
-                        GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                      reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                        GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
+                                                      reinterpret_cast<int8_t*>(left.DataAllocation.GpuNullMaskPtr),
                                                       bitMaskSize);
                     }
-                    else
+                    else if (right.DataAllocation.GpuNullMaskPtr)
                     {
-                        GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                      reinterpret_cast<int8_t*>(std::get<1>(right).GpuNullMaskPtr),
+                        GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
+                                                      reinterpret_cast<int8_t*>(right.DataAllocation.GpuNullMaskPtr),
                                                       bitMaskSize);
                     }
                 }
-                GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                        std::get<0>(right), retSize, std::get<1>(result));
-                DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
-                    result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
+                GPUBinary<OP, ResultType, L, R>::Binary(result.Data, left.Data, right.Data, retSize,
+                                                        result.NullMaskPtr);
+                DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
+                                                                                retSize, allocateNullMask,
+                                                                                {left.Name, right.Name});
             }
         }
-        FreeColumnIfRegister<L>(std::get<3>(left));
-        FreeColumnIfRegister<R>(std::get<3>(right));
+        FreeColumnIfRegister<L>(left.Name);
+        FreeColumnIfRegister<R>(right.Name);
     }
 
     else if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
@@ -96,28 +99,30 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
             col = right;
         }
 
-        if (std::get<0>(col))
+        if (col.Data)
         {
-            const int32_t retSize = std::get<1>(col).ElementCount;
-            const bool allocateNullMask = std::get<1>(col).GpuNullMaskPtr;
-            InstructionResult<ResultType> result = DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(
-                *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
-            if (isCompositeDataType<ResultType> || std::get<0>(result))
+            const int32_t retSize = col.DataAllocation.ElementCount;
+            const bool allocateNullMask = col.DataAllocation.GpuNullMaskPtr;
+            InstructionResult<ResultType> result =
+                DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, allocateNullMask,
+                                                                                   {left.Name, right.Name});
+            if (isCompositeDataType<ResultType> || result.Data)
             {
-                if (std::get<1>(result))
+                if (result.NullMaskPtr)
                 {
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                  reinterpret_cast<int8_t*>(std::get<1>(col).GpuNullMaskPtr),
+                    GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
+                                                  reinterpret_cast<int8_t*>(col.DataAllocation.GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                        std::get<0>(right), retSize, std::get<1>(result));
-                DispatcherInstructionHelper<ResultType>::StoreInstructionResult(
-                    result, *this, reg, retSize, allocateNullMask, {std::get<3>(left), std::get<3>(right)});
+                GPUBinary<OP, ResultType, L, R>::Binary(result.Data, left.Data, right.Data, retSize,
+                                                        result.NullMaskPtr);
+                DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
+                                                                                retSize, allocateNullMask,
+                                                                                {left.Name, right.Name});
             }
         }
-        FreeColumnIfRegister<ColType>(std::get<3>(col));
+        FreeColumnIfRegister<ColType>(col.Name);
     }
 
     else
@@ -130,10 +135,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
 
         InstructionResult<ResultType> result =
             DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
-        if (isCompositeDataType<ResultType> || std::get<0>(result))
+        if (isCompositeDataType<ResultType> || result.Data)
         {
-            GPUBinary<OP, ResultType, L, R>::Binary(std::get<0>(result), std::get<0>(left),
-                                                    std::get<0>(right), retSize, std::get<1>(result));
+            GPUBinary<OP, ResultType, L, R>::Binary(result.Data, left.Data, right.Data, retSize,
+                                                    result.NullMaskPtr);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                             retSize, false, {});
         }

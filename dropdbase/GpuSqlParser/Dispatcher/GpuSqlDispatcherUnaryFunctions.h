@@ -7,9 +7,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
 {
     InstructionArgument<T> left = DispatcherInstructionHelper<T>::LoadInstructionArgument(*this);
 
-    if (std::get<2>(left) != InstructionStatus::CONTINUE)
+    if (left.LoadStatus != InstructionStatus::CONTINUE)
     {
-        return std::get<2>(left);
+        return left.LoadStatus;
     }
 
     auto reg = arguments_.Read<std::string>();
@@ -23,30 +23,29 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
 
     if constexpr (std::is_pointer<T>::value)
     {
-        if (std::get<0>(left))
+        if (left.Data)
         {
-            const int32_t retSize = std::get<1>(left).ElementCount;
-            const bool allocateNullMask = std::get<1>(left).GpuNullMaskPtr;
+            const int32_t retSize = left.DataAllocation.ElementCount;
+            const bool allocateNullMask = left.DataAllocation.GpuNullMaskPtr;
             InstructionResult<ResultType> result =
                 DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, allocateNullMask,
-                                                                                   {std::get<3>(left)});
-            if (isCompositeDataType<ResultType> || std::get<0>(result))
+                                                                                   {left.Name});
+            if (isCompositeDataType<ResultType> || result.Data)
             {
-                if (std::get<1>(result))
+                if (result.NullMaskPtr)
                 {
                     const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                    GPUMemory::copyDeviceToDevice(std::get<1>(result),
-                                                  reinterpret_cast<int8_t*>(std::get<1>(left).GpuNullMaskPtr),
+                    GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
+                                                  reinterpret_cast<int8_t*>(left.DataAllocation.GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
-                GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize,
-                                                   std::get<1>(result));
+                GPUUnary<OP, ResultType, T>::Unary(result.Data, left.Data, retSize, result.NullMaskPtr);
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
-                                                                                {std::get<3>(left)});
+                                                                                {left.Name});
             }
         }
-        FreeColumnIfRegister<T>(std::get<3>(left));
+        FreeColumnIfRegister<T>(left.Name);
     }
     else
     {
@@ -59,12 +58,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
         InstructionResult<ResultType> result =
             DispatcherInstructionHelper<ResultType>::AllocateInstructionResult(*this, reg, retSize, false, {});
 
-        if (isCompositeDataType<ResultType> || std::get<0>(result))
+        if (isCompositeDataType<ResultType> || result.Data)
         {
-            GPUUnary<OP, ResultType, T>::Unary(std::get<0>(result), std::get<0>(left), retSize,
-                                               std::get<1>(result));
+            GPUUnary<OP, ResultType, T>::Unary(result.Data, left.Data, retSize, result.NullMaskPtr);
             DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg, retSize,
-                                                                            false, {std::get<3>(left)});
+                                                                            false, {left.Name});
         }
     }
 

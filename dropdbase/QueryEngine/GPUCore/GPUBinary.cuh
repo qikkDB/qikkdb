@@ -28,17 +28,17 @@ struct add
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         // if none of the input operands are float
-        if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+        if (!std::is_floating_point<L>::value && !std::is_floating_point<R>::value)
         {
             // Check for overflow
-            if (((b > V{0}) && (a > (max - b))) || ((b < V{0}) && (a < (min - b))))
+            if (((b > R{0}) && (a > (max - b))) || ((b < R{0}) && (a < (min - b))))
             {
                 atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                return GetNullConstant<T>();
+                return GetNullConstant<OUT>();
             }
         }
         return a + b;
@@ -50,17 +50,17 @@ struct sub
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         // if none of the input operands are float
-        if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+        if (!std::is_floating_point<L>::value && !std::is_floating_point<R>::value)
         {
             // Check for overflow
-            if (((b > V{0}) && (a < (min + b))) || ((b < V{0}) && (a > (max + b))))
+            if (((b > R{0}) && (a < (min + b))) || ((b < R{0}) && (a > (max + b))))
             {
                 atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                return GetNullConstant<T>();
+                return GetNullConstant<OUT>();
             }
         }
         return a - b;
@@ -72,21 +72,21 @@ struct mul
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         // if none of the input operands are float
-        if (!std::is_floating_point<U>::value && !std::is_floating_point<V>::value)
+        if (!std::is_floating_point<L>::value && !std::is_floating_point<R>::value)
         {
             // Check for overflow
-            if (a > U{0})
+            if (a > L{0})
             {
-                if (b > V{0})
+                if (b > R{0})
                 {
                     if (a > (max / b))
                     {
                         atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                        return GetNullConstant<T>();
+                        return GetNullConstant<OUT>();
                     }
                 }
                 else
@@ -94,26 +94,26 @@ struct mul
                     if (b < (min / a))
                     {
                         atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                        return GetNullConstant<T>();
+                        return GetNullConstant<OUT>();
                     }
                 }
             }
             else
             {
-                if (b > V{0})
+                if (b > R{0})
                 {
                     if (a < (min / b))
                     {
                         atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                        return GetNullConstant<T>();
+                        return GetNullConstant<OUT>();
                     }
                 }
                 else
                 {
-                    if ((a != U{0}) && (b < (max / a)))
+                    if ((a != L{0}) && (b < (max / a)))
                     {
                         atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_INTEGER_OVERFLOW_ERROR));
-                        return GetNullConstant<T>();
+                        return GetNullConstant<OUT>();
                     }
                 }
             }
@@ -127,13 +127,13 @@ struct div
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
-        if (b == V{0})
+        if (b == R{0})
         {
             atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR));
-            return GetNullConstant<T>();
+            return GetNullConstant<OUT>();
         }
         else
         {
@@ -147,19 +147,19 @@ struct mod
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         // modulo is not defined for floating point type
-        static_assert(!std::is_floating_point<U>::value && !std::is_floating_point<V>::value,
+        static_assert(!std::is_floating_point<L>::value && !std::is_floating_point<R>::value,
                       "None of the input columns of operation modulo cannot be floating point "
                       "type!");
 
         // Check for zero division
-        if (b == V{0})
+        if (b == R{0})
         {
             atomicExch(errorFlag, static_cast<int32_t>(QueryEngineErrorType::GPU_DIVISION_BY_ZERO_ERROR));
-            return GetNullConstant<T>();
+            return GetNullConstant<OUT>();
         }
 
         return a % b;
@@ -171,8 +171,8 @@ struct bitwiseAnd
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max)
     {
         return a & b;
     }
@@ -183,8 +183,8 @@ struct bitwiseOr
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max)
     {
         return a | b;
     }
@@ -195,8 +195,8 @@ struct bitwiseXor
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max)
     {
         return a ^ b;
     }
@@ -208,8 +208,8 @@ struct bitwiseLeftShift
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max)
     {
         return a << b;
     }
@@ -220,8 +220,8 @@ struct bitwiseRightShift
 {
     typedef void RetType;
 
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max)
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max)
     {
         return a >> b;
     }
@@ -233,8 +233,8 @@ struct logarithm
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         return logf(a) / logf(b);
     }
@@ -246,8 +246,8 @@ struct arctangent2
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         return atan2f(a, b);
     }
@@ -259,8 +259,8 @@ struct power
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         return powf(a, b);
     }
@@ -272,8 +272,8 @@ struct root
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         return powf(a, 1.0f / b);
     }
@@ -285,8 +285,8 @@ struct roundDecimal
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U a, V b, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L a, R b, int32_t* errorFlag, OUT min, OUT max) const
     {
         const double multiplier = powf(10.0, b);
         return roundf(a * multiplier) / multiplier;
@@ -300,8 +300,8 @@ struct geoLongitudeToTileX
     typedef void RetType;
 
     static constexpr bool isFloatRetType = false;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U longitude, V zoom, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L longitude, R zoom, int32_t* errorFlag, OUT min, OUT max) const
     {
         return floorf((longitude + 180.0f) / 360.0f * powf(2.0f, zoom));
     }
@@ -314,8 +314,8 @@ struct geoLatitudeToTileY
     typedef void RetType;
 
     static constexpr bool isFloatRetType = false;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U latitude, V zoom, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L latitude, R zoom, int32_t* errorFlag, OUT min, OUT max) const
     {
         return (floorf((1.0 - asinhf(tanf(latitude * pi<float> / 180.0f)) / pi<float>) / 2.0 * powf(2.0f, zoom)));
     }
@@ -328,8 +328,8 @@ struct geoTileXToLongitude
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U tileX, V zoom, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L tileX, R zoom, int32_t* errorFlag, OUT min, OUT max) const
     {
         return tileX / powf(2.0f, zoom) * 360.0f - 180.0f;
     }
@@ -342,8 +342,8 @@ struct geoTileYToLatitude
     typedef void RetType;
 
     static constexpr bool isFloatRetType = true;
-    template <typename T, typename U, typename V>
-    __device__ __host__ T operator()(U tileY, V zoom, int32_t* errorFlag, T min, T max) const
+    template <typename OUT, typename L, typename R>
+    __device__ __host__ OUT operator()(L tileY, R zoom, int32_t* errorFlag, OUT min, OUT max) const
     {
         float latitudeRad = atanf(sinhf(pi<float> * (1 - 2 * tileY / powf(2.0f, zoom))));
         return latitudeRad * 180.0 / pi<float>;
@@ -354,16 +354,16 @@ struct geoTileYToLatitude
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
 /// Kernel for arithmetic operation with column and column
-/// (For mod as U and V never use floating point type!)
+/// (For mod as L and R never use floating point type!)
 /// <param name="OP">Template parameter for the choice of the arithmetic operation</param>
 /// <param name="output">output result data block</param>
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="BCol">block of the right input operands</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
-template <typename OP, typename T, typename U, typename V>
+template <typename OP, typename OUT, typename L, typename R>
 __global__ void
-kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* errorFlag, T min, T max)
+kernel_arithmetic(OUT* output, L ACol, R BCol, int32_t dataElementCount, int32_t* errorFlag, OUT min, OUT max)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -371,7 +371,7 @@ kernel_arithmetic(T* output, U ACol, V BCol, int32_t dataElementCount, int32_t* 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         output[i] =
-            OP{}.template operator()<T, typename std::remove_pointer<U>::type, typename std::remove_pointer<V>::type>(
+            OP{}.template operator()<OUT, typename std::remove_pointer<L>::type, typename std::remove_pointer<R>::type>(
                 maybe_deref(ACol, i), maybe_deref(BCol, i), errorFlag, min, max);
     }
 }
@@ -389,8 +389,8 @@ constexpr bool isFilterOp = std::is_same<OP, FilterConditions::greater>::value |
                             std::is_same<OP, FilterConditions::logicalAnd>::value ||
                             std::is_same<OP, FilterConditions::logicalOr>::value;
 
-/// Class for binary arithmetic functions
-template <typename OP, typename T, typename U, typename V, class Enable = void>
+/// Generic binary operations
+template <typename OP, typename OUT, typename L, typename R, class Enable = void>
 class GPUBinary
 {
 public:
@@ -400,25 +400,26 @@ public:
     /// <param name="ACol">buffer with left side operands</param>
     /// <param name="BCol">buffer with right side operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Binary(T* output, U ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
+    static void Binary(OUT* output, L ACol, R BCol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
     {
         ErrorFlagSwapper errorFlagSwapper;
         kernel_arithmetic<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                 output, ACol, BCol, dataElementCount, errorFlagSwapper.GetFlagPointer(),
-                std::numeric_limits<T>::min(), std::numeric_limits<T>::max());
+                std::numeric_limits<OUT>::min(), std::numeric_limits<OUT>::max());
         errorFlagSwapper.Swap();
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Binary string-string operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                        std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, std::string>::value>::type>
 {
 public:
     static void Binary(GPUMemory::GPUString& outCol,
@@ -427,10 +428,10 @@ public:
                        int32_t dataElementCount,
                        int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
-            GPUStringBinary::Run<OP>(outCol, ACol, std::is_pointer<U>::value, BCol,
-                                     std::is_pointer<V>::value, dataElementCount);
+            GPUStringBinary::Run<OP>(outCol, ACol, std::is_pointer<L>::value, BCol,
+                                     std::is_pointer<R>::value, dataElementCount);
         }
         else
         {
@@ -439,51 +440,53 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Binary string-integer operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                        std::is_integral<typename std::remove_pointer<V>::type>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, std::string>::value &&
+                                        std::is_integral<typename std::remove_pointer<R>::type>::value>::type>
 {
 public:
     static void
-    Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask)
+    Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, R BCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value && std::is_pointer<V>::value)
+        if constexpr (std::is_pointer<L>::value && std::is_pointer<R>::value)
         {
-            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, dataElementCount);
+            GPUStringBinary::Run<OP, R>(outCol, ACol, dataElementCount, BCol, dataElementCount);
         }
-        else if constexpr (std::is_pointer<U>::value && !std::is_pointer<V>::value)
+        else if constexpr (std::is_pointer<L>::value && !std::is_pointer<R>::value)
         {
-            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, 1);
+            GPUStringBinary::Run<OP, R>(outCol, ACol, dataElementCount, BCol, 1);
         }
-        else if constexpr (!std::is_pointer<U>::value && std::is_pointer<V>::value)
+        else if constexpr (!std::is_pointer<L>::value && std::is_pointer<R>::value)
         {
-            GPUStringBinary::Run<OP, V>(outCol, ACol, 1, BCol, dataElementCount);
+            GPUStringBinary::Run<OP, R>(outCol, ACol, 1, BCol, dataElementCount);
         }
         else
         {
-            GPUStringBinary::Run<OP, V>(outCol, ACol, dataElementCount, BCol, 1);
+            GPUStringBinary::Run<OP, R>(outCol, ACol, dataElementCount, BCol, 1);
         }
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Numeric-Numeric to Point conversion operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value &&
-                                        std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
-                                        std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<L>::type>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<R>::type>::value>::type>
 {
 public:
-    static void Binary(NativeGeoPoint* outCol, U LatCol, V LonCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Binary(NativeGeoPoint* outCol, L LatCol, R LonCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
             kernel_convert_lat_lon_to_point<<<Context::getInstance().calcGridDim(dataElementCount),
                                               Context::getInstance().getBlockDim()>>>(outCol, LatCol, LonCol,
@@ -499,14 +502,15 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Polygon-Polygon operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
 {
 public:
     static void Binary(GPUMemory::GPUPolygon& polygonOut,
@@ -516,34 +520,35 @@ public:
                        int8_t* nullBitMask)
     {
         GPUPolygonClipping::clip<OP>(polygonOut, polygonAin, polygonBin,
-                                     std::is_pointer<U>::value ? dataElementCount : 1,
-                                     std::is_pointer<V>::value ? dataElementCount : 1);
+                                     std::is_pointer<L>::value ? dataElementCount : 1,
+                                     std::is_pointer<R>::value ? dataElementCount : 1);
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Polygon-Point operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
-                                        std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<V>::type, ColmnarDB::Types::Point>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, ColmnarDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, ColmnarDB::Types::Point>::value>::type>
 {
 public:
     static void
     Binary(int8_t* outMask,
            GPUMemory::GPUPolygon polygonCol,
-           typename std::conditional<std::is_pointer<V>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
+           typename std::conditional<std::is_pointer<R>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
            int32_t dataElementCount,
            int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
             kernel_point_in_polygon<<<Context::getInstance().calcGridDim(dataElementCount),
                                       Context::getInstance().getBlockDim()>>>(
-                outMask, polygonCol, std::is_pointer<U>::value ? dataElementCount : 1, geoPointCol,
-                std::is_pointer<V>::value ? dataElementCount : 1);
+                outMask, polygonCol, std::is_pointer<L>::value ? dataElementCount : 1, geoPointCol,
+                std::is_pointer<R>::value ? dataElementCount : 1);
         }
         else
         {
@@ -557,19 +562,20 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// Filter operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
-                                        std::is_arithmetic<typename std::remove_pointer<U>::type>::value &&
-                                        std::is_arithmetic<typename std::remove_pointer<V>::type>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<L>::type>::value &&
+                                        std::is_arithmetic<typename std::remove_pointer<R>::type>::value>::type>
 {
 public:
-    static void Binary(int8_t* outMask, U ACol, V BCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Binary(int8_t* outMask, L ACol, R BCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value || std::is_pointer<V>::value)
+        if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
             kernel_filter<OP>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
@@ -583,14 +589,15 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U, typename V>
+/// String filter operations
+template <typename OP, typename OUT, typename L, typename R>
 class GPUBinary<OP,
-                T,
-                U,
-                V,
-                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
-                                        std::is_same<typename std::remove_pointer<U>::type, std::string>::value &&
-                                        std::is_same<typename std::remove_pointer<V>::type, std::string>::value>::type>
+                OUT,
+                L,
+                R,
+                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, std::string>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, std::string>::value>::type>
 {
 public:
     static void
@@ -598,11 +605,11 @@ public:
     {
         kernel_filter_string<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
-                outMask, ACol, std::is_pointer<U>::value, BCol, std::is_pointer<V>::value,
+                outMask, ACol, std::is_pointer<L>::value, BCol, std::is_pointer<R>::value,
                 nullBitMask, dataElementCount);
         CheckCudaError(cudaGetLastError());
 
-        if constexpr (!std::is_pointer<U>::value && !std::is_pointer<V>::value)
+        if constexpr (!std::is_pointer<L>::value && !std::is_pointer<R>::value)
         {
             // Expand mask - copy the one result to whole mask
             int8_t numberFromMask;

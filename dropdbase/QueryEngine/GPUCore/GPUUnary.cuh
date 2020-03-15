@@ -29,22 +29,23 @@
 /// <param name="ACol">block of the left input operands</param>
 /// <param name="dataElementCount">count of elements in the input blocks</param>
 /// <param name="errorFlag">flag for error checking</param>
-template <typename OP, typename T, typename U>
-__global__ void kernel_arithmetic_unary(T* output, U ACol, int32_t dataElementCount)
+template <typename OP, typename OUT, typename IN>
+__global__ void kernel_arithmetic_unary(OUT* output, IN ACol, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
-        output[i] = OP{}.template operator()<T, typename std::remove_pointer<U>::type>(maybe_deref(ACol, i));
+        output[i] =
+            OP{}.template operator()<OUT, typename std::remove_pointer<IN>::type>(maybe_deref(ACol, i));
     }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-/// Class for unary arithmetic functions
-template <typename OP, typename T, typename U, class Enable = void>
+/// Generic unary operations
+template <typename OP, typename OUT, typename IN, class Enable = void>
 class GPUUnary
 {
 public:
@@ -53,7 +54,7 @@ public:
     /// <param name="output">output GPU buffer</param>
     /// <param name="ACol">buffer with operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Unary(T* output, U ACol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
+    static void Unary(OUT* output, IN ACol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
     {
         kernel_arithmetic_unary<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
@@ -61,12 +62,13 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// String input - string output operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
-               typename std::enable_if<std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+               OUT,
+               IN,
+               typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, std::string>::value>::type>
 {
 public:
     /// String unary operations which return string, for column
@@ -80,13 +82,14 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// String input - numeric output operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, StringUnaryNumericOperations::len>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, int32_t>::value &&
-                                       std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, int32_t>::value &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, std::string>::value>::type>
 {
 public:
     /// String unary operations which return string, for column
@@ -95,7 +98,7 @@ public:
     /// <param name="dataElementCount">input string count</param>
     static void Unary(int32_t* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
-        if constexpr (std::is_pointer<U>::value)
+        if constexpr (std::is_pointer<IN>::value)
         {
             Context& context = Context::getInstance();
             kernel_lengths_from_indices<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
@@ -114,18 +117,19 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Date to string cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, DateOperations::toString>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<U>::type, int64_t>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, int64_t>::value>::type>
 {
 public:
-    static void Unary(GPUMemory::GPUString& output, U dateTimeCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(GPUMemory::GPUString& output, IN dateTimeCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
-        static_assert(std::is_same<typename std::remove_pointer<U>::type, int64_t>::value,
+        static_assert(std::is_same<typename std::remove_pointer<IN>::type, int64_t>::value,
                       "DateTime can only be extracted from int64 columns");
 
         if (dataElementCount > 0)
@@ -156,27 +160,27 @@ public:
             cuda_ptr<int32_t> seconds(dataElementCount);
 
 
-            kernel_arithmetic_unary<DateOperations::year, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::year, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     years.get(), dateTimeCol, dataElementCount);
 
-            kernel_arithmetic_unary<DateOperations::month, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::month, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     months.get(), dateTimeCol, dataElementCount);
 
-            kernel_arithmetic_unary<DateOperations::day, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::day, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     days.get(), dateTimeCol, dataElementCount);
 
-            kernel_arithmetic_unary<DateOperations::hour, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::hour, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     hours.get(), dateTimeCol, dataElementCount);
 
-            kernel_arithmetic_unary<DateOperations::minute, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::minute, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     minutes.get(), dateTimeCol, dataElementCount);
 
-            kernel_arithmetic_unary<DateOperations::second, int32_t, U>
+            kernel_arithmetic_unary<DateOperations::second, int32_t, IN>
                 <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
                     seconds.get(), dateTimeCol, dataElementCount);
 
@@ -196,33 +200,35 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Numeric to string cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                       std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                       std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(GPUMemory::GPUString& outCol, U inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
         GPUCast::CastNumericToString(outCol, inCol, dataElementCount);
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Point to string cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::Point>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, ColmnarDB::Types::Point>::value>::type>
 {
 public:
     static void
     Unary(GPUMemory::GPUString& outCol,
-          typename std::conditional<std::is_pointer<U>::value, NativeGeoPoint*, NativeGeoPoint>::type inCol,
+          typename std::conditional<std::is_pointer<IN>::value, NativeGeoPoint*, NativeGeoPoint>::type inCol,
           int32_t dataElementCount,
           int8_t* nullBitMask)
     {
@@ -230,13 +236,14 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Polygon to string cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<U>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
 {
 public:
     static void
@@ -246,16 +253,17 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Numeric to numeric cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
-               typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<T>>::value &&
-                                       std::is_arithmetic<typename std::remove_pointer<T>::type>::value &&
-                                       std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
+               OUT,
+               IN,
+               typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<OUT>>::value &&
+                                       std::is_arithmetic<typename std::remove_pointer<OUT>::type>::value &&
+                                       std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(T* outCol, U inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(OUT* outCol, IN inCol, int32_t dataElementCount, int8_t* nullBitMask)
     {
         kernel_cast_numeric<<<Context::getInstance().calcGridDim(dataElementCount),
                               Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
@@ -263,18 +271,19 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// String to numeric/point cast operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
-               typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<T>>::value &&
-                                       (std::is_arithmetic<typename std::remove_pointer<T>::type>::value ||
-                                        std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value) &&
-                                       std::is_same<typename std::remove_pointer<U>::type, std::string>::value>::type>
+               OUT,
+               IN,
+               typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<OUT>>::value &&
+                                       (std::is_arithmetic<typename std::remove_pointer<OUT>::type>::value ||
+                                        std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value) &&
+                                       std::is_same<typename std::remove_pointer<IN>::type, std::string>::value>::type>
 {
 public:
     static void
-    Unary(typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value, NativeGeoPoint*, T*>::type outCol,
+    Unary(typename std::conditional<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value, NativeGeoPoint*, OUT*>::type outCol,
           GPUMemory::GPUString inCol,
           int32_t dataElementCount,
           int8_t* nullBitMask)
@@ -286,16 +295,17 @@ public:
     }
 };
 
-template <typename OP, typename T, typename U>
+/// Logical not operations
+template <typename OP, typename OUT, typename IN>
 class GPUUnary<OP,
-               T,
-               U,
+               OUT,
+               IN,
                typename std::enable_if<std::is_same<OP, FilterConditions::logicalNot>::value &&
-                                       std::is_same<typename std::remove_pointer<T>::type, int8_t>::value &&
-                                       std::is_arithmetic<typename std::remove_pointer<U>::type>::value>::type>
+                                       std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                                       std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(int8_t* outCol, U ACol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(int8_t* outCol, IN ACol, int32_t dataElementCount, int8_t* nullBitMask)
     {
         kernel_operator_not<<<Context::getInstance().calcGridDim(dataElementCount),
                               Context::getInstance().getBlockDim()>>>(outCol, ACol, nullBitMask, dataElementCount);

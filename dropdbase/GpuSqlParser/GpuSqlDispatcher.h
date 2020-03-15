@@ -118,16 +118,22 @@ private:
         std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value;
 
     template <typename T>
-    using InstructionArgument = typename std::conditional<
-        isCompositeDataType<T>,
-        std::tuple<CompositeDataType<typename std::remove_pointer<T>::type>, CompositeDataTypeAllocation<typename std::remove_pointer<T>::type>, InstructionStatus, std::string>,
-        std::tuple<AllocatedDataType<T>, PointerAllocation, InstructionStatus, std::string>>::type;
+    struct InstructionArgument
+    {
+        typename std::conditional<isCompositeDataType<T>, CompositeDataType<typename std::remove_pointer<T>::type>, AllocatedDataType<T>>::type Data;
+        typename std::conditional<isCompositeDataType<T>, CompositeDataTypeAllocation<typename std::remove_pointer<T>::type>, PointerAllocation>::type DataAllocation;
+        InstructionStatus LoadStatus;
+        std::string Name;
+    };
 
     template <typename T>
-    using InstructionResult = typename std::conditional<
-        isCompositeDataType<T>,
-        std::pair<CompositeDataType<typename std::remove_pointer<T>::type>, int8_t*>,
-        std::pair<typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type, int8_t*>>::type;
+    struct InstructionResult
+    {
+        typename std::conditional<isCompositeDataType<T>,
+                                  CompositeDataType<typename std::remove_pointer<T>::type>,
+                                  typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type>::type Data;
+        int8_t* NullMaskPtr;
+    };
 
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
@@ -940,8 +946,8 @@ public:
                 if (dispatcher.isOverallLastBlock_)
                 {
                     dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
-                        std::get<0>(instructionResult), reg + KEYS_SUFFIX, retSize, true,
-                        allocateNullMask ? std::get<1>(instructionResult) : nullptr);
+                        instructionResult.Data, reg + KEYS_SUFFIX, retSize, true,
+                        allocateNullMask ? instructionResult.NullMaskPtr : nullptr);
                 }
             }
             else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
@@ -950,8 +956,8 @@ public:
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
                     dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
-                        std::get<0>(instructionResult), reg, retSize, true,
-                        allocateNullMask ? std::get<1>(instructionResult) : nullptr);
+                        instructionResult.Data, reg, retSize, true,
+                        allocateNullMask ? instructionResult.NullMaskPtr : nullptr);
                 }
             }
         }
