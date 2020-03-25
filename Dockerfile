@@ -49,7 +49,7 @@ WORKDIR /build
 # Run CMake DropDBase
 RUN	mkdir build_dropdbase \
 	&& cd build_dropdbase \
-	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
+	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
 
 RUN cd build_dropdbase && ninja
 
