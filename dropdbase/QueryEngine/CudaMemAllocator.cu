@@ -155,7 +155,7 @@ CudaMemAllocator::~CudaMemAllocator()
 /// Allocate data with the allocator
 /// < param name="numBytes">number of bytes to be allocated like size_t</param>
 /// <returns> a chunk of allocated memory on the GPU</returns>
-int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
+int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
 {
     if (numBytes <= 0)
     {
@@ -213,8 +213,7 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 
 /// Deallocate data with the allocator
 /// < param name="ptr">the pointer to be freed</param>
-/// < param name="numBytes">number of byte to free</param>
-void CudaMemAllocator::deallocate(int8_t* ptr, size_t numBytes)
+void CudaMemAllocator::Deallocate(int8_t* ptr)
 {
 #ifdef DEBUG_ALLOC
     fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);

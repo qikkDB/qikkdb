@@ -94,7 +94,7 @@ void alloc(T** p_Block, size_t dataElementCount)
     {
         try
         {
-            *p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(
+            *p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().Allocate(
                 dataElementCount * sizeof(T)));
             allocOK = true;
         }

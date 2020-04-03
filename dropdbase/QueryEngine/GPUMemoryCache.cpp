@@ -21,9 +21,8 @@ GPUMemoryCache::~GPUMemoryCache()
     lruQueue.clear();
     for (auto& cacheEntry : cacheMap)
     {
-        Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(
-                                                                               cacheEntry.second.ptr),
-                                                                           cacheEntry.second.size);
+        Context::getInstance().GetAllocatorForDevice(deviceID_).Deallocate(reinterpret_cast<int8_t*>(
+                                                                               cacheEntry.second.ptr));
     }
     cacheMap.clear();
     BOOST_LOG_TRIVIAL(debug) << "~GPUMemoryCache" << deviceID_;
@@ -57,9 +56,8 @@ bool GPUMemoryCache::evict()
         BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_
                                  << "Evict: " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " "
                                  << queueItem.ref.size;
-        Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(
-                                                                               queueItem.ref.ptr),
-                                                                           queueItem.ref.size);
+        Context::getInstance().GetAllocatorForDevice(deviceID_).Deallocate(reinterpret_cast<int8_t*>(
+                                                                               queueItem.ref.ptr));
         usedSize -= queueItem.ref.size;
         BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
         cacheMap.erase(queueItem.ref.key);
@@ -96,9 +94,8 @@ void GPUMemoryCache::clearCachedBlock(const std::string& databaseName, const std
     while (toErase != cacheMap.end())
     {
         lruQueue.erase(toErase->second.lruQueueIt);
-        Context::getInstance().GetAllocatorForDevice(deviceID_).deallocate(reinterpret_cast<int8_t*>(
-                                                                               toErase->second.ptr),
-                                                                           toErase->second.size);
+        Context::getInstance().GetAllocatorForDevice(deviceID_).Deallocate(reinterpret_cast<int8_t*>(
+                                                                               toErase->second.ptr));
         usedSize -= toErase->second.size;
         cacheMap.erase(toErase);
         toErase = FindPrefix(columnBlock);

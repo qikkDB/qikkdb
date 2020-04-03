@@ -16,8 +16,8 @@ TEST(AllocatorTests, AllocateDeallocate)
 
     std::vector<int8_t*> pointers;
 
-    pointers.push_back(allocator.allocate(SIZE));
-    pointers.push_back(allocator.allocate(SIZE));
+    pointers.push_back(allocator.Allocate(SIZE));
+    pointers.push_back(allocator.Allocate(SIZE));
 
     // check if it is correct:
     for (int i = 0; i < pointers.size(); i++)
@@ -32,8 +32,8 @@ TEST(AllocatorTests, AllocateDeallocate)
         }
     }
 
-    pointers.push_back(allocator.allocate(SIZE));
-    allocator.deallocate(pointers[0], 0);
+    pointers.push_back(allocator.Allocate(SIZE));
+    allocator.Deallocate(pointers[0]);
 
     // check if it is correct:
     for (int i = 0; i < pointers.size(); i++)
