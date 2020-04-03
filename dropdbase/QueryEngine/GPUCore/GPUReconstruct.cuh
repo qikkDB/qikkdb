@@ -46,10 +46,10 @@ __global__ void kernel_reconstruct_col(T* outData, T* ACol, int32_t* prefixSum, 
 
 /// Kernel for reconstructing null masks according to calculated prefixSum and inMask
 __global__ void
-kernel_reconstruct_null_mask(int32_t* outData, int64_t* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount);
+kernel_reconstruct_null_mask(int64_t* outData, int64_t* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount);
 
 /// Kernel for compressing null masks from memory-wasting int8_t* array
-__global__ void kernel_compress_null_mask(int32_t* outData, int64_t* ACol, int32_t dataElementCount);
+__global__ void kernel_compress_null_mask(int64_t* outData, int64_t* ACol, int32_t dataElementCount);
 
 /// Kernel for generating array with sorted indexes which point to values where mask is 1.
 template <typename T>
@@ -305,7 +305,7 @@ public:
                             GPUMemory::allocAndSet(outNullMask, 0, outBitMaskSize);
                             kernel_reconstruct_null_mask<<<context.calcGridDim(dataElementCount),
                                                            context.getBlockDim()>>>(
-                                reinterpret_cast<int32_t*>(*outNullMask), nullMask,
+                                reinterpret_cast<int64_t*>(*outNullMask), nullMask,
                                 prefixSumPointer.get(), inMask, dataElementCount);
                         }
                     }

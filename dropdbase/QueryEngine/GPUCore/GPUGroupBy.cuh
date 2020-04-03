@@ -507,7 +507,7 @@ public:
                 cuda_ptr<int64_t> valuesNullMaskCompressed((NullValues::GetNullBitMaskSize(keyBufferSize_)), 0);
                 kernel_compress_null_mask<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                             Context::getInstance().getBlockDim()>>>(
-                    reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, keyBufferSize_);
+                    reinterpret_cast<int64_t*>(valuesNullMaskCompressed.get()), valuesNullMask_, keyBufferSize_);
 
                 // Reconstruct aggregated values according to the operation
                 if (DIRECT_VALUES) // for min, max and sum: mergedValues.get() are direct results, just reconstruct them

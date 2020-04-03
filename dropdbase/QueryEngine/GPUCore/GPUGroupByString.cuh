@@ -482,7 +482,7 @@ public:
                 {
                     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                                 Context::getInstance().getBlockDim()>>>(
-                        reinterpret_cast<int32_t*>(valuesNullMaskCompressed.get()),
+                        reinterpret_cast<int64_t*>(valuesNullMaskCompressed.get()),
                         valuesNullMaskUncompressed_, keyBufferSize_);
                 }
 
