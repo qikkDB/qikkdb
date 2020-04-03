@@ -8,7 +8,7 @@
 #include <stdexcept>
 
 #include "../Context.h"
-#include "../CudaMemAllocator.h"
+#include "../Allocator.h"
 #include "../../NativeGeoPoint.h"
 
 /// Kernel for filling a buffer in parallel with data

@@ -81,7 +81,7 @@ std::map<std::string, GPUMemoryCache::CacheEntry>::iterator GPUMemoryCache::Find
     return cacheMap.end();
 }
 
-CudaMemAllocator& GPUMemoryCache::GetAllocator()
+Allocator& GPUMemoryCache::GetAllocator()
 {
     return Context::getInstance().GetAllocatorForDevice(deviceID_);
 }

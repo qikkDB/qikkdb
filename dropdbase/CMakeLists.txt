@@ -15,6 +15,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/ComplexPolygon.pb.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/Types/Point.pb.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/Allocator.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/DeviceChanger.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUError.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUMemoryCache.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cpp

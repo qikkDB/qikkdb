@@ -3,13 +3,13 @@
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#include <unordered_set>
+#include <unordered_map>
 #include <vector>
 
 #include <memory>
 
 #include "../Configuration.h"
-#include "CudaMemAllocator.h"
+#include "Allocator.h"
 #include "GPUError.h"
 #include "GPUMemoryCache.h"
 
@@ -36,7 +36,7 @@ private:
     std::vector<cudaDeviceProp> devicesMetaInfoList_;
 
     // Move cannot be implemented for allocator and cache, they keep iterators to internal vectors
-    std::vector<std::unique_ptr<CudaMemAllocator>> gpuAllocators_;
+    std::vector<std::unique_ptr<Allocator>> gpuAllocators_;
     std::vector<std::unique_ptr<GPUMemoryCache>> gpuCaches_;
 
     // List of loaded databases
@@ -103,7 +103,7 @@ private:
             cudaMemGetInfo(&free, &total);
             CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing memory for device " << i << "\n";
             // Initialize allocators
-            gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
+            gpuAllocators_.emplace_back(std::make_unique<Allocator>(i));
             CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing cache for device " << i << "\n";
             // Initialize cache
             size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
@@ -232,7 +232,7 @@ public:
     /// Obtain the memory allocator for a given device
     /// <param name="deviceID">the ID of the device whose allocator has to be found</param>
     /// <returns>the memory allocator for memory operations on the selected device</returns>
-    CudaMemAllocator& GetAllocatorForDevice(int32_t deviceID)
+    Allocator& GetAllocatorForDevice(int32_t deviceID)
     {
         // Check for invalid range
         if (deviceID < 0 || deviceID >= deviceCount_)
@@ -245,7 +245,7 @@ public:
 
     /// Obtain the memory allocator for the currently bound device
     /// <returns>the memory allocator for memory operations on the current device</returns>
-    CudaMemAllocator& GetAllocatorForCurrentDevice()
+    Allocator& GetAllocatorForCurrentDevice()
     {
         return *gpuAllocators_.at(getBoundDeviceID());
     }

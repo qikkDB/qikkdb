@@ -5,7 +5,7 @@
 #include <list>
 #include <stdexcept>
 #include <vector>
-#include "CudaMemAllocator.h"
+#include "Allocator.h"
 
 class GPUMemoryCache
 {
@@ -58,7 +58,7 @@ private:
     /// Get allocator for the device to which this cache belongs
     /// </summary>
     /// <returns>Allocator object</returns>
-    CudaMemAllocator& GetAllocator();
+    Allocator& GetAllocator();
 
     /// <summary>
     /// Check if given number of bytes can be inserted into cache
