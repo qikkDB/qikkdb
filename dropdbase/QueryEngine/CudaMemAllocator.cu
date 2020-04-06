@@ -157,6 +157,7 @@ CudaMemAllocator::~CudaMemAllocator()
 /// <returns> a chunk of allocated memory on the GPU</returns>
 int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
 {
+    std::unique_lock<std::mutex> lock{allocator_mutex_};
     if (numBytes <= 0)
     {
         throw std::out_of_range("Invalid allocation size");
@@ -215,6 +216,7 @@ int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
 /// < param name="ptr">the pointer to be freed</param>
 void CudaMemAllocator::Deallocate(int8_t* ptr)
 {
+    std::unique_lock<std::mutex> lock{allocator_mutex_};
 #ifdef DEBUG_ALLOC
     fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);
 #ifndef WIN32

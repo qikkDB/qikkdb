@@ -4,6 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include <list>
+#include <mutex>
 
 
 /// A class for memory allocation operations
@@ -29,6 +30,8 @@ private:
     std::list<BlockInfo> chainedBlocks_;
     std::multimap<size_t, std::list<BlockInfo>::iterator> blocksBySize_;
     std::unordered_map<void*, std::list<BlockInfo>::iterator> allocatedBlocks_;
+    std::mutex allocator_mutex_; // Mutex for each allocator (gpu card)
+
     void SplitBlock(std::multimap<size_t, std::list<BlockInfo>::iterator>::iterator blockIterator,
                     size_t requestedSize);
     friend void
