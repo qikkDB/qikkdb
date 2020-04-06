@@ -486,6 +486,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
     else
     {
         auto col = arguments_.Read<std::string>();
+        PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
         GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(col);
@@ -562,6 +563,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
     else
     {
         auto colName = arguments_.Read<std::string>();
+        PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
         GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
@@ -638,6 +640,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
 {
     auto colName = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     auto alias = arguments_.Read<std::string>();
 
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
@@ -768,6 +771,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 {
     std::string cnst = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(std::string).name() << '\n';
@@ -792,6 +796,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
@@ -817,6 +822,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)

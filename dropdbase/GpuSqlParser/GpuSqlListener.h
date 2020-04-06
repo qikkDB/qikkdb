@@ -39,7 +39,7 @@ private:
     std::unordered_map<std::string, std::string> shortColumnNames_;
     int32_t linkTableIndex_;
     int32_t orderByColumnIndex_;
-    std::unordered_map<std::string, std::pair<DataType, std::string>> returnColumns_;
+    std::unordered_map<std::string, std::tuple<DataType, PayloadType, std::string>> returnColumns_;
     std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns_;
@@ -196,8 +196,6 @@ public:
     void ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsContext* ctx);
 
     void LockAliasRegisters();
-
-    const std::unordered_map<std::string, std::pair<DataType, std::string>>& GetResultColumnInfo();
 };
 
 

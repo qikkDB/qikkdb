@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/PeterKratkyInstarea/Desktop/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.8
+// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.8
 
 #pragma once
 
@@ -222,6 +222,9 @@ public:
 
   virtual void enterConstraint(GpuSqlParser::ConstraintContext * /*ctx*/) override { }
   virtual void exitConstraint(GpuSqlParser::ConstraintContext * /*ctx*/) override { }
+
+  virtual void enterRetpayload(GpuSqlParser::RetpayloadContext * /*ctx*/) override { }
+  virtual void exitRetpayload(GpuSqlParser::RetpayloadContext * /*ctx*/) override { }
 
   virtual void enterDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }
   virtual void exitDecimalLiteral(GpuSqlParser::DecimalLiteralContext * /*ctx*/) override { }

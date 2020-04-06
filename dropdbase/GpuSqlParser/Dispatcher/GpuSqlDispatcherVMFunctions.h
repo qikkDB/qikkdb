@@ -18,6 +18,7 @@ template <typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
@@ -48,6 +49,7 @@ template <typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 {
     auto colName = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     auto alias = arguments_.Read<std::string>();
 
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);

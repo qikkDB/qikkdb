@@ -721,9 +721,11 @@ void GpuSqlListener::exitSelectColumns(GpuSqlParser::SelectColumnsContext* ctx)
     {
         std::string colName = retCol.first;
         DataType retType = std::get<0>(retCol.second);
-        std::string alias = std::get<1>(retCol.second);
+        PayloadType payloadType = std::get<1>(retCol.second);
+        std::string alias = std::get<2>(retCol.second);
         dispatcher_.AddRetFunction(retType);
         PushArgument(colName.c_str(), retType);
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(payloadType));
         dispatcher_.AddArgument<const std::string&>(alias);
         std::string trimmedColName = colName;
         if (trimmedColName.front() == '$')
@@ -798,9 +800,16 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
         alias = colName;
     }
 
+    PayloadType retPayload = PayloadType::PAYLOAD_DEFAULT; 
+    if (ctx->retpayload())
+    {
+        std::string retpayload = ctx->retpayload()->getText();
+        retPayload = ::GetPayloadTypeFromString(retpayload);
+    }
+
     if (returnColumns_.find(colName) == returnColumns_.end())
     {
-        returnColumns_.insert({colName, {retType, alias}});
+        returnColumns_.insert({colName, {retType, retPayload, alias}});
         ColumnOrder.insert({CurrentSelectColumnIndex, alias});
 
         dispatcher_.AddArgument<const std::string&>(colName);
@@ -832,7 +841,7 @@ void GpuSqlListener::exitSelectAllColumns(GpuSqlParser::SelectAllColumnsContext*
 
             if (returnColumns_.find(colName) == returnColumns_.end())
             {
-                returnColumns_.insert({colName, {retType, colName}});
+                returnColumns_.insert({colName, {retType, PayloadType::PAYLOAD_DEFAULT, colName}});
                 ColumnOrder.insert({columnOrderNumber++, colName});
 
                 dispatcher_.AddArgument<const std::string&>(colName);
@@ -1214,7 +1223,7 @@ void GpuSqlListener::exitShowQueryTypes(GpuSqlParser::ShowQueryTypesContext* ctx
         {
             for (auto& returnColumn : returnColumns_)
             {
-                if (std::get<1>(returnColumn.second) == column.second)
+                if (std::get<2>(returnColumn.second) == column.second)
                 {
                     columnType = std::get<0>(returnColumn.second);
                     break;
@@ -2533,9 +2542,4 @@ void GpuSqlListener::TrimReg(std::string& reg)
     {
         reg = shortColumnNames_.at(reg);
     }
-}
-
-const std::unordered_map<std::string, std::pair<DataType, std::string>>& GpuSqlListener::GetResultColumnInfo()
-{
-    return returnColumns_;
 }

@@ -91,7 +91,7 @@ selectColumns: (
 			)*
 		)
 	);
-selectColumn: expression (AS alias)?;
+selectColumn: expression (AS alias)? (RETPAYLOAD retpayload)?;
 selectAllColumns: ASTERISK;
 whereClause: expression;
 orderByColumns: ((orderByColumn (COMMA orderByColumn)*));
@@ -141,6 +141,7 @@ columnValue: (
 		| BOOLEANLIT
 	);
 constraint: ( UNIQUE | INDEX | NOTNULL);
+retpayload: datatype;
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation
