@@ -736,8 +736,8 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
             GPUMemory::free(outNullMaskGPUPointer);
         }
     }
-    ConvertPointColToWKTCol(gpuWkt, reconstructedPointCol, *outDataElementCount);
-    if (inMask)
+    ConvertPointColToWKTCol(&gpuWkt, reconstructedPointCol, *outDataElementCount);
+    if (inMask && reconstructedPointCol)
     {
         GPUMemory::free(reconstructedPointCol);
     }

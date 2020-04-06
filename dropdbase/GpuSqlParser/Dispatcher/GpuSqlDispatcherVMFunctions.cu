@@ -1015,10 +1015,10 @@ void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<int64_t>& mask, int64_t shi
 {
     while (shift-- > 0)
     {
-        uint8_t carryBit = 0;
+        uint64_t carryBit = 0;
         for (int32_t i = mask.size() - 1; i >= 0; i--)
         {
-            uint8_t newCarryBit = mask[i] & 1;
+            uint64_t newCarryBit = mask[i] & 1;
             mask[i] >>= 1;
             uint64_t a = 9223372036854775807;
             mask[i] &= a;

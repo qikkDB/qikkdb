@@ -735,7 +735,6 @@ public:
             {
                 size_ += columnData.size();
                 int32_t bitMaskStartIdx = lastBlock->GetSize();
-                lastBlock->InsertData(columnData);
                 auto maskPtr = lastBlock->GetNullBitmask();
                 for (int32_t i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
                 {
@@ -746,11 +745,12 @@ public:
                     }
                     maskIdx++;
                 }
+                lastBlock->InsertData(columnData);
                 if (compress && lastBlock->IsFull())
                 {
                     lastBlock->CompressData();
                 }
-                setColumnStatistics();
+                //setColumnStatistics();
                 return;
             }
 
