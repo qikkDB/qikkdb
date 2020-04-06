@@ -414,8 +414,9 @@ public:
                 const int32_t shiftIdx = (srcRowIndex % (sizeof(int8_t) * 8)); // which bit it is
                 const bool isNullValue = (nullBitMask[bitMaskIdx] >> shiftIdx) & 1;
 
-                InsertDataOnSpecificPositionResizing(dstBlockIndex,
-                    dstRowIndex, srcBlocks[srcBlockIndex]->GetData()[srcRowIndex], -1, isNullValue);
+                InsertDataOnSpecificPositionResizing(dstBlockIndex, dstRowIndex,
+                                                     srcBlocks[srcBlockIndex]->GetData()[srcRowIndex],
+                                                     -1, isNullValue);
                 srcRowIndex++;
                 dstRowIndex++;
 
@@ -582,7 +583,7 @@ public:
         // setColumnStatistics();
     }
 
-	/// <summary>
+    /// <summary>
     /// Inserts data on proper position in column without splitting blocks, used when resizing block size
     /// </summary>
     /// <param name="indexBlock">index of block where data will be inserted</param>
@@ -591,17 +592,18 @@ public:
     /// <param name="groupId">id of binary index group<param>
     /// <param name="isNullValue">whether data is null value flag<param>
     void InsertDataOnSpecificPositionResizing(int32_t indexBlock,
-											  int32_t indexInBlock,
-											  const T& columnData,
-											  int32_t groupId = -1,
-										      bool isNullValue = false)
+                                              int32_t indexInBlock,
+                                              const T& columnData,
+                                              int32_t groupId = -1,
+                                              bool isNullValue = false)
     {
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
-		
-		if (block.IsFull())
+
+        if (block.IsFull())
         {
-            BOOST_LOG_TRIVIAL(debug)
-                << "The block with index " << indexBlock << " is full and data cannot be inserted into it when resizing block size for column named: " << name_ << ".";
+            BOOST_LOG_TRIVIAL(debug) << "The block with index "
+                                     << indexBlock << " is full and data cannot be inserted into it when resizing block size for column named: "
+                                     << name_ << ".";
         }
 
         size_ += 1;

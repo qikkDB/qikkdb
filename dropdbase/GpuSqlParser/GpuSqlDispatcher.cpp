@@ -1716,6 +1716,9 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             dataLength = responseMessage->payloads().at(key).int64payload().int64data_size();
             break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            dataLength = responseMessage->payloads().at(key).datetimepayload().datetimedata_size();
+            break;
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             dataLength = responseMessage->payloads().at(key).floatpayload().floatdata_size();
             break;
@@ -1812,6 +1815,21 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                         ->at(trimmedKey)
                         .mutable_int64payload()
                         ->set_int64data(0, result.second);
+                }
+                break;
+            }
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            {
+                std::pair<bool, int64_t> result = AggregateOnCPU<int64_t>(
+                    operation, payload.datetimepayload().datetimedata()[0],
+                    responseMessage->payloads().at(trimmedKey).datetimepayload().datetimedata()[0]);
+                aggregationOperationFound = result.first;
+                if (aggregationOperationFound)
+                {
+                    responseMessage->mutable_payloads()
+                        ->at(trimmedKey)
+                        .mutable_datetimepayload()
+                        ->set_datetimedata(0, result.second);
                 }
                 break;
             }
