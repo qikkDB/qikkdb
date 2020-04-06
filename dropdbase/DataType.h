@@ -28,7 +28,7 @@ enum DataType
 
 enum class PayloadType
 {
-    PAYLOAD_DEFAULT = 0, PAYLOAD_DATE = 0
+    PAYLOAD_DEFAULT = 0, PAYLOAD_DATE = 1
 };
 
 constexpr int32_t numOfDataTypes = DATA_TYPE_SIZE / 2;

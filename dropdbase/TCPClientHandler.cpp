@@ -50,6 +50,9 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
                 lastResultLen_ = std::max(payload.second.int64payload().int64data().size(), lastResultLen_);
                 break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+                lastResultLen_ = std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
+                break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
                 break;
@@ -114,6 +117,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             {
                 finalPayload.mutable_int64payload()->add_int64data(
                     payload.second.int64payload().int64data()[i]);
+            }
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
+            {
+                finalPayload.mutable_datetimepayload()->add_datetimedata(
+                    payload.second.datetimepayload().datetimedata()[i]);
             }
             break;
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:

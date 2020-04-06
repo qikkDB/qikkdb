@@ -546,7 +546,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         if (outSize > 0)
         {
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-            InsertIntoPayload(payload, outData, outSize);
+            InsertIntoPayload(payload, outData, outSize, payloadType);
             MergePayloadToSelfResponse(alias, col, payload, nullMaskString);
         }
     }
@@ -629,7 +629,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
         if (outSize > 0)
         {
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-            InsertIntoPayload(payload, outData, outSize);
+            InsertIntoPayload(payload, outData, outSize, payloadType);
             MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
         }
     }
@@ -761,7 +761,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
     if (outSize > 0)
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-        InsertIntoPayload(payload, outData, outSize);
+        InsertIntoPayload(payload, outData, outSize, payloadType);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
     return InstructionStatus::CONTINUE;
@@ -787,7 +787,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount);
+    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }
@@ -813,7 +813,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount);
+    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }
@@ -839,7 +839,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
 
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount);
+    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }

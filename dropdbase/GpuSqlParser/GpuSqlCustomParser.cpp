@@ -501,6 +501,20 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
     }
     break;
+    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+    {
+        int64_t payloadSize = payload.datetimepayload().datetimedata().size();
+        int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+        int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+
+        auto begin = payload.mutable_datetimepayload()->mutable_datetimedata()->begin();
+        payload.mutable_datetimepayload()->mutable_datetimedata()->erase(begin, begin + clampedOffset);
+
+        begin = payload.mutable_datetimepayload()->mutable_datetimedata()->begin();
+        auto end = payload.mutable_datetimepayload()->mutable_datetimedata()->end();
+        payload.mutable_datetimepayload()->mutable_datetimedata()->erase(begin + clampedLimit, end);
+    }
+    break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
     {
         int64_t payloadSize = payload.doublepayload().doubledata().size();

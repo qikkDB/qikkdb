@@ -322,6 +322,9 @@ namespace ColmnarDB.NetworkClient
                         }
                         columnTypes.Add(columnData.Key, typeof(long?));
                         break;
+                    case QueryResponsePayload.PayloadOneofCase.DateTimePayload:
+                        // TODO Peter Kratky
+                        break;
                     case QueryResponsePayload.PayloadOneofCase.DoublePayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
