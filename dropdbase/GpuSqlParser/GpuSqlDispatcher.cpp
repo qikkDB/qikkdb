@@ -1640,8 +1640,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int8_t[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1651,8 +1651,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1662,8 +1662,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int64_t[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     if (payloadType == PayloadType::PAYLOAD_DATE)
     {
@@ -1683,8 +1683,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<float[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1694,8 +1694,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<double[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1705,8 +1705,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<std::string[]>& data,
-                                         int32_t dataSize,
-                                         PayloadType payloadType)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
