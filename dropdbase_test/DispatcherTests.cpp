@@ -12173,6 +12173,15 @@ TEST(DispatcherTests, CreateDropDatabaseWithDelimitedIdentifiers)
     ASSERT_TRUE(!Database::Exists("createdDb%^&*()-+"));
 }
 
+TEST(DispatcherTests, CreateDatabaseDelimitedIdentifiersIllegalCharacter)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(nullptr,
+                              "CREATE DATABASE [createdDb%^&*()-+@];");
+    ASSERT_THROW(parser.Parse(), IdentifierException);
+}
+
 TEST(DispatcherTests, CreateAlterDropTable)
 {
     Context::getInstance();

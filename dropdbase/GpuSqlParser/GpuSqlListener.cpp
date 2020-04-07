@@ -800,7 +800,7 @@ void GpuSqlListener::exitSelectColumn(GpuSqlParser::SelectColumnContext* ctx)
         alias = colName;
     }
 
-    PayloadType retPayload = PayloadType::PAYLOAD_DEFAULT; 
+    PayloadType retPayload = PayloadType::PAYLOAD_DEFAULT;
     if (ctx->retpayload())
     {
         std::string retpayload = ctx->retpayload()->getText();
@@ -1769,7 +1769,7 @@ void GpuSqlListener::exitSqlAlterDatabase(GpuSqlParser::SqlAlterDatabaseContext*
         dispatcher_.AddArgument<const std::string&>(newDatabaseName);
     }
 
-	dispatcher_.AddArgument<bool>(newBlockSize != -1);
+    dispatcher_.AddArgument<bool>(newBlockSize != -1);
     if (newBlockSize != -1)
     {
         dispatcher_.AddArgument<int32_t>(newBlockSize);
@@ -2491,6 +2491,16 @@ void GpuSqlListener::TrimDelimitedIdentifier(std::string& str)
     {
         str.erase(0, 1);
         str.erase(str.size() - 1);
+    }
+
+    const std::vector<const char*> reservedCharacters = {Database::SEPARATOR};
+
+    for (auto reservedChar : reservedCharacters)
+    {
+        if (str.find(reservedChar) != std::string::npos)
+        {
+            throw IdentifierException(str, reservedChar);
+        }
     }
 }
 

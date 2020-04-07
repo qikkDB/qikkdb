@@ -264,5 +264,14 @@ struct InvalidOperandsException : public std::runtime_error
     }
 };
 
+struct IdentifierException : public std::runtime_error
+{
+    IdentifierException(const std::string& identifier, const char* chr)
+    : std::runtime_error(("Identifier: " + identifier + " contains reserved character: " + chr).c_str())
+    {
+    }
+};
+
+
 
 #endif // DROPDBASE_INSTAREA_PARSEREXCEPTIONS_H
