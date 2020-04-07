@@ -323,7 +323,15 @@ namespace ColmnarDB.NetworkClient
                         columnTypes.Add(columnData.Key, typeof(long?));
                         break;
                     case QueryResponsePayload.PayloadOneofCase.DateTimePayload:
-                        // TODO Peter Kratky
+                        if (response.NullBitMasks.ContainsKey(columnData.Key))
+                        {
+                            columnDatas.Add(columnData.Key, new List<DateTime?>(columnData.Value.DateTimePayload.DateTimeData.ToArray().Select((val, idx) => ValIfNotNulled<DateTime?>(DateTimeOffset.FromUnixTimeSeconds(val).UtcDateTime, idx, response.NullBitMasks[columnData.Key]))));
+                        }
+                        else
+                        {
+                            columnDatas.Add(columnData.Key, new List<DateTime?>(columnData.Value.DateTimePayload.DateTimeData.ToArray().Select((arg) => (DateTime?)DateTimeOffset.FromUnixTimeSeconds(arg).UtcDateTime)));
+                        }
+                        columnTypes.Add(columnData.Key, typeof(long?));
                         break;
                     case QueryResponsePayload.PayloadOneofCase.DoublePayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
@@ -399,6 +407,9 @@ namespace ColmnarDB.NetworkClient
                     break;
                 case "LONG":
                     typeTable.AddColumn(columnNames[i],typeof(long));
+                    break;
+                case "DATETIME":
+                    typeTable.AddColumn(columnNames[i], typeof(DateTime));
                     break;
                 case "FLOAT":
                     typeTable.AddColumn(columnNames[i],typeof(float));
