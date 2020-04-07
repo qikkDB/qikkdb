@@ -21,8 +21,8 @@ int32_t CpuSqlDispatcher::DateExtractCol()
     auto colValMin = allocatedPointers_.at(colPointerNameMin);
     auto colValMax = allocatedPointers_.at(colPointerNameMax);
 
-    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin));
-    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax));
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, std::get<2>(colValMin) || !OP::isMonotonous);
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, std::get<2>(colValMax) || !OP::isMonotonous);
 
     resultMin[0] =
         OP{}.template operator()<int32_t, int64_t>(reinterpret_cast<int64_t*>(std::get<0>(colValMin))[0]);
@@ -45,8 +45,8 @@ int32_t CpuSqlDispatcher::DateExtractConst()
     auto cnst = arguments_.Read<int64_t>();
     auto reg = arguments_.Read<std::string>();
 
-    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, false);
-    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, false);
+    int32_t* resultMin = AllocateRegister<int32_t>(reg + "_min", 1, !OP::isMonotonous);
+    int32_t* resultMax = AllocateRegister<int32_t>(reg + "_max", 1, !OP::isMonotonous);
 
     resultMin[0] = OP{}.template operator()<int32_t, int64_t>(cnst);
     resultMax[0] = OP{}.template operator()<int32_t, int64_t>(cnst);
