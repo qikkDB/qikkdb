@@ -31,6 +31,30 @@ enum class PayloadType
     PAYLOAD_DEFAULT = 0, PAYLOAD_DATE = 1
 };
 
+enum class DataTypeExternal
+{
+    CONST_ERROR = -1,
+    CONST_INT = 0,
+    CONST_LONG = 1,
+    CONST_DATETIME = 2,
+    CONST_FLOAT = 3,
+    CONST_DOUBLE = 4,
+    CONST_POINT = 5,
+    CONST_POLYGON = 6,
+    CONST_STRING = 7,
+    CONST_INT8_T = 8,
+    COLUMN_INT = 9,
+    COLUMN_LONG = 10,
+    COLUMN_DATE = 11,
+    COLUMN_FLOAT = 12,
+    COLUMN_DOUBLE = 13,
+    COLUMN_POINT = 14,
+    COLUMN_POLYGON = 15,
+    COLUMN_STRING = 16,
+    COLUMN_INT8_T = 17,
+    DATA_TYPE_SIZE = 18
+};
+
 constexpr int32_t numOfDataTypes = DATA_TYPE_SIZE / 2;
 
 constexpr int32_t GetDataTypeSize(DataType type)
