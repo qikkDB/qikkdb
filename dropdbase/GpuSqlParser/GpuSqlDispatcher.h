@@ -327,31 +327,31 @@ private:
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int8_t[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int64_t[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<float[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<double[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<std::string[]>& data,
                            const int32_t dataSize,
-                           const PayloadType payloadType);
+                           const DataTypeExternal externalType);
 
     static void ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);

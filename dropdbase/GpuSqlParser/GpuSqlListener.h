@@ -28,7 +28,7 @@ private:
     const std::shared_ptr<Database>& database_;
     GpuSqlDispatcher& dispatcher_;
     GpuSqlJoinDispatcher& joinDispatcher_;
-    std::stack<std::pair<std::string, DataType>> parserStack_;
+    std::stack<std::tuple<std::string, DataType, DataTypeExternal>> parserStack_;
     std::unordered_map<std::string, std::string> tableAliases_;
     std::unordered_set<std::string> columnAliases_;
     std::string currentExpressionAlias_;
@@ -39,7 +39,7 @@ private:
     std::unordered_map<std::string, std::string> shortColumnNames_;
     int32_t linkTableIndex_;
     int32_t orderByColumnIndex_;
-    std::unordered_map<std::string, std::tuple<DataType, PayloadType, std::string>> returnColumns_;
+    std::unordered_map<std::string, std::tuple<DataType, DataTypeExternal, std::string>> returnColumns_;
     std::unordered_map<std::string, std::pair<DataType, OrderBy::Order>> orderByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> groupByColumns_;
     std::unordered_set<std::pair<std::string, DataType>, boost::hash<std::pair<std::string, DataType>>> originalGroupByColumns_;
@@ -57,10 +57,10 @@ private:
     bool isSelectColumnValid_;
 
     void PushArgument(const char* token, DataType dataType);
-    std::pair<std::string, DataType> StackTopAndPop();
+    std::tuple<std::string, DataType, DataTypeExternal> StackTopAndPop();
     void StringToUpper(std::string& str);
 
-    void PushTempResult(std::string reg, DataType type);
+    void PushTempResult(std::string reg, DataType type, DataTypeExternal externalType);
 
     bool IsLong(const std::string& value);
 
@@ -72,13 +72,51 @@ private:
 
     void TrimDelimitedIdentifier(std::string& str);
 
-    DataType GetReturnDataType(DataType left, DataType right);
-    DataType GetReturnDataType(DataType operand);
+    
+    /// Defines return data type for binary operation
+    /// If operand type is a constant data type its converted to column data type
+    /// Data type with higher ordinal number (the ordering is designed with this feature in mind) is
+    /// chosen <param name="left">Left operand data type</param> <param name="right">Right operand
+    /// data type</param> <returns="result">Operation result data type</returns>
+    template<typename T>
+    T GetReturnDataType(T left, T right)
+    {
+        static_assert(std::is_enum<T>::value, "Only enemeration types are allowed.");
+
+        if (right < T::COLUMN_INT)
+        {
+            right = static_cast<T>(static_cast<int32_t>(right) + static_cast<int32_t>(T::COLUMN_INT));
+        }
+        if (left < T::COLUMN_INT)
+        {
+            left = static_cast<T>(static_cast<int32_t>(left) + static_cast<int32_t>(T::COLUMN_INT));
+        }
+        T result = std::max<T>(left, right);
+
+        return result;
+    }
+
+    /// Defines return data type for unary operation
+    /// If operand type is a constant data type its converted to column data type
+    /// <param name="operand">Operand data type</param>
+    /// <returns="result">Operation result data type</returns>
+    template <typename T>
+    T GetReturnDataType(T operand)
+    {
+        static_assert(std::is_enum<T>::value, "Only enemeration types are allowed.");
+
+        if (operand < T::COLUMN_INT)
+        {
+            return static_cast<T>(static_cast<int32_t>(operand) + static_cast<int32_t>(T::COLUMN_INT));
+        }
+        return operand;
+    }
+
     DataType GetDataTypeFromString(const std::string& dataType);
 
     void TrimReg(std::string& reg);
 
-    std::pair<std::string, DataType> GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
+    std::tuple<std::string, DataType, DataTypeExternal> GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx);
 
     void WalkAliasExpression(const std::string& alias);
 

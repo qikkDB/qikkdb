@@ -1165,7 +1165,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowDatabases()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, databases_map.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payload, outData, databases_map.size(), DataTypeExternal::COLUMN_STRING);
     MergePayloadToSelfResponse("Databases", "Databases", payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show databases completed sucessfully" << '\n';
@@ -1191,7 +1191,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowTables()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, tables_map.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payload, outData, tables_map.size(), DataTypeExternal::COLUMN_STRING);
     MergePayloadToSelfResponse(db, db, payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show tables completed sucessfully" << '\n';
@@ -1224,8 +1224,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowColumns()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
-    InsertIntoPayload(payloadName, outDataName, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
-    InsertIntoPayload(payloadType, outDataType, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadName, outDataName, columns_map.size(), DataTypeExternal::COLUMN_STRING);
+    InsertIntoPayload(payloadType, outDataType, columns_map.size(), DataTypeExternal::COLUMN_STRING);
     MergePayloadToSelfResponse(tab + "_columns", tab + "_columns", payloadName);
     MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
 
@@ -1266,10 +1266,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintType;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintColumns;
 
-    InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
-    InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size(),
+                      DataTypeExternal::COLUMN_STRING);
+    InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size(),
+                      DataTypeExternal::COLUMN_STRING);
     InsertIntoPayload(payloadConstraintColumns, outDataConstraintColumns, constraints.size(),
-                      PayloadType::PAYLOAD_DEFAULT);
+                      DataTypeExternal::COLUMN_STRING);
 
     MergePayloadToSelfResponse(tab + "_constraints", tab + "_constraints", payloadConstraintName);
     MergePayloadToSelfResponse(tab + "_cnstrn_types", tab + "_cnstrn_types", payloadConstraintType);
@@ -1295,8 +1297,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowQueryColumnTypes()
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnType;
 
-    InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize, PayloadType::PAYLOAD_DEFAULT);
-    InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize, PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize, DataTypeExternal::COLUMN_STRING);
+    InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize, DataTypeExternal::COLUMN_STRING);
 
     MergePayloadToSelfResponse("ColumnName", "ColumnName", payloadColumnName);
     MergePayloadToSelfResponse("TypeName", "TypeName", payloadColumnType);
@@ -1641,7 +1643,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int8_t[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1652,7 +1654,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1663,9 +1665,9 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int64_t[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
-    if (payloadType == PayloadType::PAYLOAD_DATE)
+    if (externalType == DataTypeExternal::COLUMN_DATETIME || externalType == DataTypeExternal::CONST_DATETIME)
     {
         for (int i = 0; i < dataSize; i++)
         {
@@ -1684,7 +1686,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<float[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1695,7 +1697,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<double[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1706,7 +1708,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<std::string[]>& data,
                                          const int32_t dataSize,
-                                         const PayloadType payloadType)
+                                         const DataTypeExternal externalType)
 {
     for (int i = 0; i < dataSize; i++)
     {

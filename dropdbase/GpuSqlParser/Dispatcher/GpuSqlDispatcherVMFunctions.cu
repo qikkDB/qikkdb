@@ -486,7 +486,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
     else
     {
         auto col = arguments_.Read<std::string>();
-        PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+        DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
         GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(col);
@@ -546,7 +546,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         if (outSize > 0)
         {
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-            InsertIntoPayload(payload, outData, outSize, payloadType);
+            InsertIntoPayload(payload, outData, outSize, externalDataType);
             MergePayloadToSelfResponse(alias, col, payload, nullMaskString);
         }
     }
@@ -563,7 +563,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
     else
     {
         auto colName = arguments_.Read<std::string>();
-        PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+        DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
         GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
@@ -629,7 +629,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
         if (outSize > 0)
         {
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-            InsertIntoPayload(payload, outData, outSize, payloadType);
+            InsertIntoPayload(payload, outData, outSize, externalDataType);
             MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
         }
     }
@@ -640,7 +640,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
 {
     auto colName = arguments_.Read<std::string>();
-    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+    DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
     auto alias = arguments_.Read<std::string>();
 
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<std::string>(colName);
@@ -761,7 +761,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
     if (outSize > 0)
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-        InsertIntoPayload(payload, outData, outSize, payloadType);
+        InsertIntoPayload(payload, outData, outSize, externalDataType);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
     return InstructionStatus::CONTINUE;
@@ -771,7 +771,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+    DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(std::string).name() << '\n';
@@ -793,7 +793,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
     // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
+    InsertIntoPayload(payload, outData, dataElementCount, externalDataType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }
@@ -802,7 +802,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+    DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
@@ -825,7 +825,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
     // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
+    InsertIntoPayload(payload, outData, dataElementCount, externalDataType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }
@@ -834,7 +834,7 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
-    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
+    DataTypeExternal externalDataType = static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
@@ -857,7 +857,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
     // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
+    InsertIntoPayload(payload, outData, dataElementCount, externalDataType);
     MergePayloadToSelfResponse(alias, cnst, payload, "");
     return InstructionStatus::CONTINUE;
 }

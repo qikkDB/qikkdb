@@ -110,6 +110,7 @@ private:
     bool isNullable_;
     bool isUnique_;
     bool saveNecessary_;
+    DataTypeExternal externalDataType_;
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
@@ -1115,6 +1116,23 @@ public:
     virtual DataType GetColumnType() const override
     {
         return ::GetColumnType<T>();
+    };
+
+    /// <summary>
+    /// Returns external type of ColumnBase
+    /// </summary>
+    /// <returns>External type of current column</returns>
+    virtual DataTypeExternal GetExternalColumnType() const override
+    {
+        return externalDataType_;
+    };
+
+    /// <summary>
+    /// Sets external type of ColumnBase
+    /// </summary>
+    virtual void SetExternalColumnType(DataTypeExternal externalType) override
+    {
+        externalDataType_ = externalType;
     };
 
     virtual int32_t GetBlockCount() const override

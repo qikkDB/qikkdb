@@ -27,6 +27,8 @@ public:
     virtual void SetSaveNecessaryToTrue() = 0;
     virtual void SetColumnName(std::string newName) = 0;
     virtual void ResizeColumn(IColumn* srcColumnArg) = 0;
+    virtual DataTypeExternal GetExternalColumnType() const = 0;
+    virtual void SetExternalColumnType(DataTypeExternal externalType) = 0;
 
     virtual ~IColumn(){};
 };

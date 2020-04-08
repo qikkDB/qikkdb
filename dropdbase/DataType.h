@@ -45,7 +45,7 @@ enum class DataTypeExternal
     CONST_INT8_T = 8,
     COLUMN_INT = 9,
     COLUMN_LONG = 10,
-    COLUMN_DATE = 11,
+    COLUMN_DATETIME = 11,
     COLUMN_FLOAT = 12,
     COLUMN_DOUBLE = 13,
     COLUMN_POINT = 14,
