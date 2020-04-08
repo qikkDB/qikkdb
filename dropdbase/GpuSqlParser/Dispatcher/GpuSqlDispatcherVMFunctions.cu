@@ -900,9 +900,7 @@ size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
     }
     if (filter_)
     {
-        cuda_ptr<int64_t> outSum(1);
-        GPUReconstruct::Sum(outSum.get(), reinterpret_cast<int8_t*>(filter_), dataElementCount);
-        GPUMemory::copyDeviceToHost(&dataElementCount, outSum.get(), 1);
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
     }
     return dataElementCount;
 }

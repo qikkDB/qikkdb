@@ -600,8 +600,9 @@ public:
         cub::DeviceScan::ExclusiveSum(tempBuffer.get(), tempBufferSize, inMask, prefixSumPointer, dataElementCount);
     }
 
-    template <typename T>
-    static void Sum(int64_t* outPointer, T* inputBuffer, int32_t dataElementCount)
+    /// Calculate sum of inputBuffer and store the result in buffer where outPointer points (its size should be 1)
+    template <typename OUT, typename IN>
+    static void SumKeep(OUT* outPointer, IN* inputBuffer, const int32_t dataElementCount)
     {
         // Start the column reconstruction
         size_t tempBufferSize = 0;
@@ -612,6 +613,16 @@ public:
         // Run sum
         cub::DeviceReduce::Sum(tempBuffer.get(), tempBufferSize, inputBuffer, outPointer, dataElementCount);
     }
+
+    /// Calculate sum of inputBuffer and copy the result to outValueHost
+    template <typename OUT, typename IN>
+    static void Sum(OUT& outValueHost, IN* inputBuffer, const int32_t dataElementCount)
+    {
+        cuda_ptr<OUT> outPtrDevice(1);
+        SumKeep(outPtrDevice.get(), inputBuffer, dataElementCount);
+        GPUMemory::copyDeviceToHost(&outValueHost, outPtrDevice.get(), 1);
+    }
+
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
     static cuda_ptr<int8_t> CompressNullMask(int8_t* inputNullMask, int32_t dataElementCount);
 };
