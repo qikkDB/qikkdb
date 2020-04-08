@@ -30,8 +30,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
         return loadFlag;
     }
 
+    // Compute count of copies of the const
     int64_t dataElementCount = GetBlockSize();
+    if (filter_)
+    {
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
+    }
 
+    // Create array and merge to protobuf response
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount, payloadType);

@@ -41,29 +41,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     constexpr bool isCount = std::is_same<OP, AggregationFunctions::count>::value;
     if constexpr (isCount) // TODO consider null values
     {
-        if (!aggAsterisk)
+        int32_t reconstructInSize = aggAsterisk ? GetBlockSize() : column.ElementCount;
+
+        // If mask is present - count suitable rows
+        if (filter_)
         {
-            // If mask is present - count suitable rows
-            if (filter_)
-            {
-                // TODO maybe use faster way to count ones in filter_
-                int32_t* indexes = nullptr;
-                GPUReconstruct::GenerateIndexesKeep(&indexes, &reconstructOutSize,
-                                                    reinterpret_cast<int8_t*>(filter_), column.ElementCount);
-                if (indexes)
-                {
-                    GPUMemory::free(indexes);
-                }
-            }
-            // If mask is nullptr - count full rows
-            else
-            {
-                reconstructOutSize = column.ElementCount;
-            }
+            GPUReconstruct::Sum(reconstructOutSize, reinterpret_cast<int8_t*>(filter_), reconstructInSize);
         }
+        // If mask is nullptr - count full rows
         else
         {
-            reconstructOutSize = GetBlockSize();
+            reconstructOutSize = reconstructInSize;
         }
     }
     else

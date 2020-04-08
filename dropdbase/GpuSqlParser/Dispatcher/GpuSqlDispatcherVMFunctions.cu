@@ -783,8 +783,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
         return loadFlag;
     }
 
+    // Compute count of copies of the const
     int64_t dataElementCount = GetBlockSize();
+    if (filter_)
+    {
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
+    }
 
+    // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount, payloadType);
@@ -809,8 +815,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
         return loadFlag;
     }
 
+    // Compute count of copies of the const
     int64_t dataElementCount = GetBlockSize();
+    if (filter_)
+    {
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
+    }
 
+    // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount, payloadType);
@@ -835,8 +847,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
         return loadFlag;
     }
 
+    // Compute count of copies of the const
     int64_t dataElementCount = GetBlockSize();
+    if (filter_)
+    {
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
+    }
 
+    // Create array and merge to protobuf response
     std::unique_ptr<std::string[]> outData(new std::string[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
     InsertIntoPayload(payload, outData, dataElementCount, payloadType);
@@ -898,10 +916,7 @@ size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
         dataElementCount =
             database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex);
     }
-    if (filter_)
-    {
-        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
-    }
+
     return dataElementCount;
 }
 
