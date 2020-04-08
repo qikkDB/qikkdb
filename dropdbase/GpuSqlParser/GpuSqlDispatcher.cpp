@@ -1860,7 +1860,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
                                            ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                           std::vector<int64_t> nullMask)
+                                           std::vector<int64_t> nullMask, int64_t payloadSize)
 {
     if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
     {
@@ -1914,19 +1914,25 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         }
         else
         {
-            int64_t wideOne = 1;
+            int64_t longOne = 1;
             int64_t shiftCount = 64 - (dataLength % 64);
             std::vector<int64_t> nullMaskVec(nullMask.begin(), nullMask.end());
-            int64_t carryBits = nullMaskVec[0] & ((wideOne << shiftCount) - 1);
+            int64_t carryBits = nullMaskVec[0] & ((longOne << shiftCount) - 1);
             responseMessage->mutable_nullbitmasks()->at(key).mutable_nullmask()->at(
                 responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() - 1) |=
                 (carryBits << (64 - shiftCount));
             ShiftNullMaskLeft(nullMaskVec, shiftCount);
             std::vector<int64_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
 
+            int64_t nullMasksCount = responseMessage->mutable_nullbitmasks()->at(key).nullmask_size();
+            int64_t mergedDataCount = dataLength + payloadSize;
             for (size_t i = 0; i < newNullMask.size(); i++)
             {
-                responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(newNullMask[i]);
+                if (mergedDataCount > responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() * 64)
+                {
+                    responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(newNullMask[i]);
+                    mergedDataCount -= 64;
+                }
             }
         }
     }
@@ -2078,7 +2084,35 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
 
     if (!nullMask.empty())
     {
-        MergePayloadBitmask(trimmedKey, &responseMessage_, nullMask);
+        int64_t payloadSize;
+        switch (payload.payload_case())
+        {
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            payloadSize = payload.intpayload().intdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            payloadSize = payload.int64payload().int64data_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            payloadSize = payload.floatpayload().floatdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            payloadSize = payload.doublepayload().doubledata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+            payloadSize = payload.stringpayload().stringdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+            payloadSize = payload.pointpayload().pointdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+            payloadSize = payload.polygonpayload().polygondata_size();
+            break;
+        default:
+            break;
+        }
+
+        MergePayloadBitmask(trimmedKey, &responseMessage_, nullMask, payloadSize);
     }
     MergePayload(trimmedKey, realTrimmedName, &responseMessage_, payload);
 }

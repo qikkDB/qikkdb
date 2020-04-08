@@ -20,13 +20,14 @@ __device__ __host__ void NullValues::SetBitInBitMask(int64_t* bitMask,
                                                     const int32_t shiftMaskIdx,
                                                     const int8_t newBit)
 {
+    uint64_t longOne = 1;
     if (newBit)
     {
-       bitMask[bitMaskIdx] |= (1UL << shiftMaskIdx);
+        bitMask[bitMaskIdx] |= (longOne << shiftMaskIdx);
     }
     else
     {
-        bitMask[bitMaskIdx] &= ~(1UL << shiftMaskIdx);
+        bitMask[bitMaskIdx] &= ~(longOne << shiftMaskIdx);
 	}
 }
 

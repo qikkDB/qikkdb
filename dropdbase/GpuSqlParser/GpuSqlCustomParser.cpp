@@ -416,12 +416,40 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
             std::string key = partialPayload.first;
             ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
 
+            int64_t payloadSize;
+            switch (payload.payload_case())
+            {
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+                payloadSize = payload.intpayload().intdata_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+                payloadSize = payload.int64payload().int64data_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+                payloadSize = payload.floatpayload().floatdata_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+                payloadSize = payload.doublepayload().doubledata_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+                payloadSize = payload.stringpayload().stringdata_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+                payloadSize = payload.pointpayload().pointdata_size();
+                break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+                payloadSize = payload.polygonpayload().polygondata_size();
+                break;
+            default:
+                break;
+            }
+
             if (partialMessage->nullbitmasks().find(key) != partialMessage->nullbitmasks().end())
             {
                 std::vector<int64_t> partialBitMask(
                     partialMessage->nullbitmasks().at(key).nullmask().begin(),
                     partialMessage->nullbitmasks().at(key).nullmask().end());
-                GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask);
+                GpuSqlDispatcher::MergePayloadBitmask(key, responseMessage.get(), partialBitMask, payloadSize);
             }
             GpuSqlDispatcher::MergePayload(key, aliasTable.at(key), responseMessage.get(), payload);
         }

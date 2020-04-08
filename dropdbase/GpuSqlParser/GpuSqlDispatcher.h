@@ -439,7 +439,8 @@ public:
                              ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
     static void MergePayloadBitmask(const std::string& key,
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                    std::vector<int64_t> nullMask);
+                                    std::vector<int64_t> nullMask,
+                                    int64_t payloadSize);
 
 
     GpuSqlDispatcher(const std::shared_ptr<Database>& database,

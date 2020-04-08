@@ -738,7 +738,6 @@ public:
                 auto maskPtr = lastBlock->GetNullBitmask();
                 for (int32_t i = bitMaskStartIdx; i < bitMaskStartIdx + columnData.size(); i++)
                 {
-
                     if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                     {
                         NullValues::SetBitInBitMask(maskPtr, i, 1);
