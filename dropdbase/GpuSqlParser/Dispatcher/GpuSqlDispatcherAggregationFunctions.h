@@ -39,7 +39,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     IN* reconstructOutReg = nullptr;
     int8_t* reconstructOutNullMask = nullptr;
     constexpr bool isCount = std::is_same<OP, AggregationFunctions::count>::value;
-    if (isCount) // TODO consider null values
+    if constexpr (isCount) // TODO consider null values
     {
         if (!aggAsterisk)
         {
@@ -82,7 +82,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     if (!IsRegisterAllocated(reg))
     {
         OUT* result = AllocateRegister<OUT>(reg, 1);
-        if (isCount)
+        if constexpr (isCount)
         {
             GPUAggregation::col<OP, OUT, IN>(result, nullptr, reconstructOutSize);
         }
