@@ -2075,7 +2075,7 @@ void Database::LoadColumn(const char* path,
 /// <param name="blockSize">Table block size. If not specified, as the default value a database
 /// block size will be used.</param>
 /// <returns>Newly created table.</returns>
-Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& columns,
+Table& Database::CreateTable(const std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>>& columns,
                              const char* tableName,
                              const std::unordered_map<std::string, bool>& areNullable,
                              const std::unordered_map<std::string, bool>& areUnique,
@@ -2093,7 +2093,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
             {
                 auto& tableColumns = table.GetColumns();
 
-                if (tableColumns.at(entry.first)->GetColumnType() != entry.second)
+                if (tableColumns.at(entry.first)->GetColumnType() != entry.second.first)
                 {
                     throw std::domain_error(
                         "Column type in CreateTable does not match with existing column.");
@@ -2103,7 +2103,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
             {
                 bool isNullable = areNullable.empty() ? true : areNullable.at(entry.first);
                 bool isUnique = areUnique.empty() ? false : areUnique.at(entry.first);
-                table.CreateColumn(entry.first.c_str(), entry.second, isNullable, isUnique);
+                table.CreateColumn(entry.first.c_str(), entry.second.first, isNullable, isUnique);
             }
         }
 
@@ -2130,7 +2130,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
         {
             bool isNullable = areNullable.empty() ? true : areNullable.at(entry.first);
             bool isUnique = areUnique.empty() ? false : areUnique.at(entry.first);
-            table.CreateColumn(entry.first.c_str(), entry.second, isNullable, isUnique);
+            table.CreateColumn(entry.first.c_str(), entry.second.first, isNullable, isUnique);
         }
 
         return table;

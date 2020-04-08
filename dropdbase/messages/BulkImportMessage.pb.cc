@@ -51,6 +51,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fBulkImportMessage_2
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, tablename_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columnname_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columntype_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columnexternaltype_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, elemcount_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, nullmasklen_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, datalength_),
@@ -66,12 +67,14 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 const char descriptor_table_protodef_messages_2fBulkImportMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n messages/BulkImportMessage.proto\022\037Colm"
   "narDB.NetworkClient.Message\032\037messages/CS"
-  "VImportMessage.proto\"\265\001\n\021BulkImportMessa"
+  "VImportMessage.proto\"\204\002\n\021BulkImportMessa"
   "ge\022\021\n\tTableName\030\001 \001(\t\022\022\n\nColumnName\030\002 \001("
   "\t\022=\n\nColumnType\030\003 \001(\0162).ColmnarDB.Networ"
-  "kClient.Message.DataType\022\021\n\tElemCount\030\004 "
-  "\001(\005\022\023\n\013nullMaskLen\030\005 \001(\005\022\022\n\ndataLength\030\006"
-  " \001(\005b\006proto3"
+  "kClient.Message.DataType\022M\n\022ColumnExtern"
+  "alType\030\004 \001(\01621.ColmnarDB.NetworkClient.M"
+  "essage.DataTypeExternal\022\021\n\tElemCount\030\005 \001"
+  "(\005\022\023\n\013nullMaskLen\030\006 \001(\005\022\022\n\ndataLength\030\007 "
+  "\001(\005b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fBulkImportMessage_2eproto_deps[1] = {
   &::descriptor_table_messages_2fCSVImportMessage_2eproto,
@@ -82,7 +85,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fBulkImportMessage_2eproto_once;
 static bool descriptor_table_messages_2fBulkImportMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fBulkImportMessage_2eproto = {
-  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 292,
+  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 371,
   &descriptor_table_messages_2fBulkImportMessage_2eproto_once, descriptor_table_messages_2fBulkImportMessage_2eproto_sccs, descriptor_table_messages_2fBulkImportMessage_2eproto_deps, 1, 1,
   schemas, file_default_instances, TableStruct_messages_2fBulkImportMessage_2eproto::offsets,
   file_level_metadata_messages_2fBulkImportMessage_2eproto, 1, file_level_enum_descriptors_messages_2fBulkImportMessage_2eproto, file_level_service_descriptors_messages_2fBulkImportMessage_2eproto,
@@ -196,23 +199,31 @@ const char* BulkImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESP
           _internal_set_columntype(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
         } else goto handle_unusual;
         continue;
-      // int32 ElemCount = 4;
+      // .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32)) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+          _internal_set_columnexternaltype(static_cast<::ColmnarDB::NetworkClient::Message::DataTypeExternal>(val));
+        } else goto handle_unusual;
+        continue;
+      // int32 ElemCount = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 40)) {
           elemcount_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // int32 nullMaskLen = 5;
-      case 5:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 40)) {
+      // int32 nullMaskLen = 6;
+      case 6:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
           nullmasklen_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // int32 dataLength = 6;
-      case 6:
-        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 48)) {
+      // int32 dataLength = 7;
+      case 7:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 56)) {
           datalength_ = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
         } else goto handle_unusual;
@@ -270,22 +281,29 @@ failure:
       3, this->_internal_columntype(), target);
   }
 
-  // int32 ElemCount = 4;
+  // .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType = 4;
+  if (this->columnexternaltype() != 0) {
+    stream->EnsureSpace(&target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
+      4, this->_internal_columnexternaltype(), target);
+  }
+
+  // int32 ElemCount = 5;
   if (this->elemcount() != 0) {
     stream->EnsureSpace(&target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(4, this->_internal_elemcount(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(5, this->_internal_elemcount(), target);
   }
 
-  // int32 nullMaskLen = 5;
+  // int32 nullMaskLen = 6;
   if (this->nullmasklen() != 0) {
     stream->EnsureSpace(&target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(5, this->_internal_nullmasklen(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(6, this->_internal_nullmasklen(), target);
   }
 
-  // int32 dataLength = 6;
+  // int32 dataLength = 7;
   if (this->datalength() != 0) {
     stream->EnsureSpace(&target);
-    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(6, this->_internal_datalength(), target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteInt32ToArray(7, this->_internal_datalength(), target);
   }
 
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
@@ -324,21 +342,27 @@ size_t BulkImportMessage::ByteSizeLong() const {
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_columntype());
   }
 
-  // int32 ElemCount = 4;
+  // .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType = 4;
+  if (this->columnexternaltype() != 0) {
+    total_size += 1 +
+      ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_columnexternaltype());
+  }
+
+  // int32 ElemCount = 5;
   if (this->elemcount() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_elemcount());
   }
 
-  // int32 nullMaskLen = 5;
+  // int32 nullMaskLen = 6;
   if (this->nullmasklen() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
         this->_internal_nullmasklen());
   }
 
-  // int32 dataLength = 6;
+  // int32 dataLength = 7;
   if (this->datalength() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
@@ -387,6 +411,9 @@ void BulkImportMessage::MergeFrom(const BulkImportMessage& from) {
   if (from.columntype() != 0) {
     _internal_set_columntype(from._internal_columntype());
   }
+  if (from.columnexternaltype() != 0) {
+    _internal_set_columnexternaltype(from._internal_columnexternaltype());
+  }
   if (from.elemcount() != 0) {
     _internal_set_elemcount(from._internal_elemcount());
   }
@@ -424,6 +451,7 @@ void BulkImportMessage::InternalSwap(BulkImportMessage* other) {
   columnname_.Swap(&other->columnname_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(columntype_, other->columntype_);
+  swap(columnexternaltype_, other->columnexternaltype_);
   swap(elemcount_, other->elemcount_);
   swap(nullmasklen_, other->nullmasklen_);
   swap(datalength_, other->datalength_);

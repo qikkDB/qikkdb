@@ -100,7 +100,7 @@ constexpr DataType GetColumnType()
     return retConst::value;
 }
 
-DataType GetColumnDataTypeFromString(const std::string& dataType);
+std::pair<DataType, DataTypeExternal> GetColumnDataTypeFromString(const std::string& dataType);
 
 std::string GetStringFromColumnDataType(DataType type);
 

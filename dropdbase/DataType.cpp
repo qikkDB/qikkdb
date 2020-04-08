@@ -1,6 +1,6 @@
 #include "DataType.h"
 
-DataType GetColumnDataTypeFromString(const std::string& dataType)
+std::pair<DataType, DataTypeExternal> GetColumnDataTypeFromString(const std::string& dataType)
 {
     std::string type = dataType;
 
@@ -11,39 +11,43 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
 
     if (type == "INT" || type == "INTEGER" || type == "INT32")
     {
-        return DataType::COLUMN_INT;
+        return {DataType::COLUMN_INT, DataTypeExternal::COLUMN_INT};
     }
-    else if (type == "LONG" || type == "INT64" || type == "DATE" || type == "DATETIME")
+    else if (type == "LONG" || type == "INT64")
     {
-        return DataType::COLUMN_LONG;
+        return {DataType::COLUMN_LONG, DataTypeExternal::COLUMN_LONG};
+    }
+    else if (type == "DATE" || type == "DATETIME")
+    {
+        return {DataType::COLUMN_LONG, DataTypeExternal::COLUMN_DATETIME};
     }
     else if (type == "FLOAT")
     {
-        return DataType::COLUMN_FLOAT;
+         return {DataType::COLUMN_FLOAT, DataTypeExternal::COLUMN_FLOAT};
     }
     else if (type == "DOUBLE")
     {
-        return DataType::COLUMN_DOUBLE;
+        return {DataType::COLUMN_DOUBLE, DataTypeExternal::COLUMN_DOUBLE};
     }
     else if (type == "GEO_POINT")
     {
-        return DataType::COLUMN_POINT;
+        return {DataType::COLUMN_POINT, DataTypeExternal::COLUMN_POINT};
     }
     else if (type == "GEO_POLYGON")
     {
-        return DataType::COLUMN_POLYGON;
+        return {DataType::COLUMN_POLYGON, DataTypeExternal::COLUMN_POLYGON};
     }
     else if (type == "STRING")
     {
-        return DataType::COLUMN_STRING;
+        return {DataType::COLUMN_STRING, DataTypeExternal::COLUMN_STRING};
     }
     else if (type == "BOOLEAN" || type == "BOOL" || type == "INT8")
     {
-        return DataType::COLUMN_INT8_T;
+        return {DataType::COLUMN_INT8_T, DataTypeExternal::COLUMN_INT8_T};
     }
     else
     {
-        return DataType::CONST_ERROR;
+        return {DataType::CONST_ERROR, DataTypeExternal::CONST_ERROR};
     }
 }
 

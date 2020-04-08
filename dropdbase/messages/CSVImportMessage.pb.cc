@@ -39,7 +39,7 @@ static void InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2e
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto}, {}};
 
 static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fCSVImportMessage_2eproto[1];
-static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto[1];
+static const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto[2];
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_messages_2fCSVImportMessage_2eproto = nullptr;
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fCSVImportMessage_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
@@ -52,6 +52,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fCSVImportMessage_2e
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, csvname_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, payload_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, columntypes_),
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, columnexternaltypes_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::CSVImportMessage)},
@@ -63,11 +64,13 @@ static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] =
 
 const char descriptor_table_protodef_messages_2fCSVImportMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
   "\n\037messages/CSVImportMessage.proto\022\037Colmn"
-  "arDB.NetworkClient.Message\"\212\001\n\020CSVImport"
+  "arDB.NetworkClient.Message\"\332\001\n\020CSVImport"
   "Message\022\024\n\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName"
   "\030\002 \001(\t\022\017\n\007Payload\030\003 \001(\t\022>\n\013ColumnTypes\030\004"
   " \003(\0162).ColmnarDB.NetworkClient.Message.D"
-  "ataType*\324\002\n\010DataType\022\r\n\tCONST_INT\020\000\022\030\n\013C"
+  "ataType\022N\n\023ColumnExternalTypes\030\005 \003(\01621.C"
+  "olmnarDB.NetworkClient.Message.DataTypeE"
+  "xternal*\324\002\n\010DataType\022\r\n\tCONST_INT\020\000\022\030\n\013C"
   "ONST_ERROR\020\377\377\377\377\377\377\377\377\377\001\022\016\n\nCONST_LONG\020\001\022\017\n"
   "\013CONST_FLOAT\020\002\022\020\n\014CONST_DOUBLE\020\003\022\017\n\013CONS"
   "T_POINT\020\004\022\021\n\rCONST_POLYGON\020\005\022\020\n\014CONST_ST"
@@ -75,7 +78,19 @@ const char descriptor_table_protodef_messages_2fCSVImportMessage_2eproto[] PROTO
   "\022\017\n\013COLUMN_LONG\020\t\022\020\n\014COLUMN_FLOAT\020\n\022\021\n\rC"
   "OLUMN_DOUBLE\020\013\022\020\n\014COLUMN_POINT\020\014\022\022\n\016COLU"
   "MN_POLYGON\020\r\022\021\n\rCOLUMN_STRING\020\016\022\021\n\rCOLUM"
-  "N_INT8_T\020\017\022\022\n\016DATA_TYPE_SIZE\020\020b\006proto3"
+  "N_INT8_T\020\017\022\022\n\016DATA_TYPE_SIZE\020\020*\301\003\n\020DataT"
+  "ypeExternal\022\020\n\014CONST_INT_EX\020\000\022\033\n\016CONST_E"
+  "RROR_EX\020\377\377\377\377\377\377\377\377\377\001\022\021\n\rCONST_LONG_EX\020\001\022\025\n"
+  "\021CONST_DATETIME_EX\020\002\022\022\n\016CONST_FLOAT_EX\020\003"
+  "\022\023\n\017CONST_DOUBLE_EX\020\004\022\022\n\016CONST_POINT_EX\020"
+  "\005\022\024\n\020CONST_POLYGON_EX\020\006\022\023\n\017CONST_STRING_"
+  "EX\020\007\022\023\n\017CONST_INT8_T_EX\020\010\022\021\n\rCOLUMN_INT_"
+  "EX\020\t\022\022\n\016COLUMN_LONG_EX\020\n\022\026\n\022COLUMN_DATET"
+  "IME_EX\020\013\022\023\n\017COLUMN_FLOAT_EX\020\014\022\024\n\020COLUMN_"
+  "DOUBLE_EX\020\r\022\023\n\017COLUMN_POINT_EX\020\016\022\025\n\021COLU"
+  "MN_POLYGON_EX\020\017\022\024\n\020COLUMN_STRING_EX\020\020\022\024\n"
+  "\020COLUMN_INT8_T_EX\020\021\022\025\n\021DATA_TYPE_SIZE_EX"
+  "\020\022b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fCSVImportMessage_2eproto_deps[1] = {
 };
@@ -85,7 +100,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fCSVImportMessage_2eproto_once;
 static bool descriptor_table_messages_2fCSVImportMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fCSVImportMessage_2eproto = {
-  &descriptor_table_messages_2fCSVImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fCSVImportMessage_2eproto, "messages/CSVImportMessage.proto", 558,
+  &descriptor_table_messages_2fCSVImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fCSVImportMessage_2eproto, "messages/CSVImportMessage.proto", 1090,
   &descriptor_table_messages_2fCSVImportMessage_2eproto_once, descriptor_table_messages_2fCSVImportMessage_2eproto_sccs, descriptor_table_messages_2fCSVImportMessage_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_messages_2fCSVImportMessage_2eproto::offsets,
   file_level_metadata_messages_2fCSVImportMessage_2eproto, 1, file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto, file_level_service_descriptors_messages_2fCSVImportMessage_2eproto,
@@ -126,6 +141,38 @@ bool DataType_IsValid(int value) {
   }
 }
 
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DataTypeExternal_descriptor() {
+  ::PROTOBUF_NAMESPACE_ID::internal::AssignDescriptors(&descriptor_table_messages_2fCSVImportMessage_2eproto);
+  return file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto[1];
+}
+bool DataTypeExternal_IsValid(int value) {
+  switch (value) {
+    case -1:
+    case 0:
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+    case 6:
+    case 7:
+    case 8:
+    case 9:
+    case 10:
+    case 11:
+    case 12:
+    case 13:
+    case 14:
+    case 15:
+    case 16:
+    case 17:
+    case 18:
+      return true;
+    default:
+      return false;
+  }
+}
+
 
 // ===================================================================
 
@@ -143,7 +190,8 @@ CSVImportMessage::CSVImportMessage()
 CSVImportMessage::CSVImportMessage(const CSVImportMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
-      columntypes_(from.columntypes_) {
+      columntypes_(from.columntypes_),
+      columnexternaltypes_(from.columnexternaltypes_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   databasename_.UnsafeSetDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   if (!from._internal_databasename().empty()) {
@@ -194,6 +242,7 @@ void CSVImportMessage::Clear() {
   (void) cached_has_bits;
 
   columntypes_.Clear();
+  columnexternaltypes_.Clear();
   databasename_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   csvname_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
   payload_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
@@ -237,6 +286,17 @@ const char* CSVImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPA
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
           _internal_add_columntypes(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
+        } else goto handle_unusual;
+        continue;
+      // repeated .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalTypes = 5;
+      case 5:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedEnumParser(_internal_mutable_columnexternaltypes(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 40) {
+          ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
+          CHK_(ptr);
+          _internal_add_columnexternaltypes(static_cast<::ColmnarDB::NetworkClient::Message::DataTypeExternal>(val));
         } else goto handle_unusual;
         continue;
       default: {
@@ -304,6 +364,15 @@ failure:
     }
   }
 
+  // repeated .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalTypes = 5;
+  {
+    int byte_size = _columnexternaltypes_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteEnumPacked(
+          5, columnexternaltypes_, byte_size, target);
+    }
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
@@ -334,6 +403,24 @@ size_t CSVImportMessage::ByteSizeLong() const {
     }
     int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
     _columntypes_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  // repeated .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalTypes = 5;
+  {
+    size_t data_size = 0;
+    unsigned int count = static_cast<unsigned int>(this->_internal_columnexternaltypes_size());for (unsigned int i = 0; i < count; i++) {
+      data_size += ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(
+        this->_internal_columnexternaltypes(static_cast<int>(i)));
+    }
+    if (data_size > 0) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
+    }
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _columnexternaltypes_cached_byte_size_.store(cached_size,
                                     std::memory_order_relaxed);
     total_size += data_size;
   }
@@ -391,6 +478,7 @@ void CSVImportMessage::MergeFrom(const CSVImportMessage& from) {
   (void) cached_has_bits;
 
   columntypes_.MergeFrom(from.columntypes_);
+  columnexternaltypes_.MergeFrom(from.columnexternaltypes_);
   if (from.databasename().size() > 0) {
 
     databasename_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.databasename_);
@@ -427,6 +515,7 @@ void CSVImportMessage::InternalSwap(CSVImportMessage* other) {
   using std::swap;
   _internal_metadata_.Swap(&other->_internal_metadata_);
   columntypes_.InternalSwap(&other->columntypes_);
+  columnexternaltypes_.InternalSwap(&other->columnexternaltypes_);
   databasename_.Swap(&other->databasename_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   csvname_.Swap(&other->csvname_, &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),

@@ -43,8 +43,8 @@ public:
     /// <param name="quotes">Character used for quoting. Default value is '.</param>
     /// <param name="decimal">Character used as decimal point. Default value is '.'.</param>
     CSVDataImporter(const char* fileName, bool header = true, char delimiter = ',', char quotes = '\'', char decimal = '.');
-    
-	/// <summary>
+
+    /// <summary>
     /// Parses CSV file, guess types, creates a single table (if not exists) and fills the table with parsed data.
     /// </summary>
     /// <param name="database">Database where data will be imported.</param>
@@ -55,7 +55,7 @@ public:
                       int32_t tableBlockSize = -1);
     void ExtractHeaders();
     void ExtractTypes();
-    void SetTypes(const std::vector<DataType>& types);
+    void SetTypes(const std::vector<std::pair<DataType, DataTypeExternal>>& types);
     void SetTableName(const std::string tableName);
     int GetNumberOfThreads() const
     {
@@ -77,13 +77,12 @@ private:
     char quotes_;
     char decimal_;
     std::vector<std::string> headers_;
-    std::vector<DataType> dataTypes_;
+    std::vector<std::pair<DataType, DataTypeExternal>> dataTypes_;
     int numThreads_ = 1;
     std::mutex insertMutex_;
 
-    DataType IdentifyDataType(std::vector<std::string> columnValues);
+    std::pair<DataType, DataTypeExternal> IdentifyDataType(std::vector<std::string> columnValues);
     void ParseAndImport(int threadId,
                         int32_t blockSize,
-                        const std::unordered_map<std::string, DataType>& columns,
                         Table& table);
 };

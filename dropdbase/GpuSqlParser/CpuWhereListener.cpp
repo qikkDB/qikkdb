@@ -682,7 +682,7 @@ DataType CpuWhereListener::GetReturnDataType(DataType operand)
 
 DataType CpuWhereListener::GetDataTypeFromString(const std::string& dataType)
 {
-    return ::GetColumnDataTypeFromString(dataType);
+    return ::GetColumnDataTypeFromString(dataType).first;
 }
 
 std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName(GpuSqlParser::ColumnIdContext* ctx)

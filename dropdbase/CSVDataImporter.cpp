@@ -51,7 +51,7 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database,
     }
 
     // prepares map columnName -> columnType
-    std::unordered_map<std::string, DataType> columns;
+    std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> columns;
     for (int i = 0; i < headers_.size(); i++)
     {
         columns[headers_[i]] = dataTypes_[i];
@@ -70,8 +70,7 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database,
     std::vector<std::thread> threads;
     for (int i = 0; i < numThreads_; i++)
     {
-        threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database->GetBlockSize(),
-                             columns, std::ref(table));
+        threads.emplace_back(&CSVDataImporter::ParseAndImport, this, i, database->GetBlockSize(), std::ref(table));
     }
 
     for (int i = 0; i < numThreads_; ++i)
@@ -89,7 +88,6 @@ void CSVDataImporter::ImportTables(std::shared_ptr<Database>& database,
 /// <param name="table">Table of the database where data will be imported.</param>
 void CSVDataImporter::ParseAndImport(int threadId,
                                      int32_t blockSize,
-                                     const std::unordered_map<std::string, DataType>& columns,
                                      Table& table)
 {
 
@@ -101,49 +99,49 @@ void CSVDataImporter::ParseAndImport(int threadId,
     std::unordered_map<std::string, std::any> data;
     for (int i = 0; i < headers_.size(); i++)
     {
-        if (dataTypes_[i] == COLUMN_INT8_T)
+        if (dataTypes_[i].first == COLUMN_INT8_T)
         {
             std::vector<int8_t> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_INT)
+        else if (dataTypes_[i].first == COLUMN_INT)
         {
             std::vector<int32_t> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_LONG)
+        else if (dataTypes_[i].first == COLUMN_LONG)
         {
             std::vector<int64_t> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_FLOAT)
+        else if (dataTypes_[i].first == COLUMN_FLOAT)
         {
             std::vector<float> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_DOUBLE)
+        else if (dataTypes_[i].first == COLUMN_DOUBLE)
         {
             std::vector<double> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_POINT)
+        else if (dataTypes_[i].first == COLUMN_POINT)
         {
             std::vector<ColmnarDB::Types::Point> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_POLYGON)
+        else if (dataTypes_[i].first == COLUMN_POLYGON)
         {
             std::vector<ColmnarDB::Types::ComplexPolygon> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
-        else if (dataTypes_[i] == COLUMN_STRING)
+        else if (dataTypes_[i].first == COLUMN_STRING)
         {
             std::vector<std::string> v;
             v.reserve(blockSize);
@@ -182,7 +180,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
                     boost::algorithm::to_lower(fieldCopy);
 
                     std::any value;
-                    switch (dataTypes_[columnIndex])
+                    switch (dataTypes_[columnIndex].first)
                     {
                     case COLUMN_INT8_T:
                         if (fieldCopy == "true")
@@ -254,7 +252,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
         for (auto& field : rowData)
         {
             std::any& wrappedData = data.at(headers_[columnIndex]);
-            switch (dataTypes_[columnIndex])
+            switch (dataTypes_[columnIndex].first)
             {
             case COLUMN_INT8_T:
                 std::any_cast<std::vector<int8_t>&>(wrappedData).push_back(std::any_cast<int8_t>(field));
@@ -306,7 +304,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
             for (int i = 0; i < headers_.size(); i++)
             {
                 std::any& wrappedData = data.at(headers_[i]);
-                switch (dataTypes_[i])
+                switch (dataTypes_[i].first)
                 {
                 case COLUMN_INT8_T:
                     std::any_cast<std::vector<int8_t>&>(wrappedData).clear();
@@ -413,7 +411,7 @@ void CSVDataImporter::ExtractTypes()
 
     for (auto& column : columnData)
     {
-        DataType type = this->IdentifyDataType(column);
+        std::pair<DataType, DataTypeExternal> type = this->IdentifyDataType(column);
         dataTypes_.push_back(type);
     }
 }
@@ -424,9 +422,9 @@ void CSVDataImporter::ExtractTypes()
 /// </summary>
 /// <param name="columnValues">Vector of string values.</param>
 /// <returns>Suitable data type.</returns>
-DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues)
+std::pair<DataType, DataTypeExternal> CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues)
 {
-    std::vector<DataType> dataTypes;
+    std::vector<std::pair<DataType, DataTypeExternal>> dataTypes;
 
     for (auto& s : columnValues)
     {
@@ -434,14 +432,9 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
         std::string sCopy = s;
         boost::algorithm::to_lower(sCopy);
 
-        if (sCopy == "true")
+        if (sCopy == "true" || sCopy == "false")
         {
-            dataTypes.push_back(COLUMN_INT8_T);
-            continue;
-        }
-        else if (sCopy == "false")
-        {
-            dataTypes.push_back(COLUMN_INT8_T);
+            dataTypes.push_back({DataType::COLUMN_INT8_T, DataTypeExternal::COLUMN_INT8_T});
             continue;
         }
 
@@ -452,7 +445,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
             std::stoi(s, &position);
             if (s.length() == position)
             {
-                dataTypes.push_back(COLUMN_INT);
+                dataTypes.push_back({DataType::COLUMN_INT, DataTypeExternal::COLUMN_INT});
                 continue;
             }
         }
@@ -470,7 +463,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
             std::stoll(s, &position);
             if (s.length() == position)
             {
-                dataTypes.push_back(COLUMN_LONG);
+                dataTypes.push_back({DataType::COLUMN_LONG, DataTypeExternal::COLUMN_LONG});
                 continue;
             }
         }
@@ -488,7 +481,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
             std::stof(s, &position);
             if (s.length() == position)
             {
-                dataTypes.push_back(COLUMN_FLOAT);
+                dataTypes.push_back({DataType::COLUMN_FLOAT, DataTypeExternal::COLUMN_FLOAT});
                 continue;
             }
         }
@@ -506,7 +499,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
             std::stod(s, &position);
             if (s.length() == position)
             {
-                dataTypes.push_back(COLUMN_DOUBLE);
+                dataTypes.push_back({DataType::COLUMN_DOUBLE, DataTypeExternal::COLUMN_DOUBLE});
                 continue;
             }
         }
@@ -521,7 +514,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
         try
         {
             PointFactory::FromWkt(s);
-            dataTypes.push_back(COLUMN_POINT);
+            dataTypes.push_back({DataType::COLUMN_POINT, DataTypeExternal::COLUMN_POINT});
             continue;
         }
         catch (std::invalid_argument&)
@@ -532,7 +525,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
         try
         {
             ComplexPolygonFactory::FromWkt(s);
-            dataTypes.push_back(COLUMN_POLYGON);
+            dataTypes.push_back({DataType::COLUMN_POLYGON, DataTypeExternal::COLUMN_POLYGON});
             continue;
         }
         catch (std::invalid_argument&)
@@ -540,31 +533,36 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
         }
 
         // COLUMN_STRING
-        dataTypes.push_back(COLUMN_STRING);
+        dataTypes.push_back({DataType::COLUMN_STRING, DataTypeExternal::COLUMN_STRING});
     }
 
     if (dataTypes.size() > 0)
     {
-        DataType maxType = dataTypes[0];
+        DataType maxType = dataTypes[0].first;
+        DataTypeExternal maxExternalType = dataTypes[0].second;
         for (auto t : dataTypes)
         {
-            if ((t == COLUMN_POINT && maxType != COLUMN_POINT) || (t != COLUMN_POINT && maxType == COLUMN_POINT))
+            if ((t.first == DataType::COLUMN_POINT && maxType != DataType::COLUMN_POINT) ||
+                (t.first != DataType::COLUMN_POINT && maxType == DataType::COLUMN_POINT))
             {
-                maxType = COLUMN_STRING;
+                maxType = DataType::COLUMN_STRING;
+                maxExternalType = DataTypeExternal::COLUMN_STRING;
             }
-            else if ((t == COLUMN_POLYGON && maxType != COLUMN_POLYGON) ||
-                     (t != COLUMN_POLYGON && maxType == COLUMN_POLYGON))
+            else if ((t.first == DataType::COLUMN_POLYGON && maxType != DataType::COLUMN_POLYGON) ||
+                     (t.first != DataType::COLUMN_POLYGON && maxType == DataType::COLUMN_POLYGON))
             {
-                maxType = COLUMN_STRING;
+                maxType = DataType::COLUMN_STRING;
+                maxExternalType = DataTypeExternal::COLUMN_STRING;
             }
-            else if (t > maxType)
+            else if (t.first > maxType)
             {
-                maxType = t;
+                maxType = t.first;
+                maxExternalType = t.second;
             }
         }
-        return maxType;
+        return {maxType, maxExternalType};
     }
-    return COLUMN_STRING;
+    return {DataType::COLUMN_STRING, DataTypeExternal::COLUMN_STRING};
 }
 
 /// <summary>
@@ -572,7 +570,7 @@ DataType CSVDataImporter::IdentifyDataType(std::vector<std::string> columnValues
 /// Disables type guessing.
 /// </summary>
 /// <param name="columnValues">Vector of types values.</param>
-void CSVDataImporter::SetTypes(const std::vector<DataType>& types)
+void CSVDataImporter::SetTypes(const std::vector<std::pair<DataType, DataTypeExternal>>& types)
 {
     dataTypes_ = types;
 }

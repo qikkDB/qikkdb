@@ -1331,7 +1331,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::DropDatabase()
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
 {
-    std::unordered_map<std::string, DataType> newColumns;
+    std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> newColumns;
     std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
 
     std::string newTableName = arguments_.Read<std::string>();
@@ -1341,9 +1341,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateTable()
     for (int32_t i = 0; i < newColumnsCount; i++)
     {
         std::string newColumnName = arguments_.Read<std::string>();
-        int32_t newColumnDataType = arguments_.Read<int32_t>();
+        DataType newColumnDataType = static_cast<DataType>(arguments_.Read<int32_t>());
+        DataTypeExternal newColumnExternalDataType =
+            static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
 
-        newColumns.insert({newColumnName, static_cast<DataType>(newColumnDataType)});
+        newColumns.insert({newColumnName, {newColumnDataType, newColumnExternalDataType}});
     }
 
     int32_t newConstraintCount = arguments_.Read<int32_t>();
@@ -1402,9 +1404,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
     for (int32_t i = 0; i < addColumnsCount; i++)
     {
         std::string addColumnName = arguments_.Read<std::string>();
-        int32_t addColumnDataType = arguments_.Read<int32_t>();
-        database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(),
-                                                          static_cast<DataType>(addColumnDataType));
+        DataType addColumnDataType = static_cast<DataType>(arguments_.Read<int32_t>());
+        DataTypeExternal addColumnExternalDataType =
+            static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
+        database_->GetTables().at(tableName).CreateColumn(addColumnName.c_str(), addColumnDataType);
         database_->GetTables().at(tableName).InsertNullDataIntoNewColumn(addColumnName);
     }
 
@@ -1420,15 +1423,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
     for (int32_t i = 0; i < alterColumnsCount; i++)
     {
         std::string alterColumnName = arguments_.Read<std::string>();
-        int32_t alterColumnDataType = arguments_.Read<int32_t>();
+        DataType alterColumnDataType = static_cast<DataType>(arguments_.Read<int32_t>());
+        DataTypeExternal alterColumnExternalDataType =
+            static_cast<DataTypeExternal>(arguments_.Read<int32_t>());
 
         auto originType =
             database_->GetTables().at(tableName).GetColumns().at(alterColumnName)->GetColumnType();
-        if (isValidCast(originType, static_cast<DataType>(alterColumnDataType)) &&
-            originType != static_cast<DataType>(alterColumnDataType))
+        if (isValidCast(originType, alterColumnDataType) && originType != alterColumnDataType)
         {
             database_->GetTables().at(tableName).CreateColumn((alterColumnName + "_temp").c_str(),
-                                                              static_cast<DataType>(alterColumnDataType));
+                                                              alterColumnDataType);
             auto oldColumn = database_->GetTables().at(tableName).GetColumns().at(alterColumnName).get();
             auto newColumn =
                 database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();

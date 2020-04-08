@@ -613,8 +613,9 @@ void GpuSqlListener::exitCastOperation(GpuSqlParser::CastOperationContext* ctx)
     PushArgument(operand.c_str(), operandType);
     std::string castTypeStr = ctx->datatype()->getText();
     StringToUpper(castTypeStr);
-    DataType castType = GetDataTypeFromString(castTypeStr);
-    DataTypeExternal externalCastType = DataTypeExternal::CONST_ERROR;
+    DataType castType;
+    DataTypeExternal externalCastType;
+    std::tie(castType, externalCastType) = GetDataTypeFromString(castTypeStr);
 
     switch (castType)
     {
@@ -1394,7 +1395,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         throw TableAlreadyExistsException(newTableName);
     }
 
-    std::unordered_map<std::string, DataType> newColumns;
+    std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> newColumns;
     std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
 
     for (auto& entry : ctx->newTableEntries()->newTableEntry())
@@ -1402,7 +1403,10 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
         if (entry->newTableColumn())
         {
             auto newColumnContext = entry->newTableColumn();
-            DataType newColumnDataType = GetDataTypeFromString(newColumnContext->datatype()->getText());
+            DataType newColumnDataType;
+            DataTypeExternal newColumnExternalDataType;
+            std::tie(newColumnDataType, newColumnExternalDataType) =
+                GetDataTypeFromString(newColumnContext->datatype()->getText());
             std::string newColumnName = newColumnContext->column()->getText();
             TrimDelimitedIdentifier(newColumnName);
 
@@ -1427,7 +1431,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
                                           newColumnConstraintType,
                                           {newColumnName}});
             }
-            newColumns.insert({newColumnName, newColumnDataType});
+            newColumns.insert({newColumnName, {newColumnDataType, newColumnExternalDataType}});
         }
         if (entry->newTableConstraint())
         {
@@ -1463,7 +1467,7 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
 
                 if (newConstraintContext->constraint()->INDEX())
                 {
-                    DataType indexColumnDataType = newColumns.at(constraintColumnName);
+                    DataType indexColumnDataType = std::get<0>(newColumns.at(constraintColumnName));
 
                     if (indexColumnDataType == DataType::COLUMN_POINT || indexColumnDataType == DataType::COLUMN_POLYGON)
                     {
@@ -1501,7 +1505,8 @@ void GpuSqlListener::exitSqlCreateTable(GpuSqlParser::SqlCreateTableContext* ctx
     for (auto& newColumn : newColumns)
     {
         dispatcher_.AddArgument<const std::string&>(newColumn.first);
-        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(newColumn.second));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(newColumn.second.first));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(newColumn.second.second));
     }
 
     // Uniques must go last
@@ -1548,9 +1553,9 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         throw TableNotFoundFromException(tableName);
     }
 
-    std::unordered_map<std::string, DataType> addColumns;
+    std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> addColumns;
     std::unordered_set<std::string> dropColumns;
-    std::unordered_map<std::string, DataType> alterColumns;
+    std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> alterColumns;
     std::unordered_map<std::string, std::string> renameColumns;
     std::unordered_set<std::string> renameColumnToNames;
     std::vector<std::tuple<std::string, ConstraintType, std::vector<std::string>>> newConstraints;
@@ -1563,7 +1568,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         if (entry->addColumn())
         {
             auto addColumnContext = entry->addColumn();
-            DataType addColumnDataType = GetDataTypeFromString(addColumnContext->datatype()->getText());
+            DataType addColumnDataType;
+            DataTypeExternal addColumnExternalDataType;
+            std::tie(addColumnDataType, addColumnExternalDataType) =
+                GetDataTypeFromString(addColumnContext->datatype()->getText());
             std::string addColumnName = addColumnContext->column()->getText();
             TrimDelimitedIdentifier(addColumnName);
 
@@ -1574,7 +1582,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw ColumnAlreadyExistsException(addColumnName);
             }
 
-            addColumns.insert({addColumnName, addColumnDataType});
+            addColumns.insert({addColumnName, {addColumnDataType, addColumnExternalDataType}});
         }
         else if (entry->dropColumn())
         {
@@ -1594,7 +1602,10 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
         else if (entry->alterColumn())
         {
             auto alterColumnContext = entry->alterColumn();
-            DataType alterColumnDataType = GetDataTypeFromString(alterColumnContext->datatype()->getText());
+            DataType alterColumnDataType;
+            DataTypeExternal alterColumnEsternalDataType;
+            std::tie(alterColumnDataType, alterColumnEsternalDataType) =
+                GetDataTypeFromString(alterColumnContext->datatype()->getText());
             std::string alterColumnName = alterColumnContext->column()->getText();
             TrimDelimitedIdentifier(alterColumnName);
 
@@ -1609,7 +1620,7 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
                 throw AlreadyModifiedColumnException(alterColumnName);
             }
 
-            alterColumns.insert({alterColumnName, alterColumnDataType});
+            alterColumns.insert({alterColumnName, {alterColumnDataType, alterColumnEsternalDataType}});
         }
         else if (entry->renameColumn())
         {
@@ -1764,7 +1775,8 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     for (auto& addColumn : addColumns)
     {
         dispatcher_.AddArgument<const std::string&>(addColumn.first);
-        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(addColumn.second));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(addColumn.second.first));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(addColumn.second.second));
     }
 
     dispatcher_.AddArgument<int32_t>(dropColumns.size());
@@ -1777,7 +1789,8 @@ void GpuSqlListener::exitSqlAlterTable(GpuSqlParser::SqlAlterTableContext* ctx)
     for (auto& alterColumn : alterColumns)
     {
         dispatcher_.AddArgument<const std::string&>(alterColumn.first);
-        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second.first));
+        dispatcher_.AddArgument<int32_t>(static_cast<int32_t>(alterColumn.second.second));
     }
 
     dispatcher_.AddArgument<int32_t>(renameColumns.size());
@@ -2611,7 +2624,7 @@ void GpuSqlListener::TrimDelimitedIdentifier(std::string& str)
     }
 }
 
-DataType GpuSqlListener::GetDataTypeFromString(const std::string& dataType)
+std::pair<DataType, DataTypeExternal> GpuSqlListener::GetDataTypeFromString(const std::string& dataType)
 {
     return ::GetColumnDataTypeFromString(dataType);
 }

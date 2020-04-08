@@ -22,9 +22,34 @@ enum DataType {
 	DATA_TYPE_SIZE = 16;
 }
 
+enum DataTypeExternal
+{
+    CONST_INT_EX = 0;
+    CONST_ERROR_EX = -1;
+    CONST_LONG_EX = 1;
+    CONST_DATETIME_EX = 2;
+    CONST_FLOAT_EX = 3;
+    CONST_DOUBLE_EX = 4;
+    CONST_POINT_EX = 5;
+    CONST_POLYGON_EX = 6;
+    CONST_STRING_EX = 7;
+    CONST_INT8_T_EX = 8;
+    COLUMN_INT_EX = 9;
+    COLUMN_LONG_EX = 10;
+    COLUMN_DATETIME_EX = 11;
+    COLUMN_FLOAT_EX = 12;
+    COLUMN_DOUBLE_EX = 13;
+    COLUMN_POINT_EX = 14;
+    COLUMN_POLYGON_EX = 15;
+    COLUMN_STRING_EX = 16;
+    COLUMN_INT8_T_EX = 17;
+    DATA_TYPE_SIZE_EX = 18;
+}
+
 message CSVImportMessage {
     string DatabaseName = 1;
     string CSVName = 2;
     string Payload = 3;
     repeated DataType ColumnTypes = 4;
+    repeated DataTypeExternal ColumnExternalTypes = 5;
 }

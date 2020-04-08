@@ -182,9 +182,10 @@ class BulkImportMessage :
     kTableNameFieldNumber = 1,
     kColumnNameFieldNumber = 2,
     kColumnTypeFieldNumber = 3,
-    kElemCountFieldNumber = 4,
-    kNullMaskLenFieldNumber = 5,
-    kDataLengthFieldNumber = 6,
+    kColumnExternalTypeFieldNumber = 4,
+    kElemCountFieldNumber = 5,
+    kNullMaskLenFieldNumber = 6,
+    kDataLengthFieldNumber = 7,
   };
   // string TableName = 1;
   void clear_tablename();
@@ -227,7 +228,16 @@ class BulkImportMessage :
   void _internal_set_columntype(::ColmnarDB::NetworkClient::Message::DataType value);
   public:
 
-  // int32 ElemCount = 4;
+  // .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType = 4;
+  void clear_columnexternaltype();
+  ::ColmnarDB::NetworkClient::Message::DataTypeExternal columnexternaltype() const;
+  void set_columnexternaltype(::ColmnarDB::NetworkClient::Message::DataTypeExternal value);
+  private:
+  ::ColmnarDB::NetworkClient::Message::DataTypeExternal _internal_columnexternaltype() const;
+  void _internal_set_columnexternaltype(::ColmnarDB::NetworkClient::Message::DataTypeExternal value);
+  public:
+
+  // int32 ElemCount = 5;
   void clear_elemcount();
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount() const;
   void set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value);
@@ -236,7 +246,7 @@ class BulkImportMessage :
   void _internal_set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // int32 nullMaskLen = 5;
+  // int32 nullMaskLen = 6;
   void clear_nullmasklen();
   ::PROTOBUF_NAMESPACE_ID::int32 nullmasklen() const;
   void set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value);
@@ -245,7 +255,7 @@ class BulkImportMessage :
   void _internal_set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // int32 dataLength = 6;
+  // int32 dataLength = 7;
   void clear_datalength();
   ::PROTOBUF_NAMESPACE_ID::int32 datalength() const;
   void set_datalength(::PROTOBUF_NAMESPACE_ID::int32 value);
@@ -262,6 +272,7 @@ class BulkImportMessage :
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr tablename_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr columnname_;
   int columntype_;
+  int columnexternaltype_;
   ::PROTOBUF_NAMESPACE_ID::int32 elemcount_;
   ::PROTOBUF_NAMESPACE_ID::int32 nullmasklen_;
   ::PROTOBUF_NAMESPACE_ID::int32 datalength_;
@@ -419,7 +430,27 @@ inline void BulkImportMessage::set_columntype(::ColmnarDB::NetworkClient::Messag
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnType)
 }
 
-// int32 ElemCount = 4;
+// .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType = 4;
+inline void BulkImportMessage::clear_columnexternaltype() {
+  columnexternaltype_ = 0;
+}
+inline ::ColmnarDB::NetworkClient::Message::DataTypeExternal BulkImportMessage::_internal_columnexternaltype() const {
+  return static_cast< ::ColmnarDB::NetworkClient::Message::DataTypeExternal >(columnexternaltype_);
+}
+inline ::ColmnarDB::NetworkClient::Message::DataTypeExternal BulkImportMessage::columnexternaltype() const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnExternalType)
+  return _internal_columnexternaltype();
+}
+inline void BulkImportMessage::_internal_set_columnexternaltype(::ColmnarDB::NetworkClient::Message::DataTypeExternal value) {
+  
+  columnexternaltype_ = value;
+}
+inline void BulkImportMessage::set_columnexternaltype(::ColmnarDB::NetworkClient::Message::DataTypeExternal value) {
+  _internal_set_columnexternaltype(value);
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnExternalType)
+}
+
+// int32 ElemCount = 5;
 inline void BulkImportMessage::clear_elemcount() {
   elemcount_ = 0;
 }
@@ -439,7 +470,7 @@ inline void BulkImportMessage::set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 valu
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ElemCount)
 }
 
-// int32 nullMaskLen = 5;
+// int32 nullMaskLen = 6;
 inline void BulkImportMessage::clear_nullmasklen() {
   nullmasklen_ = 0;
 }
@@ -459,7 +490,7 @@ inline void BulkImportMessage::set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 va
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
 }
 
-// int32 dataLength = 6;
+// int32 dataLength = 7;
 inline void BulkImportMessage::clear_datalength() {
   datalength_ = 0;
 }

@@ -112,7 +112,7 @@ private:
         return operand;
     }
 
-    DataType GetDataTypeFromString(const std::string& dataType);
+    std::pair<DataType, DataTypeExternal> GetDataTypeFromString(const std::string& dataType);
 
     void TrimReg(std::string& reg);
 

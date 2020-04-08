@@ -51,7 +51,8 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 lastResultLen_ = std::max(payload.second.int64payload().int64data().size(), lastResultLen_);
                 break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
-                lastResultLen_ = std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
+                lastResultLen_ =
+                    std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
                 break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
@@ -280,10 +281,20 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     if (csvImportMessage.columntypes_size() > 0)
     {
         std::vector<DataType> types;
+        std::vector<DataTypeExternal> externalTypes;
         std::transform(csvImportMessage.columntypes().cbegin(),
                        csvImportMessage.columntypes().cend(), std::back_inserter(types),
                        [](int32_t x) -> DataType { return static_cast<DataType>(x); });
-        dataImporter.SetTypes(types);
+        std::transform(csvImportMessage.columnexternaltypes().cbegin(),
+                       csvImportMessage.columnexternaltypes().cend(), std::back_inserter(externalTypes),
+                       [](int32_t x) -> DataTypeExternal { return static_cast<DataTypeExternal>(x); });
+
+        std::vector<std::pair<DataType, DataTypeExternal>> dataTypes;
+        for (int32_t i = 0; i < types.size(); i++)
+        {
+            dataTypes.push_back({types[i], externalTypes[i]});
+        }
+        dataImporter.SetTypes(dataTypes);
     }
     auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
     try
@@ -339,6 +350,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     std::string tableName = bulkImportMessage.tablename();
     std::string columnName = bulkImportMessage.columnname();
     DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
+    DataTypeExternal columnExternalType = static_cast<DataTypeExternal>(bulkImportMessage.columnexternaltype());
     int32_t elementCount = bulkImportMessage.elemcount();
     bool isNullable = bulkImportMessage.nullmasklen() != 0;
     auto sharedDb = worker.currentDatabase_.lock();
@@ -353,8 +365,8 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     auto search = tables.find(tableName);
     if (search == tables.end())
     {
-        std::unordered_map<std::string, DataType> columns;
-        columns.insert({columnName, columnType});
+        std::unordered_map<std::string, std::pair<DataType, DataTypeExternal>> columns;
+        columns.insert({columnName, {columnType, columnExternalType}});
         sharedDb->CreateTable(columns, tableName.c_str());
     }
 

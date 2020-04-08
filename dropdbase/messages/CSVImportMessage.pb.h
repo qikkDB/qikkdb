@@ -112,6 +112,49 @@ inline bool DataType_Parse(
   return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<DataType>(
     DataType_descriptor(), name, value);
 }
+enum DataTypeExternal : int {
+  CONST_INT_EX = 0,
+  CONST_ERROR_EX = -1,
+  CONST_LONG_EX = 1,
+  CONST_DATETIME_EX = 2,
+  CONST_FLOAT_EX = 3,
+  CONST_DOUBLE_EX = 4,
+  CONST_POINT_EX = 5,
+  CONST_POLYGON_EX = 6,
+  CONST_STRING_EX = 7,
+  CONST_INT8_T_EX = 8,
+  COLUMN_INT_EX = 9,
+  COLUMN_LONG_EX = 10,
+  COLUMN_DATETIME_EX = 11,
+  COLUMN_FLOAT_EX = 12,
+  COLUMN_DOUBLE_EX = 13,
+  COLUMN_POINT_EX = 14,
+  COLUMN_POLYGON_EX = 15,
+  COLUMN_STRING_EX = 16,
+  COLUMN_INT8_T_EX = 17,
+  DATA_TYPE_SIZE_EX = 18,
+  DataTypeExternal_INT_MIN_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::min(),
+  DataTypeExternal_INT_MAX_SENTINEL_DO_NOT_USE_ = std::numeric_limits<::PROTOBUF_NAMESPACE_ID::int32>::max()
+};
+bool DataTypeExternal_IsValid(int value);
+constexpr DataTypeExternal DataTypeExternal_MIN = CONST_ERROR_EX;
+constexpr DataTypeExternal DataTypeExternal_MAX = DATA_TYPE_SIZE_EX;
+constexpr int DataTypeExternal_ARRAYSIZE = DataTypeExternal_MAX + 1;
+
+const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DataTypeExternal_descriptor();
+template<typename T>
+inline const std::string& DataTypeExternal_Name(T enum_t_value) {
+  static_assert(::std::is_same<T, DataTypeExternal>::value ||
+    ::std::is_integral<T>::value,
+    "Incorrect type passed to function DataTypeExternal_Name.");
+  return ::PROTOBUF_NAMESPACE_ID::internal::NameOfEnum(
+    DataTypeExternal_descriptor(), enum_t_value);
+}
+inline bool DataTypeExternal_Parse(
+    const std::string& name, DataTypeExternal* value) {
+  return ::PROTOBUF_NAMESPACE_ID::internal::ParseNamedEnum<DataTypeExternal>(
+    DataTypeExternal_descriptor(), name, value);
+}
 // ===================================================================
 
 class CSVImportMessage :
@@ -221,6 +264,7 @@ class CSVImportMessage :
 
   enum : int {
     kColumnTypesFieldNumber = 4,
+    kColumnExternalTypesFieldNumber = 5,
     kDatabaseNameFieldNumber = 1,
     kCSVNameFieldNumber = 2,
     kPayloadFieldNumber = 3,
@@ -241,6 +285,23 @@ class CSVImportMessage :
   void add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value);
   const ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>& columntypes() const;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* mutable_columntypes();
+
+  // repeated .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalTypes = 5;
+  int columnexternaltypes_size() const;
+  private:
+  int _internal_columnexternaltypes_size() const;
+  public:
+  void clear_columnexternaltypes();
+  private:
+  ::ColmnarDB::NetworkClient::Message::DataTypeExternal _internal_columnexternaltypes(int index) const;
+  void _internal_add_columnexternaltypes(::ColmnarDB::NetworkClient::Message::DataTypeExternal value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* _internal_mutable_columnexternaltypes();
+  public:
+  ::ColmnarDB::NetworkClient::Message::DataTypeExternal columnexternaltypes(int index) const;
+  void set_columnexternaltypes(int index, ::ColmnarDB::NetworkClient::Message::DataTypeExternal value);
+  void add_columnexternaltypes(::ColmnarDB::NetworkClient::Message::DataTypeExternal value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>& columnexternaltypes() const;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* mutable_columnexternaltypes();
 
   // string DatabaseName = 1;
   void clear_databasename();
@@ -297,6 +358,8 @@ class CSVImportMessage :
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField<int> columntypes_;
   mutable std::atomic<int> _columntypes_cached_byte_size_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField<int> columnexternaltypes_;
+  mutable std::atomic<int> _columnexternaltypes_cached_byte_size_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr databasename_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr csvname_;
   ::PROTOBUF_NAMESPACE_ID::internal::ArenaStringPtr payload_;
@@ -537,6 +600,49 @@ CSVImportMessage::mutable_columntypes() {
   return _internal_mutable_columntypes();
 }
 
+// repeated .ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalTypes = 5;
+inline int CSVImportMessage::_internal_columnexternaltypes_size() const {
+  return columnexternaltypes_.size();
+}
+inline int CSVImportMessage::columnexternaltypes_size() const {
+  return _internal_columnexternaltypes_size();
+}
+inline void CSVImportMessage::clear_columnexternaltypes() {
+  columnexternaltypes_.Clear();
+}
+inline ::ColmnarDB::NetworkClient::Message::DataTypeExternal CSVImportMessage::_internal_columnexternaltypes(int index) const {
+  return static_cast< ::ColmnarDB::NetworkClient::Message::DataTypeExternal >(columnexternaltypes_.Get(index));
+}
+inline ::ColmnarDB::NetworkClient::Message::DataTypeExternal CSVImportMessage::columnexternaltypes(int index) const {
+  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnExternalTypes)
+  return _internal_columnexternaltypes(index);
+}
+inline void CSVImportMessage::set_columnexternaltypes(int index, ::ColmnarDB::NetworkClient::Message::DataTypeExternal value) {
+  columnexternaltypes_.Set(index, value);
+  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnExternalTypes)
+}
+inline void CSVImportMessage::_internal_add_columnexternaltypes(::ColmnarDB::NetworkClient::Message::DataTypeExternal value) {
+  columnexternaltypes_.Add(value);
+}
+inline void CSVImportMessage::add_columnexternaltypes(::ColmnarDB::NetworkClient::Message::DataTypeExternal value) {
+  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnExternalTypes)
+  _internal_add_columnexternaltypes(value);
+}
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>&
+CSVImportMessage::columnexternaltypes() const {
+  // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnExternalTypes)
+  return columnexternaltypes_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>*
+CSVImportMessage::_internal_mutable_columnexternaltypes() {
+  return &columnexternaltypes_;
+}
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>*
+CSVImportMessage::mutable_columnexternaltypes() {
+  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnExternalTypes)
+  return _internal_mutable_columnexternaltypes();
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
@@ -553,6 +659,11 @@ template <> struct is_proto_enum< ::ColmnarDB::NetworkClient::Message::DataType>
 template <>
 inline const EnumDescriptor* GetEnumDescriptor< ::ColmnarDB::NetworkClient::Message::DataType>() {
   return ::ColmnarDB::NetworkClient::Message::DataType_descriptor();
+}
+template <> struct is_proto_enum< ::ColmnarDB::NetworkClient::Message::DataTypeExternal> : ::std::true_type {};
+template <>
+inline const EnumDescriptor* GetEnumDescriptor< ::ColmnarDB::NetworkClient::Message::DataTypeExternal>() {
+  return ::ColmnarDB::NetworkClient::Message::DataTypeExternal_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

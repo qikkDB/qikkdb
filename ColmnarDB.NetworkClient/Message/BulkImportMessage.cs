@@ -26,15 +26,17 @@ namespace ColmnarDB.NetworkClient.Message {
           string.Concat(
             "Ch9NZXNzYWdlL0J1bGtJbXBvcnRNZXNzYWdlLnByb3RvEh9Db2xtbmFyREIu",
             "TmV0d29ya0NsaWVudC5NZXNzYWdlGh5NZXNzYWdlL0NTVkltcG9ydE1lc3Nh",
-            "Z2UucHJvdG8itQEKEUJ1bGtJbXBvcnRNZXNzYWdlEhEKCVRhYmxlTmFtZRgB",
+            "Z2UucHJvdG8ihAIKEUJ1bGtJbXBvcnRNZXNzYWdlEhEKCVRhYmxlTmFtZRgB",
             "IAEoCRISCgpDb2x1bW5OYW1lGAIgASgJEj0KCkNvbHVtblR5cGUYAyABKA4y",
-            "KS5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLkRhdGFUeXBlEhEK",
-            "CUVsZW1Db3VudBgEIAEoBRITCgtudWxsTWFza0xlbhgFIAEoBRISCgpkYXRh",
-            "TGVuZ3RoGAYgASgFYgZwcm90bzM="));
+            "KS5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLkRhdGFUeXBlEk0K",
+            "EkNvbHVtbkV4dGVybmFsVHlwZRgEIAEoDjIxLkNvbG1uYXJEQi5OZXR3b3Jr",
+            "Q2xpZW50Lk1lc3NhZ2UuRGF0YVR5cGVFeHRlcm5hbBIRCglFbGVtQ291bnQY",
+            "BSABKAUSEwoLbnVsbE1hc2tMZW4YBiABKAUSEgoKZGF0YUxlbmd0aBgHIAEo",
+            "BWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ColmnarDB.NetworkClient.Message.CSVImportMessageReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.BulkImportMessage), global::ColmnarDB.NetworkClient.Message.BulkImportMessage.Parser, new[]{ "TableName", "ColumnName", "ColumnType", "ElemCount", "NullMaskLen", "DataLength" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.BulkImportMessage), global::ColmnarDB.NetworkClient.Message.BulkImportMessage.Parser, new[]{ "TableName", "ColumnName", "ColumnType", "ColumnExternalType", "ElemCount", "NullMaskLen", "DataLength" }, null, null, null, null)
           }));
     }
     #endregion
@@ -69,6 +71,7 @@ namespace ColmnarDB.NetworkClient.Message {
       tableName_ = other.tableName_;
       columnName_ = other.columnName_;
       columnType_ = other.columnType_;
+      columnExternalType_ = other.columnExternalType_;
       elemCount_ = other.elemCount_;
       nullMaskLen_ = other.nullMaskLen_;
       dataLength_ = other.dataLength_;
@@ -113,8 +116,19 @@ namespace ColmnarDB.NetworkClient.Message {
       }
     }
 
+    /// <summary>Field number for the "ColumnExternalType" field.</summary>
+    public const int ColumnExternalTypeFieldNumber = 4;
+    private global::ColmnarDB.NetworkClient.Message.DataTypeExternal columnExternalType_ = global::ColmnarDB.NetworkClient.Message.DataTypeExternal.ConstIntEx;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::ColmnarDB.NetworkClient.Message.DataTypeExternal ColumnExternalType {
+      get { return columnExternalType_; }
+      set {
+        columnExternalType_ = value;
+      }
+    }
+
     /// <summary>Field number for the "ElemCount" field.</summary>
-    public const int ElemCountFieldNumber = 4;
+    public const int ElemCountFieldNumber = 5;
     private int elemCount_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int ElemCount {
@@ -125,7 +139,7 @@ namespace ColmnarDB.NetworkClient.Message {
     }
 
     /// <summary>Field number for the "nullMaskLen" field.</summary>
-    public const int NullMaskLenFieldNumber = 5;
+    public const int NullMaskLenFieldNumber = 6;
     private int nullMaskLen_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int NullMaskLen {
@@ -136,7 +150,7 @@ namespace ColmnarDB.NetworkClient.Message {
     }
 
     /// <summary>Field number for the "dataLength" field.</summary>
-    public const int DataLengthFieldNumber = 6;
+    public const int DataLengthFieldNumber = 7;
     private int dataLength_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int DataLength {
@@ -162,6 +176,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (TableName != other.TableName) return false;
       if (ColumnName != other.ColumnName) return false;
       if (ColumnType != other.ColumnType) return false;
+      if (ColumnExternalType != other.ColumnExternalType) return false;
       if (ElemCount != other.ElemCount) return false;
       if (NullMaskLen != other.NullMaskLen) return false;
       if (DataLength != other.DataLength) return false;
@@ -174,6 +189,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (TableName.Length != 0) hash ^= TableName.GetHashCode();
       if (ColumnName.Length != 0) hash ^= ColumnName.GetHashCode();
       if (ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) hash ^= ColumnType.GetHashCode();
+      if (ColumnExternalType != global::ColmnarDB.NetworkClient.Message.DataTypeExternal.ConstIntEx) hash ^= ColumnExternalType.GetHashCode();
       if (ElemCount != 0) hash ^= ElemCount.GetHashCode();
       if (NullMaskLen != 0) hash ^= NullMaskLen.GetHashCode();
       if (DataLength != 0) hash ^= DataLength.GetHashCode();
@@ -202,16 +218,20 @@ namespace ColmnarDB.NetworkClient.Message {
         output.WriteRawTag(24);
         output.WriteEnum((int) ColumnType);
       }
-      if (ElemCount != 0) {
+      if (ColumnExternalType != global::ColmnarDB.NetworkClient.Message.DataTypeExternal.ConstIntEx) {
         output.WriteRawTag(32);
+        output.WriteEnum((int) ColumnExternalType);
+      }
+      if (ElemCount != 0) {
+        output.WriteRawTag(40);
         output.WriteInt32(ElemCount);
       }
       if (NullMaskLen != 0) {
-        output.WriteRawTag(40);
+        output.WriteRawTag(48);
         output.WriteInt32(NullMaskLen);
       }
       if (DataLength != 0) {
-        output.WriteRawTag(48);
+        output.WriteRawTag(56);
         output.WriteInt32(DataLength);
       }
       if (_unknownFields != null) {
@@ -230,6 +250,9 @@ namespace ColmnarDB.NetworkClient.Message {
       }
       if (ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ColumnType);
+      }
+      if (ColumnExternalType != global::ColmnarDB.NetworkClient.Message.DataTypeExternal.ConstIntEx) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ColumnExternalType);
       }
       if (ElemCount != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(ElemCount);
@@ -259,6 +282,9 @@ namespace ColmnarDB.NetworkClient.Message {
       }
       if (other.ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) {
         ColumnType = other.ColumnType;
+      }
+      if (other.ColumnExternalType != global::ColmnarDB.NetworkClient.Message.DataTypeExternal.ConstIntEx) {
+        ColumnExternalType = other.ColumnExternalType;
       }
       if (other.ElemCount != 0) {
         ElemCount = other.ElemCount;
@@ -293,14 +319,18 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 32: {
-            ElemCount = input.ReadInt32();
+            ColumnExternalType = (global::ColmnarDB.NetworkClient.Message.DataTypeExternal) input.ReadEnum();
             break;
           }
           case 40: {
-            NullMaskLen = input.ReadInt32();
+            ElemCount = input.ReadInt32();
             break;
           }
           case 48: {
+            NullMaskLen = input.ReadInt32();
+            break;
+          }
+          case 56: {
             DataLength = input.ReadInt32();
             break;
           }

@@ -25,22 +25,34 @@ namespace ColmnarDB.NetworkClient.Message {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Ch5NZXNzYWdlL0NTVkltcG9ydE1lc3NhZ2UucHJvdG8SH0NvbG1uYXJEQi5O",
-            "ZXR3b3JrQ2xpZW50Lk1lc3NhZ2UiigEKEENTVkltcG9ydE1lc3NhZ2USFAoM",
+            "ZXR3b3JrQ2xpZW50Lk1lc3NhZ2Ui2gEKEENTVkltcG9ydE1lc3NhZ2USFAoM",
             "RGF0YWJhc2VOYW1lGAEgASgJEg8KB0NTVk5hbWUYAiABKAkSDwoHUGF5bG9h",
             "ZBgDIAEoCRI+CgtDb2x1bW5UeXBlcxgEIAMoDjIpLkNvbG1uYXJEQi5OZXR3",
-            "b3JrQ2xpZW50Lk1lc3NhZ2UuRGF0YVR5cGUq1AIKCERhdGFUeXBlEg0KCUNP",
-            "TlNUX0lOVBAAEhgKC0NPTlNUX0VSUk9SEP///////////wESDgoKQ09OU1Rf",
-            "TE9ORxABEg8KC0NPTlNUX0ZMT0FUEAISEAoMQ09OU1RfRE9VQkxFEAMSDwoL",
-            "Q09OU1RfUE9JTlQQBBIRCg1DT05TVF9QT0xZR09OEAUSEAoMQ09OU1RfU1RS",
-            "SU5HEAYSEAoMQ09OU1RfSU5UOF9UEAcSDgoKQ09MVU1OX0lOVBAIEg8KC0NP",
-            "TFVNTl9MT05HEAkSEAoMQ09MVU1OX0ZMT0FUEAoSEQoNQ09MVU1OX0RPVUJM",
-            "RRALEhAKDENPTFVNTl9QT0lOVBAMEhIKDkNPTFVNTl9QT0xZR09OEA0SEQoN",
-            "Q09MVU1OX1NUUklORxAOEhEKDUNPTFVNTl9JTlQ4X1QQDxISCg5EQVRBX1RZ",
-            "UEVfU0laRRAQYgZwcm90bzM="));
+            "b3JrQ2xpZW50Lk1lc3NhZ2UuRGF0YVR5cGUSTgoTQ29sdW1uRXh0ZXJuYWxU",
+            "eXBlcxgFIAMoDjIxLkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2Uu",
+            "RGF0YVR5cGVFeHRlcm5hbCrUAgoIRGF0YVR5cGUSDQoJQ09OU1RfSU5UEAAS",
+            "GAoLQ09OU1RfRVJST1IQ////////////ARIOCgpDT05TVF9MT05HEAESDwoL",
+            "Q09OU1RfRkxPQVQQAhIQCgxDT05TVF9ET1VCTEUQAxIPCgtDT05TVF9QT0lO",
+            "VBAEEhEKDUNPTlNUX1BPTFlHT04QBRIQCgxDT05TVF9TVFJJTkcQBhIQCgxD",
+            "T05TVF9JTlQ4X1QQBxIOCgpDT0xVTU5fSU5UEAgSDwoLQ09MVU1OX0xPTkcQ",
+            "CRIQCgxDT0xVTU5fRkxPQVQQChIRCg1DT0xVTU5fRE9VQkxFEAsSEAoMQ09M",
+            "VU1OX1BPSU5UEAwSEgoOQ09MVU1OX1BPTFlHT04QDRIRCg1DT0xVTU5fU1RS",
+            "SU5HEA4SEQoNQ09MVU1OX0lOVDhfVBAPEhIKDkRBVEFfVFlQRV9TSVpFEBAq",
+            "wQMKEERhdGFUeXBlRXh0ZXJuYWwSEAoMQ09OU1RfSU5UX0VYEAASGwoOQ09O",
+            "U1RfRVJST1JfRVgQ////////////ARIRCg1DT05TVF9MT05HX0VYEAESFQoR",
+            "Q09OU1RfREFURVRJTUVfRVgQAhISCg5DT05TVF9GTE9BVF9FWBADEhMKD0NP",
+            "TlNUX0RPVUJMRV9FWBAEEhIKDkNPTlNUX1BPSU5UX0VYEAUSFAoQQ09OU1Rf",
+            "UE9MWUdPTl9FWBAGEhMKD0NPTlNUX1NUUklOR19FWBAHEhMKD0NPTlNUX0lO",
+            "VDhfVF9FWBAIEhEKDUNPTFVNTl9JTlRfRVgQCRISCg5DT0xVTU5fTE9OR19F",
+            "WBAKEhYKEkNPTFVNTl9EQVRFVElNRV9FWBALEhMKD0NPTFVNTl9GTE9BVF9F",
+            "WBAMEhQKEENPTFVNTl9ET1VCTEVfRVgQDRITCg9DT0xVTU5fUE9JTlRfRVgQ",
+            "DhIVChFDT0xVTU5fUE9MWUdPTl9FWBAPEhQKEENPTFVNTl9TVFJJTkdfRVgQ",
+            "EBIUChBDT0xVTU5fSU5UOF9UX0VYEBESFQoRREFUQV9UWVBFX1NJWkVfRVgQ",
+            "EmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::ColmnarDB.NetworkClient.Message.DataType), }, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.CSVImportMessage), global::ColmnarDB.NetworkClient.Message.CSVImportMessage.Parser, new[]{ "DatabaseName", "CSVName", "Payload", "ColumnTypes" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::ColmnarDB.NetworkClient.Message.DataType), typeof(global::ColmnarDB.NetworkClient.Message.DataTypeExternal), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.CSVImportMessage), global::ColmnarDB.NetworkClient.Message.CSVImportMessage.Parser, new[]{ "DatabaseName", "CSVName", "Payload", "ColumnTypes", "ColumnExternalTypes" }, null, null, null, null)
           }));
     }
     #endregion
@@ -66,6 +78,29 @@ namespace ColmnarDB.NetworkClient.Message {
     [pbr::OriginalName("COLUMN_STRING")] ColumnString = 14,
     [pbr::OriginalName("COLUMN_INT8_T")] ColumnInt8T = 15,
     [pbr::OriginalName("DATA_TYPE_SIZE")] Size = 16,
+  }
+
+  public enum DataTypeExternal {
+    [pbr::OriginalName("CONST_INT_EX")] ConstIntEx = 0,
+    [pbr::OriginalName("CONST_ERROR_EX")] ConstErrorEx = -1,
+    [pbr::OriginalName("CONST_LONG_EX")] ConstLongEx = 1,
+    [pbr::OriginalName("CONST_DATETIME_EX")] ConstDatetimeEx = 2,
+    [pbr::OriginalName("CONST_FLOAT_EX")] ConstFloatEx = 3,
+    [pbr::OriginalName("CONST_DOUBLE_EX")] ConstDoubleEx = 4,
+    [pbr::OriginalName("CONST_POINT_EX")] ConstPointEx = 5,
+    [pbr::OriginalName("CONST_POLYGON_EX")] ConstPolygonEx = 6,
+    [pbr::OriginalName("CONST_STRING_EX")] ConstStringEx = 7,
+    [pbr::OriginalName("CONST_INT8_T_EX")] ConstInt8TEx = 8,
+    [pbr::OriginalName("COLUMN_INT_EX")] ColumnIntEx = 9,
+    [pbr::OriginalName("COLUMN_LONG_EX")] ColumnLongEx = 10,
+    [pbr::OriginalName("COLUMN_DATETIME_EX")] ColumnDatetimeEx = 11,
+    [pbr::OriginalName("COLUMN_FLOAT_EX")] ColumnFloatEx = 12,
+    [pbr::OriginalName("COLUMN_DOUBLE_EX")] ColumnDoubleEx = 13,
+    [pbr::OriginalName("COLUMN_POINT_EX")] ColumnPointEx = 14,
+    [pbr::OriginalName("COLUMN_POLYGON_EX")] ColumnPolygonEx = 15,
+    [pbr::OriginalName("COLUMN_STRING_EX")] ColumnStringEx = 16,
+    [pbr::OriginalName("COLUMN_INT8_T_EX")] ColumnInt8TEx = 17,
+    [pbr::OriginalName("DATA_TYPE_SIZE_EX")] DataTypeSizeEx = 18,
   }
 
   #endregion
@@ -100,6 +135,7 @@ namespace ColmnarDB.NetworkClient.Message {
       cSVName_ = other.cSVName_;
       payload_ = other.payload_;
       columnTypes_ = other.columnTypes_.Clone();
+      columnExternalTypes_ = other.columnExternalTypes_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -151,6 +187,16 @@ namespace ColmnarDB.NetworkClient.Message {
       get { return columnTypes_; }
     }
 
+    /// <summary>Field number for the "ColumnExternalTypes" field.</summary>
+    public const int ColumnExternalTypesFieldNumber = 5;
+    private static readonly pb::FieldCodec<global::ColmnarDB.NetworkClient.Message.DataTypeExternal> _repeated_columnExternalTypes_codec
+        = pb::FieldCodec.ForEnum(42, x => (int) x, x => (global::ColmnarDB.NetworkClient.Message.DataTypeExternal) x);
+    private readonly pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataTypeExternal> columnExternalTypes_ = new pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataTypeExternal>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataTypeExternal> ColumnExternalTypes {
+      get { return columnExternalTypes_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override bool Equals(object other) {
       return Equals(other as CSVImportMessage);
@@ -168,6 +214,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (CSVName != other.CSVName) return false;
       if (Payload != other.Payload) return false;
       if(!columnTypes_.Equals(other.columnTypes_)) return false;
+      if(!columnExternalTypes_.Equals(other.columnExternalTypes_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -178,6 +225,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (CSVName.Length != 0) hash ^= CSVName.GetHashCode();
       if (Payload.Length != 0) hash ^= Payload.GetHashCode();
       hash ^= columnTypes_.GetHashCode();
+      hash ^= columnExternalTypes_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -204,6 +252,7 @@ namespace ColmnarDB.NetworkClient.Message {
         output.WriteString(Payload);
       }
       columnTypes_.WriteTo(output, _repeated_columnTypes_codec);
+      columnExternalTypes_.WriteTo(output, _repeated_columnExternalTypes_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -222,6 +271,7 @@ namespace ColmnarDB.NetworkClient.Message {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(Payload);
       }
       size += columnTypes_.CalculateSize(_repeated_columnTypes_codec);
+      size += columnExternalTypes_.CalculateSize(_repeated_columnExternalTypes_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -243,6 +293,7 @@ namespace ColmnarDB.NetworkClient.Message {
         Payload = other.Payload;
       }
       columnTypes_.Add(other.columnTypes_);
+      columnExternalTypes_.Add(other.columnExternalTypes_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -269,6 +320,11 @@ namespace ColmnarDB.NetworkClient.Message {
           case 34:
           case 32: {
             columnTypes_.AddEntriesFrom(input, _repeated_columnTypes_codec);
+            break;
+          }
+          case 42:
+          case 40: {
+            columnExternalTypes_.AddEntriesFrom(input, _repeated_columnExternalTypes_codec);
             break;
           }
         }
