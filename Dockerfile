@@ -54,7 +54,7 @@ RUN	mkdir build_dropdbase \
 RUN cd build_dropdbase && ninja
 
 # Application
-FROM nvidia/cuda:10.1-runtime
+FROM nvidia/cuda:10.2-runtime
 
 WORKDIR /app
 
