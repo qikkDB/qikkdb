@@ -368,17 +368,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
     }
 
     PointerAllocation columnMask = allocatedPointers_.at(colName + NULL_SUFFIX);
-    size_t nullMaskSize = (columnMask.ElementCount + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
 
     if (!IsRegisterAllocated(reg))
     {
         int8_t* outFilterMask;
 
         int8_t* nullMask;
-        outFilterMask = AllocateRegister<int8_t>(reg, columnMask.ElementCount, &nullMask);
-        GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr), nullMaskSize);
+        outFilterMask = AllocateRegister<int8_t>(reg, loadSize_, &nullMask);
+        GPUMemory::copyDeviceToDevice(nullMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr), columnMask.ElementCount);
         GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
-                             nullMaskSize, columnMask.ElementCount);
+                             columnMask.ElementCount, loadSize_);
     }
     return InstructionStatus::CONTINUE;
 }
