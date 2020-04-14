@@ -2073,6 +2073,7 @@ void GpuSqlListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsConte
         if (selectColumn->alias())
         {
             std::string alias = selectColumn->alias()->getText();
+            TrimDelimitedIdentifier(alias);
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
                 throw AliasRedefinitionException(alias);
@@ -2144,6 +2145,7 @@ void GpuSqlListener::exitBooleanLiteral(GpuSqlParser::BooleanLiteralContext* ctx
 void GpuSqlListener::exitVarReference(GpuSqlParser::VarReferenceContext* ctx)
 {
     std::string colName = ctx->columnId()->getText();
+    TrimDelimitedIdentifier(colName);
 
     if (columnAliasContexts_.find(colName) != columnAliasContexts_.end() && !insideAlias_ && colName != currentExpressionAlias_)
     {
