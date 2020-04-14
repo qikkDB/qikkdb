@@ -2344,7 +2344,9 @@ void GpuSqlListener::LockAliasRegisters()
 {
     for (auto& aliasContext : columnAliasContexts_)
     {
-        std::string reg = "$" + aliasContext.second->getText();
+        std::string aliasExpressionText = aliasContext.second->getText();
+        TrimDelimitedIdentifier(aliasExpressionText);
+        std::string reg = "$" + aliasExpressionText;
         dispatcher_.AddArgument<const std::string&>(reg);
         dispatcher_.AddLockRegisterFunction();
     }
