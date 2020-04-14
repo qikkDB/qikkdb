@@ -221,7 +221,6 @@ public:
                 // Call reconstruct col keep
                 reconstructColKeep(&outDataGPUPointer, outDataElementCount, ACol, inMask,
                                    dataElementCount, &outNullMaskGPUPointer, nullMask);
-
                 // Copy the generated output back from the GPU
                 GPUMemory::copyDeviceToHost(outData, outDataGPUPointer, *outDataElementCount);
                 if (outNullMaskGPUPointer)
