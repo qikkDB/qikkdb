@@ -157,6 +157,7 @@ private:
     std::uintptr_t filter_;
     bool insideAggregation_;
     bool insideGroupBy_;
+    bool insideWhere_;
     bool usingGroupBy_;
     bool usingOrderBy_;
     bool usingJoin_;
@@ -751,7 +752,7 @@ public:
 
                 if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
                                  StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
-                    !dispatcher.insideAggregation_)
+                    !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
                 {
                     if (dispatcher.isOverallLastBlock_)
                     {
@@ -759,7 +760,7 @@ public:
                     }
                 }
                 else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
                 {
                     column = dispatcher.allocatedPointers_.at(colName);
                 }
@@ -792,7 +793,7 @@ public:
                                   StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
             }
 
-            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
             {
                 if (dispatcher.isOverallLastBlock_)
                 {
@@ -805,7 +806,7 @@ public:
                 }
             }
             else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
             {
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
@@ -849,7 +850,7 @@ public:
 
                 if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
                                  StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
-                    !dispatcher.insideAggregation_)
+                    !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
                 {
                     if (dispatcher.isOverallLastBlock_)
                     {
@@ -859,7 +860,7 @@ public:
                     }
                 }
                 else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
                 {
                     column =
                         dispatcher.FindCompositeDataTypeAllocation<typename std::remove_pointer<T>::type>(colName);
@@ -901,7 +902,7 @@ public:
                                   StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
             }
 
-            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
             {
                 if (dispatcher.isOverallLastBlock_)
                 {
@@ -915,7 +916,7 @@ public:
                 }
             }
             else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
             {
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
@@ -947,7 +948,7 @@ public:
                                   StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
             }
 
-            if (areGroupByColumns && !dispatcher.insideAggregation_)
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
             {
                 if (dispatcher.isOverallLastBlock_)
                 {
@@ -957,7 +958,7 @@ public:
                 }
             }
             else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
-                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_)
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
             {
                 if (!dispatcher.IsRegisterAllocated(reg))
                 {
