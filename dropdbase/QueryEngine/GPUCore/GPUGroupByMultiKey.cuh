@@ -1312,7 +1312,23 @@ public:
             }
             else
             {
+                // Empty result set
                 *outDataElementCount = 0;
+                // Fill vector of keys with nullptr
+                for (int32_t t = 0; t < keysColCount_; t++)
+                {
+                    outKeysVector->emplace_back(nullptr);
+                    if (outKeysNullMasksVector != nullptr)
+                    {
+                        outKeysNullMasksVector->emplace_back(nullptr);
+                    }
+                }
+                // Set pointer to values to nullptr
+                *outValues = nullptr;
+                if (outValuesNullMask != nullptr)
+                {
+                    *outValuesNullMask = nullptr;
+                }
             }
         }
     }
