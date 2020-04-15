@@ -26,16 +26,18 @@ private:
     std::string configurationFile = "../configuration/main_config";
     std::string configurationFileDefault = configurationFile + ".default";
 
-    // Configuration values (if even default config does not exists)
+    // Configuration values (if even default config does not exist)
     bool usingGPU_ = true;
+    bool usingMultipleGPUs_ = true;
     bool usingCompression_ = false;
-    std::string dir_ = "./";
+    bool usingWhereEvaluationSpeedup_ = true;
     std::string databaseDir_ = "../databases/";
     int32_t blockSize_ = 262144;
     int32_t groupByBuckets_ = 262144;
     std::string listenIP_ = "127.0.0.1";
     short listenPort_ = 12345;
     int32_t timeout_ = 3600000;
+    int32_t GPUMemoryUsagePercent_ = 100;
     int32_t GPUCachePercent_ = 75;
     int32_t DBSaveInterval_ = 1000;
 
@@ -82,16 +84,20 @@ public:
     {
         return usingGPU_;
     }
+    
+    bool IsUsingMultipleGPUs() const
+    {
+        return usingMultipleGPUs_;
+    }
 
     bool IsUsingCompression() const
     {
         return usingCompression_;
     }
-
-    const std::string& GetDir() const
+    
+    bool IsUsingWhereEvaluationSpeedup() const
     {
-
-        return dir_;
+        return usingWhereEvaluationSpeedup_;
     }
 
     const std::string& GetDatabaseDir() const
@@ -123,6 +129,12 @@ public:
     {
         return timeout_;
     }
+
+    int32_t GetGPUMemoryUsagePercent() const
+    {
+        return GPUMemoryUsagePercent_;
+    }
+    
 
     int32_t GetGPUCachePercentage() const
     {
