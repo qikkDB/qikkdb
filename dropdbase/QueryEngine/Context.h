@@ -74,11 +74,13 @@ private:
             throw std::invalid_argument("ERROR: Unable to get device count");
         }
 
-        // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
-        // deviceCount_ = 1;
-        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
+        // DANGER DANGER DANGER !!! DEADLY DEADLY DEADLY !!!
+        // Don't touch anymore :D Use config UsingMultipleGPUs instead
+        if (!Configuration::GetInstance().IsUsingMultipleGPUs())
+        {
+            deviceCount_ = 1;
+        }
+
         const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
         CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
