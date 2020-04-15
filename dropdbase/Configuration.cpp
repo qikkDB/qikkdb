@@ -37,14 +37,16 @@ void Configuration::LoadConfigurationFile()
 
     // setting particular YAML entries into configuration values
     this->SetupConfigurationValue("UsingGPU", this->usingGPU_);
+    this->SetupConfigurationValue("UsingMultipleGPUs", this->usingMultipleGPUs_);
     this->SetupConfigurationValue("UsingCompression", this->usingCompression_);
-    this->SetupConfigurationValue("Dir", this->dir_);
-    this->SetupConfigurationValue("DatabaseDir", this->databaseDir_);
+    this->SetupConfigurationValue("UsingWhereEvaluationSpeedup", this->usingWhereEvaluationSpeedup_);
+    this->SetupConfigurationValue("DatabaseFilesDir", this->databaseDir_);
     this->SetupConfigurationValue("BlockSize", this->blockSize_);
     this->SetupConfigurationValue("GroupByBuckets", this->groupByBuckets_);
     this->SetupConfigurationValue("ListenIP", this->listenIP_);
     this->SetupConfigurationValue("ListenPort", this->listenPort_);
     this->SetupConfigurationValue("Timeout", this->timeout_);
+    this->SetupConfigurationValue("GPUMemoryUsagePercent", this->GPUMemoryUsagePercent_);
     this->SetupConfigurationValue("GPUCachePercent", this->GPUCachePercent_);
     this->SetupConfigurationValue("DBSaveInterval", this->DBSaveInterval_);
 

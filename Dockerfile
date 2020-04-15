@@ -1,5 +1,5 @@
 # Build
-FROM nvidia/cuda:10.1-devel AS builder
+FROM nvidia/cuda:10.2-devel AS builder
 
 WORKDIR /build/dropdbase_instarea
 
@@ -49,17 +49,21 @@ WORKDIR /build
 # Run CMake DropDBase
 RUN	mkdir build_dropdbase \
 	&& cd build_dropdbase \
-	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda-10.1/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
+	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
 
 RUN cd build_dropdbase && ninja
 
 # Application
-FROM nvidia/cuda:10.1-runtime
+FROM nvidia/cuda:10.2-runtime
 
 WORKDIR /app
 
 # Copy .exe file from build into app
 COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
+
+# Copy Boost built libraries
+COPY --from=builder /opt/boost_1.69 /opt/boost_1.69
+RUN ldconfig /opt/boost_1.69/lib
 
 # Copy configuration files into app
 COPY configuration /configuration

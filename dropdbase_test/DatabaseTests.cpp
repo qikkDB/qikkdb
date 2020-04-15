@@ -206,6 +206,14 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ((firstTableColumns.at("colIntegerEmpty").get())->GetBlockCount(), 0);
     ASSERT_EQ((firstTableColumns.at("colStringEmpty").get())->GetBlockCount(), 0);
 
+    // first table default values:
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())->GetDefaultValue(), 0);
+    ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(firstTableColumns.at("colDouble").get())->GetDefaultValue(), 0.000000);
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colString").get())->GetDefaultValue(), "");
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colIntegerEmpty").get())->GetDefaultValue(), 0);
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colStringEmpty").get())->GetDefaultValue(),
+              "");
+
     ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colInteger").get())
                   ->GetBlocksList()
                   .at(0)
@@ -236,9 +244,13 @@ TEST_F(DatabaseTests, IntegrationTest)
                   .at(1)
                   ->BlockCapacity(),
               4);
-    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colIntegerEmpty").get())->GetBlocksList().size(),
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns.at("colIntegerEmpty").get())
+                  ->GetBlocksList()
+                  .size(),
               0);
-    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colStringEmpty").get())->GetBlocksList().size(),
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns.at("colStringEmpty").get())
+                  ->GetBlocksList()
+                  .size(),
               0);
 
     // first table nullability of columns:
@@ -329,6 +341,24 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ((secondTableColumns.at("colPolygon").get())->GetBlockCount(), blockNum);
     ASSERT_EQ((secondTableColumns.at("colPoint").get())->GetBlockCount(), blockNum);
     ASSERT_EQ((secondTableColumns.at("colBool").get())->GetBlockCount(), blockNum);
+
+    // second table default values:
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(secondTableColumns.at("colInteger").get())->GetDefaultValue(), 0);
+    ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(secondTableColumns.at("colDouble").get())->GetDefaultValue(),
+                     0.000000);
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(secondTableColumns.at("colString").get())->GetDefaultValue(), "");
+    ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(secondTableColumns.at("colFloat").get())->GetDefaultValue(),
+                    0.000000);
+    ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(secondTableColumns.at("colLong").get())->GetDefaultValue(), 0);
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                                                        secondTableColumns.at("colPolygon").get())
+                                                        ->GetDefaultValue()),
+              "POLYGON((0 0, 0 1, 1 1, 0 0))");
+    ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+                                             secondTableColumns.at("colPoint").get())
+                                             ->GetDefaultValue()),
+              "POINT(0 0)");
+    ASSERT_EQ(dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns.at("colBool").get())->GetDefaultValue(), 0);
 
     // second table nullability of columns:
     ASSERT_TRUE((secondTableColumns.at("colInteger").get())->GetIsNullable());

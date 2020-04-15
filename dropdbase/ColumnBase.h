@@ -105,6 +105,7 @@ private:
 
     void setColumnStatistics();
 
+    T defaultValue_ = T{};
     T min_ = std::numeric_limits<T>::lowest();
     T max_ = std::numeric_limits<T>::max();
     float avg_ = 0.0;
@@ -123,6 +124,16 @@ public:
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
         SetIsNullable(isNullable);
         SetIsUnique(isUnique);
+    }
+
+    T GetDefaultValue() const
+    {
+        return defaultValue_;
+    }
+
+    void SetDefaultValue(T newDefaultValue)
+    {
+        defaultValue_ = newDefaultValue;
     }
 
     /// <summary>
@@ -481,7 +492,8 @@ public:
         {
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
-                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<uint64_t>(blockSize_ - dstRowIndex))
+                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex >
+                    static_cast<uint64_t>(blockSize_ - dstRowIndex))
                 {
                     // srcBlock[i].size_ > dstBlock
                     size_ += blockSize_ - dstRowIndex;

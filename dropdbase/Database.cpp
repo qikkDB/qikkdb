@@ -17,6 +17,7 @@
 #include "Table.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "QueryEngine/Context.h"
+#include <boost\algorithm\string\case_conv.hpp>
 
 std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
@@ -371,9 +372,8 @@ void Database::PersistOnlyDbFile()
 
                 if (fileAddressPath.size() == 0)
                 {
-                    columnsJSON["file_path_address_file"] = path + name_ + SEPARATOR +
-                                                            tableName + SEPARATOR + columnName +
-                                                            COLUMN_ADDRESS_EXTENSION;
+                    columnsJSON["file_path_address_file"] =
+                        path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION;
                     BOOST_LOG_TRIVIAL(debug)
                         << "Default address file path ( "
                         << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION
@@ -415,8 +415,7 @@ void Database::PersistOnlyDbFile()
                     if (fileFragmentPath.size() == 0)
                     {
                         columnsJSON["file_path_string_data_file"] =
-                            path + name_ + SEPARATOR + tableName + SEPARATOR +
-                            columnName + FRAGMENT_DATA_EXTENSION;
+                            path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
                         BOOST_LOG_TRIVIAL(debug)
                             << "Default fragment file path ( "
                             << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION
@@ -448,7 +447,83 @@ void Database::PersistOnlyDbFile()
                     }
                 }
 
-                columnsJSON["default_entry_value"] = 0;
+                switch (columnType)
+                {
+                case COLUMN_POLYGON:
+                {
+                    const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
+                        dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] =
+                        ComplexPolygonFactory::WktFromPolygon(colPolygon.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_POINT:
+                {
+                    const ColumnBase<ColmnarDB::Types::Point>& colPoint =
+                        dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] =
+                        PointFactory::WktFromPoint(colPoint.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_STRING:
+                {
+                    const ColumnBase<std::string>& colString =
+                        dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = colString.GetDefaultValue();
+                }
+                break;
+
+                case COLUMN_INT8_T:
+                {
+                    const ColumnBase<int8_t>& colBool =
+                        dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = std::to_string(colBool.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_INT:
+                {
+                    const ColumnBase<int32_t>& colInt =
+                        dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = std::to_string(colInt.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_LONG:
+                {
+                    const ColumnBase<int64_t>& colLong =
+                        dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = std::to_string(colLong.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_FLOAT:
+                {
+                    const ColumnBase<float>& colFloat =
+                        dynamic_cast<const ColumnBase<float>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = std::to_string(colFloat.GetDefaultValue());
+                }
+                break;
+
+                case COLUMN_DOUBLE:
+                {
+                    const ColumnBase<double>& colDouble =
+                        dynamic_cast<const ColumnBase<double>&>(*(column.second));
+
+                    columnsJSON["default_entry_value"] = std::to_string(colDouble.GetDefaultValue());
+                }
+                break;
+                }
+
                 columnsJSON["nullable"] = column.second->GetIsNullable();
                 columnsJSON["unique"] = column.second->GetIsUnique();
                 columnsJSON["hidden"] = false;
@@ -1011,14 +1086,15 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                     encoding = columnJSON["encoding"].asString();
                 }
 
+                const std::string defaultValue = columnJSON["default_entry_value"].asString();
                 const bool isNullable = columnJSON["nullable"].asBool();
                 const bool isUnique = columnJSON["unique"].asBool();
                 const bool isHidden = columnJSON["hidden"].asBool();
 
                 columnNames.push_back(columnName);
                 threads.emplace_back(Database::LoadColumn, filePath, filePathAddressFile, filePathDataFile,
-                                     filePathStrDataFile, encoding, persistenceFormatVersion,
-                                     columnType, isNullable, isUnique, std::ref(table), columnName);
+                                     filePathStrDataFile, encoding, persistenceFormatVersion, columnType,
+                                     isNullable, isUnique, defaultValue, std::ref(table), columnName);
             }
 
             for (int i = 0; i < columnNames.size(); i++)
@@ -1051,8 +1127,10 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 /// to DataType enumeration.</param>
 /// <param name="isNullable">Flag if a column can have NULL values.</param>
 /// <param name="isUnique">Flag if a column can have only unique values and not
-/// a single one NULL value.</param> <param name="table">Instance of table into which the column
-/// should be added.</param> <param name="columnName">Names of particular column.</param>
+/// a single one NULL value.</param>
+/// <param name="defaultValue">Default column value in string format.</param>
+/// <param name="table">Instance of table into which the column
+/// should be added.</param><param name="columnName">Names of particular column.</param>
 void Database::LoadColumn(const std::string fileDbPath,
                           const std::string fileAddressPath,
                           const std::string fileDataPath,
@@ -1062,6 +1140,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                           const int32_t type,
                           const bool isNullable,
                           const bool isUnique,
+                          const std::string defaultValue,
                           Table& table,
                           const std::string columnName)
 {
@@ -1098,6 +1177,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         columnPolygon.SetFileDataPath(fileDataPath);
         columnPolygon.SetFileFragmentPath(fileFragmentPath);
         columnPolygon.SetEncoding(encoding);
+        columnPolygon.SetDefaultValue(ComplexPolygonFactory::FromWkt(defaultValue));
 
         if (fileAddressSize > 0)
         {
@@ -1280,6 +1360,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
         columnPoint.SetFileAddressPath(fileAddressPath);
         columnPoint.SetFileDataPath(fileDataPath);
+        columnPoint.SetDefaultValue(PointFactory::FromWkt(defaultValue));
 
         if (fileDataSize > 0)
         {
@@ -1407,6 +1488,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         columnString.SetFileDataPath(fileDataPath);
         columnString.SetFileFragmentPath(fileFragmentPath);
         columnString.SetEncoding(encoding);
+        columnString.SetDefaultValue(defaultValue);
 
         if (fileAddressSize > 0)
         {
@@ -1580,6 +1662,25 @@ void Database::LoadColumn(const std::string fileDbPath,
         columnInt.SetFileAddressPath(fileAddressPath);
         columnInt.SetFileDataPath(fileDataPath);
 
+		const std::string lowerStr = boost::algorithm::to_lower_copy(defaultValue);
+
+        // just check if user did not write the bool default value as string 'true' or 'false':
+        if (lowerStr == "true")
+        {
+            columnInt.SetDefaultValue(1);
+        }
+        else
+        {
+            if (lowerStr == "false")
+            {
+                columnInt.SetDefaultValue(0);
+            }
+            else
+            {
+                columnInt.SetDefaultValue(static_cast<int8_t>(std::stoi(defaultValue)));
+            }
+        }    
+
         if (fileDataSize > 0)
         {
 
@@ -1700,6 +1801,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
         columnInt.SetFileAddressPath(fileAddressPath);
         columnInt.SetFileDataPath(fileDataPath);
+        columnInt.SetDefaultValue(std::stoi(defaultValue));
 
         if (fileDataSize > 0)
         {
@@ -1820,6 +1922,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
         columnLong.SetFileAddressPath(fileAddressPath);
         columnLong.SetFileDataPath(fileDataPath);
+        columnLong.SetDefaultValue(std::stol(defaultValue));
 
         if (fileDataSize > 0)
         {
@@ -1940,6 +2043,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
         columnFloat.SetFileAddressPath(fileAddressPath);
         columnFloat.SetFileDataPath(fileDataPath);
+        columnFloat.SetDefaultValue(std::stof(defaultValue));
 
         if (fileDataSize > 0)
         {
@@ -2060,6 +2164,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
         columnDouble.SetFileAddressPath(fileAddressPath);
         columnDouble.SetFileDataPath(fileDataPath);
+        columnDouble.SetDefaultValue(std::stod(defaultValue));
 
         if (fileDataSize > 0)
         {

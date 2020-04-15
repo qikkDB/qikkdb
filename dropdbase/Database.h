@@ -39,7 +39,9 @@ private:
     /// to DataType enumeration.</param>
     /// <param name="isNullable">Flag if a column can have NULL values.</param>
     /// <param name="isUnique">Flag if a column can have only unique values and not
-    /// a single one NULL value.</param> <param name="table">Instance of table into which the column
+    /// a single one NULL value.</param>
+    /// <param name="defaultValue">Default column value in string format.</param>
+    ///< param name="table">Instance of table into which the column
     /// should be added.</param> <param name="columnName">Names of particular column.</param>
     static void LoadColumn(const std::string fileDbPath,
                            const std::string fileAddressPath,
@@ -50,6 +52,7 @@ private:
                            const int32_t type,
                            const bool isNullable,
                            const bool isUnique,
+                           const std::string defaultValue,
                            Table& table,
                            const std::string columnName);
 
@@ -119,7 +122,7 @@ public:
     /// </summary>
     void SetSaveNecessaryToFalseForEverything();
 
-	/// <summary>
+    /// <summary>
     /// Save modified columns of all loaded database to disk.
     /// </summary>
     static void SaveModifiedToDisk();

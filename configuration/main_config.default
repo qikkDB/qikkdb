@@ -1,16 +1,33 @@
-# db settings
+# == DATABASE CORE SETTINGS ==
+# Use GPU for computation if true (otherwise use CPU which is not supported yet):
 UsingGPU: true
-Dir: ../bin/
-DatabaseDir: ../databases/
-BlockSize: 262144
-GroupByBuckets: 262144  # should be power of 2
+# Use multiple GPUs if there are more than just one GPU available:
+UsingMultipleGPUs: true
+# Use compression of database files
 UsingCompression: false
-GPUCachePercent: 75
+# Use clustered index when evaluating WHERE clause (skip filtered blocks)
+UsingWhereEvaluationSpeedup: true
 
-#network settings
+# Path to database files
+DatabaseFilesDir: ../databases/
+
+# Number of rows in one block
+BlockSize: 262144
+# Default maximum number of keys in GROUP BY, should be power of 2
+GroupByBuckets: 262144
+# Overall usage of GPU memory (VRAM), should be 100
+GPUMemoryUsagePercent: 100
+# Percentage of allocated GPU memory used for caching columns
+GPUCachePercent: 50
+# How often to save database files (ms)
+DBSaveInterval: 3600000
+
+
+# == NETWORK SETTINGS ==
 ListenIP: 127.0.0.1
 ListenPort: 12345
+# Network client will disconnect if hearbeat not received in this time (ms):
 Timeout: 3600000
-DBSaveInterval: 600000  # default value, in milliseconds
+
 # To edit configuration values, copy this file to "main_config"
 # (delete suffix ".default") and edit there
