@@ -12177,8 +12177,7 @@ TEST(DispatcherTests, CreateDatabaseDelimitedIdentifiersIllegalCharacter)
 {
     Context::getInstance();
 
-    GpuSqlCustomParser parser(nullptr,
-                              "CREATE DATABASE [createdDb%^&*()-+@];");
+    GpuSqlCustomParser parser(nullptr, "CREATE DATABASE [createdDb%^&*()-+@];");
     ASSERT_THROW(parser.Parse(), IdentifierException);
 }
 
@@ -12637,7 +12636,8 @@ TEST(DispatcherTests, WhereEvaluationAdvanced)
     resultPtr = parser.Parse();
     LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
-    ASSERT_EQ(loadColHelper.countSkippedBlocks, 2);
+    ASSERT_EQ(loadColHelper.countSkippedBlocks,
+              Configuration::GetInstance().IsUsingWhereEvaluationSpeedup() ? 2 : 0);
 
     GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
     resultPtr = parserDropDatabase.Parse();
@@ -12765,7 +12765,8 @@ TEST(DispatcherTests, WhereEvaluationAdvanced_FourTimesAnd)
     resultPtr = parser.Parse();
     LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
-    ASSERT_EQ(loadColHelper.countSkippedBlocks, 2);
+    ASSERT_EQ(loadColHelper.countSkippedBlocks,
+              Configuration::GetInstance().IsUsingWhereEvaluationSpeedup() ? 2 : 0);
 
     GpuSqlCustomParser parserDropDatabase(nullptr, "DROP DATABASE WhereEvalDatabase;");
     resultPtr = parserDropDatabase.Parse();
