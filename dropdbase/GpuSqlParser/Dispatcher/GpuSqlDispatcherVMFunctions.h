@@ -376,7 +376,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
         int8_t* outFilterMask;
 
         outFilterMask = AllocateRegister<int8_t>(reg, loadSize_);
-        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
+        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int64_t*>(columnMask.GpuPtr),
                              columnMask.ElementCount, loadSize_);
     }
     return InstructionStatus::CONTINUE;

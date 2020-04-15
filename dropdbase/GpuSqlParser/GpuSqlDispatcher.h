@@ -132,7 +132,7 @@ private:
         typename std::conditional<isCompositeDataType<T>,
                                   CompositeDataType<typename std::remove_pointer<T>::type>,
                                   typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type>::type Data;
-        int8_t* NullMaskPtr;
+        int64_t* NullMaskPtr;
     };
 
     std::vector<DispatchFunction> dispatcherFunctions_;
@@ -783,7 +783,7 @@ public:
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
             AllocatedDataType<T>* result = nullptr;
-            int8_t* nullMask = nullptr;
+            int64_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;
 
@@ -892,7 +892,7 @@ public:
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
             CompositeDataType<typename std::remove_pointer<T>::type> result;
-            int8_t* nullMask = nullptr;
+            int64_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;
 
@@ -910,9 +910,8 @@ public:
                 {
                     if (allocateNullMask)
                     {
-                        const int32_t bitMaskSize =
-                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                        const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
+                        nullMask = dispatcher.AllocateRegister<int64_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
                     }
                     dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
                 }
@@ -924,9 +923,8 @@ public:
                 {
                     if (allocateNullMask)
                     {
-                        const int32_t bitMaskSize =
-                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
-                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+                        const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
+                        nullMask = dispatcher.AllocateRegister<int64_t>(reg + NULL_SUFFIX, bitMaskSize);
                     }
                 }
             }
@@ -1002,7 +1000,7 @@ public:
             if (allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
             {
                 GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
-                usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(int8_t);
+                usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(int64_t);
                 allocatedPointers_.erase(col + NULL_SUFFIX);
             }
         }
@@ -1025,25 +1023,14 @@ public:
                                       const std::string* strings,
                                       size_t size,
                                       bool useCache = false,
-<<<<<<< HEAD
-                                      int8_t* nullMaskPtr = nullptr);
+                                      int64_t* nullMaskPtr = nullptr);
     template <typename T>
     CompositeDataTypeAllocation<T> FindCompositeDataTypeAllocation(const std::string& colName);
-    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
-    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
+    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int64_t* newNullMask);
+    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int64_t* newNullMask);
 
     template <typename T>
     CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
-=======
-                                      int64_t* nullMaskPtr = nullptr);
-    std::tuple<GPUMemory::GPUPolygon, int32_t, int64_t*> FindComplexPolygon(std::string colName);
-    std::tuple<GPUMemory::GPUString, int32_t, int64_t*> FindStringColumn(const std::string& colName);
-    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int64_t* newNullMask);
-    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int64_t* newNullMask);
-    NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
-    GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
->>>>>>> NullValuesApi: Continue on refator code to use 64bit nullmasks and use api
 
     template <typename T>
     InstructionStatus OrderByConst();
@@ -1335,7 +1322,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
                                                                   const std::string& reg,
                                                                   int32_t size,
                                                                   bool useCache,
-                                                                  int8_t* nullMaskPtr);
+                                                                  int64_t* nullMaskPtr);
 
 template <>
 void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
@@ -1343,7 +1330,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPo
     const std::string& reg,
     int32_t size,
     bool useCache,
-    int8_t* nullMaskPtr);
+    int64_t* nullMaskPtr);
 
 template <>
 GpuSqlDispatcher::CompositeDataType<std::string>

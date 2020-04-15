@@ -659,10 +659,10 @@ void TestFilterStringColCol(std::vector<std::string> inputStringACol,
     GPUMemory::GPUString gpuStringBCol =
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
-    cuda_ptr<int64_t> gpuMask(dataElementCount);
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string*, std::string*>::Binary(gpuMask.get(), gpuStringACol,
                                                               gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount)
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
         GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
@@ -683,11 +683,11 @@ void TestFilterStringColConst(std::vector<std::string> inputStringACol,
         StringFactory::PrepareGPUString(inputStringACol.data(), inputStringACol.size());
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = inputStringACol.size();
-    cuda_ptr<int64_t> gpuMask(dataElementCount);
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string*, std::string>::Binary(gpuMask.get(), gpuStringACol,
                                                              gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
-    s GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
+    GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
 
@@ -707,10 +707,10 @@ void TestFilterStringConstCol(std::string inputStringAConst,
     GPUMemory::GPUString gpuStringBCol =
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = inputStringBCol.size();
-    cuda_ptr<int64_t> gpuMask(dataElementCount);
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string, std::string*>::Binary(gpuMask.get(), gpuStringACol,
                                                              gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);
@@ -728,10 +728,10 @@ void TestFilterStringConstConst(std::string inputStringAConst, std::string input
     GPUMemory::GPUString gpuStringACol = StringFactory::PrepareGPUString(&inputStringAConst, 1);
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = 8;
-    cuda_ptr<int64_t> gpuMask(dataElementCount);
+    cuda_ptr<int8_t> gpuMask(dataElementCount);
     GPUBinary<OP, int8_t, std::string, std::string>::Binary(gpuMask.get(), gpuStringACol,
                                                             gpuStringBCol, dataElementCount, nullptr);
-    std::unique_ptr<int64_t[]> actualMask = std::make_unique<int64_t[]>(dataElementCount);
+    std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
     GPUMemory::free(gpuStringBCol);

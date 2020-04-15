@@ -54,7 +54,7 @@ public:
     /// <param name="output">output GPU buffer</param>
     /// <param name="ACol">buffer with operands</param>
     /// <param name="dataElementCount">data element count of the input block</param>
-    static void Unary(OUT* output, IN ACol, int32_t dataElementCount, int8_t* nullBitMask = nullptr)
+    static void Unary(OUT* output, IN ACol, int32_t dataElementCount, int64_t* nullBitMask = nullptr)
     {
         kernel_arithmetic_unary<OP>
             <<<Context::getInstance().calcGridDim(dataElementCount), Context::getInstance().getBlockDim()>>>(
@@ -76,7 +76,7 @@ public:
     /// <param name="inCol">input string column (GPUString)</param>
     /// <param name="dataElementCount">input string count</param>
     static void
-    Unary(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    Unary(GPUMemory::GPUString& output, GPUMemory::GPUString inCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         output = OP{}(inCol, dataElementCount);
     }
@@ -96,7 +96,7 @@ public:
     /// <param name="output">output string column</param>
     /// <param name="inCol">input string column (GPUString)</param>
     /// <param name="dataElementCount">input string count</param>
-    static void Unary(int32_t* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(int32_t* outCol, GPUMemory::GPUString inCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         if constexpr (std::is_pointer<IN>::value)
         {
@@ -127,7 +127,7 @@ class GPUUnary<OP,
                                        std::is_same<typename std::remove_pointer<IN>::type, int64_t>::value>::type>
 {
 public:
-    static void Unary(GPUMemory::GPUString& output, IN dateTimeCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(GPUMemory::GPUString& output, IN dateTimeCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         static_assert(std::is_same<typename std::remove_pointer<IN>::type, int64_t>::value,
                       "DateTime can only be extracted from int64 columns");
@@ -210,7 +210,7 @@ class GPUUnary<OP,
                                        std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(GPUMemory::GPUString& outCol, IN inCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         GPUCast::CastNumericToString(outCol, inCol, dataElementCount);
     }
@@ -230,7 +230,7 @@ public:
     Unary(GPUMemory::GPUString& outCol,
           typename std::conditional<std::is_pointer<IN>::value, NativeGeoPoint*, NativeGeoPoint>::type inCol,
           int32_t dataElementCount,
-          int8_t* nullBitMask)
+          int64_t* nullBitMask)
     {
         GPUReconstruct::ConvertPointColToWKTCol(outCol, inCol, dataElementCount);
     }
@@ -247,7 +247,7 @@ class GPUUnary<OP,
 {
 public:
     static void
-    Unary(GPUMemory::GPUString& outCol, GPUMemory::GPUPolygon inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    Unary(GPUMemory::GPUString& outCol, GPUMemory::GPUPolygon inCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         GPUReconstruct::ConvertPolyColToWKTCol(outCol, inCol, dataElementCount);
     }
@@ -263,7 +263,7 @@ class GPUUnary<OP,
                                        std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(OUT* outCol, IN inCol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(OUT* outCol, IN inCol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         kernel_cast_numeric<<<Context::getInstance().calcGridDim(dataElementCount),
                               Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
@@ -286,7 +286,7 @@ public:
     Unary(typename std::conditional<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value, NativeGeoPoint*, OUT*>::type outCol,
           GPUMemory::GPUString inCol,
           int32_t dataElementCount,
-          int8_t* nullBitMask)
+          int64_t* nullBitMask)
     {
         kernel_cast_string<<<Context::getInstance().calcGridDim(dataElementCount),
                              Context::getInstance().getBlockDim()>>>(outCol, inCol, dataElementCount);
@@ -305,7 +305,7 @@ class GPUUnary<OP,
                                        std::is_arithmetic<typename std::remove_pointer<IN>::type>::value>::type>
 {
 public:
-    static void Unary(int8_t* outCol, IN ACol, int32_t dataElementCount, int8_t* nullBitMask)
+    static void Unary(int8_t* outCol, IN ACol, int32_t dataElementCount, int64_t* nullBitMask)
     {
         kernel_operator_not<<<Context::getInstance().calcGridDim(dataElementCount),
                               Context::getInstance().getBlockDim()>>>(outCol, ACol, nullBitMask, dataElementCount);

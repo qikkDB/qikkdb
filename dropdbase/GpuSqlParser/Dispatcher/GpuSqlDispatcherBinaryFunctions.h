@@ -55,23 +55,23 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
             {
                 if (result.NullMaskPtr)
                 {
-                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
                     if (left.DataAllocation.GpuNullMaskPtr && right.DataAllocation.GpuNullMaskPtr)
                     {
-                        GPUBinary<ArithmeticOperations::bitwiseOr, int8_t, int8_t*, int8_t*>::Binary(
-                            result.NullMaskPtr, reinterpret_cast<int8_t*>(left.DataAllocation.GpuNullMaskPtr),
-                            reinterpret_cast<int8_t*>(right.DataAllocation.GpuNullMaskPtr), bitMaskSize);
+                        GPUBinary<ArithmeticOperations::bitwiseOr, int64_t, int64_t*, int64_t*>::Binary(
+                            result.NullMaskPtr, reinterpret_cast<int64_t*>(left.DataAllocation.GpuNullMaskPtr),
+                            reinterpret_cast<int64_t*>(right.DataAllocation.GpuNullMaskPtr), bitMaskSize);
                     }
                     else if (left.DataAllocation.GpuNullMaskPtr)
                     {
                         GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
-                                                      reinterpret_cast<int8_t*>(left.DataAllocation.GpuNullMaskPtr),
+                                                      reinterpret_cast<int64_t*>(left.DataAllocation.GpuNullMaskPtr),
                                                       bitMaskSize);
                     }
                     else if (right.DataAllocation.GpuNullMaskPtr)
                     {
                         GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
-                                                      reinterpret_cast<int8_t*>(right.DataAllocation.GpuNullMaskPtr),
+                                                      reinterpret_cast<int64_t*>(right.DataAllocation.GpuNullMaskPtr),
                                                       bitMaskSize);
                     }
                 }
@@ -110,9 +110,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
             {
                 if (result.NullMaskPtr)
                 {
-                    const int32_t bitMaskSize = ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                    const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
                     GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
-                                                  reinterpret_cast<int8_t*>(col.DataAllocation.GpuNullMaskPtr),
+                                                  reinterpret_cast<int64_t*>(col.DataAllocation.GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
                 GPUBinary<OP, ResultType, L, R>::Binary(result.Data, left.Data, right.Data, retSize,

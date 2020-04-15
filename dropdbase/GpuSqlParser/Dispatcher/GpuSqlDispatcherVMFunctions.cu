@@ -749,6 +749,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
                 nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
             else
+            {
                 GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr,
                                                      reinterpret_cast<int8_t*>(filter_), col.ElementCount);
             }
@@ -1086,7 +1087,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                        const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                        int32_t size,
                                        bool useCache,
-                                       int8_t* nullMaskPtr)
+                                       int64_t* nullMaskPtr)
 {
     if (useCache)
     {
@@ -1137,7 +1138,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
                                                     const std::string* strings,
                                                     const size_t stringCount,
                                                     bool useCache,
-                                                    int8_t* nullMaskPtr)
+                                                    int64_t* nullMaskPtr)
 {
     if (useCache)
     {

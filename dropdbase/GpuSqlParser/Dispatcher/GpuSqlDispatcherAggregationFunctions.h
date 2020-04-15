@@ -239,7 +239,7 @@ public:
                 GPUMemory::GPUString stringCol = stringColumn.GpuPtr;
                 GPUMemory::copyHostToDevice<GPUMemory::GPUString>(stringColPtr, &stringCol, 1);
                 keyPtrs.push_back(reinterpret_cast<void*>(stringColPtr));
-                keyNullMaskPtrs.push_back(reinterpret_cast<int8_t*>(stringColumn.GpuNullMaskPtr));
+                keyNullMaskPtrs.push_back(reinterpret_cast<int64_t*>(stringColumn.GpuNullMaskPtr));
                 stringKeyPtrs.push_back(stringColPtr);
 
                 minKeySize = std::min(stringColumn.ElementCount, minKeySize);

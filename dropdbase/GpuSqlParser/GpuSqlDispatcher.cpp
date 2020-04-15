@@ -988,104 +988,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
     return InstructionStatus::CONTINUE;
 }
 
-<<<<<<< HEAD
 template <>
 GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
 GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName)
-=======
-GPUMemory::GPUPolygon
-GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
-                                       const std::string& colName,
-                                       const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
-                                       int32_t size,
-                                       bool useCache,
-                                       int64_t* nullMaskPtr)
-{
-    if (useCache)
-    {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
-                                                                             blockIndex_, loadSize_, loadOffset_))
-        {
-            GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
-            GPUMemory::GPUPolygon polygon;
-            polygon.polyPoints =
-                std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints",
-                                                            blockIndex_, size, loadSize_, loadOffset_));
-            polygon.pointIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx",
-                                                     blockIndex_, size, loadSize_, loadOffset_));
-            polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
-                                                                   size, loadSize_, loadOffset_));
-
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-
-            return polygon;
-        }
-        else
-        {
-            GPUMemory::GPUPolygon polygon =
-                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName,
-                                                         blockIndex_, loadSize_, loadOffset_);
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-            return polygon;
-        }
-    }
-    else
-    {
-        GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-        FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-        return polygon;
-    }
-}
-
-GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseName,
-                                                    const std::string& colName,
-                                                    const std::string* strings,
-                                                    const size_t stringCount,
-                                                    bool useCache,
-                                                    int64_t* nullMaskPtr)
-{
-    if (useCache)
-    {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
-                                                                             blockIndex_, loadSize_, loadOffset_))
-        {
-            GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
-            GPUMemory::GPUString gpuString;
-            gpuString.stringIndices =
-                std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
-                                                     blockIndex_, stringCount, loadSize_, loadOffset_));
-            gpuString.allChars =
-                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
-                                                  stringCount, loadSize_, loadOffset_));
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-            return gpuString;
-        }
-        else
-        {
-            GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName,
-                                                blockIndex_, loadSize_, loadOffset_);
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-            return gpuString;
-        }
-    }
-    else
-    {
-        GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, stringCount);
-        FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-        return gpuString;
-    }
-}
-
-std::tuple<GPUMemory::GPUPolygon, int32_t, int64_t*> GpuSqlDispatcher::FindComplexPolygon(std::string colName)
->>>>>>> NullValuesApi: Continue on refator code to use 64bit nullmasks and use api
 {
     GPUMemory::GPUPolygon polygon;
     int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
@@ -1095,33 +1000,19 @@ std::tuple<GPUMemory::GPUPolygon, int32_t, int64_t*> GpuSqlDispatcher::FindCompl
     polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointIdx").GpuPtr);
     polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyIdx").GpuPtr);
 
-<<<<<<< HEAD
     return {polygon, size, allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr};
 }
 
 template <>
 GpuSqlDispatcher::CompositeDataTypeAllocation<std::string>
 GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string& colName)
-=======
-    return std::make_tuple(polygon, size,
-                           reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
-}
-
-std::tuple<GPUMemory::GPUString, int32_t, int64_t*> GpuSqlDispatcher::FindStringColumn(const std::string& colName)
->>>>>>> NullValuesApi: Continue on refator code to use 64bit nullmasks and use api
 {
     GPUMemory::GPUString gpuString;
     int32_t size = allocatedPointers_.at(colName + "_stringIndices").ElementCount;
     gpuString.stringIndices =
         reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + "_stringIndices").GpuPtr);
     gpuString.allChars = reinterpret_cast<char*>(allocatedPointers_.at(colName + "_allChars").GpuPtr);
-<<<<<<< HEAD
     return {gpuString, size, allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr};
-=======
-    return std::make_tuple(gpuString, size,
-                           reinterpret_cast<int64_t*>(
-                               allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
->>>>>>> NullValuesApi: Continue on refator code to use 64bit nullmasks and use api
 }
 
 void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,

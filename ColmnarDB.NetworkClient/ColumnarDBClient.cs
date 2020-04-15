@@ -292,7 +292,6 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.IntPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            //columnDatas.Add(columnData.Key, new List<int?>(columnData.Value.IntPayload.IntData.ToArray().Select((val, idx) => ValIfNotNulled<int?>(val, idx, response.NullBitMasks[columnData.Key]))));
                             Int64[] nullMask = new Int64[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<int?>(columnData.Value.IntPayload.IntData.ToArray().Select((val, idx) => ValIfNotNulled<int?>(val, idx, nullMask))));
@@ -332,7 +331,9 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.DateTimePayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            columnDatas.Add(columnData.Key, new List<DateTime?>(columnData.Value.DateTimePayload.DateTimeData.ToArray().Select((val, idx) => ValIfNotNulled<DateTime?>(DateTimeOffset.FromUnixTimeSeconds(val).UtcDateTime, idx, response.NullBitMasks[columnData.Key]))));
+                            Int64[] nullMask = new Int64[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
+                            columnDatas.Add(columnData.Key, new List<DateTime?>(columnData.Value.DateTimePayload.DateTimeData.ToArray().Select((val, idx) => ValIfNotNulled<DateTime?>(DateTimeOffset.FromUnixTimeSeconds(val).UtcDateTime, idx, nullMask))));
                         }
                         else
                         {
