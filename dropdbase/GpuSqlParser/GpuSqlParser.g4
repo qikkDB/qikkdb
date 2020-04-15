@@ -91,7 +91,7 @@ selectColumns: (
 			)*
 		)
 	);
-selectColumn: expression (AS alias)?;
+selectColumn: expression (AS alias)? (RETPAYLOAD retpayload)?;
 selectAllColumns: ASTERISK;
 whereClause: expression;
 orderByColumns: ((orderByColumn (COMMA orderByColumn)*));
@@ -141,6 +141,7 @@ columnValue: (
 		| BOOLEANLIT
 	);
 constraint: ( UNIQUE | INDEX | NOTNULL);
+retpayload: datatype;
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation
@@ -196,6 +197,10 @@ expression:
 	| op = GEO_CONTAINS LPAREN left = expression COMMA right = expression RPAREN	# binaryOperation
 	| op = GEO_INTERSECT LPAREN left = expression COMMA right = expression RPAREN	# binaryOperation
 	| op = GEO_UNION LPAREN left = expression COMMA right = expression RPAREN		# binaryOperation
+	| op = GEO_LONGITUDE_TO_TILE_X LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
+	| op = GEO_LATITUDE_TO_TILE_Y LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
+	| op = GEO_TILE_X_TO_LONGITUDE LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
+	| op = GEO_TILE_Y_TO_LATITUDE LPAREN left = expression COMMA right = expression RPAREN				# binaryOperation
 	| op = CONCAT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
 	| op = LEFT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation
 	| op = RIGHT LPAREN left = expression COMMA right = expression RPAREN			# binaryOperation

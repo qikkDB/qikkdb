@@ -6,8 +6,7 @@
 #include "gtest/gtest.h"
 #include "../dropdbase/QueryEngine/Context.h"
 #include "../dropdbase/QueryEngine/GPUCore/GPUMemory.cuh"
-#include "../dropdbase/QueryEngine/GPUCore/GPUFilter.cuh"
-#include "../dropdbase/QueryEngine/GPUCore/GPUFilterConditions.cuh"
+#include "../dropdbase/QueryEngine/GPUCore/GPUBinary.cuh"
 #include "../dropdbase/StringFactory.h"
 
 
@@ -67,8 +66,8 @@ void testColColFilter()
     // Run kernels, copy back values and compare them
 
     // Greater than
-    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputBufferA, inputBufferB, nullptr,
-                                                 DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greater, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                                 DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -83,8 +82,8 @@ void testColColFilter()
     }
 
     // Greater than equal
-    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputBufferB,
-                                                      nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greaterEqual, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                                      DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -99,7 +98,8 @@ void testColColFilter()
     }
 
     // Less than
-    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::less, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                              DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -114,8 +114,9 @@ void testColColFilter()
     }
 
     // Less than equal
-    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputBufferB,
-                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::lessEqual, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                                   DATA_ELEMENT_COUNT, nullptr);
+
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -130,7 +131,9 @@ void testColColFilter()
     }
 
     // Equal
-    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputBufferA, inputBufferB, nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::equal, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                               DATA_ELEMENT_COUNT, nullptr);
+
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -145,8 +148,8 @@ void testColColFilter()
     }
 
     // Non equal
-    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputBufferB, nullptr,
-                                                  DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::notEqual, int8_t, T*, T*>::Binary(outputBuffer, inputBufferA, inputBufferB,
+                                                                  DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -227,8 +230,8 @@ void testColConstFilter()
     // Run kernels, copy back values and compare them
 
     // Greater than
-    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputBufferA, inputDataBConstant,
-                                                 nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greater, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                                DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -243,8 +246,8 @@ void testColConstFilter()
     }
 
     // Greater than equal
-    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputBufferA, inputDataBConstant,
-                                                      nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greaterEqual, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                                     DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -259,8 +262,8 @@ void testColConstFilter()
     }
 
     // Less than
-    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputBufferA, inputDataBConstant,
-                                              nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::less, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                             DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -275,8 +278,8 @@ void testColConstFilter()
     }
 
     // Less than equal
-    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputBufferA, inputDataBConstant,
-                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::lessEqual, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                                  DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -291,8 +294,8 @@ void testColConstFilter()
     }
 
     // Equal
-    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputBufferA, inputDataBConstant,
-                                               nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::equal, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                              DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -307,8 +310,8 @@ void testColConstFilter()
     }
 
     // Non equal
-    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputBufferA, inputDataBConstant,
-                                                  nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::notEqual, int8_t, T*, T>::Binary(outputBuffer, inputBufferA, inputDataBConstant,
+                                                                 DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -387,8 +390,8 @@ void testConstColFilter()
     // Run kernels, copy back values and compare them
 
     // Greater than
-    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputDataBConstant, inputBufferA,
-                                                 nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greater, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant,
+                                                                inputBufferA, DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -403,8 +406,8 @@ void testConstColFilter()
     }
 
     // Greater than equal
-    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputDataBConstant,
-                                                      inputBufferA, nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::greaterEqual, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant, inputBufferA,
+                                                                     DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -419,8 +422,8 @@ void testConstColFilter()
     }
 
     // Less than
-    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputDataBConstant, inputBufferA,
-                                              nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::less, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant,
+                                                             inputBufferA, DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -435,8 +438,8 @@ void testConstColFilter()
     }
 
     // Less than equal
-    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputDataBConstant, inputBufferA,
-                                                   nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::lessEqual, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant,
+                                                                  inputBufferA, DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -451,8 +454,8 @@ void testConstColFilter()
     }
 
     // Equal
-    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputDataBConstant, inputBufferA,
-                                               nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::equal, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant,
+                                                              inputBufferA, DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -467,8 +470,8 @@ void testConstColFilter()
     }
 
     // Non equal
-    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputDataBConstant, inputBufferA,
-                                                  nullptr, DATA_ELEMENT_COUNT);
+    GPUBinary<FilterConditions::notEqual, int8_t, T, T*>::Binary(outputBuffer, inputDataBConstant,
+                                                                 inputBufferA, DATA_ELEMENT_COUNT, nullptr);
     GPUMemory::copyDeviceToHost(outputData.get(), outputBuffer, DATA_ELEMENT_COUNT);
     for (int i = 0; i < DATA_ELEMENT_COUNT; i++)
     {
@@ -538,8 +541,8 @@ void testConstConstFilter()
     // Run kernels, copy back values and compare them
 
     // Greater than
-    GPUFilter::Filter<FilterConditions::greater>(outputBuffer, inputDataAConstant,
-                                                 inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::greater, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                               inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -553,8 +556,8 @@ void testConstConstFilter()
 
 
     // Greater than equal
-    GPUFilter::Filter<FilterConditions::greaterEqual>(outputBuffer, inputDataAConstant,
-                                                      inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::greaterEqual, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                                    inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -568,7 +571,8 @@ void testConstConstFilter()
 
 
     // Less than
-    GPUFilter::Filter<FilterConditions::less>(outputBuffer, inputDataAConstant, inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::less, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                            inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -582,8 +586,8 @@ void testConstConstFilter()
 
 
     // Less than equal
-    GPUFilter::Filter<FilterConditions::lessEqual>(outputBuffer, inputDataAConstant,
-                                                   inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::lessEqual, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                                 inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -597,7 +601,8 @@ void testConstConstFilter()
 
 
     // Equal
-    GPUFilter::Filter<FilterConditions::equal>(outputBuffer, inputDataAConstant, inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::equal, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                             inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -611,8 +616,8 @@ void testConstConstFilter()
 
 
     // Non equal
-    GPUFilter::Filter<FilterConditions::notEqual>(outputBuffer, inputDataAConstant,
-                                                  inputDataBConstant, nullptr, 1);
+    GPUBinary<FilterConditions::notEqual, int8_t, T, T>::Binary(outputBuffer, inputDataAConstant,
+                                                                inputDataBConstant, 1, nullptr);
     GPUMemory::copyDeviceToHost(&outputData, outputBuffer, 1);
 
     if (std::is_integral<T>::value)
@@ -655,7 +660,8 @@ void TestFilterStringColCol(std::vector<std::string> inputStringACol,
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = std::min(inputStringACol.size(), inputStringBCol.size());
     cuda_ptr<int8_t> gpuMask(dataElementCount);
-    GPUFilter::colCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    GPUBinary<OP, int8_t, std::string*, std::string*>::Binary(gpuMask.get(), gpuStringACol,
+                                                              gpuStringBCol, dataElementCount, nullptr);
     std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
@@ -678,7 +684,8 @@ void TestFilterStringColConst(std::vector<std::string> inputStringACol,
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = inputStringACol.size();
     cuda_ptr<int8_t> gpuMask(dataElementCount);
-    GPUFilter::colConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    GPUBinary<OP, int8_t, std::string*, std::string>::Binary(gpuMask.get(), gpuStringACol,
+                                                             gpuStringBCol, dataElementCount, nullptr);
     std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
@@ -701,7 +708,8 @@ void TestFilterStringConstCol(std::string inputStringAConst,
         StringFactory::PrepareGPUString(inputStringBCol.data(), inputStringBCol.size());
     int32_t dataElementCount = inputStringBCol.size();
     cuda_ptr<int8_t> gpuMask(dataElementCount);
-    GPUFilter::constCol<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, nullptr, dataElementCount);
+    GPUBinary<OP, int8_t, std::string, std::string*>::Binary(gpuMask.get(), gpuStringACol,
+                                                             gpuStringBCol, dataElementCount, nullptr);
     std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);
@@ -721,7 +729,8 @@ void TestFilterStringConstConst(std::string inputStringAConst, std::string input
     GPUMemory::GPUString gpuStringBCol = StringFactory::PrepareGPUString(&inputStringBConst, 1);
     int32_t dataElementCount = 8;
     cuda_ptr<int8_t> gpuMask(dataElementCount);
-    GPUFilter::constConst<OP>(gpuMask.get(), gpuStringACol, gpuStringBCol, dataElementCount);
+    GPUBinary<OP, int8_t, std::string, std::string>::Binary(gpuMask.get(), gpuStringACol,
+                                                            gpuStringBCol, dataElementCount, nullptr);
     std::unique_ptr<int8_t[]> actualMask = std::make_unique<int8_t[]>(dataElementCount);
     GPUMemory::copyDeviceToHost(actualMask.get(), gpuMask.get(), dataElementCount);
     GPUMemory::free(gpuStringACol);

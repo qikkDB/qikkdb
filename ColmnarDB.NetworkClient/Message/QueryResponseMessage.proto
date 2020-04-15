@@ -12,6 +12,10 @@ message QueryResponseInt64Payload {
     repeated int64 int64Data = 1;
 }
 
+message QueryResponseDateTimePayload {
+    repeated int64 dateTimeData = 1;
+}
+
 message QueryResponseFloatPayload {
     repeated float floatData = 1;
 }
@@ -41,6 +45,7 @@ message QueryResponsePayload {
         QueryResponsePointPayload pointPayload = 6;
         QueryResponsePolygonPayload polygonPayload = 7;
         QueryResponseStringPayload stringPayload = 8;
+        QueryResponseDateTimePayload dateTimePayload = 9;
     }
 }
 

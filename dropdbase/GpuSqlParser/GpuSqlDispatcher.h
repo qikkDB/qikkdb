@@ -69,10 +69,32 @@ class GpuSqlDispatcher
 private:
     struct PointerAllocation
     {
-        std::uintptr_t GpuPtr;
-        int32_t ElementCount;
-        bool ShouldBeFreed;
-        std::uintptr_t GpuNullMaskPtr;
+        std::uintptr_t GpuPtr = 0;
+        int32_t ElementCount = 0;
+        bool ShouldBeFreed = false;
+        std::uintptr_t GpuNullMaskPtr = 0;
+    };
+
+    template <typename T>
+    using AllocatedDataType =
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value,
+                                  typename std::conditional<std::is_pointer<T>::value, NativeGeoPoint*, NativeGeoPoint>::type,
+                                  T>::type;
+
+
+    template <typename T>
+    using CompositeDataType = typename std::conditional<
+        std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
+        GPUMemory::GPUString,
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value, GPUMemory::GPUPolygon, void>::type>::type;
+
+
+    template <typename T>
+    struct CompositeDataTypeAllocation
+    {
+        CompositeDataType<T> GpuPtr{};
+        int32_t ElementCount = 0;
+        std::uintptr_t GpuNullMaskPtr = 0;
     };
 
     enum class InstructionStatus
@@ -89,6 +111,30 @@ private:
     static const std::string RECONSTRUCTED_SUFFIX;
 
     typedef InstructionStatus (GpuSqlDispatcher::*DispatchFunction)();
+
+    template <typename T>
+    static constexpr bool isCompositeDataType =
+        std::is_same<typename std::remove_pointer<T>::type, std::string>::value ||
+        std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value;
+
+    template <typename T>
+    struct InstructionArgument
+    {
+        typename std::conditional<isCompositeDataType<T>, CompositeDataType<typename std::remove_pointer<T>::type>, AllocatedDataType<T>>::type Data;
+        typename std::conditional<isCompositeDataType<T>, CompositeDataTypeAllocation<typename std::remove_pointer<T>::type>, PointerAllocation>::type DataAllocation;
+        InstructionStatus LoadStatus;
+        std::string Name;
+    };
+
+    template <typename T>
+    struct InstructionResult
+    {
+        typename std::conditional<isCompositeDataType<T>,
+                                  CompositeDataType<typename std::remove_pointer<T>::type>,
+                                  typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type>::type Data;
+        int8_t* NullMaskPtr;
+    };
+
     std::vector<DispatchFunction> dispatcherFunctions_;
     MemoryStream arguments_;
     int32_t blockIndex_;
@@ -111,6 +157,7 @@ private:
     std::uintptr_t filter_;
     bool insideAggregation_;
     bool insideGroupBy_;
+    bool insideWhere_;
     bool usingGroupBy_;
     bool usingOrderBy_;
     bool usingJoin_;
@@ -166,6 +213,10 @@ private:
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> concatFunctions;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> powerFunctions_;
     static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> rootFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLongitudeToTileXFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoLatitudeToTileYFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileXToLongitudeFunctions_;
+    static std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> geoTileYToLatitudeFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> pointFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> containsFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE * DataType::DATA_TYPE_SIZE> intersectFunctions_;
@@ -276,26 +327,32 @@ private:
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int8_t[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int64_t[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<float[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<double[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
 
     void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<std::string[]>& data,
-                           int32_t dataSize);
+                           const int32_t dataSize,
+                           const PayloadType payloadType);
 
     static void ShiftNullMaskLeft(std::vector<int8_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
@@ -550,6 +607,14 @@ public:
 
     void AddRootFunction(DataType base, DataType exponent);
 
+    void AddGeoLongitudeToTileXFunction(DataType longitude, DataType zoom);
+
+    void AddGeoLatitudeToTileYFunction(DataType latitude, DataType zoom);
+
+    void AddGeoTileXToLongitudeFunction(DataType tileX, DataType zoom);
+
+    void AddGeoTileYToLatitudeFunction(DataType tileY, DataType zoom);
+
     void AddMinFunction(DataType key, DataType value, GroupByType groupByType);
 
     void AddMaxFunction(DataType key, DataType value, GroupByType groupByType);
@@ -649,20 +714,15 @@ public:
         return gpuRegister;
     }
 
-    void FillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
-                             const std::string& reg,
-                             int32_t size,
-                             bool useCache = false,
-                             int8_t* nullMaskPtr = nullptr);
+    template <typename T>
+    void FillCompositeDataTypeRegister(CompositeDataType<T> column,
+                                       const std::string& reg,
+                                       int32_t size,
+                                       bool useCache = false,
+                                       int8_t* nullMaskPtr = nullptr);
 
     /// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
     void InsertRegister(const std::string& registerName, PointerAllocation registerValues);
-
-    void FillStringRegister(GPUMemory::GPUString& stringColumn,
-                            const std::string& reg,
-                            int32_t size,
-                            bool useCache = false,
-                            int8_t* nullMaskPtr = nullptr);
 
     template <typename T>
     void AddCachedRegister(const std::string& reg, T* ptr, int32_t size, int8_t* nullMaskPtr = nullptr)
@@ -670,6 +730,245 @@ public:
         InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(ptr), size, false,
                                               reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
     }
+
+    template <typename T, class Enable = void>
+    class DispatcherInstructionHelper
+    {
+    public:
+        static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
+        {
+            PointerAllocation column = {0, 0, false, 0};
+
+            if constexpr (std::is_pointer<T>::value)
+            {
+                auto colName = dispatcher.arguments_.Read<std::string>();
+                GpuSqlDispatcher::InstructionStatus loadFlag =
+                    dispatcher.LoadCol<typename std::remove_pointer<T>::type>(colName);
+
+                if (loadFlag != InstructionStatus::CONTINUE)
+                {
+                    return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
+                }
+
+                if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                 StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
+                    !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
+                {
+                    if (dispatcher.isOverallLastBlock_)
+                    {
+                        column = dispatcher.allocatedPointers_.at(colName + KEYS_SUFFIX);
+                    }
+                }
+                else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
+                {
+                    column = dispatcher.allocatedPointers_.at(colName);
+                }
+
+                return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
+            }
+            else
+            {
+                return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column,
+                        InstructionStatus::CONTINUE, ""};
+            }
+        }
+
+        static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
+                                                              const std::string& reg,
+                                                              int32_t retSize,
+                                                              bool allocateNullMask,
+                                                              const std::vector<std::string>& instructionOperandColumns)
+        {
+            AllocatedDataType<T>* result = nullptr;
+            int8_t* nullMask = nullptr;
+
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    result = allocateNullMask ?
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg + KEYS_SUFFIX,
+                                                                                   retSize, &nullMask) :
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg + KEYS_SUFFIX, retSize);
+
+                    dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    result = allocateNullMask ?
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg, retSize, &nullMask) :
+                                 dispatcher.AllocateRegister<AllocatedDataType<T>>(reg, retSize);
+                }
+            }
+            return {result, nullMask};
+        }
+
+        static void StoreInstructionResult(InstructionResult<T> instructionResult,
+                                           GpuSqlDispatcher& dispatcher,
+                                           const std::string& reg,
+                                           int32_t retSize,
+                                           bool allocateNullMask,
+                                           const std::vector<std::string>& instructionOperandColumns)
+        {
+            // No explicit result storage required for primitive types
+        }
+    };
+
+    template <typename T>
+    class DispatcherInstructionHelper<T, typename std::enable_if<isCompositeDataType<T>>::type>
+    {
+    public:
+        static InstructionArgument<T> LoadInstructionArgument(GpuSqlDispatcher& dispatcher)
+        {
+            CompositeDataTypeAllocation<typename std::remove_pointer<T>::type> column;
+
+            if constexpr (std::is_pointer<T>::value)
+            {
+                auto colName = dispatcher.arguments_.Read<std::string>();
+                GpuSqlDispatcher::InstructionStatus loadFlag =
+                    dispatcher.LoadCol<typename std::remove_pointer<T>::type>(colName);
+
+                if (loadFlag != InstructionStatus::CONTINUE)
+                {
+                    return {column.GpuPtr, column, loadFlag, colName};
+                }
+
+                if (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                 StringDataTypeComp(colName)) != dispatcher.groupByColumns_.end() &&
+                    !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
+                {
+                    if (dispatcher.isOverallLastBlock_)
+                    {
+                        column =
+                            dispatcher.FindCompositeDataTypeAllocation<typename std::remove_pointer<T>::type>(
+                                colName + KEYS_SUFFIX);
+                    }
+                }
+                else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                         dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
+                {
+                    column =
+                        dispatcher.FindCompositeDataTypeAllocation<typename std::remove_pointer<T>::type>(colName);
+                }
+
+                return {column.GpuPtr, column, loadFlag, colName};
+            }
+            else
+            {
+                const std::string cnst = dispatcher.arguments_.Read<std::string>();
+                const int32_t retSize = dispatcher.GetBlockSize();
+                if (retSize == 0)
+                {
+                    return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
+                }
+
+                CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
+                column = {gpuComposite, 0, 0};
+                return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
+            }
+        }
+
+        static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
+                                                              const std::string& reg,
+                                                              int32_t retSize,
+                                                              bool allocateNullMask,
+                                                              const std::vector<std::string>& instructionOperandColumns)
+        {
+            CompositeDataType<typename std::remove_pointer<T>::type> result;
+            int8_t* nullMask = nullptr;
+
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    if (allocateNullMask)
+                    {
+                        const int32_t bitMaskSize =
+                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                    }
+                    dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    if (allocateNullMask)
+                    {
+                        const int32_t bitMaskSize =
+                            ((retSize + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                        nullMask = dispatcher.AllocateRegister<int8_t>(reg + NULL_SUFFIX, bitMaskSize);
+                    }
+                }
+            }
+            return {result, nullMask};
+        }
+
+        static void StoreInstructionResult(InstructionResult<T> instructionResult,
+                                           GpuSqlDispatcher& dispatcher,
+                                           const std::string& reg,
+                                           int32_t retSize,
+                                           bool allocateNullMask,
+                                           const std::vector<std::string>& instructionOperandColumns)
+        {
+            bool areGroupByColumns = false;
+
+            for (auto& operandColumn : instructionOperandColumns)
+            {
+                areGroupByColumns =
+                    areGroupByColumns ||
+                    (std::find_if(dispatcher.groupByColumns_.begin(), dispatcher.groupByColumns_.end(),
+                                  StringDataTypeComp(operandColumn)) != dispatcher.groupByColumns_.end());
+            }
+
+            if (areGroupByColumns && !dispatcher.insideAggregation_ && !dispatcher.insideWhere_)
+            {
+                if (dispatcher.isOverallLastBlock_)
+                {
+                    dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
+                        instructionResult.Data, reg + KEYS_SUFFIX, retSize, true,
+                        allocateNullMask ? instructionResult.NullMaskPtr : nullptr);
+                }
+            }
+            else if (dispatcher.isOverallLastBlock_ || !dispatcher.usingGroupBy_ ||
+                     dispatcher.insideGroupBy_ || dispatcher.insideAggregation_ || dispatcher.insideWhere_)
+            {
+                if (!dispatcher.IsRegisterAllocated(reg))
+                {
+                    dispatcher.FillCompositeDataTypeRegister<typename std::remove_pointer<T>::type>(
+                        instructionResult.Data, reg, retSize, true,
+                        allocateNullMask ? instructionResult.NullMaskPtr : nullptr);
+                }
+            }
+        }
+    };
 
     template <typename T>
     InstructionStatus LoadCol(std::string& colName);
@@ -725,13 +1024,13 @@ public:
                                       size_t size,
                                       bool useCache = false,
                                       int8_t* nullMaskPtr = nullptr);
-    std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> FindComplexPolygon(std::string colName);
-    std::tuple<GPUMemory::GPUString, int32_t, int8_t*> FindStringColumn(const std::string& colName);
+    template <typename T>
+    CompositeDataTypeAllocation<T> FindCompositeDataTypeAllocation(const std::string& colName);
     void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int8_t* newNullMask);
     void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int8_t* newNullMask);
-    NativeGeoPoint* InsertConstPointGpu(ColmnarDB::Types::Point& point);
-    GPUMemory::GPUPolygon InsertConstPolygonGpu(ColmnarDB::Types::ComplexPolygon& polygon);
-    GPUMemory::GPUString InsertConstStringGpu(const std::string& str, size_t size = 1);
+
+    template <typename T>
+    CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
 
     template <typename T>
     InstructionStatus OrderByConst();
@@ -802,98 +1101,11 @@ public:
 
     void CleanUpGpuPointers();
 
-
-    //// FILTERS WITH FUNCTORS
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus FilterConstConst();
-
-    template <typename OP>
-    InstructionStatus FilterStringColConst();
-
-    template <typename OP>
-    InstructionStatus FilterStringConstCol();
-
-    template <typename OP>
-    InstructionStatus FilterStringColCol();
-
-    template <typename OP>
-    InstructionStatus FilterStringConstConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus LogicalConstConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus ArithmeticConstConst();
+    template <typename OP, typename L, typename R>
+    InstructionStatus Binary();
 
     template <typename OP, typename T>
-    InstructionStatus ArithmeticUnaryCol();
-
-    template <typename OP, typename T>
-    InstructionStatus ArithmeticUnaryConst();
-
-    template <typename OP>
-    InstructionStatus StringUnaryCol();
-
-    template <typename OP>
-    InstructionStatus StringUnaryConst();
-
-    template <typename OP>
-    InstructionStatus StringUnaryNumericCol();
-
-    template <typename OP>
-    InstructionStatus StringUnaryNumericConst();
-
-    template <typename OP>
-    InstructionStatus StringBinaryColCol();
-
-    template <typename OP>
-    InstructionStatus StringBinaryColConst();
-
-    template <typename OP>
-    InstructionStatus StringBinaryConstCol();
-
-    template <typename OP>
-    InstructionStatus StringBinaryConstConst();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericColCol();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericColConst();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericConstCol();
-
-    template <typename OP, typename T>
-    InstructionStatus StringBinaryNumericConstConst();
+    InstructionStatus Unary();
 
     template <typename OP, typename R, typename T, typename U>
     InstructionStatus AggregationGroupBy();
@@ -904,91 +1116,10 @@ public:
     template <typename OP, typename T, typename U>
     InstructionStatus AggregationConst();
 
-    ////
-
-    // point from columns
-
-    template <typename T, typename U>
-    InstructionStatus PointColCol();
-
-    template <typename T, typename U>
-    InstructionStatus PointColConst();
-
-    template <typename T, typename U>
-    InstructionStatus PointConstCol();
-
-    // contains
-
-    template <typename T, typename U>
-    InstructionStatus ContainsColConst();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsConstCol();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsColCol();
-
-    template <typename T, typename U>
-    InstructionStatus ContainsConstConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationColConst();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationConstCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationColCol();
-
-    template <typename OP, typename T, typename U>
-    InstructionStatus PolygonOperationConstConst();
-
-    template <typename OUT, typename IN>
-    InstructionStatus CastNumericCol();
-
-    template <typename OUT, typename IN>
-    InstructionStatus CastNumericConst();
-
-    template <typename IN>
-    InstructionStatus CastNumericToStringCol();
-
-    template <typename IN>
-    InstructionStatus CastNumericToStringConst();
-
-    template <typename OUT>
-    InstructionStatus CastStringCol();
-
-    template <typename OUT>
-    InstructionStatus CastStringConst();
-
-    InstructionStatus CastPointCol();
-
-    InstructionStatus CastPointConst();
-
-    InstructionStatus CastPolygonCol();
-
-    InstructionStatus CastPolygonConst();
-
     InstructionStatus Between();
-
-    template <typename T>
-    InstructionStatus LogicalNotCol();
-
-    template <typename T>
-    InstructionStatus LogicalNotConst();
 
     template <typename OP>
     InstructionStatus NullMaskCol();
-
-    InstructionStatus DateToStringCol();
-
-    InstructionStatus DateToStringConst();
-
-    template <typename OP>
-    InstructionStatus DateExtractCol();
-
-    template <typename OP>
-    InstructionStatus DateExtractConst();
 
     template <typename T>
     InstructionStatus GroupByCol();
@@ -1177,3 +1308,35 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 template <>
 GpuSqlDispatcher::InstructionStatus
 GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
+
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<std::string>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string& colName);
+
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName);
+
+template <>
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatcher::CompositeDataType<std::string> column,
+                                                                  const std::string& reg,
+                                                                  int32_t size,
+                                                                  bool useCache,
+                                                                  int8_t* nullMaskPtr);
+
+template <>
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
+    GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon> column,
+    const std::string& reg,
+    int32_t size,
+    bool useCache,
+    int8_t* nullMaskPtr);
+
+template <>
+GpuSqlDispatcher::CompositeDataType<std::string>
+GpuSqlDispatcher::InsertConstCompositeDataType<std::string>(const std::string& str, size_t size);
+
+template <>
+GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(const std::string& str,
+                                                                                 size_t size);

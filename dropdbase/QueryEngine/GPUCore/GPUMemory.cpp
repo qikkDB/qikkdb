@@ -16,7 +16,7 @@ void GPUMemory::clear()
 
 void GPUMemory::free(void* p_block)
 {
-    Context::getInstance().GetAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
+    Context::getInstance().GetAllocatorForCurrentDevice().Deallocate(static_cast<int8_t*>(p_block));
     CheckCudaError(cudaGetLastError());
 }
 

@@ -1,5 +1,5 @@
 
-// Generated from C:/Users/DavidKubikInstarea/Desktop/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.8
+// Generated from C:/GPU-DB/dropdbase/GpuSqlParser\GpuSqlParser.g4 by ANTLR 4.8
 
 #pragma once
 
@@ -34,14 +34,15 @@ public:
     ATAN2 = 106, LOG10 = 107, LOG = 108, EXP = 109, POW = 110, SQRT = 111, 
     SQUARE = 112, SIGN = 113, ROOT = 114, ROUND = 115, CEIL = 116, FLOOR = 117, 
     LTRIM = 118, RTRIM = 119, LOWER = 120, UPPER = 121, REVERSE = 122, LEN = 123, 
-    LEFT = 124, RIGHT = 125, CONCAT = 126, CAST = 127, GEO_CONTAINS = 128, 
-    GEO_INTERSECT = 129, GEO_UNION = 130, PLUS = 131, MINUS = 132, ASTERISK = 133, 
-    DIVISION = 134, MODULO = 135, XOR = 136, EQUALS = 137, NOTEQUALS = 138, 
-    NOTEQUALS_GT_LT = 139, LPAREN = 140, RPAREN = 141, GREATER = 142, LESS = 143, 
-    GREATEREQ = 144, LESSEQ = 145, LOGICAL_NOT = 146, OR = 147, AND = 148, 
-    BIT_OR = 149, BIT_AND = 150, L_SHIFT = 151, R_SHIFT = 152, BOOLEANLIT = 153, 
-    TRUE = 154, FALSE = 155, FLOATLIT = 156, INTLIT = 157, NULLLIT = 158, 
-    ID = 159
+    LEFT = 124, RIGHT = 125, CONCAT = 126, CAST = 127, RETPAYLOAD = 128, 
+    GEO_CONTAINS = 129, GEO_INTERSECT = 130, GEO_UNION = 131, GEO_LONGITUDE_TO_TILE_X = 132, 
+    GEO_LATITUDE_TO_TILE_Y = 133, GEO_TILE_X_TO_LONGITUDE = 134, GEO_TILE_Y_TO_LATITUDE = 135, 
+    PLUS = 136, MINUS = 137, ASTERISK = 138, DIVISION = 139, MODULO = 140, 
+    XOR = 141, EQUALS = 142, NOTEQUALS = 143, NOTEQUALS_GT_LT = 144, LPAREN = 145, 
+    RPAREN = 146, GREATER = 147, LESS = 148, GREATEREQ = 149, LESSEQ = 150, 
+    LOGICAL_NOT = 151, OR = 152, AND = 153, BIT_OR = 154, BIT_AND = 155, 
+    L_SHIFT = 156, R_SHIFT = 157, BOOLEANLIT = 158, TRUE = 159, FALSE = 160, 
+    FLOATLIT = 161, INTLIT = 162, NULLLIT = 163, ID = 164
   };
 
   enum {
@@ -65,11 +66,11 @@ public:
     RuleFromTable = 56, RuleColumnId = 57, RuleTable = 58, RuleColumn = 59, 
     RuleDatabase = 60, RuleAlias = 61, RuleIndexName = 62, RuleConstraintName = 63, 
     RuleLimit = 64, RuleOffset = 65, RuleBlockSize = 66, RuleColumnValue = 67, 
-    RuleConstraint = 68, RuleExpression = 69, RuleDatatype = 70, RuleGeometry = 71, 
-    RulePointGeometry = 72, RuleLineStringGeometry = 73, RulePolygonGeometry = 74, 
-    RuleMultiPointGeometry = 75, RuleMultiLineStringGeometry = 76, RuleMultiPolygonGeometry = 77, 
-    RulePointOrClosedPoint = 78, RulePolygon = 79, RuleLineString = 80, 
-    RulePoint = 81
+    RuleConstraint = 68, RuleRetpayload = 69, RuleExpression = 70, RuleDatatype = 71, 
+    RuleGeometry = 72, RulePointGeometry = 73, RuleLineStringGeometry = 74, 
+    RulePolygonGeometry = 75, RuleMultiPointGeometry = 76, RuleMultiLineStringGeometry = 77, 
+    RuleMultiPolygonGeometry = 78, RulePointOrClosedPoint = 79, RulePolygon = 80, 
+    RuleLineString = 81, RulePoint = 82
   };
 
   GpuSqlParser(antlr4::TokenStream *input);
@@ -151,6 +152,7 @@ public:
   class BlockSizeContext;
   class ColumnValueContext;
   class ConstraintContext;
+  class RetpayloadContext;
   class ExpressionContext;
   class DatatypeContext;
   class GeometryContext;
@@ -786,6 +788,8 @@ public:
     ExpressionContext *expression();
     antlr4::tree::TerminalNode *AS();
     AliasContext *alias();
+    antlr4::tree::TerminalNode *RETPAYLOAD();
+    RetpayloadContext *retpayload();
 
     virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
     virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
@@ -1256,6 +1260,19 @@ public:
 
   ConstraintContext* constraint();
 
+  class  RetpayloadContext : public antlr4::ParserRuleContext {
+  public:
+    RetpayloadContext(antlr4::ParserRuleContext *parent, size_t invokingState);
+    virtual size_t getRuleIndex() const override;
+    DatatypeContext *datatype();
+
+    virtual void enterRule(antlr4::tree::ParseTreeListener *listener) override;
+    virtual void exitRule(antlr4::tree::ParseTreeListener *listener) override;
+   
+  };
+
+  RetpayloadContext* retpayload();
+
   class  ExpressionContext : public antlr4::ParserRuleContext {
   public:
     ExpressionContext(antlr4::ParserRuleContext *parent, size_t invokingState);
@@ -1382,6 +1399,10 @@ public:
     antlr4::tree::TerminalNode *GEO_CONTAINS();
     antlr4::tree::TerminalNode *GEO_INTERSECT();
     antlr4::tree::TerminalNode *GEO_UNION();
+    antlr4::tree::TerminalNode *GEO_LONGITUDE_TO_TILE_X();
+    antlr4::tree::TerminalNode *GEO_LATITUDE_TO_TILE_Y();
+    antlr4::tree::TerminalNode *GEO_TILE_X_TO_LONGITUDE();
+    antlr4::tree::TerminalNode *GEO_TILE_Y_TO_LATITUDE();
     antlr4::tree::TerminalNode *CONCAT();
     antlr4::tree::TerminalNode *LEFT();
     antlr4::tree::TerminalNode *RIGHT();

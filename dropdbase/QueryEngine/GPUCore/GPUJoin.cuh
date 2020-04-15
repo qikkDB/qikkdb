@@ -10,7 +10,6 @@
 #include "../Context.h"
 #include "cuda_ptr.h"
 #include "GPUMemory.cuh"
-#include "GPUArithmetic.cuh"
 #include "GPUFilterConditions.cuh"
 
 #include "../../ColumnBase.h"

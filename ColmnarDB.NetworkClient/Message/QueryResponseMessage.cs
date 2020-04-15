@@ -28,50 +28,55 @@ namespace ColmnarDB.NetworkClient.Message {
             "REIuTmV0d29ya0NsaWVudC5NZXNzYWdlGhpUeXBlcy9Db21wbGV4UG9seWdv",
             "bi5wcm90bxoRVHlwZXMvUG9pbnQucHJvdG8iKgoXUXVlcnlSZXNwb25zZUlu",
             "dFBheWxvYWQSDwoHaW50RGF0YRgBIAMoBSIuChlRdWVyeVJlc3BvbnNlSW50",
-            "NjRQYXlsb2FkEhEKCWludDY0RGF0YRgBIAMoAyIuChlRdWVyeVJlc3BvbnNl",
-            "RmxvYXRQYXlsb2FkEhEKCWZsb2F0RGF0YRgBIAMoAiIwChpRdWVyeVJlc3Bv",
-            "bnNlRG91YmxlUGF5bG9hZBISCgpkb3VibGVEYXRhGAEgAygBIlMKG1F1ZXJ5",
-            "UmVzcG9uc2VQb2x5Z29uUGF5bG9hZBI0Cgtwb2x5Z29uRGF0YRgBIAMoCzIf",
-            "LkNvbG1uYXJEQi5UeXBlcy5Db21wbGV4UG9seWdvbiJGChlRdWVyeVJlc3Bv",
-            "bnNlUG9pbnRQYXlsb2FkEikKCXBvaW50RGF0YRgBIAMoCzIWLkNvbG1uYXJE",
-            "Qi5UeXBlcy5Qb2ludCIwChpRdWVyeVJlc3BvbnNlU3RyaW5nUGF5bG9hZBIS",
-            "CgpzdHJpbmdEYXRhGAEgAygJIvEEChRRdWVyeVJlc3BvbnNlUGF5bG9hZBJO",
-            "CgppbnRQYXlsb2FkGAIgASgLMjguQ29sbW5hckRCLk5ldHdvcmtDbGllbnQu",
-            "TWVzc2FnZS5RdWVyeVJlc3BvbnNlSW50UGF5bG9hZEgAElIKDGZsb2F0UGF5",
-            "bG9hZBgDIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2Uu",
-            "UXVlcnlSZXNwb25zZUZsb2F0UGF5bG9hZEgAElIKDGludDY0UGF5bG9hZBgE",
-            "IAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2UuUXVlcnlS",
-            "ZXNwb25zZUludDY0UGF5bG9hZEgAElQKDWRvdWJsZVBheWxvYWQYBSABKAsy",
-            "Oy5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9u",
-            "c2VEb3VibGVQYXlsb2FkSAASUgoMcG9pbnRQYXlsb2FkGAYgASgLMjouQ29s",
-            "bW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlUG9p",
-            "bnRQYXlsb2FkSAASVgoOcG9seWdvblBheWxvYWQYByABKAsyPC5Db2xtbmFy",
-            "REIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VQb2x5Z29u",
-            "UGF5bG9hZEgAElQKDXN0cmluZ1BheWxvYWQYCCABKAsyOy5Db2xtbmFyREIu",
-            "TmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VTdHJpbmdQYXls",
-            "b2FkSABCCQoHcGF5bG9hZCKABAoUUXVlcnlSZXNwb25zZU1lc3NhZ2USVQoI",
-            "cGF5bG9hZHMYASADKAsyQy5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNz",
-            "YWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxvYWRzRW50cnkSXQoMbnVs",
-            "bEJpdE1hc2tzGAMgAygLMkcuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVz",
-            "c2FnZS5RdWVyeVJlc3BvbnNlTWVzc2FnZS5OdWxsQml0TWFza3NFbnRyeRJR",
-            "CgZ0aW1pbmcYAiADKAsyQS5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNz",
-            "YWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlRpbWluZ0VudHJ5EhMKC2NvbHVt",
-            "bk9yZGVyGAQgAygJGmYKDVBheWxvYWRzRW50cnkSCwoDa2V5GAEgASgJEkQK",
-            "BXZhbHVlGAIgASgLMjUuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2Fn",
-            "ZS5RdWVyeVJlc3BvbnNlUGF5bG9hZDoCOAEaMwoRTnVsbEJpdE1hc2tzRW50",
-            "cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgMOgI4ARotCgtUaW1pbmdF",
-            "bnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAI6AjgBYgZwcm90bzM="));
+            "NjRQYXlsb2FkEhEKCWludDY0RGF0YRgBIAMoAyI0ChxRdWVyeVJlc3BvbnNl",
+            "RGF0ZVRpbWVQYXlsb2FkEhQKDGRhdGVUaW1lRGF0YRgBIAMoAyIuChlRdWVy",
+            "eVJlc3BvbnNlRmxvYXRQYXlsb2FkEhEKCWZsb2F0RGF0YRgBIAMoAiIwChpR",
+            "dWVyeVJlc3BvbnNlRG91YmxlUGF5bG9hZBISCgpkb3VibGVEYXRhGAEgAygB",
+            "IlMKG1F1ZXJ5UmVzcG9uc2VQb2x5Z29uUGF5bG9hZBI0Cgtwb2x5Z29uRGF0",
+            "YRgBIAMoCzIfLkNvbG1uYXJEQi5UeXBlcy5Db21wbGV4UG9seWdvbiJGChlR",
+            "dWVyeVJlc3BvbnNlUG9pbnRQYXlsb2FkEikKCXBvaW50RGF0YRgBIAMoCzIW",
+            "LkNvbG1uYXJEQi5UeXBlcy5Qb2ludCIwChpRdWVyeVJlc3BvbnNlU3RyaW5n",
+            "UGF5bG9hZBISCgpzdHJpbmdEYXRhGAEgAygJIssFChRRdWVyeVJlc3BvbnNl",
+            "UGF5bG9hZBJOCgppbnRQYXlsb2FkGAIgASgLMjguQ29sbW5hckRCLk5ldHdv",
+            "cmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlSW50UGF5bG9hZEgAElIK",
+            "DGZsb2F0UGF5bG9hZBgDIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50",
+            "Lk1lc3NhZ2UuUXVlcnlSZXNwb25zZUZsb2F0UGF5bG9hZEgAElIKDGludDY0",
+            "UGF5bG9hZBgEIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3Nh",
+            "Z2UuUXVlcnlSZXNwb25zZUludDY0UGF5bG9hZEgAElQKDWRvdWJsZVBheWxv",
+            "YWQYBSABKAsyOy5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1",
+            "ZXJ5UmVzcG9uc2VEb3VibGVQYXlsb2FkSAASUgoMcG9pbnRQYXlsb2FkGAYg",
+            "ASgLMjouQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJl",
+            "c3BvbnNlUG9pbnRQYXlsb2FkSAASVgoOcG9seWdvblBheWxvYWQYByABKAsy",
+            "PC5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9u",
+            "c2VQb2x5Z29uUGF5bG9hZEgAElQKDXN0cmluZ1BheWxvYWQYCCABKAsyOy5D",
+            "b2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VT",
+            "dHJpbmdQYXlsb2FkSAASWAoPZGF0ZVRpbWVQYXlsb2FkGAkgASgLMj0uQ29s",
+            "bW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlRGF0",
+            "ZVRpbWVQYXlsb2FkSABCCQoHcGF5bG9hZCKABAoUUXVlcnlSZXNwb25zZU1l",
+            "c3NhZ2USVQoIcGF5bG9hZHMYASADKAsyQy5Db2xtbmFyREIuTmV0d29ya0Ns",
+            "aWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxvYWRzRW50",
+            "cnkSXQoMbnVsbEJpdE1hc2tzGAMgAygLMkcuQ29sbW5hckRCLk5ldHdvcmtD",
+            "bGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlTWVzc2FnZS5OdWxsQml0TWFz",
+            "a3NFbnRyeRJRCgZ0aW1pbmcYAiADKAsyQS5Db2xtbmFyREIuTmV0d29ya0Ns",
+            "aWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlRpbWluZ0VudHJ5",
+            "EhMKC2NvbHVtbk9yZGVyGAQgAygJGmYKDVBheWxvYWRzRW50cnkSCwoDa2V5",
+            "GAEgASgJEkQKBXZhbHVlGAIgASgLMjUuQ29sbW5hckRCLk5ldHdvcmtDbGll",
+            "bnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlUGF5bG9hZDoCOAEaMwoRTnVsbEJp",
+            "dE1hc2tzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgMOgI4ARot",
+            "CgtUaW1pbmdFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAI6AjgB",
+            "YgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor, global::ColmnarDB.Types.PointReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload.Parser, new[]{ "IntData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload), global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload.Parser, new[]{ "Int64Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload.Parser, new[]{ "DateTimeData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload.Parser, new[]{ "FloatData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload.Parser, new[]{ "DoubleData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload.Parser, new[]{ "PolygonData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload", "DateTimePayload" }, new[]{ "Payload" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing", "ColumnOrder" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
           }));
     }
@@ -323,6 +328,128 @@ namespace ColmnarDB.NetworkClient.Message {
 
   }
 
+  public sealed partial class QueryResponseDateTimePayload : pb::IMessage<QueryResponseDateTimePayload> {
+    private static readonly pb::MessageParser<QueryResponseDateTimePayload> _parser = new pb::MessageParser<QueryResponseDateTimePayload>(() => new QueryResponseDateTimePayload());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pb::MessageParser<QueryResponseDateTimePayload> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[2]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueryResponseDateTimePayload() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueryResponseDateTimePayload(QueryResponseDateTimePayload other) : this() {
+      dateTimeData_ = other.dateTimeData_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public QueryResponseDateTimePayload Clone() {
+      return new QueryResponseDateTimePayload(this);
+    }
+
+    /// <summary>Field number for the "dateTimeData" field.</summary>
+    public const int DateTimeDataFieldNumber = 1;
+    private static readonly pb::FieldCodec<long> _repeated_dateTimeData_codec
+        = pb::FieldCodec.ForInt64(10);
+    private readonly pbc::RepeatedField<long> dateTimeData_ = new pbc::RepeatedField<long>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public pbc::RepeatedField<long> DateTimeData {
+      get { return dateTimeData_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override bool Equals(object other) {
+      return Equals(other as QueryResponseDateTimePayload);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public bool Equals(QueryResponseDateTimePayload other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!dateTimeData_.Equals(other.dateTimeData_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= dateTimeData_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void WriteTo(pb::CodedOutputStream output) {
+      dateTimeData_.WriteTo(output, _repeated_dateTimeData_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public int CalculateSize() {
+      int size = 0;
+      size += dateTimeData_.CalculateSize(_repeated_dateTimeData_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(QueryResponseDateTimePayload other) {
+      if (other == null) {
+        return;
+      }
+      dateTimeData_.Add(other.dateTimeData_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public void MergeFrom(pb::CodedInputStream input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10:
+          case 8: {
+            dateTimeData_.AddEntriesFrom(input, _repeated_dateTimeData_codec);
+            break;
+          }
+        }
+      }
+    }
+
+  }
+
   public sealed partial class QueryResponseFloatPayload : pb::IMessage<QueryResponseFloatPayload> {
     private static readonly pb::MessageParser<QueryResponseFloatPayload> _parser = new pb::MessageParser<QueryResponseFloatPayload>(() => new QueryResponseFloatPayload());
     private pb::UnknownFieldSet _unknownFields;
@@ -331,7 +458,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[2]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -453,7 +580,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[3]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -575,7 +702,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[4]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -696,7 +823,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[5]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -817,7 +944,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[6]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -938,7 +1065,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[7]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -976,6 +1103,9 @@ namespace ColmnarDB.NetworkClient.Message {
           break;
         case PayloadOneofCase.StringPayload:
           StringPayload = other.StringPayload.Clone();
+          break;
+        case PayloadOneofCase.DateTimePayload:
+          DateTimePayload = other.DateTimePayload.Clone();
           break;
       }
 
@@ -1064,6 +1194,17 @@ namespace ColmnarDB.NetworkClient.Message {
       }
     }
 
+    /// <summary>Field number for the "dateTimePayload" field.</summary>
+    public const int DateTimePayloadFieldNumber = 9;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    public global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload DateTimePayload {
+      get { return payloadCase_ == PayloadOneofCase.DateTimePayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload) payload_ : null; }
+      set {
+        payload_ = value;
+        payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.DateTimePayload;
+      }
+    }
+
     private object payload_;
     /// <summary>Enum of possible cases for the "payload" oneof.</summary>
     public enum PayloadOneofCase {
@@ -1075,6 +1216,7 @@ namespace ColmnarDB.NetworkClient.Message {
       PointPayload = 6,
       PolygonPayload = 7,
       StringPayload = 8,
+      DateTimePayload = 9,
     }
     private PayloadOneofCase payloadCase_ = PayloadOneofCase.None;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1108,6 +1250,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (!object.Equals(PointPayload, other.PointPayload)) return false;
       if (!object.Equals(PolygonPayload, other.PolygonPayload)) return false;
       if (!object.Equals(StringPayload, other.StringPayload)) return false;
+      if (!object.Equals(DateTimePayload, other.DateTimePayload)) return false;
       if (PayloadCase != other.PayloadCase) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1122,6 +1265,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (payloadCase_ == PayloadOneofCase.PointPayload) hash ^= PointPayload.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.PolygonPayload) hash ^= PolygonPayload.GetHashCode();
       if (payloadCase_ == PayloadOneofCase.StringPayload) hash ^= StringPayload.GetHashCode();
+      if (payloadCase_ == PayloadOneofCase.DateTimePayload) hash ^= DateTimePayload.GetHashCode();
       hash ^= (int) payloadCase_;
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1164,6 +1308,10 @@ namespace ColmnarDB.NetworkClient.Message {
         output.WriteRawTag(66);
         output.WriteMessage(StringPayload);
       }
+      if (payloadCase_ == PayloadOneofCase.DateTimePayload) {
+        output.WriteRawTag(74);
+        output.WriteMessage(DateTimePayload);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1192,6 +1340,9 @@ namespace ColmnarDB.NetworkClient.Message {
       }
       if (payloadCase_ == PayloadOneofCase.StringPayload) {
         size += 1 + pb::CodedOutputStream.ComputeMessageSize(StringPayload);
+      }
+      if (payloadCase_ == PayloadOneofCase.DateTimePayload) {
+        size += 1 + pb::CodedOutputStream.ComputeMessageSize(DateTimePayload);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -1246,6 +1397,12 @@ namespace ColmnarDB.NetworkClient.Message {
             StringPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload();
           }
           StringPayload.MergeFrom(other.StringPayload);
+          break;
+        case PayloadOneofCase.DateTimePayload:
+          if (DateTimePayload == null) {
+            DateTimePayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload();
+          }
+          DateTimePayload.MergeFrom(other.DateTimePayload);
           break;
       }
 
@@ -1323,6 +1480,15 @@ namespace ColmnarDB.NetworkClient.Message {
             StringPayload = subBuilder;
             break;
           }
+          case 74: {
+            global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload();
+            if (payloadCase_ == PayloadOneofCase.DateTimePayload) {
+              subBuilder.MergeFrom(DateTimePayload);
+            }
+            input.ReadMessage(subBuilder);
+            DateTimePayload = subBuilder;
+            break;
+          }
         }
       }
     }
@@ -1337,7 +1503,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[8]; }
+      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -179,6 +179,127 @@ protected:
                 << " at key \"" << key << "\"";
         }
     }
+
+    void GroupByKeyWhereIntGenericTest(std::string aggregationFunction,
+                                       std::vector<int32_t> keys,
+                                       std::vector<int32_t> values,
+                                       int32_t threshold,
+                                       std::unordered_map<int32_t, int32_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            ->InsertData(keys);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase,
+                                  "SELECT colIntegerK, " + aggregationFunction + "(colIntegerV) FROM " +
+                                      tableName + " WHERE colIntegerK = " + std::to_string(threshold) +
+                                      " GROUP BY colIntegerK;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
+
+    void GroupByKeyOpWhereIntGenericTest(std::string aggregationFunction,
+                                         std::vector<int32_t> keys,
+                                         std::vector<int32_t> values,
+                                         int32_t threshold,
+                                         std::unordered_map<int32_t, int32_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            ->InsertData(keys);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase,
+                                  "SELECT colIntegerK, " + aggregationFunction + "(colIntegerV) FROM " +
+                                      tableName + " WHERE colIntegerK + 2 = " + std::to_string(threshold) +
+                                      " GROUP BY colIntegerK;");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
+
+    void GroupByKeyWhereDelimitedAliasIntGenericTest(std::string aggregationFunction,
+                                                     std::vector<int32_t> keys,
+                                                     std::vector<int32_t> values,
+                                                     int32_t threshold,
+                                                     std::unordered_map<int32_t, int32_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerK", DataType::COLUMN_INT));
+        columns.insert(std::make_pair<std::string, DataType>("colIntegerV", DataType::COLUMN_INT));
+        groupByDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerK").get())
+            ->InsertData(keys);
+        reinterpret_cast<ColumnBase<int32_t>*>(
+            groupByDatabase->GetTables().at(tableName).GetColumns().at("colIntegerV").get())
+            ->InsertData(values);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(groupByDatabase,
+                                  "SELECT [colIntegerK] as [Dimension2], " + aggregationFunction +
+                                      "(colIntegerV) FROM " + tableName + " WHERE [Dimension2] = " +
+                                      std::to_string(threshold) + " GROUP BY [Dimension2];");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadKeys = result->payloads().at("Dimension2");
+        auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
+
+        ASSERT_EQ(expectedResult.size(), payloadKeys.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadKeys.intpayload().intdata_size(); i++)
+        {
+            int32_t key = payloadKeys.intpayload().intdata()[i];
+            ASSERT_FALSE(expectedResult.find(key) == expectedResult.end()) << " key \"" << key << "\"";
+            ASSERT_EQ(expectedResult[key], payloadValues.intpayload().intdata()[i])
+                << " at key \"" << key << "\"";
+        }
+    }
+
     void GroupByKeyAggOpIntGenericTest(std::string aggregationFunction,
                                        std::vector<int32_t> keys,
                                        std::unordered_map<int32_t, int32_t> expectedResult)
@@ -1246,6 +1367,24 @@ TEST_F(DispatcherGroupByTests, IntKeyOpSimpleSum)
 {
     GroupByKeyOpIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1}, {1, 2, 2, 2, 1, 3, 15, 5, -4},
                                {{2, 2}, {3, 6}, {4, 15}, {1, 4}});
+}
+
+TEST_F(DispatcherGroupByTests, IntKeyWhereSimpleSum)
+{
+    GroupByKeyWhereIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1},
+                                  {1, 2, 2, 2, 1, 3, 15, 5, -4}, 1, {{1, 6}});
+}
+
+TEST_F(DispatcherGroupByTests, IntKeyOpWhereSimpleSum)
+{
+    GroupByKeyOpWhereIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1},
+                                    {1, 2, 2, 2, 1, 3, 15, 5, -4}, 3, {{1, 6}});
+}
+
+TEST_F(DispatcherGroupByTests, IntKeyWhereDelimitedAliasSimpleSum)
+{
+    GroupByKeyWhereDelimitedAliasIntGenericTest("SUM", {0, 1, -1, -1, 0, 1, 2, 1, 1},
+                                                {1, 2, 2, 2, 1, 3, 15, 5, -4}, 1, {{1, 6}});
 }
 
 TEST_F(DispatcherGroupByTests, IntSimpleMin)

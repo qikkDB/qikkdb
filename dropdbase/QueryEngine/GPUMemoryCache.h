@@ -130,7 +130,7 @@ public:
             }
         }
 
-        T* newPtr = reinterpret_cast<T*>(GetAllocator().allocate(size * sizeof(T)));
+        T* newPtr = reinterpret_cast<T*>(GetAllocator().Allocate(size * sizeof(T)));
         usedSize += sizeToInsert;
         CacheEntry newCacheEntry{columnBlock, reinterpret_cast<std::uintptr_t>(newPtr),
                                  sizeToInsert, lruQueue.end()};

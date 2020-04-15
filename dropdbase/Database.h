@@ -87,9 +87,9 @@ public:
     }
     static std::vector<std::string> GetDatabaseNames();
 
-	/// <summary>
+    /// <summary>
     /// Copy block of data from the specified column of the source table and insert it in the column with the same name in the destination table.
-	/// This is used when block sizes of those two tables are different.
+    /// This is used when block sizes of those two tables are different.
     /// </summary>
     /// <param name="srcTable">Source table.</param>
     /// <param name="destTable">Destination table.</param>
@@ -166,7 +166,7 @@ public:
     /// </summary>
     void DeleteColumnFromDisk(const char* tableName, const char* columnName);
 
-	/// <summary>
+    /// <summary>
     /// Changes the block size of all tables of database and all the columns of the all tables will be affected - their blocks
     /// will be saved again with a bigger block size and the columns saved on disk of this table will be removed.
     /// </summary>

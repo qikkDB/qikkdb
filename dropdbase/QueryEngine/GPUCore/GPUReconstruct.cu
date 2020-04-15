@@ -191,25 +191,6 @@ __global__ void kernel_reconstruct_pointCount_col(int32_t* outPointCount,
     }
 }
 
-__global__ void kernel_predict_point_wkt_lengths(int32_t* outStringLengths, NativeGeoPoint* inPointCol, int32_t dataElementCount)
-{
-    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    const int32_t stride = blockDim.x * gridDim.x;
-
-    for (int32_t i = idx; i < dataElementCount; i += stride)
-    {
-        // Count POINT word and parentheses ("POINT()")
-        int32_t charCounter = 7;
-        // Count the integer part ("150".0000 "-0".1000)
-        charCounter += GetNumberOfIntegerPartDigits(inPointCol[i].latitude) +
-                       GetNumberOfIntegerPartDigits(inPointCol[i].longitude);
-        // Count the decimal part, space and dots between points (".0000 .0000")
-        charCounter += 2 * WKT_DECIMAL_PLACES + 3;
-        outStringLengths[i] = charCounter;
-    }
-}
-
-
 /// Helping function to "print" float to GPU char array
 __device__ void FloatToString(char* allChars, int64_t& startIndex, float number)
 {
@@ -324,37 +305,6 @@ kernel_convert_poly_to_wkt(GPUMemory::GPUString outWkt, GPUMemory::GPUPolygon in
         }
         else{
             printf("Match OK\n");
-        }
-        */
-    }
-}
-
-__global__ void kernel_convert_point_to_wkt(GPUMemory::GPUString outWkt, NativeGeoPoint* inPointCol, int32_t dataElementCount)
-{
-    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
-    const int32_t stride = blockDim.x * gridDim.x;
-
-    for (int32_t i = idx; i < dataElementCount; i += stride) // via points
-    {
-        // "POINT"
-        const int64_t stringStartIndex = (i == 0 ? 0 : outWkt.stringIndices[i - 1]);
-        for (int32_t j = 0; j < 5; j++)
-        {
-            outWkt.allChars[stringStartIndex + j] = WKT_POINT[j];
-        }
-        int64_t charId = stringStartIndex + 5;
-
-        outWkt.allChars[charId++] = '(';
-        FloatToString(outWkt.allChars, charId, inPointCol[i].latitude);
-        outWkt.allChars[charId++] = ' ';
-        FloatToString(outWkt.allChars, charId, inPointCol[i].longitude);
-        outWkt.allChars[charId++] = ')';
-
-        /*
-        // Lengths mis-match check
-        if (charId != outWkt.stringIndices[i])
-        {
-            printf("Not match fin id! %d\n", outWkt.stringIndices[i] - charId);
         }
         */
     }
@@ -580,7 +530,7 @@ void GPUReconstruct::ReconstructStringColRaw(std::vector<int32_t>& keysStringLen
 }
 
 
-void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString* outStringCol,
+void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString& outStringCol,
                                             GPUMemory::GPUPolygon inPolygonCol,
                                             int32_t dataElementCount)
 {
@@ -594,60 +544,25 @@ void GPUReconstruct::ConvertPolyColToWKTCol(GPUMemory::GPUString* outStringCol,
         CheckCudaError(cudaGetLastError());
 
         // Alloc and compute string indices as a prefix sum of the string lengths
-        GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
-        PrefixSum(outStringCol->stringIndices, stringLengths.get(), dataElementCount);
+        GPUMemory::alloc(&(outStringCol.stringIndices), dataElementCount);
+        PrefixSum(outStringCol.stringIndices, stringLengths.get(), dataElementCount);
 
         // Get total char count and alloc array for all chars
         int64_t totalCharCount;
-        GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
-        GPUMemory::alloc(&(outStringCol->allChars), totalCharCount);
+        GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol.stringIndices + dataElementCount - 1, 1);
+        GPUMemory::alloc(&(outStringCol.allChars), totalCharCount);
 
         // Finally convert polygons to WKTs
         kernel_convert_poly_to_wkt<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            *outStringCol, inPolygonCol, dataElementCount);
+            outStringCol, inPolygonCol, dataElementCount);
         CheckCudaError(cudaGetLastError());
     }
     else
     {
-        outStringCol->allChars = nullptr;
-        outStringCol->stringIndices = nullptr;
+        outStringCol.allChars = nullptr;
+        outStringCol.stringIndices = nullptr;
     }
 }
-
-void GPUReconstruct::ConvertPointColToWKTCol(GPUMemory::GPUString* outStringCol,
-                                             NativeGeoPoint* inPointCol,
-                                             int32_t dataElementCount)
-{
-    Context& context = Context::getInstance();
-    if (dataElementCount > 0)
-    {
-        // "Predict" (pre-calculate) string lengths
-        cuda_ptr<int32_t> stringLengths(dataElementCount);
-        kernel_predict_point_wkt_lengths<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            stringLengths.get(), inPointCol, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-
-        // Alloc and compute string indices as a prefix sum of the string lengths
-        GPUMemory::alloc(&(outStringCol->stringIndices), dataElementCount);
-        PrefixSum(outStringCol->stringIndices, stringLengths.get(), dataElementCount);
-
-        // Get total char count and alloc array for all chars
-        int64_t totalCharCount;
-        GPUMemory::copyDeviceToHost(&totalCharCount, outStringCol->stringIndices + dataElementCount - 1, 1);
-        GPUMemory::alloc(&(outStringCol->allChars), totalCharCount);
-
-        // Finally convert points to WKTs
-        kernel_convert_point_to_wkt<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-            *outStringCol, inPointCol, dataElementCount);
-        CheckCudaError(cudaGetLastError());
-    }
-    else
-    {
-        outStringCol->allChars = nullptr;
-        outStringCol->stringIndices = nullptr;
-    }
-}
-
 
 void GPUReconstruct::ReconstructPolyColKeep(GPUMemory::GPUPolygon* outCol,
                                             int32_t* outDataElementCount,
@@ -788,7 +703,7 @@ void GPUReconstruct::ReconstructPolyColToWKT(std::string* outStringData,
         }
     }
     GPUMemory::GPUString gpuWkt;
-    ConvertPolyColToWKTCol(&gpuWkt, reconstructedPolygonCol, *outDataElementCount);
+    ConvertPolyColToWKTCol(gpuWkt, reconstructedPolygonCol, *outDataElementCount);
     if (inMask)
     {
         GPUMemory::free(reconstructedPolygonCol);
@@ -823,7 +738,7 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
             GPUMemory::free(outNullMaskGPUPointer);
         }
     }
-    ConvertPointColToWKTCol(&gpuWkt, reconstructedPointCol, *outDataElementCount);
+    ConvertPointColToWKTCol(gpuWkt, reconstructedPointCol, *outDataElementCount);
     if (inMask)
     {
         GPUMemory::free(reconstructedPointCol);

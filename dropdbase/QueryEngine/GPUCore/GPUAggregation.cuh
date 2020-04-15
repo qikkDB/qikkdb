@@ -9,7 +9,7 @@
 #include "../Context.h"
 #include "../CudaMemAllocator.h"
 #include "GPUMemory.cuh"
-#include "GPUArithmetic.cuh"
+#include "GPUBinary.cuh"
 
 
 /// Aggregation functions on the whole column

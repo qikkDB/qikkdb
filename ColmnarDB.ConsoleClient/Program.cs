@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -191,30 +192,13 @@ namespace ColmnarDB.ConsoleClient
                                                     filePath2 = filePath2.Substring(1, filePath2.Length - 2);
                                                 }
 
-                                                if (splitParameters2.Length == 2)
+                                                var importOptionsScript = ParseImportOptions(splitParameters2);
+
+                                                if (importOptionsScript != null)
                                                 {
-                                                    import.Import(filePath2, database2);
+                                                    import.Import(filePath2, database2, blockSize: importOptionsScript.BlockSize, hasHeader: importOptionsScript.HasHeader, columnSeparator: importOptionsScript.ColumnSeparator, threadsCount: importOptionsScript.ThreadsCount, batchSize: importOptionsScript.BatchSize);
                                                 }
-                                                else if (splitParameters2.Length == 3)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]));
-                                                }
-                                                else if (splitParameters2.Length == 4)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]));
-                                                }
-                                                else if (splitParameters2.Length == 5)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0));
-                                                }
-                                                else if (splitParameters2.Length == 6)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]));
-                                                }
-                                                else if (splitParameters2.Length == 7)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]), batchSize: int.Parse(splitParameters2[6]));
-                                                }
+
                                             }
                                             else
                                             {
@@ -266,31 +250,12 @@ namespace ColmnarDB.ConsoleClient
                                 filePath = filePath.Substring(1, filePath.Length - 2);
                             }
 
-                            if (splitParameters.Length == 2)
+                            var importOptions = ParseImportOptions(splitParameters);
+                            if (importOptions != null)
                             {
-                                import.Import(filePath, database);
+                                import.Import(filePath, database, blockSize: importOptions.BlockSize, hasHeader: importOptions.HasHeader, columnSeparator: importOptions.ColumnSeparator, threadsCount: importOptions.ThreadsCount, batchSize: importOptions.BatchSize);
                             }
-                            else if (splitParameters.Length == 3)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]));
-                            }
-                            else if (splitParameters.Length == 4)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
-                            }
-                            else if (splitParameters.Length == 5)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0));
-                            }
-                            else if (splitParameters.Length == 6)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]));
-                            }
-                            else if (splitParameters.Length == 7)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
-                            }
-
+                            
                             break;
 
                         case "h":
@@ -340,6 +305,62 @@ namespace ColmnarDB.ConsoleClient
             {
                 mutex.ReleaseMutex();
             }
+        }
+
+        private class ImportOptions
+        {
+            public int BlockSize { get; set; } = 0;
+            public bool HasHeader { get; set; } = true;
+            public char ColumnSeparator { get; set; } = '\0';
+            public int BatchSize { get; set; } = 100000;
+            public int ThreadsCount { get; set; } = 1;
+        }
+
+        private static ImportOptions ParseImportOptions(string[] splitParameters)
+        {
+            ImportOptions importParameters = new ImportOptions();
+
+            string[] acceptedOptions = { "blocksize", "hasheader", "columnseparator", "batchsize", "threadscount" };
+            
+            if (splitParameters.Length > 2)
+            {
+                Dictionary<string, string> parametersLookup = new Dictionary<string, string>();
+                for (int i = 2; i < splitParameters.Length; i++)
+                {
+                    string[] splitParameterPair = splitParameters[i].Split("=");
+                    string optionName = splitParameterPair[0].ToLower();
+                    if (!acceptedOptions.Contains(optionName))
+                    {
+                        Console.WriteLine("Error: Unknown import option " + optionName);
+                        return null;
+                    }
+                    string optionValue = splitParameterPair[1].ToLower();
+                    parametersLookup.TryAdd(optionName, optionValue);
+                }
+                                
+                if (parametersLookup.ContainsKey("blocksize"))
+                {
+                    importParameters.BlockSize = int.Parse(parametersLookup["blocksize"]);
+                }
+                if (parametersLookup.ContainsKey("hasheader"))
+                {
+                    importParameters.HasHeader = bool.Parse(parametersLookup["hasheader"]);
+                }
+                if (parametersLookup.ContainsKey("columnseparator"))
+                {
+                    importParameters.ColumnSeparator = parametersLookup["columnseparator"].ElementAt(0);
+                }
+                if (parametersLookup.ContainsKey("batchsize"))
+                {
+                    importParameters.BatchSize = int.Parse(parametersLookup["batchsize"]);
+                }
+                if (parametersLookup.ContainsKey("threadscount"))
+                {
+                    importParameters.ThreadsCount = int.Parse(parametersLookup["threadscount"]);
+                }
+            }
+
+            return importParameters;
         }
     }
 }

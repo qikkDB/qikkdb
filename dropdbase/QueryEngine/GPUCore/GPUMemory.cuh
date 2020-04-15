@@ -42,33 +42,43 @@ namespace GPUMemory
 struct GPUPolygon
 {
     /// Points of polygons
-    NativeGeoPoint* polyPoints;
+    NativeGeoPoint* polyPoints = nullptr;
 
     /// Start indices of each polygon in point array
-    int32_t* pointIdx;
+    int32_t* pointIdx = nullptr;
 
     /// Start indices of each complex polygon in polygon array
-    int32_t* polyIdx;
+    int32_t* polyIdx = nullptr;
 
-	__device__ __host__ int32_t PointIdxAt(int32_t idx);
+    __device__ __host__ int32_t PointIdxAt(int32_t idx);
 
-	__device__ __host__ int32_t PolyIdxAt(int32_t idx);
+    __device__ __host__ int32_t PolyIdxAt(int32_t idx);
 
-	__device__ __host__ int32_t PointCountAt(int32_t idx);
+    __device__ __host__ int32_t PointCountAt(int32_t idx);
 
-	__device__ __host__ int32_t PolyCountAt(int32_t idx);
+    __device__ __host__ int32_t PolyCountAt(int32_t idx);
 
-	__device__ __host__ int32_t TotalPointCountAt(int32_t idx);
+    __device__ __host__ int32_t TotalPointCountAt(int32_t idx);
+
+    operator bool()
+    {
+        return polyPoints && pointIdx && polyIdx;
+    }
 };
 
 /// Struct for GPU representation of string column (with pointers to start of condensed buffers).
 struct GPUString
 {
     /// All chars from all strings condensed
-    char* allChars;
+    char* allChars = nullptr;
     /// Start indices of each string in allChars array,
     /// shifted by 1 string to left (last one is total count of chars)
-    int64_t* stringIndices;
+    int64_t* stringIndices = nullptr;
+
+    operator bool()
+    {
+        return allChars && stringIndices;
+    }
 };
 
 bool EvictWithLockList();
@@ -84,7 +94,7 @@ void alloc(T** p_Block, size_t dataElementCount)
     {
         try
         {
-            *p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().allocate(
+            *p_Block = reinterpret_cast<T*>(Context::getInstance().GetAllocatorForCurrentDevice().Allocate(
                 dataElementCount * sizeof(T)));
             allocOK = true;
         }
@@ -204,8 +214,8 @@ void hostRegister(T** devicePtr, T* hostPtr, size_t dataElementCount)
     CheckCudaError(cudaGetLastError());
 }
 
-/// Un-Register a piece of unpaged host memory to be used for fast memory transfers between host and
-/// device < param name="hostPtr">pointer to host memory to be unmapped/freed into</param>
+/// Un-Register a piece of unpaged host memory to be used for fast memory transfers between host
+/// and device < param name="hostPtr">pointer to host memory to be unmapped/freed into</param>
 template <typename T>
 void hostUnregister(T* hostPtr)
 {
@@ -241,9 +251,9 @@ void PrintGpuBuffer(const char* title, T* bufferGpu, int32_t dataElementCount)
         std::cout << static_cast<PrintType>(bufferCpu[i]) << " ";
     }
     std::cout << std::endl;
-} 
+}
 
-template<>
+template <>
 void PrintGpuBuffer<NativeGeoPoint>(const char* title, NativeGeoPoint* bufferGpu, int32_t dataElementCount);
 
 }; // namespace GPUMemory

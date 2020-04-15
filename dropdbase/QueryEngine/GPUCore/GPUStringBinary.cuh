@@ -71,6 +71,7 @@ namespace StringBinaryOperations
 {
 struct left
 {
+    typedef std::string RetType;
     __device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
     {
         return 0;
@@ -79,6 +80,7 @@ struct left
 
 struct right
 {
+    typedef std::string RetType;
     __device__ int32_t operator()(int32_t newLength, int64_t* oldIndices, const int32_t i) const
     {
         return GetStringLength(oldIndices, i) - newLength;
@@ -87,6 +89,7 @@ struct right
 
 struct concat
 {
+    typedef std::string RetType;
 };
 } // namespace StringBinaryOperations
 
@@ -94,7 +97,7 @@ struct concat
 /// Class for all string binary operations
 class GPUStringBinary
 {
-private:
+public:
     /// Run generic binary string operation
     /// Pre-computes lengths of output strings and do the operation
     /// <param name="outCol">output string column</param>
@@ -171,101 +174,5 @@ private:
         // Concat the strings
         kernel_string_concat<<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
             output, inputA, isACol, inputB, isBCol, dataElementCount);
-    }
-
-public:
-    /// Binary string operation column - column
-    /// <param name="output">output string column</param>
-    /// <param name="ACol">input string column (GPUString)</param>
-    /// <param name="BCol">input column with numbers</param>
-    /// <param name="dataElementCount">count of strings in ACol (should be equal to count of numbers in BCol)</param>
-    template <typename OP, typename T>
-    static void ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T* BCol, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, ACol, dataElementCount, BCol, dataElementCount);
-    }
-
-    /// Binary string operation column - constant
-    /// <param name="output">output string column</param>
-    /// <param name="ACol">input string column (GPUString)</param>
-    /// <param name="BConst">input number constant</param>
-    /// <param name="dataElementCount">count of strings in ACol</param>
-    template <typename OP, typename T>
-    static void ColConst(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, T BConst, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, ACol, dataElementCount, BConst, 1);
-    }
-
-    /// Binary string operation constant - column
-    /// <param name="output">output string column</param>
-    /// <param name="AConst">input string constant (1 string in GPUString)</param>
-    /// <param name="BCol">input column with numbers</param>
-    /// <param name="dataElementCount">count of numbers in BCol</param>
-    template <typename OP, typename T>
-    static void ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T* BCol, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, AConst, 1, BCol, dataElementCount);
-    }
-
-    /// Binary string operation constant - constant
-    /// <param name="output">output string column</param>
-    /// <param name="AConst">input string constant (1 string in GPUString)</param>
-    /// <param name="BConst">input number constant</param>
-    /// <param name="dataElementCount">should be 1, not used now</param>
-    template <typename OP, typename T>
-    static void ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, T BConst, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, AConst, dataElementCount, BConst, 1);
-        // TODO expand?
-    }
-
-
-    /// Binary string operation string column - string column, output is also string column
-    /// <param name="output">output string column</param>
-    /// <param name="ACol">first input string column (GPUString)</param>
-    /// <param name="BCol">second input string column (GPUString)</param>
-    /// <param name="dataElementCount">count of strings</param>
-    template <typename OP>
-    static void
-    ColCol(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, GPUMemory::GPUString BCol, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, ACol, true, BCol, true, dataElementCount);
-    }
-
-    /// Binary string operation string column - string constant, output is string column
-    /// <param name="output">output string column</param>
-    /// <param name="ACol">first input string column (GPUString)</param>
-    /// <param name="BConst">second input string constant (GPUString)</param>
-    /// <param name="dataElementCount">count of strings</param>
-    template <typename OP>
-    static void
-    ColConst(GPUMemory::GPUString& output, GPUMemory::GPUString ACol, GPUMemory::GPUString BConst, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, ACol, true, BConst, false, dataElementCount);
-    }
-
-    /// Binary string operation string constant - string column, output is string column
-    /// <param name="output">output string column</param>
-    /// <param name="AConst">first input string constant (GPUString)</param>
-    /// <param name="BCol">second input string column (GPUString)</param>
-    /// <param name="dataElementCount">count of strings</param>
-    template <typename OP>
-    static void
-    ConstCol(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, GPUMemory::GPUString BCol, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, AConst, false, BCol, true, dataElementCount);
-    }
-
-    /// Binary string operation string constant - string constant, output is string constant
-    /// <param name="output">output string constant (GPUString column with 1 constant)</param>
-    /// <param name="AConst">first input string constant (GPUString)</param>
-    /// <param name="BCol">second input string constant (GPUString)</param>
-    /// <param name="dataElementCount">count of strings</param>
-    template <typename OP>
-    static void
-    ConstConst(GPUMemory::GPUString& output, GPUMemory::GPUString AConst, GPUMemory::GPUString BConst, int32_t dataElementCount)
-    {
-        GPUStringBinary::Run<OP>(output, AConst, true, BConst, true, dataElementCount);
-        // TODO expand?
     }
 };

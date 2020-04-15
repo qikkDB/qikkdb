@@ -14,6 +14,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
+extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto;
@@ -21,7 +22,7 @@ extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOB
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto;
-extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<7> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto;
+extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<8> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto;
@@ -38,6 +39,10 @@ class QueryResponseInt64PayloadDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseInt64Payload> _instance;
 } _QueryResponseInt64Payload_default_instance_;
+class QueryResponseDateTimePayloadDefaultTypeInternal {
+ public:
+  ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseDateTimePayload> _instance;
+} _QueryResponseDateTimePayload_default_instance_;
 class QueryResponseFloatPayloadDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponseFloatPayload> _instance;
@@ -68,6 +73,7 @@ class QueryResponsePayloadDefaultTypeInternal {
   const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload* pointpayload_;
   const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload* polygonpayload_;
   const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload* stringpayload_;
+  const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload_;
 } _QueryResponsePayload_default_instance_;
 class QueryResponseMessage_PayloadsEntry_DoNotUseDefaultTypeInternal {
  public:
@@ -88,6 +94,20 @@ class QueryResponseMessageDefaultTypeInternal {
 }  // namespace Message
 }  // namespace NetworkClient
 }  // namespace ColmnarDB
+static void InitDefaultsscc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_;
+    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload();
+    ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
+  }
+  ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::InitAsDefaultInstance();
+}
+
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto}, {}};
+
 static void InitDefaultsscc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -212,15 +232,16 @@ static void InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMe
   ::ColmnarDB::NetworkClient::Message::QueryResponsePayload::InitAsDefaultInstance();
 }
 
-::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<7> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto =
-    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 7, 0, InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto}, {
+::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<8> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto =
+    {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 8, 0, InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto}, {
       &scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto.base,
       &scc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto.base,
-      &scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto.base,}};
+      &scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto.base,
+      &scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto.base,}};
 
 static void InitDefaultsscc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
@@ -266,7 +287,7 @@ static void InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResp
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto =
     {{ATOMIC_VAR_INIT(::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase::kUninitialized), 0, 0, InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto}, {}};
 
-static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fQueryResponseMessage_2eproto[12];
+static ::PROTOBUF_NAMESPACE_ID::Metadata file_level_metadata_messages_2fQueryResponseMessage_2eproto[13];
 static constexpr ::PROTOBUF_NAMESPACE_ID::EnumDescriptor const** file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto = nullptr;
 static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto = nullptr;
 
@@ -283,6 +304,12 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload, int64data_),
+  ~0u,  // no _has_bits_
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload, datetimedata_),
   ~0u,  // no _has_bits_
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -325,6 +352,7 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
   offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, pointpayload_),
   offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, polygonpayload_),
   offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, stringpayload_),
+  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, datetimepayload_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePayload, payload_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _has_bits_),
   PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _internal_metadata_),
@@ -366,21 +394,23 @@ const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessag
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload)},
   { 6, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload)},
-  { 12, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload)},
-  { 18, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload)},
-  { 24, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload)},
-  { 30, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload)},
-  { 36, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload)},
-  { 42, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePayload)},
-  { 55, 62, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse)},
-  { 64, 71, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse)},
-  { 73, 80, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse)},
-  { 82, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage)},
+  { 12, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload)},
+  { 18, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload)},
+  { 24, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload)},
+  { 30, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload)},
+  { 36, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload)},
+  { 42, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload)},
+  { 48, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePayload)},
+  { 62, 69, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse)},
+  { 71, 78, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse)},
+  { 80, 87, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse)},
+  { 89, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseIntPayload_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseInt64Payload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseFloatPayload_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseDoublePayload_default_instance_),
   reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponsePolygonPayload_default_instance_),
@@ -399,49 +429,54 @@ const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] P
   "mplexPolygon.proto\032\021Types/Point.proto\"*\n"
   "\027QueryResponseIntPayload\022\017\n\007intData\030\001 \003("
   "\005\".\n\031QueryResponseInt64Payload\022\021\n\tint64D"
-  "ata\030\001 \003(\003\".\n\031QueryResponseFloatPayload\022\021"
-  "\n\tfloatData\030\001 \003(\002\"0\n\032QueryResponseDouble"
-  "Payload\022\022\n\ndoubleData\030\001 \003(\001\"S\n\033QueryResp"
-  "onsePolygonPayload\0224\n\013polygonData\030\001 \003(\0132"
-  "\037.ColmnarDB.Types.ComplexPolygon\"F\n\031Quer"
-  "yResponsePointPayload\022)\n\tpointData\030\001 \003(\013"
-  "2\026.ColmnarDB.Types.Point\"0\n\032QueryRespons"
-  "eStringPayload\022\022\n\nstringData\030\001 \003(\t\"\361\004\n\024Q"
-  "ueryResponsePayload\022N\n\nintPayload\030\002 \001(\0132"
-  "8.ColmnarDB.NetworkClient.Message.QueryR"
-  "esponseIntPayloadH\000\022R\n\014floatPayload\030\003 \001("
-  "\0132:.ColmnarDB.NetworkClient.Message.Quer"
-  "yResponseFloatPayloadH\000\022R\n\014int64Payload\030"
-  "\004 \001(\0132:.ColmnarDB.NetworkClient.Message."
-  "QueryResponseInt64PayloadH\000\022T\n\rdoublePay"
-  "load\030\005 \001(\0132;.ColmnarDB.NetworkClient.Mes"
-  "sage.QueryResponseDoublePayloadH\000\022R\n\014poi"
-  "ntPayload\030\006 \001(\0132:.ColmnarDB.NetworkClien"
-  "t.Message.QueryResponsePointPayloadH\000\022V\n"
-  "\016polygonPayload\030\007 \001(\0132<.ColmnarDB.Networ"
-  "kClient.Message.QueryResponsePolygonPayl"
-  "oadH\000\022T\n\rstringPayload\030\010 \001(\0132;.ColmnarDB"
-  ".NetworkClient.Message.QueryResponseStri"
-  "ngPayloadH\000B\t\n\007payload\"\200\004\n\024QueryResponse"
-  "Message\022U\n\010payloads\030\001 \003(\0132C.ColmnarDB.Ne"
-  "tworkClient.Message.QueryResponseMessage"
-  ".PayloadsEntry\022]\n\014nullBitMasks\030\003 \003(\0132G.C"
-  "olmnarDB.NetworkClient.Message.QueryResp"
-  "onseMessage.NullBitMasksEntry\022Q\n\006timing\030"
-  "\002 \003(\0132A.ColmnarDB.NetworkClient.Message."
-  "QueryResponseMessage.TimingEntry\022\023\n\013colu"
-  "mnOrder\030\004 \003(\t\032f\n\rPayloadsEntry\022\013\n\003key\030\001 "
-  "\001(\t\022D\n\005value\030\002 \001(\01325.ColmnarDB.NetworkCl"
-  "ient.Message.QueryResponsePayload:\0028\001\0323\n"
-  "\021NullBitMasksEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
-  "\030\002 \001(\014:\0028\001\032-\n\013TimingEntry\022\013\n\003key\030\001 \001(\t\022\r"
-  "\n\005value\030\002 \001(\002:\0028\001b\006proto3"
+  "ata\030\001 \003(\003\"4\n\034QueryResponseDateTimePayloa"
+  "d\022\024\n\014dateTimeData\030\001 \003(\003\".\n\031QueryResponse"
+  "FloatPayload\022\021\n\tfloatData\030\001 \003(\002\"0\n\032Query"
+  "ResponseDoublePayload\022\022\n\ndoubleData\030\001 \003("
+  "\001\"S\n\033QueryResponsePolygonPayload\0224\n\013poly"
+  "gonData\030\001 \003(\0132\037.ColmnarDB.Types.ComplexP"
+  "olygon\"F\n\031QueryResponsePointPayload\022)\n\tp"
+  "ointData\030\001 \003(\0132\026.ColmnarDB.Types.Point\"0"
+  "\n\032QueryResponseStringPayload\022\022\n\nstringDa"
+  "ta\030\001 \003(\t\"\313\005\n\024QueryResponsePayload\022N\n\nint"
+  "Payload\030\002 \001(\01328.ColmnarDB.NetworkClient."
+  "Message.QueryResponseIntPayloadH\000\022R\n\014flo"
+  "atPayload\030\003 \001(\0132:.ColmnarDB.NetworkClien"
+  "t.Message.QueryResponseFloatPayloadH\000\022R\n"
+  "\014int64Payload\030\004 \001(\0132:.ColmnarDB.NetworkC"
+  "lient.Message.QueryResponseInt64PayloadH"
+  "\000\022T\n\rdoublePayload\030\005 \001(\0132;.ColmnarDB.Net"
+  "workClient.Message.QueryResponseDoublePa"
+  "yloadH\000\022R\n\014pointPayload\030\006 \001(\0132:.ColmnarD"
+  "B.NetworkClient.Message.QueryResponsePoi"
+  "ntPayloadH\000\022V\n\016polygonPayload\030\007 \001(\0132<.Co"
+  "lmnarDB.NetworkClient.Message.QueryRespo"
+  "nsePolygonPayloadH\000\022T\n\rstringPayload\030\010 \001"
+  "(\0132;.ColmnarDB.NetworkClient.Message.Que"
+  "ryResponseStringPayloadH\000\022X\n\017dateTimePay"
+  "load\030\t \001(\0132=.ColmnarDB.NetworkClient.Mes"
+  "sage.QueryResponseDateTimePayloadH\000B\t\n\007p"
+  "ayload\"\200\004\n\024QueryResponseMessage\022U\n\010paylo"
+  "ads\030\001 \003(\0132C.ColmnarDB.NetworkClient.Mess"
+  "age.QueryResponseMessage.PayloadsEntry\022]"
+  "\n\014nullBitMasks\030\003 \003(\0132G.ColmnarDB.Network"
+  "Client.Message.QueryResponseMessage.Null"
+  "BitMasksEntry\022Q\n\006timing\030\002 \003(\0132A.ColmnarD"
+  "B.NetworkClient.Message.QueryResponseMes"
+  "sage.TimingEntry\022\023\n\013columnOrder\030\004 \003(\t\032f\n"
+  "\rPayloadsEntry\022\013\n\003key\030\001 \001(\t\022D\n\005value\030\002 \001"
+  "(\01325.ColmnarDB.NetworkClient.Message.Que"
+  "ryResponsePayload:\0028\001\0323\n\021NullBitMasksEnt"
+  "ry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\014:\0028\001\032-\n\013Ti"
+  "mingEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\002:\0028"
+  "\001b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fQueryResponseMessage_2eproto_deps[2] = {
   &::descriptor_table_Types_2fComplexPolygon_2eproto,
   &::descriptor_table_Types_2fPoint_2eproto,
 };
-static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs[12] = {
+static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs[13] = {
+  &scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto.base,
   &scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto.base,
@@ -458,10 +493,10 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fQueryResponseMessage_2eproto_once;
 static bool descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryResponseMessage_2eproto = {
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1665,
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 12, 2,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1809,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 13, 2,
   schemas, file_default_instances, TableStruct_messages_2fQueryResponseMessage_2eproto::offsets,
-  file_level_metadata_messages_2fQueryResponseMessage_2eproto, 12, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
+  file_level_metadata_messages_2fQueryResponseMessage_2eproto, 13, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
 };
 
 // Force running AddDescriptors() at dynamic initialization time.
@@ -860,6 +895,203 @@ void QueryResponseInt64Payload::InternalSwap(QueryResponseInt64Payload* other) {
 }
 
 ::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseInt64Payload::GetMetadata() const {
+  return GetMetadataStatic();
+}
+
+
+// ===================================================================
+
+void QueryResponseDateTimePayload::InitAsDefaultInstance() {
+}
+class QueryResponseDateTimePayload::_Internal {
+ public:
+};
+
+QueryResponseDateTimePayload::QueryResponseDateTimePayload()
+  : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
+  SharedCtor();
+  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+}
+QueryResponseDateTimePayload::QueryResponseDateTimePayload(const QueryResponseDateTimePayload& from)
+  : ::PROTOBUF_NAMESPACE_ID::Message(),
+      _internal_metadata_(nullptr),
+      datetimedata_(from.datetimedata_) {
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+}
+
+void QueryResponseDateTimePayload::SharedCtor() {
+}
+
+QueryResponseDateTimePayload::~QueryResponseDateTimePayload() {
+  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  SharedDtor();
+}
+
+void QueryResponseDateTimePayload::SharedDtor() {
+}
+
+void QueryResponseDateTimePayload::SetCachedSize(int size) const {
+  _cached_size_.Set(size);
+}
+const QueryResponseDateTimePayload& QueryResponseDateTimePayload::default_instance() {
+  ::PROTOBUF_NAMESPACE_ID::internal::InitSCC(&::scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto.base);
+  return *internal_default_instance();
+}
+
+
+void QueryResponseDateTimePayload::Clear() {
+// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  datetimedata_.Clear();
+  _internal_metadata_.Clear();
+}
+
+const char* QueryResponseDateTimePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::internal::ParseContext* ctx) {
+#define CHK_(x) if (PROTOBUF_PREDICT_FALSE(!(x))) goto failure
+  while (!ctx->Done(&ptr)) {
+    ::PROTOBUF_NAMESPACE_ID::uint32 tag;
+    ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
+    CHK_(ptr);
+    switch (tag >> 3) {
+      // repeated int64 dateTimeData = 1;
+      case 1:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedInt64Parser(_internal_mutable_datetimedata(), ptr, ctx);
+          CHK_(ptr);
+        } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
+          _internal_add_datetimedata(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      default: {
+      handle_unusual:
+        if ((tag & 7) == 4 || tag == 0) {
+          ctx->SetLastTag(tag);
+          goto success;
+        }
+        ptr = UnknownFieldParse(tag, &_internal_metadata_, ptr, ctx);
+        CHK_(ptr != nullptr);
+        continue;
+      }
+    }  // switch
+  }  // while
+success:
+  return ptr;
+failure:
+  ptr = nullptr;
+  goto success;
+#undef CHK_
+}
+
+::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseDateTimePayload::InternalSerializeWithCachedSizesToArray(
+    ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
+  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  // repeated int64 dateTimeData = 1;
+  {
+    int byte_size = _datetimedata_cached_byte_size_.load(std::memory_order_relaxed);
+    if (byte_size > 0) {
+      target = stream->WriteInt64Packed(
+          1, _internal_datetimedata(), byte_size, target);
+    }
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
+        _internal_metadata_.unknown_fields(), target, stream);
+  }
+  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  return target;
+}
+
+size_t QueryResponseDateTimePayload::ByteSizeLong() const {
+// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  size_t total_size = 0;
+
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  // Prevent compiler warnings about cached_has_bits being unused
+  (void) cached_has_bits;
+
+  // repeated int64 dateTimeData = 1;
+  {
+    size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      Int64Size(this->datetimedata_);
+    if (data_size > 0) {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
+            static_cast<::PROTOBUF_NAMESPACE_ID::int32>(data_size));
+    }
+    int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(data_size);
+    _datetimedata_cached_byte_size_.store(cached_size,
+                                    std::memory_order_relaxed);
+    total_size += data_size;
+  }
+
+  if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
+    return ::PROTOBUF_NAMESPACE_ID::internal::ComputeUnknownFieldsSize(
+        _internal_metadata_, total_size, &_cached_size_);
+  }
+  int cached_size = ::PROTOBUF_NAMESPACE_ID::internal::ToCachedSize(total_size);
+  SetCachedSize(cached_size);
+  return total_size;
+}
+
+void QueryResponseDateTimePayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  GOOGLE_DCHECK_NE(&from, this);
+  const QueryResponseDateTimePayload* source =
+      ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseDateTimePayload>(
+          &from);
+  if (source == nullptr) {
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+    ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
+  } else {
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+    MergeFrom(*source);
+  }
+}
+
+void QueryResponseDateTimePayload::MergeFrom(const QueryResponseDateTimePayload& from) {
+// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  GOOGLE_DCHECK_NE(&from, this);
+  _internal_metadata_.MergeFrom(from._internal_metadata_);
+  ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
+  (void) cached_has_bits;
+
+  datetimedata_.MergeFrom(from.datetimedata_);
+}
+
+void QueryResponseDateTimePayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
+// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+void QueryResponseDateTimePayload::CopyFrom(const QueryResponseDateTimePayload& from) {
+// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  if (&from == this) return;
+  Clear();
+  MergeFrom(from);
+}
+
+bool QueryResponseDateTimePayload::IsInitialized() const {
+  return true;
+}
+
+void QueryResponseDateTimePayload::InternalSwap(QueryResponseDateTimePayload* other) {
+  using std::swap;
+  _internal_metadata_.Swap(&other->_internal_metadata_);
+  datetimedata_.InternalSwap(&other->datetimedata_);
+}
+
+::PROTOBUF_NAMESPACE_ID::Metadata QueryResponseDateTimePayload::GetMetadata() const {
   return GetMetadataStatic();
 }
 
@@ -1849,6 +2081,8 @@ void QueryResponsePayload::InitAsDefaultInstance() {
       ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::internal_default_instance());
   ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.stringpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload*>(
       ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::internal_default_instance());
+  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.datetimepayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload*>(
+      ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::internal_default_instance());
 }
 class QueryResponsePayload::_Internal {
  public:
@@ -1859,6 +2093,7 @@ class QueryResponsePayload::_Internal {
   static const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload& pointpayload(const QueryResponsePayload* msg);
   static const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload& polygonpayload(const QueryResponsePayload* msg);
   static const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload& stringpayload(const QueryResponsePayload* msg);
+  static const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload& datetimepayload(const QueryResponsePayload* msg);
 };
 
 const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload&
@@ -1888,6 +2123,10 @@ QueryResponsePayload::_Internal::polygonpayload(const QueryResponsePayload* msg)
 const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload&
 QueryResponsePayload::_Internal::stringpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.stringpayload_;
+}
+const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload&
+QueryResponsePayload::_Internal::datetimepayload(const QueryResponsePayload* msg) {
+  return *msg->payload_.datetimepayload_;
 }
 void QueryResponsePayload::set_allocated_intpayload(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* intpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
@@ -1987,6 +2226,20 @@ void QueryResponsePayload::set_allocated_stringpayload(::ColmnarDB::NetworkClien
   }
   // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.stringPayload)
 }
+void QueryResponsePayload::set_allocated_datetimepayload(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload) {
+  ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
+  clear_payload();
+  if (datetimepayload) {
+    ::PROTOBUF_NAMESPACE_ID::Arena* submessage_arena = nullptr;
+    if (message_arena != submessage_arena) {
+      datetimepayload = ::PROTOBUF_NAMESPACE_ID::internal::GetOwnedMessage(
+          message_arena, datetimepayload, submessage_arena);
+    }
+    set_has_datetimepayload();
+    payload_.datetimepayload_ = datetimepayload;
+  }
+  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.dateTimePayload)
+}
 QueryResponsePayload::QueryResponsePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
@@ -2024,6 +2277,10 @@ QueryResponsePayload::QueryResponsePayload(const QueryResponsePayload& from)
     }
     case kStringPayload: {
       _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
+      break;
+    }
+    case kDateTimePayload: {
+      _internal_mutable_datetimepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2087,6 +2344,10 @@ void QueryResponsePayload::clear_payload() {
     }
     case kStringPayload: {
       delete payload_.stringpayload_;
+      break;
+    }
+    case kDateTimePayload: {
+      delete payload_.datetimepayload_;
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2160,6 +2421,13 @@ const char* QueryResponsePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAM
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
           ptr = ctx->ParseMessage(_internal_mutable_stringpayload(), ptr);
+          CHK_(ptr);
+        } else goto handle_unusual;
+        continue;
+      // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+      case 9:
+        if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 74)) {
+          ptr = ctx->ParseMessage(_internal_mutable_datetimepayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -2245,6 +2513,14 @@ failure:
         8, _Internal::stringpayload(this), target, stream);
   }
 
+  // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+  if (_internal_has_datetimepayload()) {
+    stream->EnsureSpace(&target);
+    target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
+      InternalWriteMessageToArray(
+        9, _Internal::datetimepayload(this), target, stream);
+  }
+
   if (PROTOBUF_PREDICT_FALSE(_internal_metadata_.have_unknown_fields())) {
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
@@ -2311,6 +2587,13 @@ size_t QueryResponsePayload::ByteSizeLong() const {
           *payload_.stringpayload_);
       break;
     }
+    // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+    case kDateTimePayload: {
+      total_size += 1 +
+        ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
+          *payload_.datetimepayload_);
+      break;
+    }
     case PAYLOAD_NOT_SET: {
       break;
     }
@@ -2373,6 +2656,10 @@ void QueryResponsePayload::MergeFrom(const QueryResponsePayload& from) {
     }
     case kStringPayload: {
       _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
+      break;
+    }
+    case kDateTimePayload: {
+      _internal_mutable_datetimepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2864,6 +3151,9 @@ template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseI
 }
 template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload >(Arena* arena) {
   return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload >(arena);
+}
+template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload >(Arena* arena) {
+  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload >(arena);
 }
 template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload >(Arena* arena) {
   return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload >(arena);

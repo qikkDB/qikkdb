@@ -11,6 +11,8 @@
 #endif
 #include <stdexcept>
 
+#include "../Configuration.h"
+
 #ifdef DEBUG_ALLOC
 void ValidateIterator(int gpuId,
                       const std::multimap<size_t, std::list<CudaMemAllocator::BlockInfo>::iterator>& container,
@@ -112,14 +114,31 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) : deviceID_(deviceID)
 
     size_t free, total;
     cudaMemGetInfo(&free, &total);
-    // printf("Device %d: %s Total: %zu Free: %zu\n", deviceID_, props.name, total, free);
-    if (cudaMalloc(&cudaBufferStart_, free - RESERVED_MEMORY) != cudaSuccess)
+
+    // Limited usage of GPU memory in %
+    const int32_t percent = Configuration::GetInstance().GetGPUMemoryUsagePercent();
+    if (percent < 1 || percent > 100)
+    {
+        throw std::invalid_argument("Invalid value of GPUMemoryUsagePercent: " + std::to_string(percent));
+    }
+    if (free * percent / 100 <= RESERVED_MEMORY)
+    {
+        throw std::invalid_argument("GPUMemoryUsagePercent too low: " + std::to_string(percent));
+    }
+    const size_t allocSize = free * percent / 100 - RESERVED_MEMORY;
+
+    if (percent != 100)
+    {
+        // printf("Device %d: Total: %zu Free: %zu\n", deviceID_, total, free);
+        printf("Allocating %d%% of GPU memory (%zu B)\n", percent, allocSize);
+    }
+    if (cudaMalloc(&cudaBufferStart_, allocSize) != cudaSuccess)
     {
         throw std::invalid_argument("Failed to alloc GPU buffer");
     }
-    chainedBlocks_.push_back({false, blocksBySize_.end(), free - RESERVED_MEMORY, cudaBufferStart_});
+    chainedBlocks_.push_back({false, blocksBySize_.end(), allocSize, cudaBufferStart_});
     (*chainedBlocks_.begin()).sizeOrderIt =
-        blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
+        blocksBySize_.emplace(std::make_pair(allocSize, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
     logOut = fopen("C:\dbg-alloc.log", "a");
     fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
@@ -155,8 +174,9 @@ CudaMemAllocator::~CudaMemAllocator()
 /// Allocate data with the allocator
 /// < param name="numBytes">number of bytes to be allocated like size_t</param>
 /// <returns> a chunk of allocated memory on the GPU</returns>
-int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
+int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
 {
+    std::unique_lock<std::mutex> lock{allocator_mutex_};
     if (numBytes <= 0)
     {
         throw std::out_of_range("Invalid allocation size");
@@ -213,9 +233,9 @@ int8_t* CudaMemAllocator::allocate(std::ptrdiff_t numBytes)
 
 /// Deallocate data with the allocator
 /// < param name="ptr">the pointer to be freed</param>
-/// < param name="numBytes">number of byte to free</param>
-void CudaMemAllocator::deallocate(int8_t* ptr, size_t numBytes)
+void CudaMemAllocator::Deallocate(int8_t* ptr)
 {
+    std::unique_lock<std::mutex> lock{allocator_mutex_};
 #ifdef DEBUG_ALLOC
     fprintf(logOut, "%d CudaMemAllocator::deallocate ptr %p\n", deviceID_, ptr);
 #ifndef WIN32

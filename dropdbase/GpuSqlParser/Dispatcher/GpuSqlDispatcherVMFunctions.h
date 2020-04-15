@@ -5,6 +5,7 @@
 #include "../../QueryEngine/GPUCore/GPUOrderBy.cuh"
 #include "../../QueryEngine/GPUCore/GPUJoin.cuh"
 #include "../../QueryEngine/CPUJoinReorderer.cuh"
+#include "../../QueryEngine/GPUCore/GPUNullMask.cuh"
 #include "../../IVariantArray.h"
 #include "../../VariantArray.h"
 #include "../../Database.h"
@@ -17,6 +18,7 @@ template <typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
 {
     T cnst = arguments_.Read<T>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
@@ -28,11 +30,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
         return loadFlag;
     }
 
+    // Compute count of copies of the const
     int64_t dataElementCount = GetBlockSize();
+    if (filter_)
+    {
+        GPUReconstruct::Sum(dataElementCount, reinterpret_cast<int8_t*>(filter_), dataElementCount);
+    }
 
+    // Create array and merge to protobuf response
     std::unique_ptr<T[]> outData(new T[dataElementCount]);
     std::fill(outData.get(), outData.get() + dataElementCount, cnst);
-    InsertIntoPayload(payload, outData, dataElementCount);
+    InsertIntoPayload(payload, outData, dataElementCount, payloadType);
     MergePayloadToSelfResponse(alias, "", payload, "");
     return InstructionStatus::CONTINUE;
 }
@@ -47,6 +55,7 @@ template <typename T>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 {
     auto colName = arguments_.Read<std::string>();
+    PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     auto alias = arguments_.Read<std::string>();
 
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<T>(colName);
@@ -146,7 +155,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
     if (outSize > 0)
     {
         ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-        InsertIntoPayload(payload, outData, outSize);
+        InsertIntoPayload(payload, outData, outSize, payloadType);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskString);
     }
     return InstructionStatus::CONTINUE;
@@ -259,7 +268,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                                 ((block->GetSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
 
                             offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
-                            
+
                             std::vector<int8_t> maskToOffset(block->GetNullBitmask(),
                                                              block->GetNullBitmask() + offsetBitMaskCapacity);
                             ShiftNullMaskLeft(maskToOffset, loadOffset_);
@@ -319,7 +328,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<T>(std::get<0>(cacheMaskEntry),
+                                                                          outMaskSize, *col, blockIndex_,
                                                                           joinIndices_->at(table),
                                                                           database_->GetBlockSize());
                     }
@@ -334,6 +344,38 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
             AddCachedRegister(colName, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
             noLoad_ = false;
         }
+    }
+    return InstructionStatus::CONTINUE;
+}
+
+template <typename OP>
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
+{
+    auto colName = arguments_.Read<std::string>();
+    auto reg = arguments_.Read<std::string>();
+
+    CudaLogBoost::getInstance(CudaLogBoost::debug) << "NullMaskCol: " << colName << " " << reg << '\n';
+
+    if (colName.front() == '$')
+    {
+        throw NullMaskOperationInvalidOperandException();
+    }
+
+    GpuSqlDispatcher::InstructionStatus loadFlag = LoadColNullMask(colName);
+    if (loadFlag != InstructionStatus::CONTINUE)
+    {
+        return loadFlag;
+    }
+
+    const PointerAllocation& columnMask = allocatedPointers_.at(colName + NULL_SUFFIX);
+
+    if (!IsRegisterAllocated(reg))
+    {
+        int8_t* outFilterMask;
+
+        outFilterMask = AllocateRegister<int8_t>(reg, loadSize_);
+        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int8_t*>(columnMask.GpuPtr),
+                             columnMask.ElementCount, loadSize_);
     }
     return InstructionStatus::CONTINUE;
 }
