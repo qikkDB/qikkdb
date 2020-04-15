@@ -11,6 +11,8 @@
 #endif
 #include <stdexcept>
 
+#include "../Configuration.h"
+
 #ifdef DEBUG_ALLOC
 void ValidateIterator(int gpuId,
                       const std::multimap<size_t, std::list<CudaMemAllocator::BlockInfo>::iterator>& container,
@@ -112,14 +114,31 @@ CudaMemAllocator::CudaMemAllocator(int32_t deviceID) : deviceID_(deviceID)
 
     size_t free, total;
     cudaMemGetInfo(&free, &total);
-    // printf("Device %d: %s Total: %zu Free: %zu\n", deviceID_, props.name, total, free);
-    if (cudaMalloc(&cudaBufferStart_, free - RESERVED_MEMORY) != cudaSuccess)
+
+    // Limited usage of GPU memory in %
+    const int32_t percent = Configuration::GetInstance().GetGPUMemoryUsagePercent();
+    if (percent < 1 || percent > 100)
+    {
+        throw std::invalid_argument("Invalid value of GPUMemoryUsagePercent: " + std::to_string(percent));
+    }
+    if (free * percent / 100 <= RESERVED_MEMORY)
+    {
+        throw std::invalid_argument("GPUMemoryUsagePercent too low: " + std::to_string(percent));
+    }
+    const size_t allocSize = free * percent / 100 - RESERVED_MEMORY;
+
+    if (percent != 100)
+    {
+        // printf("Device %d: Total: %zu Free: %zu\n", deviceID_, total, free);
+        printf("Allocating %d%% of GPU memory (%zu B)\n", percent, allocSize);
+    }
+    if (cudaMalloc(&cudaBufferStart_, allocSize) != cudaSuccess)
     {
         throw std::invalid_argument("Failed to alloc GPU buffer");
     }
-    chainedBlocks_.push_back({false, blocksBySize_.end(), free - RESERVED_MEMORY, cudaBufferStart_});
+    chainedBlocks_.push_back({false, blocksBySize_.end(), allocSize, cudaBufferStart_});
     (*chainedBlocks_.begin()).sizeOrderIt =
-        blocksBySize_.emplace(std::make_pair(free - RESERVED_MEMORY, chainedBlocks_.begin()));
+        blocksBySize_.emplace(std::make_pair(allocSize, chainedBlocks_.begin()));
 #ifdef DEBUG_ALLOC
     logOut = fopen("C:\dbg-alloc.log", "a");
     fprintf(logOut, "CudaMemAllocator %d\n", deviceID);
