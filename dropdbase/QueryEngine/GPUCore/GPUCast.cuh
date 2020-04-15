@@ -18,6 +18,9 @@ __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length);
 
 __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
 
+__device__ int8_t CastBoolean(char* str, int32_t length);
+
+__device__ char ToUpper(char c);
 
 template <typename T>
 __device__ int32_t GetNumberOfIntegralDigits(T val)
@@ -220,6 +223,9 @@ __device__ double FromString::operator()<double>(char* str, int32_t length) cons
 
 template <>
 __device__ NativeGeoPoint FromString::operator()<NativeGeoPoint>(char* str, int32_t length) const;
+
+template <>
+__device__ int8_t FromString::operator()<int8_t>(char* str, int32_t length) const;
 
 } // namespace CastOperations
 

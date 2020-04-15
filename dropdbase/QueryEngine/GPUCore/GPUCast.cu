@@ -45,6 +45,38 @@ __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length)
     return CastNativeGeoPoint(str + 6, length - 7);
 }
 
+__device__ int8_t CastBoolean(char* str, int32_t length)
+{
+    if (length != 4)
+    {
+        return 0;
+    }
+
+    const char* trueVal = "TRUE";
+    int32_t strIdx = 0;
+    do
+    {
+        const char c = ToUpper(*(str + strIdx));
+        if (c != trueVal[strIdx])
+        {
+            return 0;
+        }
+        strIdx++;
+    }
+    while(strIdx < 4);
+
+    return 1;
+}
+
+__device__ char ToUpper(char c)
+{
+    if (c >= 'a' && c <= 'z')
+    {
+        return 'A' + c - 'a';
+    }
+    return c;
+}
+
 template <>
 __device__ int32_t CastOperations::FromString::operator()<int32_t>(char* str, int32_t length) const
 {
@@ -73,4 +105,10 @@ template <>
 __device__ NativeGeoPoint CastOperations::FromString::operator()<NativeGeoPoint>(char* str, int32_t length) const
 {
     return CastWKTPoint(str, length);
+}
+
+template <>
+__device__ int8_t CastOperations::FromString::operator()<int8_t>(char* str, int32_t length) const
+{
+    return CastBoolean(str, length);
 }
