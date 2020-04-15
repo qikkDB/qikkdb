@@ -26,6 +26,19 @@ TEST(DispatcherTestsRegression, EmptyResultFromGtColConst)
     ASSERT_EQ(result->payloads().size(), 0); // Check if the result size is also 0
 }
 
+TEST(DispatcherTestsRegression, EmptyResultFromGroupByOrderBy)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT colInteger1 FROM TableA WHERE colInteger1 > 4096 "
+                              "GROUP BY colInteger1 ORDER BY colInteger1;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->payloads().size(), 0);
+}
+
 TEST(DispatcherTestsRegression, EmptyResultFromGroupByCount)
 {
     Context::getInstance();

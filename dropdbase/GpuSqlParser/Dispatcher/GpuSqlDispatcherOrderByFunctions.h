@@ -34,6 +34,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByCol()
                                ""));
             int32_t inSize = column.ElementCount;
 
+            if (inSize == 0)
+            {
+                return InstructionStatus::CONTINUE;
+            }
+
             if (orderByTable_ == nullptr)
             {
                 orderByTable_ = std::make_unique<GPUOrderBy>(inSize);
