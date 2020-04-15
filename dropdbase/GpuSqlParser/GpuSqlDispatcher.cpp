@@ -14,6 +14,7 @@
 #include "../Database.h"
 #include "../Table.h"
 #include "../ConstraintType.h"
+#include "../Configuration.h"
 #include "LoadColHelper.h"
 #include "InsertIntoStruct.h"
 #include <any>
@@ -64,12 +65,12 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   constPointCounter_(0), constPolygonCounter_(0), constStringCounter_(0), filter_(0),
   usedRegisterMemory_(0), maxRegisterMemory_(0), // TODO value from config e.g.
   groupByTables_(groupByTables), dispatcherThreadId_(dispatcherThreadId), insideAggregation_(false),
-  insideGroupBy_(false), insideWhere_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
-  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
-  groupByHashTableFull_(false), hashTableMultiplier_(1), loadNecessary_(1), cpuDispatcher_(database),
-  jmpInstructionPosition_(0), insertIntoData_(std::make_unique<InsertIntoStruct>()),
-  joinIndices_(nullptr), orderByTable_(nullptr), orderByBlocks_(orderByBlocks),
-  loadedTableName_(""), loadSize_(0), loadOffset_(0)
+  insideGroupBy_(false), insideWhere_(false), usingGroupBy_(false), usingOrderBy_(false),
+  usingJoin_(false), isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true),
+  aborted_(false), groupByHashTableFull_(false), hashTableMultiplier_(1), loadNecessary_(1),
+  cpuDispatcher_(database), jmpInstructionPosition_(0),
+  insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr), orderByTable_(nullptr),
+  orderByBlocks_(orderByBlocks), loadedTableName_(""), loadSize_(0), loadOffset_(0)
 {
 }
 
@@ -1086,7 +1087,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::WhereEvaluation()
 {
     bool containsAggFunction = arguments_.Read<bool>();
     // loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    loadNecessary_ = usingJoin_ ? 1 :
+                                  (!Configuration::GetInstance().IsUsingWhereEvaluationSpeedup() ||
+                                   cpuDispatcher_.Execute(blockIndex_));
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
     insideWhere_ = true;
     return InstructionStatus::CONTINUE;
