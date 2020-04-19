@@ -16,7 +16,7 @@ std::mutex TCPClientHandler::importMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
 {
-    BOOST_LOG_TRIVIAL(debug) << "GetNextQueryResult()";
+    BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: GetNextQueryResult()";
     if (lastQueryResult_.valid())
     {
         lastResultMessage_ = lastQueryResult_.get();
@@ -34,7 +34,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         return std::move(lastResultMessage_);
     }
     auto* completeResult = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage);
-    BOOST_LOG_TRIVIAL(debug) << "LastResultLen: " << lastResultLen_;
+    BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: LastResultLen: " << lastResultLen_;
     if (lastResultLen_ == 0)
     {
         for (const auto& payload : completeResult->payloads())
@@ -66,7 +66,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 break;
             }
         }
-        BOOST_LOG_TRIVIAL(debug) << "New LastResultLen: " << lastResultLen_;
+        BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: New LastResultLen: " << lastResultLen_;
         if (lastResultLen_ < FRAGMENT_SIZE)
         {
             lastResultLen_ = 0;
@@ -86,13 +86,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             smallPayload->mutable_timing()->insert(timing);
         }
     }
-    BOOST_LOG_TRIVIAL(debug) << "Sent Records: " << sentRecords_;
-    BOOST_LOG_TRIVIAL(debug) << "Inserting payloads...\n";
+    BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Sent Records: " << sentRecords_;
+    BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Inserting payloads...\n";
     for (const auto& payload : completeResult->payloads())
     {
         int bufferSize =
             FRAGMENT_SIZE > (lastResultLen_ - sentRecords_) ? (lastResultLen_ - sentRecords_) : FRAGMENT_SIZE;
-        BOOST_LOG_TRIVIAL(debug) << "bufferSize: " << bufferSize;
+        BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: bufferSize: " << bufferSize;
         ColmnarDB::NetworkClient::Message::QueryResponsePayload finalPayload;
         switch (payload.second.payload_case())
         {
@@ -160,12 +160,12 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
     sentRecords_ += FRAGMENT_SIZE;
     if (sentRecords_ >= lastResultLen_)
     {
-        BOOST_LOG_TRIVIAL(debug) << "Last Block, cleaning up";
+        BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Last Block, cleaning up";
         sentRecords_ = 0;
         lastResultLen_ = 0;
         lastResultMessage_.reset();
     }
-    BOOST_LOG_TRIVIAL(debug) << "Returning small payload";
+    BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Returning small payload";
     return std::move(smallPayload);
 }
 
@@ -183,7 +183,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
         parser_ = std::make_unique<GpuSqlCustomParser>(sharedDb, queryMessage.query());
         auto ret = parser_->Parse();
         auto end = std::chrono::high_resolution_clock::now();
-        BOOST_LOG_TRIVIAL(info) << "Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
+        BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
         std::unique_ptr<google::protobuf::Message> notifyMessage = nullptr;
         if (auto response = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
         {
@@ -240,7 +240,7 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
     }
     else
     {
-        BOOST_LOG_TRIVIAL(debug) << "Invalid InfoMessage received, Code = " << infoMessage.code();
+        BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: Invalid InfoMessage received, Code = " << infoMessage.code();
     }
     return nullptr;
 }
@@ -252,7 +252,7 @@ TCPClientHandler::HandleQuery(ITCPWorker& worker,
 {
     sentRecords_ = 0;
     lastResultLen_ = 0;
-    BOOST_LOG_TRIVIAL(info) << queryMessage.query();
+    BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: " << queryMessage.query();
     lastQueryResult_ =
         std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this,
                                                  worker.currentDatabase_, queryMessage, handler));
@@ -295,7 +295,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
     }
     catch (std::exception& e)
     {
-        BOOST_LOG_TRIVIAL(error) << "CSVImport: " << e.what();
+        BOOST_LOG_TRIVIAL(error) << "TCPClientHandler: CSVImport has failed: " << e.what();
     }
     return resultMessage;
 }
@@ -465,7 +465,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (constraint_violation_error& e)
         {
-            BOOST_LOG_TRIVIAL(warning) << e.what();
+            BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: " << e.what();
         }
     }
     else
@@ -476,7 +476,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (constraint_violation_error& e)
         {
-            BOOST_LOG_TRIVIAL(warning) << e.what();
+            BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: " << e.what();
         }
     }
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
@@ -488,7 +488,7 @@ void TCPClientHandler::Abort()
 {
     if (parser_)
     {
-        BOOST_LOG_TRIVIAL(debug) << "Aborting parser...";
+        BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Got request from client to abort parser.";
         parser_->InterruptQueryExecution();
     }
 }

@@ -89,7 +89,7 @@ std::vector<std::string> Database::GetDatabaseNames()
 /// <param name="columnName">Name of the column whose data will be copied.</param>
 void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::string& columnName)
 {
-    BOOST_LOG_TRIVIAL(debug) << "Copying data (column name: " << columnName
+    BOOST_LOG_TRIVIAL(debug) << "Database: Copying data (column name: " << columnName
                              << ") from the table named: " << srcTable.GetName()
                              << " to the table named: " << dstTable.GetName() << " has started.";
 
@@ -167,7 +167,7 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
     }
     }
 
-    BOOST_LOG_TRIVIAL(debug) << "Copying data (column name: " << columnName
+    BOOST_LOG_TRIVIAL(debug) << "Database: Copying data (column name: " << columnName
                              << ") from the table named: " << srcTable.GetName()
                              << " to the table named: " << dstTable.GetName() << " has finished.";
 }
@@ -318,7 +318,7 @@ void Database::PersistOnlyDbFile()
     const std::string filePath = std::string(path + name_ + DB_EXTENSION);
 
     // write file DB_EXTENSION
-    BOOST_LOG_TRIVIAL(debug) << "Saving " << DB_EXTENSION << " file with name : " << filePath;
+    BOOST_LOG_TRIVIAL(debug) << "Database: Saving " << DB_EXTENSION << " file with name : " << filePath;
     std::ofstream dbFile(filePath, std::ios::binary);
 
     if (dbFile.is_open())
@@ -375,7 +375,7 @@ void Database::PersistOnlyDbFile()
                     columnsJSON["file_path_address_file"] =
                         path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION;
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Default address file path ( "
+                        << "Database: Default address file path ( "
                         << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION
                         << " ) has been persisted for column " << columnName << " of table "
                         << tableName << " of database " << name_ << ".";
@@ -383,7 +383,7 @@ void Database::PersistOnlyDbFile()
                 else
                 {
                     columnsJSON["file_path_address_file"] = fileAddressPath;
-                    BOOST_LOG_TRIVIAL(debug) << "Specific address file path ( " << fileAddressPath
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Specific address file path ( " << fileAddressPath
                                              << " ) has been persisted for column " << columnName << " of table "
                                              << tableName << " of database " << name_ << ".";
                 }
@@ -393,7 +393,7 @@ void Database::PersistOnlyDbFile()
                     columnsJSON["file_path_data_file"] = path + name_ + SEPARATOR + tableName +
                                                          SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Default data file path ( "
+                        << "Database: Default data file path ( "
                         << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_DATA_EXTENSION
                         << " ) has been persisted for column " << columnName << " of table "
                         << tableName << " of database " << name_ << ".";
@@ -402,7 +402,7 @@ void Database::PersistOnlyDbFile()
                 {
                     columnsJSON["file_path_data_file"] = fileDataPath;
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Specific data file path ( " << fileDataPath << " ) has been persisted for column "
+                        << "Database: Specific data file path ( " << fileDataPath << " ) has been persisted for column "
                         << columnName << " of table " << tableName << " of database " << name_ << ".";
                 }
 
@@ -417,7 +417,7 @@ void Database::PersistOnlyDbFile()
                         columnsJSON["file_path_string_data_file"] =
                             path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
                         BOOST_LOG_TRIVIAL(debug)
-                            << "Default fragment file path ( "
+                            << "Database: Default fragment file path ( "
                             << path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION
                             << " ) has been persisted for column " << columnName << " of table "
                             << tableName << " of database " << name_ << ".";
@@ -426,7 +426,7 @@ void Database::PersistOnlyDbFile()
                     {
                         columnsJSON["file_path_string_data_file"] = fileFragmentPath;
                         BOOST_LOG_TRIVIAL(debug)
-                            << "Specific fragment file path ( " << fileFragmentPath
+                            << "Database: Specific fragment file path ( " << fileFragmentPath
                             << " ) has been persisted for column " << columnName << " of table "
                             << tableName << " of database " << name_ << ".";
                     }
@@ -435,14 +435,14 @@ void Database::PersistOnlyDbFile()
                     {
                         columnsJSON["encoding"] = "undefined";
                         BOOST_LOG_TRIVIAL(debug)
-                            << "Default encoding (undefined) has been persisted for column " << columnName
+                            << "Database: Default encoding (undefined) has been persisted for column " << columnName
                             << " of table " << tableName << " of database " << name_ << ".";
                     }
                     else
                     {
                         columnsJSON["encoding"] = encoding;
                         BOOST_LOG_TRIVIAL(debug)
-                            << "Specific encoding ( " << encoding << " ) has been persisted for column "
+                            << "Database: Specific encoding ( " << encoding << " ) has been persisted for column "
                             << columnName << " of table " << tableName << " of database " << name_ << ".";
                     }
                 }
@@ -540,7 +540,7 @@ void Database::PersistOnlyDbFile()
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Could not open file " << filePath << " for writing. Persisting "
+        BOOST_LOG_TRIVIAL(error) << "Database: Could not open file " << filePath << " for writing. Persisting "
                                  << " file was not successful. Check if the process "
                                     "have write access into the folder or file.";
     }
@@ -551,7 +551,7 @@ void Database::PersistOnlyDbFile()
 /// </summary>
 void Database::Persist()
 {
-    BOOST_LOG_TRIVIAL(info) << "Saving database with name: " << name_ << " and " << tables_.size() << " tables.";
+    BOOST_LOG_TRIVIAL(info) << "Database: Saving database with name: " << name_ << " and " << tables_.size() << " tables.";
 
     PersistOnlyDbFile();
 
@@ -580,12 +580,12 @@ void Database::Persist()
     if (boost::filesystem::exists(boost::filesystem::path(
             Configuration::GetInstance().GetDatabaseDir() + name_ + DB_EXTENSION)))
     {
-        BOOST_LOG_TRIVIAL(info) << "Database " << name_ << " was successfully saved into disk.";
+        BOOST_LOG_TRIVIAL(info) << "Database: Database " << name_ << " was successfully saved into disk.";
     }
     else
     {
         BOOST_LOG_TRIVIAL(info)
-            << "Database "
+            << "Database: Database "
             << name_ << " was NOT saved into disk. Check if you have write access into the destination folder.";
     }
 }
@@ -596,7 +596,7 @@ void Database::Persist()
 void Database::SaveModifiedToDisk()
 {
     std::unique_lock<std::mutex> lock(dbMutex_);
-    BOOST_LOG_TRIVIAL(info) << "Saving modified columns of loaded databases to disk has started...";
+    BOOST_LOG_TRIVIAL(info) << "Database: Saving modified columns of loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
@@ -607,7 +607,7 @@ void Database::SaveModifiedToDisk()
             database.second->PersistOnlyModified(tablePair.first);
         }
     }
-    BOOST_LOG_TRIVIAL(info) << "Saving modified columns of loaded databases to disk has finished.";
+    BOOST_LOG_TRIVIAL(info) << "Database: Saving modified columns of loaded databases to disk has finished.";
 }
 
 /// <summary>
@@ -626,7 +626,7 @@ void Database::PersistOnlyModified(const std::string tableName)
 
     if (table.GetSaveNecessary())
     {
-        BOOST_LOG_TRIVIAL(info) << "Saving only modified columns of table named " << tableName
+        BOOST_LOG_TRIVIAL(info) << "Database: Saving only modified columns of table named " << tableName
                                 << " of database named " << name_ << ".";
 
         const auto& columns = table.GetColumns();
@@ -652,7 +652,7 @@ void Database::PersistOnlyModified(const std::string tableName)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(info) << "Save was not necessary (no changes) - table named " << tableName
+        BOOST_LOG_TRIVIAL(info) << "Database: Save was not necessary (no changes) - table named " << tableName
                                 << " of database named " << name_ << ".";
     }
 }
@@ -663,13 +663,13 @@ void Database::PersistOnlyModified(const std::string tableName)
 void Database::SaveAllToDisk()
 {
     std::unique_lock<std::mutex> lock(dbMutex_);
-    BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
+    BOOST_LOG_TRIVIAL(info) << "Database: Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
     {
         database.second->Persist();
     }
-    BOOST_LOG_TRIVIAL(info) << "Saving loaded databases to disk has finished.";
+    BOOST_LOG_TRIVIAL(info) << "Database: Saving loaded databases to disk has finished.";
 }
 
 /// <summary>
@@ -701,7 +701,7 @@ void Database::LoadDatabasesFromDisk()
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
+        BOOST_LOG_TRIVIAL(error) << "Database: Directory " << path << " does not exists.";
     }
 }
 
@@ -742,7 +742,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
     else
     {
         BOOST_LOG_TRIVIAL(warning)
-            << "Renaming table: Main (" << DB_EXTENSION << ") file of db " << name_
+            << "Database: Renaming table: Main (" << DB_EXTENSION << ") file of db " << name_
             << " was NOT removed from disk. No such file (if the database was not yet saved, "
                "ignore this warning) or no write access.";
     }
@@ -763,12 +763,12 @@ void Database::DeleteDatabaseFromDisk()
         // Delete main DB_EXTENSION file
         if (boost::filesystem::remove(path + name_ + DB_EXTENSION))
         {
-            BOOST_LOG_TRIVIAL(info) << "Main (" << DB_EXTENSION << ") file of db " << name_
+            BOOST_LOG_TRIVIAL(info) << "Database: Main (" << DB_EXTENSION << ") file of db " << name_
                                     << " was successfully removed from disk.";
         }
         else
         {
-            BOOST_LOG_TRIVIAL(warning) << "Main (" << DB_EXTENSION << ") file of db "
+            BOOST_LOG_TRIVIAL(warning) << "Database: Main (" << DB_EXTENSION << ") file of db "
                                        << name_ << " was NOT removed from disk. No such file or write access.";
         }
 
@@ -781,12 +781,12 @@ void Database::DeleteDatabaseFromDisk()
             {
                 if (boost::filesystem::remove(p.path().string().c_str()))
                 {
-                    BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " was successfully removed from disk.";
+                    BOOST_LOG_TRIVIAL(info) << "Database: File " << p.path().string() << " was successfully removed from disk.";
                 }
                 else
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "File " << p.path().string()
+                        << "Database: File " << p.path().string()
                         << " was NOT removed from disk. No such file or write access.";
                 }
             }
@@ -794,7 +794,7 @@ void Database::DeleteDatabaseFromDisk()
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
+        BOOST_LOG_TRIVIAL(error) << "Database: Directory " << path << " does not exists.";
     }
 }
 
@@ -820,13 +820,13 @@ void Database::DeleteTableFromDisk(const char* tableName)
             {
                 if (boost::filesystem::remove(p.path().string().c_str()))
                 {
-                    BOOST_LOG_TRIVIAL(info) << "File " << p.path().string() << " from database "
+                    BOOST_LOG_TRIVIAL(info) << "Database: File " << p.path().string() << " from database "
                                             << name_ << " was successfully removed from disk.";
                 }
                 else
                 {
                     BOOST_LOG_TRIVIAL(warning)
-                        << "File " << p.path().string()
+                        << "Database: File " << p.path().string()
                         << " was NOT removed from disk. No such file or write access.";
                 }
             }
@@ -834,7 +834,7 @@ void Database::DeleteTableFromDisk(const char* tableName)
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Directory " << path << " does not exists.";
+        BOOST_LOG_TRIVIAL(error) << "Database: Directory " << path << " does not exists.";
     }
 
     // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a DB_EXTENSION file, so it is not only in memory
@@ -863,18 +863,18 @@ void Database::DeleteColumnFromDisk(const char* tableName, const char* columnNam
     {
         if (boost::filesystem::remove(filePath.c_str()))
         {
-            BOOST_LOG_TRIVIAL(info) << "Column " << columnName << " from table " << tableName << " from database "
+            BOOST_LOG_TRIVIAL(info) << "Database: Column " << columnName << " from table " << tableName << " from database "
                                     << name_ << " was successfully removed from disk.";
         }
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "File " << filePath << " was NOT removed from disk. No such file or write access.";
+                << "Database: File " << filePath << " was NOT removed from disk. No such file or write access.";
         }
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "File " << path << " does not exists.";
+        BOOST_LOG_TRIVIAL(error) << "Database: File " << path << " does not exists.";
     }
 
     // persist only db file, so that changes are saved, BUT PERSIST ONLY if there already is a DB_EXTENSION file, so it is not only in memory
@@ -921,7 +921,7 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
     if (newBlockSize != tables_.at(tableName).GetBlockSize())
     {
         auto& table = tables_.at(tableName);
-        BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " WILL BE changed from "
+        BOOST_LOG_TRIVIAL(info) << "Database: The block size of the table named: " << tableName << " WILL BE changed from "
                                 << table.GetBlockSize() << " to " << newBlockSize << ".";
 
         // create temporary table in memory with new block size
@@ -971,13 +971,13 @@ void Database::ChangeTableBlockSize(const std::string tableName, const int32_t n
         // save all changes to disk
         Persist();
 
-        BOOST_LOG_TRIVIAL(info) << "The block size of the table named: " << tableName << " HAS BEEN changed from "
+        BOOST_LOG_TRIVIAL(info) << "Database: The block size of the table named: " << tableName << " HAS BEEN changed from "
                                 << table.GetBlockSize() << " to " << newBlockSize << ".";
     }
     else
     {
         BOOST_LOG_TRIVIAL(info)
-            << "The new block size of the table named: " << tableName
+            << "Database: The new block size of the table named: " << tableName
             << " was the same as the current block size, so it has not been changed.";
     }
 }
@@ -1007,11 +1007,11 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
         if (!parseFromStream(builder, dbFile, &root, &errs))
         {
-            BOOST_LOG_TRIVIAL(error) << "Cannot construct database from JSON file: " << filePath << ".";
+            BOOST_LOG_TRIVIAL(error) << "Database: Cannot construct database from JSON file: " << filePath << ".";
             return nullptr;
         }
 
-        BOOST_LOG_TRIVIAL(info) << "Loading database from: " << filePath << ".";
+        BOOST_LOG_TRIVIAL(info) << "Database: Loading database from: " << filePath << ".";
 
         int32_t persistenceFormatVersion =
             root["persistence_format_version"].asInt(); // read persistence format version
@@ -1019,7 +1019,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
         if (persistenceFormatVersion != Database::PERSISTENCE_FORMAT_VERSION)
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "WARNING: Database persistence format version is different in database file: " << filePath
+                << "WARNING: Database: Database persistence format version is different in database file: " << filePath
                 << ". The persisted database files are in persistence format version: " << persistenceFormatVersion
                 << " the current persistence format version in this version of database core is: "
                 << Database::PERSISTENCE_FORMAT_VERSION
@@ -1046,7 +1046,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
             const int32_t tableSaveInterval = tableJSON["save_interval_ms"].asInt();
 
             BOOST_LOG_TRIVIAL(info)
-                << "Block size for table: " + tableName +
+                << "Database: Block size for table: " + tableName +
                        " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
 
             database->tables_.emplace(
@@ -1109,7 +1109,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "File " + filePath + " is empty and so cannot be loaded.";
+        BOOST_LOG_TRIVIAL(error) << "Database: File " + filePath + " is empty and so cannot be loaded.";
         return nullptr;
     }
 }
@@ -1156,7 +1156,7 @@ void Database::LoadColumn(const std::string fileDbPath,
     colFile.seekg(0, colFile.beg);
 
     BOOST_LOG_TRIVIAL(info)
-        << "Loading " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
+        << "Database: Loading " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
 
     int32_t emptyBlockIndex = 0;
 
@@ -1189,7 +1189,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << fileAddressPath
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Loading of the file: " << fileAddressPath
                                              << " has finished successfully.";
                     break;
                 }
@@ -1201,7 +1201,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
+                << "Database: Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
 
@@ -1234,7 +1234,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1244,7 +1244,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnPolygon.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty ComplexPolygon block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty ComplexPolygon block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -1334,7 +1334,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added ComplexPolygon block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added ComplexPolygon block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1343,7 +1343,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
 
@@ -1391,7 +1391,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1404,7 +1404,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnPoint.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Point block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Point block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -1462,7 +1462,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Point block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added Point block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1471,7 +1471,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
@@ -1500,7 +1500,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Loading of the file: " << fileAddressPath
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Loading of the file: " << fileAddressPath
                                              << " has finished successfully.";
                     break;
                 }
@@ -1512,7 +1512,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
+                << "Database: Address file " + fileAddressPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
 
@@ -1545,7 +1545,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1555,7 +1555,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnString.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty String block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty String block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -1636,7 +1636,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added String block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added String block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1645,7 +1645,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
 
@@ -1711,7 +1711,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1731,7 +1731,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnInt.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int8 block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int8 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -1778,7 +1778,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Int8 block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added Int8 block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1787,7 +1787,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
@@ -1832,7 +1832,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1852,7 +1852,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnInt.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int32 block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int32 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -1899,7 +1899,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Int32 block (" + fileDataPath + ") with data at index : " << index;
+                        << "Database: Added Int32 block (" + fileDataPath + ") with data at index : " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -1908,7 +1908,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
@@ -1953,7 +1953,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -1973,7 +1973,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnLong.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Int64 block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int64 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -2020,7 +2020,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Int64 block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added Int64 block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -2029,7 +2029,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
@@ -2074,7 +2074,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -2094,7 +2094,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnFloat.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Float block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Float block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -2141,7 +2141,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Float block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added Float block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -2150,7 +2150,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
@@ -2195,7 +2195,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (colFile.eof())
                 {
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Loading of the file: " << fileDataPath << " has finished successfully.";
+                        << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
 
@@ -2215,7 +2215,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 if (index != emptyBlockIndex) // there is null block
                 {
                     columnDouble.AddBlock(); // add empty block
-                    BOOST_LOG_TRIVIAL(debug) << "Added empty Double block (" + fileDataPath + ") at index: "
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Double block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
@@ -2263,7 +2263,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
                     BOOST_LOG_TRIVIAL(debug)
-                        << "Added Double block (" + fileDataPath + ") with data at index: " << index;
+                        << "Database: Added Double block (" + fileDataPath + ") with data at index: " << index;
                 }
 
                 emptyBlockIndex += 1;
@@ -2272,14 +2272,14 @@ void Database::LoadColumn(const std::string fileDbPath,
         else
         {
             BOOST_LOG_TRIVIAL(warning)
-                << "Data file " + fileDataPath + " is empty and so the loading will be skipped. "
+                << "Database: Data file " + fileDataPath + " is empty and so the loading will be skipped. "
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
     }
     break;
 
     default:
-        BOOST_LOG_TRIVIAL(error) << "Unsupported data type (when loading database - " << fileDbPath
+        BOOST_LOG_TRIVIAL(error) << "Database: Unsupported data type (when loading database - " << fileDbPath
                                  << ") encountered type number: " << type;
         throw std::domain_error("Unsupported data type (when loading database - " + fileDbPath +
                                 ") encountered type number: " + std::to_string(type));
@@ -2416,11 +2416,11 @@ void Database::WriteColumn(const int32_t blockSize,
 
     std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
     BOOST_LOG_TRIVIAL(debug)
-        << "Saving " << COLUMN_ADDRESS_EXTENSION << " file with name : " << fileAddressPath << ".";
+        << "Database: Saving " << COLUMN_ADDRESS_EXTENSION << " file with name : " << fileAddressPath << ".";
 
     std::ofstream colDataFile(fileDataPath, std::ios::binary);
     BOOST_LOG_TRIVIAL(debug)
-        << "Saving " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
+        << "Database: Saving " << COLUMN_DATA_EXTENSION << " file with name : " << fileDataPath << ".";
 
     if (colDataFile.is_open())
     {
@@ -2454,7 +2454,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colPolygon.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of ComplexPolygon data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of ComplexPolygon data with index = " << index;
 
                     auto data = block->GetData();
                     int32_t groupId = block->GetGroupId();
@@ -2580,7 +2580,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     else
                     {
                         BOOST_LOG_TRIVIAL(error)
-                            << "Could not open file " +
+                            << "Database: Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
                                                dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -2607,7 +2607,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colPoint.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Point data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Point data with index = " << index;
 
                     auto data = block->GetData();
                     int32_t groupId = block->GetGroupId();
@@ -2684,7 +2684,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colStr.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of String data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of String data with index = " << index;
 
                     auto data = block->GetData();
                     int32_t groupId = block->GetGroupId();
@@ -2810,7 +2810,7 @@ void Database::WriteColumn(const int32_t blockSize,
                     else
                     {
                         BOOST_LOG_TRIVIAL(error)
-                            << "Could not open file " +
+                            << "Database: Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
                                                dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -2836,7 +2836,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colInt.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int8 data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int8 data with index = " << index;
 
                     auto data = block->GetData();
                     size_t blockCurrentSize = block->GetSize();
@@ -2895,7 +2895,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colInt.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int32 data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int32 data with index = " << index;
 
                     auto data = block->GetData();
                     size_t blockCurrentSize = block->GetSize();
@@ -2954,7 +2954,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colLong.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Int64 data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int64 data with index = " << index;
 
                     auto data = block->GetData();
                     size_t blockCurrentSize = block->GetSize();
@@ -3012,7 +3012,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colFloat.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Float data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Float data with index = " << index;
 
                     auto data = block->GetData();
                     size_t blockCurrentSize = block->GetSize();
@@ -3071,7 +3071,7 @@ void Database::WriteColumn(const int32_t blockSize,
 
                 for (const auto& block : colDouble.GetBlocksList())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Saving block of Double data with index = " << index;
+                    BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Double data with index = " << index;
 
                     auto data = block->GetData();
                     size_t blockCurrentSize = block->GetSize();
@@ -3133,7 +3133,7 @@ void Database::WriteColumn(const int32_t blockSize,
         {
             colDataFile.close();
             BOOST_LOG_TRIVIAL(error)
-                << "Could not open file " +
+                << "Database: Could not open file " +
                        std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR + tableName +
                                    SEPARATOR + column.second->GetName() + COLUMN_ADDRESS_EXTENSION) +
                        " for writing. Persisting "
@@ -3145,7 +3145,7 @@ void Database::WriteColumn(const int32_t blockSize,
     else
     {
         BOOST_LOG_TRIVIAL(error)
-            << "Could not open file " +
+            << "Database: Could not open file " +
                    std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                                tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
                    " for writing. Persisting "

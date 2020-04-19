@@ -373,6 +373,7 @@ void GpuSqlCustomParser::WalkSqlSelect(antlr4::tree::ParseTreeWalker& walker,
 
 void GpuSqlCustomParser::InterruptQueryExecution()
 {
+    BOOST_LOG_TRIVIAL(debug) << "GpuSqlCustomParser: Aborting parser has started...";
     for (auto& dispatcher : dispatchers_)
     {
         dispatcher->Abort();
@@ -382,6 +383,7 @@ void GpuSqlCustomParser::InterruptQueryExecution()
         joinDispatcher_->Abort();
     }
     wasAborted_ = true;
+    BOOST_LOG_TRIVIAL(debug) << "GpuSqlCustomParser: Aborting parser has finnished successfully.";
 }
 
 /// Merges partial dispatcher respnse messages to final response message
