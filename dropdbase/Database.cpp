@@ -1189,7 +1189,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Database: Loading of the file: " << fileAddressPath
+                    BOOST_LOG_TRIVIAL(info) << "Database: Loading of the file: " << fileAddressPath
                                              << " has finished successfully.";
                     break;
                 }
@@ -1233,7 +1233,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -1390,7 +1390,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -1500,7 +1500,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colAddressFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug) << "Database: Loading of the file: " << fileAddressPath
+                    BOOST_LOG_TRIVIAL(info) << "Database: Loading of the file: " << fileAddressPath
                                              << " has finished successfully.";
                     break;
                 }
@@ -1544,7 +1544,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -1710,7 +1710,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -1831,7 +1831,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -1952,7 +1952,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -2073,7 +2073,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
@@ -2194,7 +2194,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 // this is needed because of how EOF is checked:
                 if (colFile.eof())
                 {
-                    BOOST_LOG_TRIVIAL(debug)
+                    BOOST_LOG_TRIVIAL(info)
                         << "Database: Loading of the file: " << fileDataPath << " has finished successfully.";
                     break;
                 }
