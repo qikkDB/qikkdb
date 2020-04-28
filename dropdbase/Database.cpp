@@ -1243,13 +1243,13 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnPolygon.AddBlock(); // add empty block
+                    columnPolygon.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty ComplexPolygon block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
                 {
-                    auto& block = columnPolygon.AddBlock(groupId);
+                    auto& block = columnPolygon.AddBlock(groupId, false);
                     std::vector<std::string> dataString;
 
                     // for each fragment, read data, if it belongs to the current block index:
@@ -1330,7 +1330,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                         }
                     }
 
-                    block.InsertData(dataPolygon);
+                    block.InsertData(dataPolygon, false); //false, because we have this data persisted, we are reading them from disk
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
@@ -1403,13 +1403,13 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnPoint.AddBlock(); // add empty block
+                    columnPoint.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Point block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
                 {
-                    auto& block = columnPoint.AddBlock(groupId);
+                    auto& block = columnPoint.AddBlock(groupId, false);
                     block.SetIsCompressed(isCompressed);
                     std::vector<ColmnarDB::Types::Point> dataPoint;
 
@@ -1458,7 +1458,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                             }
                         }
                     }
-                    block.InsertData(dataPoint);
+                    block.InsertData(dataPoint, false);
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
@@ -1554,13 +1554,13 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnString.AddBlock(); // add empty block
+                    columnString.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty String block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
                 else // read data from block
                 {
-                    auto& block = columnString.AddBlock(groupId);
+                    auto& block = columnString.AddBlock(groupId, false);
                     std::vector<std::string> dataString;
 
                     // for each fragment, read data, if it belongs to the current block index:
@@ -1632,7 +1632,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                             }
                         }
                     }
-                    block.InsertData(dataString);
+                    block.InsertData(dataString, false);
 
                     block.SetNullBitmask(std::move(nullBitMask));
                     BOOST_LOG_TRIVIAL(debug)
@@ -1730,7 +1730,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnInt.AddBlock(); // add empty block
+                    columnInt.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int8 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
@@ -1773,7 +1773,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     }
 
                     auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
-                                                     groupId, false, isCompressed, false);
+                                                     groupId, false, isCompressed, false, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -1851,7 +1851,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnInt.AddBlock(); // add empty block
+                    columnInt.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int32 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
@@ -1894,7 +1894,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     }
 
                     auto& block = columnInt.AddBlock(std::move(data), dataLength, columnInt.GetBlockSize(),
-                                                     groupId, false, isCompressed, false);
+                                                     groupId, false, isCompressed, false, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -1972,7 +1972,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnLong.AddBlock(); // add empty block
+                    columnLong.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Int64 block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
@@ -2015,7 +2015,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     }
 
                     auto& block = columnLong.AddBlock(std::move(data), dataLength, columnLong.GetBlockSize(),
-                                                      groupId, false, isCompressed, false);
+                                                      groupId, false, isCompressed, false, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -2093,7 +2093,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnFloat.AddBlock(); // add empty block
+                    columnFloat.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Float block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
@@ -2136,7 +2136,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     }
 
                     auto& block = columnFloat.AddBlock(std::move(data), dataLength, columnFloat.GetBlockSize(),
-                                                       groupId, false, isCompressed, false);
+                                                       groupId, false, isCompressed, false, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 
@@ -2214,7 +2214,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 if (index != emptyBlockIndex) // there is null block
                 {
-                    columnDouble.AddBlock(); // add empty block
+                    columnDouble.AddBlock(false); // add empty block
                     BOOST_LOG_TRIVIAL(debug) << "Database: Added empty Double block (" + fileDataPath + ") at index: "
                                              << emptyBlockIndex;
                 }
@@ -2258,7 +2258,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                     auto& block = columnDouble.AddBlock(std::move(data), dataLength,
                                                         columnDouble.GetBlockSize(), groupId, false,
-                                                        isCompressed, false);
+                                                        isCompressed, false, false);
                     block.SetNullBitmask(std::move(nullBitMask));
                     block.setBlockStatistics(min, max, avg, sum, dataLength);
 

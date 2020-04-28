@@ -18,7 +18,7 @@ GroupByBuckets: 262144
 # Overall usage of GPU memory (VRAM), should be 100
 GPUMemoryUsagePercent: 100
 # Percentage of allocated GPU memory used for caching columns
-GPUCachePercent: 50
+GPUCachePercent: 90
 # How often to save database files (ms)
 DBSaveInterval: 3600000
 

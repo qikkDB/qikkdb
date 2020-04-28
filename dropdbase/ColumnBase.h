@@ -536,7 +536,7 @@ public:
     /// Add new empty block in column
     /// </summary>
     /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(int32_t groupId = -1)
+    BlockBase<T>& AddBlock(int32_t groupId = -1, bool saveNecessary = true)
     {
         if (blocks_.find(groupId) == blocks_.end())
         {
@@ -545,8 +545,7 @@ public:
         }
 
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        saveNecessary_ = saveNecessary;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -559,7 +558,8 @@ public:
                            int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
-                           bool countBlockStatistics = true)
+                           bool countBlockStatistics = true,
+						   bool saveNecessary = true)
     {
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed,
                                                                   isNullable_, countBlockStatistics));
@@ -568,8 +568,7 @@ public:
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        saveNecessary_ = saveNecessary;
         size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -580,7 +579,8 @@ public:
                            int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
-                           bool countBlockStatistics = true)
+                           bool countBlockStatistics = true,
+						   bool saveNecessary = true)
     {
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize,
                                                                   allocationSize, *this, isCompressed,
@@ -590,8 +590,7 @@ public:
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        saveNecessary_ = saveNecessary;
         size_ += dataSize;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -737,11 +736,11 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-    void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
+    void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false, bool saveNecessary = true)
     {
         int32_t startIdx = 0;
 
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
 
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -772,7 +771,7 @@ public:
         {
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy),
-                     groupId, compress, false);
+                     groupId, compress, false, saveNecessary);
             startIdx += toCopy;
         }
         // setColumnStatistics();
@@ -785,10 +784,10 @@ public:
     void InsertData(const std::vector<T>& columnData,
                     const std::vector<int8_t>& nullMask,
                     int32_t groupId = -1,
-                    bool compress = false)
+                    bool compress = false,
+                    bool saveNecessary = true)
     {
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        saveNecessary_ = saveNecessary;
         int32_t startIdx = 0;
         int32_t maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -847,7 +846,7 @@ public:
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx,
                                                   columnData.cbegin() + startIdx + toCopy),
-                                   groupId, compress, false);
+                                   groupId, compress, false, saveNecessary);
             auto maskPtr = block.GetNullBitmask();
             for (int32_t i = 0; i < toCopy; i++)
             {

@@ -488,7 +488,7 @@ void TCPClientHandler::Abort()
 {
     if (parser_)
     {
-        BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: Got request from client to abort parser.";
+        BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Got request from client to abort parser (cancel query execution).";
         parser_->InterruptQueryExecution();
     }
 }

@@ -54,10 +54,11 @@ public:
               ColumnBase<T>& column,
               bool isCompressed = false,
               bool isNullable = false,
-              bool countBlockStatistics = true)
+              bool countBlockStatistics = true,
+			  bool saveNecessary = true)
     : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
       isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(true)
+      isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
         data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -90,10 +91,11 @@ public:
               ColumnBase<T>& column,
               bool isCompressed = false,
               bool isNullable = false,
-              bool countBlockStatistics = true)
+              bool countBlockStatistics = true,
+              bool saveNecessary = true)
     : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
       isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(true)
+      isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         if (allocationSize != column_.GetBlockSize())
         {
@@ -127,13 +129,13 @@ public:
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class without data.
+    /// Initializes a new instance of the <see cref="T:ColmnarDB.BlockBase"/> class without data.
     /// </summary>
     /// <param name="column">Column that will hold this new empty block.</param>
-    explicit BlockBase(ColumnBase<T>& column)
+    explicit BlockBase(ColumnBase<T>& column, bool saveNecessary = true)
     : column_(column), size_(0), countOfNotNullValues_(0), capacity_(column_.GetBlockSize()),
       data_(new T[capacity_]), bitMask_(nullptr), isNullable_(column_.GetIsNullable()),
-      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
@@ -270,7 +272,7 @@ public:
     /// </summary>
     /// <param name="data">Data to be inserted.</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
-    void InsertData(const std::vector<T>& data)
+    void InsertData(const std::vector<T>& data, bool saveNecessary = true)
     {
         if (EmptyBlockSpace() < data.size())
         {
@@ -279,7 +281,7 @@ public:
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     /// <summary>
@@ -287,7 +289,7 @@ public:
     /// </summary>
     /// <param name="data">Data to be inserted.</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
-    void InsertDataInterval(const T* newData, size_t offset, size_t length)
+    void InsertDataInterval(const T* newData, size_t offset, size_t length, bool saveNecessary = true)
     {
         if (EmptyBlockSpace() < length)
         {
@@ -298,7 +300,7 @@ public:
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
 
         size_ += length;
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     void SetNullBitmask(const std::vector<int8_t>& nullMask)
@@ -397,7 +399,7 @@ public:
     /// <param name="index">index in block where data will be inserted</param>
     /// <param name="data">value to insert<param>
     /// <param name="isNullValue">whether data is null value flag<param>
-    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false)
+    void InsertDataOnSpecificPosition(int index, const T& data, bool isNullValue = false, bool saveNecessary = true)
     {
         if (EmptyBlockSpace() == 0)
         {
@@ -454,7 +456,7 @@ public:
         }
         data_[index] = data;
         updateBlockStatistics(data, isNullValue);
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     ~BlockBase()
