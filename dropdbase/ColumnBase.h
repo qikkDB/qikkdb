@@ -443,6 +443,7 @@ public:
     /// <param name="srcColumnArg">The column whose data will be copied (resized).</param>
     virtual void ResizeColumn(IColumn* srcColumnArg) override
     {
+        saveNecessary_ = true;
         auto srcColumn = dynamic_cast<ColumnBase<T>*>(srcColumnArg);
         auto& srcBlocks = srcColumn->GetBlocksList();
 
@@ -544,7 +545,7 @@ public:
             blocks_.emplace(groupId, std::vector<std::unique_ptr<BlockBase<T>>>());
         }
 
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this, saveNecessary));
         saveNecessary_ = saveNecessary;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -561,8 +562,8 @@ public:
                            bool countBlockStatistics = true,
 						   bool saveNecessary = true)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed,
-                                                                  isNullable_, countBlockStatistics));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_,
+                                                                  countBlockStatistics, saveNecessary));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
@@ -584,7 +585,7 @@ public:
     {
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize,
                                                                   allocationSize, *this, isCompressed,
-                                                                  isNullable_, countBlockStatistics));
+                                           isNullable_, countBlockStatistics, saveNecessary));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {

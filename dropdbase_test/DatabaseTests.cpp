@@ -353,7 +353,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
                                                         secondTableColumns.at("colPolygon").get())
                                                         ->GetDefaultValue()),
-              "POLYGON((0 0, 0 1, 1 1, 0 0))");
+              "POLYGON((0 0, 1 1, 2 2, 0 0))");
     ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
                                              secondTableColumns.at("colPoint").get())
                                              ->GetDefaultValue()),

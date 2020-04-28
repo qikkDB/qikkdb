@@ -455,7 +455,7 @@ void Database::PersistOnlyDbFile()
                         dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
                     columnsJSON["default_entry_value"] =
-                        ComplexPolygonFactory::WktFromPolygon(colPolygon.GetDefaultValue());
+                        POLYGON_DEFAULT_VALUE; // We need to hardcode it due to Google Protobuffers
                 }
                 break;
 
