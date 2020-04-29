@@ -1,4 +1,5 @@
 #pragma once
+#pragma once
 
 #include <unordered_map>
 #include <memory>
@@ -57,14 +58,21 @@ private:
                            const std::string columnName);
 
     /// <summary>
-    /// Write column into disk.
+    /// Write single block into disk. It has to seek the block's position in the
+    /// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
     /// </summary>
-    /// <param name="blockSize">Block size of table to which the column belongs to.</param>
+    /// <param name="table">Name of the particular table.</param>
+    /// <param name="column">Name of the column to which the block belongs to.</param>
+    static void WriteBlock(const Table& table,
+                           const std::pair<const std::string, std::unique_ptr<IColumn>>& column);
+
+    /// <summary>
+    /// Write column into disk (all it's blocks).
+    /// </summary>
     /// <param name="column">Column to be written.</param>
     /// <param name="dbName">Name of the database.</param>
     /// <param name="table">Name of the particular table.</param>
-    static void WriteColumn(const int32_t blockSize,
-                            const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+    static void WriteColumn(const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                             const std::string dbName,
                             const Table& table);
 
@@ -89,24 +97,34 @@ public:
 
     void SetName(const std::string& newDatabaseName);
 
-    // getters:
     const std::string& GetName() const
     {
         return name_;
     }
+
+    /// <summary>
+    /// Returns the deault database's block size. This blockSize is used (it's value), when creating
+    /// a new table which does not have a specified blockSize.
+    /// </summary>
     int GetBlockSize() const
     {
         return blockSize_;
     }
+
     std::unordered_map<std::string, Table>& GetTables()
     {
         return tables_;
     }
+
     static bool Exists(const std::string& databaseName)
     {
         return Context::getInstance().GetLoadedDatabases().find(databaseName) !=
                Context::getInstance().GetLoadedDatabases().end();
     }
+
+	/// <summary>
+    /// Returnes names of the loaded databases in memory.
+    /// </summary>
     static std::vector<std::string> GetDatabaseNames();
 
     /// <summary>
@@ -115,16 +133,11 @@ public:
     /// </summary>
     /// <param name="srcTable">Source table.</param>
     /// <param name="destTable">Destination table.</param>
-    /// <param name="columnName">Name of the column whose data will be copied.</param>
+    /// <param name="columnName">Name of the column which data will be copied.</param>
     static void CopyBlocksOfColumn(Table& srcTable, Table& destTable, const std::string& columnName);
 
     /// <summary>
-    /// Set saveNecessaty_ to false for block, column and table, because data in the database were NOT modified yet.
-    /// </summary>
-    void SetSaveNecessaryToFalseForEverything();
-
-    /// <summary>
-    /// Save modified columns of all loaded database to disk.
+    /// Save modified blocks of data of all loaded database to disk.
     /// </summary>
     static void SaveModifiedToDisk();
 
@@ -134,24 +147,23 @@ public:
     void PersistOnlyDbFile();
 
     /// <summary>
-    /// Save database from memory to disk.
+    /// Save database from memory to disk. Rewrites all database files.
     /// </summary>
     void Persist();
 
     /// <summary>
-    /// Save modified blocks and columns of the database from memory to disk.
+    /// Save modified blocks of the specified table from memory to disk.
     /// </summary>
-    /// <param name="tableName">Name of table which modified columns will be saved.</param>
+    /// <param name="tableName">Name of the table which modified blocks of data will be saved.</param>
     void PersistOnlyModified(const std::string tableName);
 
     /// <summary>
-    /// Save all databases currently in memory to disk. All databases will be saved in the same directory.
+    /// Save all databases currently loaded in memory to disk. Rewrites all loaded databases' files.
     /// </summary>
     static void SaveAllToDisk();
 
     /// <summary>
-    /// Load databases from disk storage. Databases DB_EXTENSION and COLUMN_DATA_EXTENSION files have to be in the same directory,
-    /// so all databases have to be in the same directory to be loaded using this procedure.
+    /// Load databases from disk storage.
     /// </summary>
     static void LoadDatabasesFromDisk();
 

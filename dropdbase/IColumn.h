@@ -22,9 +22,6 @@ public:
     virtual void SetIsNullable(bool isNullable) = 0;
     virtual bool GetIsUnique() const = 0;
     virtual void SetIsUnique(bool isUnique) = 0;
-    virtual bool GetSaveNecessary() const = 0;
-    virtual void SetSaveNecessaryToFalse() = 0;
-    virtual void SetSaveNecessaryToTrue() = 0;
     virtual void SetColumnName(std::string newName) = 0;
     virtual void ResizeColumn(IColumn* srcColumnArg) = 0;
     virtual const std::string& GetFileAddressPath() const = 0;

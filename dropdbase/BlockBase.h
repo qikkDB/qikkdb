@@ -44,6 +44,11 @@ private:
     bool isNullMaskRegistered_;
     bool saveNecessary_;
 
+    /* This is ID of the block, which has to be unique and it is used mainly when indexing
+    the COLUMN_ADDRESS_EXTENSION file. If this index is equal to UINT32_MAX value, that means,
+    this block has never been persisted before into disk and we need to alocate a disk space for it. */
+    const uint32_t index_ = UINT32_MAX;
+
 public:
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class filled with data.
@@ -55,10 +60,11 @@ public:
               bool isCompressed = false,
               bool isNullable = false,
               bool countBlockStatistics = true,
-			  bool saveNecessary = true)
-    : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
+              bool saveNecessary = true,
+              uint32_t index = UINT32_MAX)
+    : column_(column), index_(index), size_(0), countOfNotNullValues_(0),
+      isCompressed_(isCompressed), isNullable_(isNullable), bitMask_(nullptr),
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
         data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -92,10 +98,11 @@ public:
               bool isCompressed = false,
               bool isNullable = false,
               bool countBlockStatistics = true,
-              bool saveNecessary = true)
-    : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
+              bool saveNecessary = true,
+              uint32_t index = UINT32_MAX)
+    : column_(column), size_(0), countOfNotNullValues_(0), index_(index),
+      isCompressed_(isCompressed), isNullable_(isNullable), bitMask_(nullptr),
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         if (allocationSize != column_.GetBlockSize())
         {
@@ -132,10 +139,11 @@ public:
     /// Initializes a new instance of the <see cref="T:ColmnarDB.BlockBase"/> class without data.
     /// </summary>
     /// <param name="column">Column that will hold this new empty block.</param>
-    explicit BlockBase(ColumnBase<T>& column, bool saveNecessary = true)
-    : column_(column), size_(0), countOfNotNullValues_(0), capacity_(column_.GetBlockSize()),
-      data_(new T[capacity_]), bitMask_(nullptr), isNullable_(column_.GetIsNullable()),
-      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
+    explicit BlockBase(ColumnBase<T>& column, bool saveNecessary = true, uint32_t index = UINT32_MAX)
+    : column_(column), size_(0), index_(index), countOfNotNullValues_(0),
+      capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
+      isNullable_(column_.GetIsNullable()), wasRegistered_(false), isNullMaskRegistered_(false),
+      saveNecessary_(saveNecessary)
     {
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
@@ -218,6 +226,11 @@ public:
     bool GetSaveNecessary() const
     {
         return saveNecessary_;
+    }
+
+    const uint32_t GetIndex() const
+    {
+        return index_;
     }
 
     void SetSaveNecessaryToFalse()

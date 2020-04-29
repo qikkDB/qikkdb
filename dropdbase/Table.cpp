@@ -133,9 +133,6 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
             }
         }
     }
-
-	saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 /// <summary>
@@ -1150,8 +1147,6 @@ const std::vector<std::string>& Table::GetSortingColumns()
 void Table::SetSortingColumns(std::vector<std::string> columns)
 {
     sortingColumns = columns;
-    saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 void Table::AddSortingColumn(const std::string& sortingColumn)
@@ -1176,17 +1171,6 @@ void Table::RemoveSortingColumn(const std::string& sortingColumn)
     {
         BOOST_LOG_TRIVIAL(debug) << "Attempt to erase non-existing sorting column.";
     }
-}
-
-bool Table::GetSaveNecessary() const
-{
-    return saveNecesarry_;
-}
-
-void Table::SetSaveNecessaryToFalse()
-{
-    saveNecesarry_ = false;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for table named: " << name << ".";
 }
 
 void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
@@ -1461,9 +1445,6 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
     }
     break;
     }
-
-	saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 void Table::AddConstraint(const std::string& constraintName,
@@ -1636,10 +1617,9 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
         // if table block size was specified, use it as table block size for this particular table
         blockSize_ = blockSize;
     }
-    saveNecesarry_ = true;
+
     BOOST_LOG_TRIVIAL(info) << "New table was created with block size: " << blockSize
                             << " and table name: " << name << ".";
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 /// <summary>
@@ -1687,8 +1667,6 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     }
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.insert(std::make_pair(columnName, std::move(column)));
-    saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
 #ifndef __CUDACC__
@@ -1926,9 +1904,6 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
             }
         }
     }
-
-	saveNecesarry_ = true;
-    BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 #endif
 

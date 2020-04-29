@@ -35,7 +35,6 @@ private:
     std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints_;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
-    bool saveNecesarry_;
     // save interval in milliseconds, default value is from configuration file, but can be overriden via .db file:
     int32_t saveInterval_ = Configuration::GetInstance().GetDBSaveInterval();
 
@@ -75,8 +74,6 @@ public:
     void SetSortingColumns(std::vector<std::string> columns);
     void AddSortingColumn(const std::string& sortingColumn);
     void RemoveSortingColumn(const std::string& sortingColumn);
-    bool GetSaveNecessary() const;
-    void SetSaveNecessaryToFalse();
     void RenameColumn(std::string oldColumnName, std::string newColumnName);
     void InsertNullDataIntoNewColumn(std::string newColumnName);
     void AddConstraint(const std::string& constraintName,

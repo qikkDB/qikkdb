@@ -741,37 +741,15 @@ TEST(TableTests, SavingNecessary)
     auto& columnInt = table.GetColumns().at("ColumnInt");
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-
-    ASSERT_EQ(false, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-
     GpuSqlCustomParser parser1(database, "ALTER TABLE testTable ADD ColumnInt2 int;");
     resultPtr = parser1.Parse();
 
     auto& columnInt2 = table.GetColumns().at("ColumnInt2");
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get());
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-
     GpuSqlCustomParser parser2(database, "INSERT INTO testTable (ColumnInt) VALUES (1024);");
     resultPtr = parser2.Parse();
     auto blockInt = castedColumn->GetBlocksList()[0];
-
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt->GetSaveNecessary());
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE SaveNecDB;");
     resultPtr = parserDropDb.Parse();
@@ -791,52 +769,19 @@ TEST(TableTests, SavingNecessaryWithIndex)
     auto& columnInt = table.GetColumns().at("ColumnInt");
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-
-    ASSERT_EQ(false, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-
     GpuSqlCustomParser parser1(database, "ALTER TABLE testTable ADD ColumnInt2 int;");
     resultPtr = parser1.Parse();
 
     auto& columnInt2 = table.GetColumns().at("ColumnInt2");
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get());
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-
     GpuSqlCustomParser parser2(database, "INSERT INTO testTable (ColumnInt) VALUES (1024);");
     resultPtr = parser2.Parse();
     auto blockInt = castedColumn->GetBlocksList()[0];
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt->GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-    blockInt->SetSaveNecessaryToFalse();
-
     GpuSqlCustomParser parser3(database, "INSERT INTO testTable (ColumnInt2) VALUES (10);");
     resultPtr = parser3.Parse();
     auto blockInt2 = castedColumn2->GetBlocksList()[0];
-
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2->GetSaveNecessary());
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE SaveNecDB;");
     resultPtr = parserDropDb.Parse();
@@ -852,51 +797,15 @@ TEST(TableTests, SavingNecessaryLowLevel)
     auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get());
     auto& blockInt = castedColumn->AddBlock();
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-
-    ASSERT_EQ(false, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
-
     table.CreateColumn("ColumnInt2", COLUMN_INT);
     auto& columnInt2 = table.GetColumns().at("ColumnInt2");
     auto castedColumn2 = dynamic_cast<ColumnBase<int32_t>*>(columnInt2.get());
     auto& blockInt2 = castedColumn2->AddBlock();
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
-
     std::unordered_map<std::string, std::any> data;
     std::vector<int32_t> dataInt({1024});
     data.insert({"ColumnInt", dataInt});
     table.InsertData(data);
-
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(false, blockInt2.GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
 
     table.SetSortingColumns({"ColumnInt"});
 
@@ -905,28 +814,10 @@ TEST(TableTests, SavingNecessaryLowLevel)
     data2.insert({"ColumnInt", dataInt2});
     table.InsertData(data2);
 
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(true, blockInt.GetSaveNecessary());
-    ASSERT_EQ(false, blockInt2.GetSaveNecessary());
-
-    table.SetSaveNecessaryToFalse();
-    castedColumn->SetSaveNecessaryToFalse();
-    castedColumn2->SetSaveNecessaryToFalse();
-    blockInt.SetSaveNecessaryToFalse();
-    blockInt2.SetSaveNecessaryToFalse();
-
     std::unordered_map<std::string, std::any> data3;
     std::vector<int32_t> dataInt3({10});
     data3.insert({"ColumnInt2", dataInt3});
     table.InsertData(data3);
-
-    ASSERT_EQ(true, table.GetSaveNecessary());
-    ASSERT_EQ(false, castedColumn->GetSaveNecessary());
-    ASSERT_EQ(true, castedColumn2->GetSaveNecessary());
-    ASSERT_EQ(false, blockInt.GetSaveNecessary());
-    ASSERT_EQ(true, blockInt2.GetSaveNecessary());
 }
 
 TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)

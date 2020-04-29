@@ -114,12 +114,10 @@ private:
     bool initAvgIsSet_ = false;
     bool isNullable_;
     bool isUnique_;
-    bool saveNecessary_;
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
-    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false),
-      saveNecessary_(true)
+    : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
         SetIsNullable(isNullable);
@@ -238,7 +236,7 @@ public:
     }
 
     /// <summary>
-    /// set isNullable_ flag, checking is there null value in column which doesnt allow to set FALSE flag
+    /// Set isNullable_ flag, checking is there null value in column which doesnt allow to set FALSE flag
     /// </summary>
     /// <param name="isNullable">required isNullable_ value</param>
     virtual void SetIsNullable(bool isNullable) override
@@ -371,23 +369,6 @@ public:
         }
     }
 
-    virtual bool GetSaveNecessary() const override
-    {
-        return saveNecessary_;
-    }
-
-    virtual void SetSaveNecessaryToFalse() override
-    {
-        saveNecessary_ = false;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
-    }
-
-    virtual void SetSaveNecessaryToTrue() override
-    {
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
-    }
-
     virtual void SetColumnName(std::string newName) override
     {
         name_ = newName;
@@ -443,7 +424,6 @@ public:
     /// <param name="srcColumnArg">The column whose data will be copied (resized).</param>
     virtual void ResizeColumn(IColumn* srcColumnArg) override
     {
-        saveNecessary_ = true;
         auto srcColumn = dynamic_cast<ColumnBase<T>*>(srcColumnArg);
         auto& srcBlocks = srcColumn->GetBlocksList();
 
@@ -537,7 +517,7 @@ public:
     /// Add new empty block in column
     /// </summary>
     /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(int32_t groupId = -1, bool saveNecessary = true)
+    BlockBase<T>& AddBlock(int32_t groupId = -1, bool saveNecessary = true, const uint32_t index = UINT32_MAX)
     {
         if (blocks_.find(groupId) == blocks_.end())
         {
@@ -545,8 +525,7 @@ public:
             blocks_.emplace(groupId, std::vector<std::unique_ptr<BlockBase<T>>>());
         }
 
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this, saveNecessary));
-        saveNecessary_ = saveNecessary;
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this, saveNecessary, index));
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -560,16 +539,16 @@ public:
                            bool compress = false,
                            bool isCompressed = false,
                            bool countBlockStatistics = true,
-						   bool saveNecessary = true)
+                           bool saveNecessary = true,
+                           const uint32_t index = UINT32_MAX)
     {
         blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_,
-                                                                  countBlockStatistics, saveNecessary));
+                                                                  countBlockStatistics, saveNecessary, index));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = saveNecessary;
         size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -581,17 +560,17 @@ public:
                            bool compress = false,
                            bool isCompressed = false,
                            bool countBlockStatistics = true,
-						   bool saveNecessary = true)
+                           bool saveNecessary = true,
+                           const uint32_t index = UINT32_MAX)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize,
-                                                                  allocationSize, *this, isCompressed,
-                                           isNullable_, countBlockStatistics, saveNecessary));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize,
+                                                                  *this, isCompressed, isNullable_,
+                                                                  countBlockStatistics, saveNecessary, index));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = saveNecessary;
         size_ += dataSize;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -634,8 +613,6 @@ public:
             BlockSplit(blocks_[groupId][indexBlock]);
         }
 
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         // setColumnStatistics();
     }
 
@@ -664,9 +641,6 @@ public:
 
         size_ += 1;
         block.InsertDataOnSpecificPosition(indexInBlock, columnData, isNullValue);
-
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
     }
 
     /// <summary>
@@ -737,12 +711,13 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-    void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false, bool saveNecessary = true)
+    void InsertData(const std::vector<T>& columnData,
+                    int32_t groupId = -1,
+                    bool compress = false,
+                    bool saveNecessary = true,
+                    const uint32_t index = UINT32_MAX)
     {
         int32_t startIdx = 0;
-
-        saveNecessary_ = saveNecessary;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
 
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
@@ -772,7 +747,7 @@ public:
         {
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy),
-                     groupId, compress, false, saveNecessary);
+                     groupId, compress, false, saveNecessary, index);
             startIdx += toCopy;
         }
         // setColumnStatistics();
@@ -786,9 +761,9 @@ public:
                     const std::vector<int8_t>& nullMask,
                     int32_t groupId = -1,
                     bool compress = false,
-                    bool saveNecessary = true)
+                    bool saveNecessary = true,
+                    const uint32_t index = UINT32_MAX)
     {
-        saveNecessary_ = saveNecessary;
         int32_t startIdx = 0;
         int32_t maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -847,7 +822,7 @@ public:
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx,
                                                   columnData.cbegin() + startIdx + toCopy),
-                                   groupId, compress, false, saveNecessary);
+                                   groupId, compress, false, saveNecessary, index);
             auto maskPtr = block.GetNullBitmask();
             for (int32_t i = 0; i < toCopy; i++)
             {
