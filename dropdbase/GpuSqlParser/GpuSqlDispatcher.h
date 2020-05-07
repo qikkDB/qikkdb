@@ -1007,6 +1007,9 @@ public:
         }
     }
 
+    template <typename OP>
+    void FreeRegisterNullMaskFilterOp(const std::string& col);
+
     // TODO FreeColumnIfRegister<std::string> laso point and polygon
     void MergePayloadToSelfResponse(const std::string& key,
                                     const std::string& realName,
