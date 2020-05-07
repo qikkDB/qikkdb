@@ -40,7 +40,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        int32_t* stringLengths,
                                        GPUMemory::GPUString keysBuffer,
                                        V* values,
-                                       int64_t* valuesNullMaskUncompressed,
+                                       nullmask_t* valuesNullMaskUncompressed,
                                        int64_t* keyOccurrenceCount,
                                        const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
@@ -48,8 +48,8 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        const int32_t dataElementCount,
                                        const int32_t arrayMultiplier,
                                        int32_t* errorFlag,
-                                       int64_t* inKeysNullMask,
-                                       int64_t* inValuesNullMask)
+                                       nullmask_t* inKeysNullMask,
+                                       nullmask_t* inValuesNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -193,7 +193,7 @@ public:
 private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    int64_t* valuesNullMaskUncompressed_ = nullptr;
+    nullmask_t* valuesNullMaskUncompressed_ = nullptr;
 
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
@@ -333,8 +333,8 @@ public:
     void ProcessBlock(GPUMemory::GPUString inKeys,
                       V* inValues,
                       int32_t dataElementCount,
-                      int64_t* inKeysNullMask = nullptr,
-                      int64_t* inValuesNullMask = nullptr)
+                      nullmask_t* inKeysNullMask = nullptr,
+                      nullmask_t* inValuesNullMask = nullptr)
     {
         if (dataElementCount > 0)
         {
@@ -383,9 +383,9 @@ public:
     }
 
     /// Create memory-wasting null mask for keys - one 1 at [0], other zeros
-    cuda_ptr<int64_t> CreateKeyNullMask()
+    cuda_ptr<nullmask_t> CreateKeyNullMask()
     {
-        cuda_ptr<int64_t> keyNullMask(keyBufferSize_, 0);
+        cuda_ptr<nullmask_t> keyNullMask(keyBufferSize_, 0);
         GPUMemory::memset(keyNullMask.get(), 1, 1);
         return keyNullMask;
     }
@@ -446,8 +446,8 @@ public:
     void GetResults(GPUMemory::GPUString* outKeys,
                     O** outValues,
                     int32_t* outDataElementCount,
-                    int64_t** outKeysNullMask = nullptr,
-                    int64_t** outValuesNullMask = nullptr)
+                    nullmask_t** outKeysNullMask = nullptr,
+                    nullmask_t** outValuesNullMask = nullptr)
     {
         Context& context = Context::getInstance();
 
@@ -457,7 +457,7 @@ public:
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<int64_t> keysNullMaskCompressed =
+        cuda_ptr<nullmask_t> keysNullMaskCompressed =
             GPUReconstruct::CompressNullMask(CreateKeyNullMask().get(), keyBufferSize_);
 
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
@@ -476,13 +476,13 @@ public:
 
             if (USE_VALUES)
             {
-                cuda_ptr<int64_t> valuesNullMaskCompressed((NullValues::GetNullBitMaskSize(keyBufferSize_)), 0);
+                cuda_ptr<nullmask_t> valuesNullMaskCompressed((NullValues::GetNullBitMaskSize(keyBufferSize_)), 0);
 
                 if (outValuesNullMask)
                 {
                     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                                 Context::getInstance().getBlockDim()>>>(
-                        reinterpret_cast<int64_t*>(valuesNullMaskCompressed.get()),
+                        reinterpret_cast<nullmask_t*>(valuesNullMaskCompressed.get()),
                         valuesNullMaskUncompressed_, keyBufferSize_);
                 }
 
@@ -566,8 +566,8 @@ public:
                     O** outValues,
                     int32_t* outDataElementCount,
                     std::vector<std::unique_ptr<IGroupBy>>& tables,
-                    int64_t** outKeysNullMask = nullptr,
-                    int64_t** outValuesNullMask = nullptr)
+                    nullmask_t** outKeysNullMask = nullptr,
+                    nullmask_t** outValuesNullMask = nullptr)
     {
         if (tables.size() <= 0) // invalid count of tables
         {
@@ -583,10 +583,10 @@ public:
 
             std::vector<int32_t> keysAllHostStringLengths;
             std::vector<char> keysAllHostAllChars;
-            std::vector<int64_t> keysNullMaskAllHost;
+            std::vector<nullmask_t> keysNullMaskAllHost;
 
             std::vector<V> valuesAllHost;
-            std::vector<int64_t> valuesNullMaskAllHost;
+            std::vector<nullmask_t> valuesNullMaskAllHost;
 
             std::vector<int64_t> occurrencesAllHost;
 
@@ -650,10 +650,10 @@ public:
             if (sumElementCount > 0)
             {
                 cuda_ptr<int32_t> keysAllGPUStringLengths(sumElementCount);
-                cuda_ptr<int64_t> keysNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullmask_t> keysNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
-                cuda_ptr<int64_t> valuesNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullmask_t> valuesNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 

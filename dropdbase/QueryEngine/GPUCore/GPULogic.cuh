@@ -14,7 +14,7 @@
 /// <param name="dataElementCount">the size of the input blocks in bytes</param>
 /// <returns>void</returns>
 template <typename T>
-__global__ void kernel_operator_not(int8_t* outCol, T ACol, int64_t* nullBitMask, int32_t dataElementCount)
+__global__ void kernel_operator_not(int8_t* outCol, T ACol, nullmask_t* nullBitMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;

@@ -36,7 +36,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
                 {
                     const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
                     GPUMemory::copyDeviceToDevice(result.NullMaskPtr,
-                                                  reinterpret_cast<int64_t*>(left.DataAllocation.GpuNullMaskPtr),
+                                                  reinterpret_cast<nullmask_t*>(left.DataAllocation.GpuNullMaskPtr),
                                                   bitMaskSize);
                 }
                 GPUUnary<OP, ResultType, T>::Unary(result.Data, left.Data, retSize, result.NullMaskPtr);

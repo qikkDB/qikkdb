@@ -132,7 +132,7 @@ private:
         typename std::conditional<isCompositeDataType<T>,
                                   CompositeDataType<typename std::remove_pointer<T>::type>,
                                   typename std::conditional<std::is_pointer<T>::value, AllocatedDataType<T>, AllocatedDataType<T>*>::type>::type Data;
-        int64_t* NullMaskPtr;
+        nullmask_t* NullMaskPtr;
     };
 
     std::vector<DispatchFunction> dispatcherFunctions_;
@@ -178,7 +178,7 @@ private:
     CpuSqlDispatcher cpuDispatcher_;
 
     std::unique_ptr<InsertIntoStruct> insertIntoData_;
-    std::unordered_map<std::string, std::vector<int64_t>> insertIntoNullMasks_;
+    std::unordered_map<std::string, std::vector<nullmask_t>> insertIntoNullMasks_;
     std::unique_ptr<IOrderBy> orderByTable_;
     std::vector<OrderByBlocks>& orderByBlocks_;
 
@@ -694,14 +694,14 @@ public:
     static std::unordered_map<std::string, int32_t> linkTable;
 
     template <typename T>
-    T* AllocateRegister(const std::string& reg, int32_t size, int64_t** nullPointerMask = nullptr)
+    T* AllocateRegister(const std::string& reg, int32_t size, nullmask_t** nullPointerMask = nullptr)
     {
         T* gpuRegister;
         GPUMemory::alloc<T>(&gpuRegister, size);
         if (nullPointerMask)
         {
             int32_t bitMaskSize = NullValues::GetNullBitMaskSize(size);
-            GPUMemory::alloc<int64_t>(nullPointerMask, bitMaskSize);
+            GPUMemory::alloc<nullmask_t>(nullPointerMask, bitMaskSize);
             InsertRegister(reg + NULL_SUFFIX, PointerAllocation{reinterpret_cast<std::uintptr_t>(*nullPointerMask),
                                                                 bitMaskSize, true, 0});
             InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(gpuRegister), size, true,
@@ -783,7 +783,7 @@ public:
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
             AllocatedDataType<T>* result = nullptr;
-            int64_t* nullMask = nullptr;
+            nullmask_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;
 
@@ -892,7 +892,7 @@ public:
                                                               const std::vector<std::string>& instructionOperandColumns)
         {
             CompositeDataType<typename std::remove_pointer<T>::type> result;
-            int64_t* nullMask = nullptr;
+            nullmask_t* nullMask = nullptr;
 
             bool areGroupByColumns = false;
 
@@ -911,7 +911,8 @@ public:
                     if (allocateNullMask)
                     {
                         const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
-                        nullMask = dispatcher.AllocateRegister<int64_t>(reg + KEYS_SUFFIX + NULL_SUFFIX, bitMaskSize);
+                        nullMask = dispatcher.AllocateRegister<nullmask_t>(reg + KEYS_SUFFIX + NULL_SUFFIX,
+                                                                           bitMaskSize);
                     }
                     dispatcher.groupByColumns_.push_back({reg, ::GetColumnType<T>()});
                 }
@@ -924,7 +925,7 @@ public:
                     if (allocateNullMask)
                     {
                         const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
-                        nullMask = dispatcher.AllocateRegister<int64_t>(reg + NULL_SUFFIX, bitMaskSize);
+                        nullMask = dispatcher.AllocateRegister<nullmask_t>(reg + NULL_SUFFIX, bitMaskSize);
                     }
                 }
             }

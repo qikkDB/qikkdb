@@ -28,7 +28,7 @@ __device__ constexpr int32_t hash(int32_t key)
 
 template <typename T>
 __global__ void
-kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* ColumnRBlock, int64_t* nullBitMaskR, int32_t dataElementCount)
+kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* ColumnRBlock, nullmask_t* nullBitMaskR, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -66,7 +66,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
                                            int32_t* HashTablePrefixSum,
                                            int32_t hashTableSize,
                                            T* ColumnRBlock,
-                                           int64_t* nullBitMaskR,
+                                           nullmask_t* nullBitMaskR,
                                            int32_t dataElementCount)
 {
     __shared__ int32_t shared_memory[HASH_TABLE_SUB_SIZE];
@@ -115,10 +115,10 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                                        int32_t* HashTableHashBuckets,
                                        int32_t hashTableSize,
                                        T* ColumnRBlock,
-                                       int64_t* nullBitMaskR,
+                                       nullmask_t* nullBitMaskR,
                                        int32_t dataElementCountColumnRBlock,
                                        T* ColumnSBlock,
-                                       int64_t* nullBitMaskS,
+                                       nullmask_t* nullBitMaskS,
                                        int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -225,10 +225,10 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                                                     int32_t* HashTableHashBuckets,
                                                     int32_t hashTableSize,
                                                     T* ColumnRBlock,
-                                                    int64_t* nullBitMaskR,
+                                                    nullmask_t* nullBitMaskR,
                                                     int32_t dataElementCountColumnRBlock,
                                                     T* ColumnSBlock,
-                                                    int64_t* nullBitMaskS,
+                                                    nullmask_t* nullBitMaskS,
                                                     int32_t dataElementCountColumnSBlock)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -252,7 +252,6 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                     if (nullBitMaskR)
                     {
                         bool nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
-                        //(nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
                         if (nullBitR)
                         {
                             // Value in R col NULL - do nothing
@@ -262,7 +261,6 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                             if (nullBitMaskS)
                             {
                                 bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
-                                //(nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
                                 if (nullBitS)
                                 {
                                     // Value in S col NULL - do nothing
@@ -301,7 +299,6 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                         if (nullBitMaskS)
                         {
                             bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
-                            //(nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
                             if (nullBitS)
                             {
                                 // Value in S col NULL - do nothing
@@ -360,7 +357,7 @@ private:
     size_t join_prefix_sum_temp_buffer_size_;
 
     template <typename T>
-    void HashBlock(T* ColumnRBlock, int64_t* nullBitMaskR, int32_t dataElementCount)
+    void HashBlock(T* ColumnRBlock, nullmask_t* nullBitMaskR, int32_t dataElementCount)
     {
         //////////////////////////////////////////////////////////////////////////////
         // Check for hash table limits
@@ -398,10 +395,10 @@ private:
     template <typename OP, typename T>
     void JoinBlockCountMatches(int32_t* resultTableSize,
                                T* ColumnRBlock,
-                               int64_t* nullBitMaskR,
+                               nullmask_t* nullBitMaskR,
                                int32_t dataElementCountColumnRBlock,
                                T* ColumnSBlock,
-                               int64_t* nullBitMaskS,
+                               nullmask_t* nullBitMaskS,
                                int32_t dataElementCountColumnSBlock)
     {
         //////////////////////////////////////////////////////////////////////////////
@@ -481,12 +478,10 @@ public:
         cuda_ptr<T> d_ColumnSBlock(blockSize);
 
         size_t nullColSizeRBlock = NullValues::GetNullBitMaskSize(blockSize);
-        //(blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
         size_t nullColSizeSBlock = NullValues::GetNullBitMaskSize(blockSize);
-        //(blockSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
-        cuda_ptr<int64_t> d_ColumnNullRBlock(nullColSizeRBlock);
-        cuda_ptr<int64_t> d_ColumnNullSBlock(nullColSizeSBlock);
+        cuda_ptr<nullmask_t> d_ColumnNullRBlock(nullColSizeRBlock);
+        cuda_ptr<nullmask_t> d_ColumnNullSBlock(nullColSizeSBlock);
 
         // Perform the GPU join
         auto& ColumnRBlockList = ColumnR.GetBlocksList();

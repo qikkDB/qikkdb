@@ -389,7 +389,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
         if (!usingJoin_)
         {
             auto block = dynamic_cast<BlockBase<std::string>*>(col->GetBlocksList()[blockIndex_]);
-            int64_t* nullMaskPtr = nullptr;
+            nullmask_t* nullMaskPtr = nullptr;
             if (block->GetNullBitmask())
             {
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
@@ -1035,7 +1035,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
                                                                   const std::string& reg,
                                                                   int32_t size,
                                                                   bool useCache,
-                                                                  int64_t* nullMaskPtr)
+                                                                  nullmask_t* nullMaskPtr)
 {
     InsertRegister(reg + "_stringIndices",
                    PointerAllocation{reinterpret_cast<uintptr_t>(column.stringIndices), size,
@@ -1050,7 +1050,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPo
     const std::string& reg,
     int32_t size,
     bool useCache,
-    int64_t* nullMaskPtr)
+    nullmask_t* nullMaskPtr)
 {
     InsertRegister(reg + "_polyPoints",
                    PointerAllocation{reinterpret_cast<uintptr_t>(column.polyPoints), size,
@@ -1087,7 +1087,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                        const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                        int32_t size,
                                        bool useCache,
-                                       int64_t* nullMaskPtr)
+                                       nullmask_t* nullMaskPtr)
 {
     if (useCache)
     {
@@ -1138,7 +1138,7 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
                                                     const std::string* strings,
                                                     const size_t stringCount,
                                                     bool useCache,
-                                                    int64_t* nullMaskPtr)
+                                                    nullmask_t* nullMaskPtr)
 {
     if (useCache)
     {

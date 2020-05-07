@@ -23,7 +23,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                                            const int32_t indexBlock,
                                            const int32_t indexInBlock,
                                            const int32_t iterator,
-                                           const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
+                                           const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks)
 {
     for (const auto& column : columns)
     {
@@ -517,7 +517,7 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
     }
 }
 
-void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks,
+void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks,
                                           int32_t dataSize)
 {
     bool nullValueFound = false;
@@ -660,7 +660,7 @@ int32_t Table::GetDataRangeInSortingColumn()
 std::tuple<std::vector<std::any>, std::vector<int8_t>>
 Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
                                       const int32_t iterator,
-                                      const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
+                                      const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks)
 {
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
@@ -868,7 +868,7 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
 
-    int64_t isNullValue = 0;
+    int8_t isNullValue = 0;
 
     for (auto sortingColumn : sortingColumns)
     {
@@ -1661,7 +1661,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
 /// <param name="compress">Whether data will be compressed.</param>
 void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                        bool compress,
-                       const std::unordered_map<std::string, std::vector<int64_t>>& nullMasks)
+                       const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks)
 {
     int oneColumnDataSize = GetDataSizeOfInsertedColumns(data);
 

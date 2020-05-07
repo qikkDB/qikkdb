@@ -221,7 +221,7 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
                                                  T* colABlock,
                                                  T* colBBlock,
                                                  int32_t* colABlockIndices,
-                                                 int64_t* colABlockNullMask,
+                                                 nullmask_t* colABlockNullMask,
                                                  int32_t diagonalCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
@@ -370,7 +370,7 @@ public:
         // Calculate the null block size and alloc the null mask buffers
         size_t colABlockNullMaskCapacity = NullValues::GetNullBitMaskSize(colABlockCapacity);
 
-        cuda_ptr<int64_t> colABlockNullMask(colABlockNullMaskCapacity);
+        cuda_ptr<nullmask_t> colABlockNullMask(colABlockNullMaskCapacity);
 
         // Perform the merge join
         for (int32_t a = 0; a < colABlockCount; a++)
@@ -391,7 +391,7 @@ public:
             // Copy the block content to the gpu, if the null mask is present copy it aswell
             GPUMemory::copyHostToDevice(colABlock.get(), colABlockList[a]->GetData(), colABlockSize);
 
-            int64_t* d_colABlockNullMask = nullptr;
+            nullmask_t* d_colABlockNullMask = nullptr;
             if (colAisNullable && colABlockList[a]->GetNullBitmask())
             {
                 GPUMemory::copyHostToDevice(colABlockNullMask.get(),

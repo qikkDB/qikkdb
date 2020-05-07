@@ -975,7 +975,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
             database_->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex_);
         size_t blockNullMaskSize = NullValues::GetNullBitMaskSize(loadSize_);
 
-        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
+        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
             database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize, loadSize_, loadOffset_);
         if (!std::get<2>(cacheEntry))
         {

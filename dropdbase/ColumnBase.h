@@ -5,7 +5,6 @@
 #include <vector>
 #include <boost/log/trivial.hpp>
 
-#include "BlockBase.h"
 #include "ComplexPolygonFactory.h"
 #include "PointFactory.h"
 #include "IColumn.h"
@@ -171,7 +170,7 @@ public:
         return initAvgIsSet_;
     }
 
-    virtual std::pair<int64_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
+    virtual std::pair<nullmask_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
     {
         auto block = GetBlocksList()[blockIndex];
         return std::make_pair(block->GetNullBitmask(), block->GetSize());
@@ -212,7 +211,7 @@ public:
             {
                 for (int32_t i = 0; i < mapBlock.second.size() && !isNullValue; i++)
                 {
-                    int64_t* mask = mapBlock.second[i]->GetNullBitmask();
+                    nullmask_t* mask = mapBlock.second[i]->GetNullBitmask();
 
                     for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
@@ -406,7 +405,7 @@ public:
         {
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
-                const int64_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
+                const nullmask_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
                 const bool isNullValue = NullValues::GetConcreteBitFromBitmask(nullBitMask, srcRowIndex);
 
                 InsertDataOnSpecificPositionResizing(dstBlockIndex, dstRowIndex,
@@ -654,7 +653,7 @@ public:
 
             for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
             {
-                int64_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
+                nullmask_t tmp = (block.GetNullBitmask()[i] >> (shiftIdx + 1));
                 if (bitMaskIdx + 1 < bitMaskCapacity)
                 {
                     tmp |= NullValues::GetPartOfBitmaskByte(block.GetNullBitmask(), shiftIdx, bitMaskIdx + 1);
@@ -720,7 +719,7 @@ public:
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData,
-                    const std::vector<int64_t>& nullMask,
+                    const std::vector<nullmask_t>& nullMask,
                     int32_t groupId = -1,
                     bool compress = false)
     {
@@ -817,7 +816,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int32_t length) override
     {
-        std::vector<int64_t> nullMask(length, -1); // fill mask with bits 1
+        std::vector<nullmask_t> nullMask(length, -1); // fill mask with bits 1
         InsertData(NullArray(length), nullMask);
     }
 
@@ -849,7 +848,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }
@@ -866,7 +865,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int64_t* mask = block.second.front()->GetNullBitmask();
+                    nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -881,7 +880,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }
@@ -898,7 +897,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int64_t* mask = block.second.front()->GetNullBitmask();
+                    nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -913,7 +912,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }
@@ -930,7 +929,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int64_t* mask = block.second.front()->GetNullBitmask();
+                    nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -945,7 +944,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }
@@ -962,7 +961,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int64_t* mask = block.second.front()->GetNullBitmask();
+                    nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -977,7 +976,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }
@@ -994,7 +993,7 @@ public:
                 int32_t blockCountOnIdx = block.second.size();
                 for (int32_t i = 0; i < blockCountOnIdx; i++)
                 {
-                    int64_t* mask = block.second.front()->GetNullBitmask();
+                    nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                     auto dataToCopy = block.second.front()->GetData();
                     auto blockSize = block.second.front()->GetSize();
@@ -1009,7 +1008,7 @@ public:
                     auto& newBlock = castedColumn->AddBlock(castedDataToCopy, block.first);
                     auto nullBitMask = block.second.front()->GetNullBitmask();
                     newBlock.SetNullBitmask(
-                        std::vector<int64_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
+                        std::vector<nullmask_t>(nullBitMask, nullBitMask + NullValues::GetNullBitMaskSize(blockSize)));
 
                     block.second.erase(block.second.begin());
                 }

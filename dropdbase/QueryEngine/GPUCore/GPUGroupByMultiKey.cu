@@ -3,7 +3,7 @@
 __device__ int32_t GetHash(DataType* keyTypes,
                            const int32_t keysColCount,
                            void** inKeys,
-                           int64_t** inKeysNullMask,
+                           nullmask_t** inKeysNullMask,
                            const int32_t i,
                            const int32_t hashCoef)
 {
@@ -71,10 +71,10 @@ __device__ int32_t GetHash(DataType* keyTypes,
 __device__ bool AreEqualMultiKeys(DataType* keyTypes,
                                   const int32_t keysColCount,
                                   void** keysA,
-                                  int64_t** keysANullMask,
+                                  nullmask_t** keysANullMask,
                                   const int32_t indexA,
                                   void** keysB,
-                                  int64_t** keysBNullMask,
+                                  nullmask_t** keysBNullMask,
                                   const int32_t indexB,
                                   const bool compressedBNullMask)
 {
@@ -147,10 +147,10 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
 __device__ bool IsNewMultiKey(DataType* keyTypes,
                               const int32_t keysColCount,
                               void** inKeys,
-                              int64_t** inKeysNullMask,
+                              nullmask_t** inKeysNullMask,
                               const int32_t i,
                               void** keysBuffer,
-                              int64_t** keysNullBuffer,
+                              nullmask_t** keysNullBuffer,
                               int32_t* sourceIndices,
                               const int32_t index)
 {
@@ -210,11 +210,11 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 
 void AllocKeysBuffer(void*** keysBuffer,
-                     int64_t*** keysNullBuffer,
+                     nullmask_t*** keysNullBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
-                     std::vector<int64_t*>* pointersNullMask)
+                     std::vector<nullmask_t*>* pointersNullMask)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
     GPUMemory::alloc(keysNullBuffer, keyTypes.size());
@@ -296,7 +296,7 @@ void AllocKeysBuffer(void*** keysBuffer,
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
-        int64_t* gpuKeyNullMask;
+        nullmask_t* gpuKeyNullMask;
         GPUMemory::alloc(&gpuKeyNullMask, rowCount);
         GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
         if (pointersNullMask)
@@ -306,7 +306,7 @@ void AllocKeysBuffer(void*** keysBuffer,
     }
 }
 
-void FreeKeysBuffer(void** keysBuffer, int64_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
+void FreeKeysBuffer(void** keysBuffer, nullmask_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
     std::vector<DataType> keyTypesHost;
@@ -327,7 +327,7 @@ void FreeKeysBuffer(void** keysBuffer, int64_t** keysNullBuffer, DataType* keyTy
             }
             GPUMemory::free(ptr);
         }
-        int64_t* ptrNullBuffer;
+        nullmask_t* ptrNullBuffer;
         GPUMemory::copyDeviceToHost(&ptrNullBuffer, keysNullBuffer + i, 1); // copy single pointer
         if (ptrNullBuffer)
         {
@@ -387,12 +387,12 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          int64_t** keysNullBuffer,
+                                          nullmask_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys,
-                                          int64_t** inKeysNullMask)
+                                          nullmask_t** inKeysNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;

@@ -4,6 +4,7 @@
 #include <string>
 
 #include "DataType.h"
+#include "BlockBase.h"
 
 class IColumn
 {
@@ -17,7 +18,7 @@ public:
     virtual void InsertNullData(int length) = 0;
     virtual float GetInitAvg() const = 0;
     virtual bool GetInitAvgIsSet() const = 0;
-    virtual std::pair<int64_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
+    virtual std::pair<nullmask_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
     virtual bool GetIsNullable() const = 0;
     virtual void SetIsNullable(bool isNullable) = 0;
     virtual bool GetIsUnique() const = 0;

@@ -146,14 +146,14 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 /// Alloc 2-dimensional buffer for multi-keys storage
 void AllocKeysBuffer(void*** keysBuffer,
-                     int64_t*** keysNullBuffer,
+                     nullmask_t*** keysNullBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers = nullptr,
-                     std::vector<int64_t*>* pointersNullMask = nullptr);
+                     std::vector<nullmask_t*>* pointersNullMask = nullptr);
 
 /// Free 2-dimensional buffer for multi-keys storage
-void FreeKeysBuffer(void** keysBuffer, int64_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount);
+void FreeKeysBuffer(void** keysBuffer, nullmask_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount);
 
 /// Free buffers from vector
 void FreeKeysVector(std::vector<void*> keysVector, std::vector<DataType> keyTypes);
@@ -165,9 +165,9 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
                                           const int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          int64_t** keysNullBuffer,
+                                          nullmask_t** keysNullBuffer,
                                           V* values,
-                                          int64_t* valuesNullMask,
+                                          nullmask_t* valuesNullMask,
                                           int64_t* keyOccurrenceCount,
                                           const int32_t maxHashCount,
                                           void** inKeys,
@@ -176,8 +176,8 @@ __global__ void kernel_group_by_multi_key(DataType* keyTypes,
                                           const int32_t arrayMultiplier,
                                           const int32_t hashCoef,
                                           int32_t* errorFlag,
-                                          int64_t** inKeysNullMask,
-                                          int64_t* inValuesNullMask)
+                                          nullmask_t** inKeysNullMask,
+                                          nullmask_t* inValuesNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -277,12 +277,12 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          int64_t** keysNullBuffer,
+                                          nullmask_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys,
-                                          int64_t** inKeysNullMask);
+                                          nullmask_t** inKeysNullMask);
 
 
 /// GROUP BY class for multi-keys
@@ -307,7 +307,7 @@ public:
     int32_t* sourceIndices_ = nullptr;
     /// Keys buffer - all found combination of keys are stored here
     void** keysBuffer_ = nullptr;
-    int64_t** keysNullBuffer_ = nullptr; // wide, uncompressed
+    nullmask_t** keysNullBuffer_ = nullptr; // wide, uncompressed
 
 private:
     /// Types of keys
@@ -319,7 +319,7 @@ private:
 
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    int64_t* valuesNullMask_ = nullptr; // wide, uncompressed
+    nullmask_t* valuesNullMask_ = nullptr; // wide, uncompressed
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
 
@@ -395,7 +395,7 @@ public:
             {
                 for (int32_t i = 0; i < keysColCount_; i++)
                 {
-                    int64_t* ptr;
+                    nullmask_t* ptr;
                     GPUMemory::copyDeviceToHost(&ptr, keysNullBuffer_ + i, 1);
                     if (ptr)
                     {
@@ -431,7 +431,7 @@ public:
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
     /// <param name="sourceIndices">GPU buffer with existing sourceIndices (will be copied to a new buffer)</param>
     /// <param name="keysBuffer">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, int64_t** keysNullBuffer)
+    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, nullmask_t** keysNullBuffer)
     : GPUGroupBy(maxHashCount, 1, keyTypes)
     {
         // Copy source indices
@@ -505,9 +505,9 @@ public:
                 break;
             }
 
-            int64_t* myNullMask;
+            nullmask_t* myNullMask;
             GPUMemory::copyDeviceToHost(&myNullMask, keysNullBuffer_ + i, 1);
-            int64_t* srcNullMask;
+            nullmask_t* srcNullMask;
             GPUMemory::copyDeviceToHost(&srcNullMask, keysNullBuffer + i, 1);
             GPUMemory::copyDeviceToDevice(myNullMask, srcNullMask, keyBufferSize_);
         }
@@ -540,10 +540,10 @@ public:
     /// <param name="dataElementCount">row count to process</param>
     /// <param name="inValuesNullMask">null mask of values</param>
     void ProcessBlock(std::vector<void*> inKeysVector,
-                      std::vector<int64_t*> inKeysNullMaskVector,
+                      std::vector<nullmask_t*> inKeysNullMaskVector,
                       V* inValues,
                       int32_t dataElementCount,
-                      int64_t* inValuesNullMask = nullptr)
+                      nullmask_t* inValuesNullMask = nullptr)
     {
         if (dataElementCount > 0)
         {
@@ -561,7 +561,7 @@ public:
             // Convert vector to GPU void
             cuda_ptr<void*> inKeys(keysColCount_);
             GPUMemory::copyHostToDevice(inKeys.get(), inKeysVector.data(), keysColCount_);
-            cuda_ptr<int64_t*> inKeysNullMasks(keysColCount_);
+            cuda_ptr<nullmask_t*> inKeysNullMasks(keysColCount_);
             GPUMemory::copyHostToDevice(inKeysNullMasks.get(), inKeysNullMaskVector.data(), keysColCount_);
 
             // Run group by kernel (get sourceIndices and aggregate values).
@@ -750,8 +750,8 @@ public:
     void GetResults(std::vector<void*>* outKeysVector,
                     O** outValues,
                     int32_t* outDataElementCount,
-                    std::vector<int64_t*>* outKeysNullMasksVector = nullptr,
-                    int64_t** outValuesNullMask = nullptr)
+                    std::vector<nullmask_t*>* outKeysNullMasksVector = nullptr,
+                    nullmask_t** outValuesNullMask = nullptr)
     {
         static_assert(!std::is_same<AGG, AggregationFunctions::count>::value || std::is_same<O, int64_t>::value,
                       "GroupBy COUNT ouput data type O must be int64_t");
@@ -828,7 +828,7 @@ public:
                                        NullValues::GetNullBitMaskSize(*outDataElementCount));
                 kernel_compress_null_mask<<<Context::getInstance().calcGridDim(*outDataElementCount),
                                             Context::getInstance().getBlockDim()>>>(
-                    reinterpret_cast<int64_t*>(compressedNullMask), reconstructedNullMask, *outDataElementCount);
+                    reinterpret_cast<nullmask_t*>(compressedNullMask), reconstructedNullMask, *outDataElementCount);
                 GPUMemory::free(reconstructedNullMask);
                 outKeysNullMasksVector->emplace_back(compressedNullMask);
             }
@@ -933,8 +933,8 @@ public:
                     O** outValues,
                     int32_t* outDataElementCount,
                     std::vector<std::unique_ptr<IGroupBy>>& tables,
-                    std::vector<int64_t*>* outKeysNullMasksVector = nullptr,
-                    int64_t** outValuesNullMask = nullptr)
+                    std::vector<nullmask_t*>* outKeysNullMasksVector = nullptr,
+                    nullmask_t** outValuesNullMask = nullptr)
     {
         if (tables.size() <= 0) // invalid count of tables
         {
@@ -1014,8 +1014,8 @@ public:
                 std::vector<void*> multiKeys;
                 std::vector<std::unique_ptr<int64_t[]>> keysNullMasks;
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<int64_t[]> valuesNullMask =
-                    std::make_unique<int64_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullmask_t[]> valuesNullMask =
+                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
                 std::unique_ptr<int64_t[]> occurrences =
                     std::make_unique<int64_t[]>(table->GetMaxHashCount());
                 int32_t elementCount;
@@ -1205,11 +1205,11 @@ public:
                 {
                     GPUMemory::copyHostToDevice(occurrencesAllGPU.get(), occurrencesAllHost.data(), sumElementCount);
                 }
-                std::vector<cuda_ptr<int64_t>> compressedKeysNullMasksAllManaged;
-                std::vector<int64_t*> compressedKeysNullMasksAllPtr;
+                std::vector<cuda_ptr<nullmask_t>> compressedKeysNullMasksAllManaged;
+                std::vector<nullmask_t*> compressedKeysNullMasksAllPtr;
                 for (int32_t t = 0; t < keysColCount_; t++)
                 {
-                    cuda_ptr<int64_t> managed = std::move(
+                    cuda_ptr<nullmask_t> managed = std::move(
                         GPUReconstruct::CompressNullMask(hostPointersToKeysNullMasksAll[t], sumElementCount));
                     compressedKeysNullMasksAllPtr.emplace_back(managed.get());
                     compressedKeysNullMasksAllManaged.emplace_back(std::move(managed));

@@ -89,7 +89,7 @@ TEST(ClientHandlerTests, TestHandlerQuery)
 	std::shared_ptr<Database> db = std::make_shared<Database>("test");
 	Database::AddToInMemoryDatabaseList(db);
 	db->CreateTable(std::unordered_map<std::string, DataType>{ {"test", COLUMN_INT} }, "test");
-	std::unordered_map <std::string, std::vector<int64_t>> nullMask{{"test",{1}}}; 
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask{{"test", {1}}}; 
 	db->GetTables().at("test").InsertData(std::unordered_map <std::string, std::any>{ {"test", std::make_any<std::vector<int>>({ 1,2,3 })}}, false, nullMask);
 	std::unique_ptr<IClientHandler> handler = std::make_unique<TCPClientHandler>();
 	boost::asio::io_context context;

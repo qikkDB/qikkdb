@@ -2,65 +2,58 @@
 
 __device__ __host__ int32_t NullValues::GetBitMaskIdx(const int32_t idx)
 {
-    return (idx / (sizeof(int64_t) * 8));
+    return (idx / (sizeof(nullmask_t) * 8));
 }
 
 __device__ __host__ int32_t NullValues::GetShiftMaskIdx(const int32_t idx)
 {
-    return (idx % (sizeof(int64_t) * 8));
+    return (idx % (sizeof(nullmask_t) * 8));
 }
 
 __device__ __host__ size_t NullValues::GetNullBitMaskSize(const size_t size)
 {
-    uint64_t longOne = 1;
-    return (size + sizeof(int64_t) * 8 - longOne) / (sizeof(int64_t) * 8);
+    return (size + sizeof(nullmask_t) * 8 - 1ULL) / (sizeof(nullmask_t) * 8);
 }
 
-__device__ __host__ void NullValues::SetBitInBitMask(int64_t* bitMask,
-                                                    const int32_t bitMaskIdx,
-                                                    const int32_t shiftMaskIdx,
-                                                    const int8_t newBit)
+__device__ __host__ void
+NullValues::SetBitInBitMask(nullmask_t* bitMask, const int32_t bitMaskIdx, const int32_t shiftMaskIdx, const int8_t newBit)
 {
-    uint64_t longOne = 1;
     if (newBit)
     {
-        bitMask[bitMaskIdx] |= (longOne << shiftMaskIdx);
+        bitMask[bitMaskIdx] |= (1ULL << shiftMaskIdx);
     }
     else
     {
-        bitMask[bitMaskIdx] &= ~(longOne << shiftMaskIdx);
-	}
+        bitMask[bitMaskIdx] &= ~(1ULL << shiftMaskIdx);
+    }
 }
 
-__device__ __host__ void NullValues::SetBitInBitMask(int64_t* bitMask, const int32_t index, const int8_t newBit)
+__device__ __host__ void NullValues::SetBitInBitMask(nullmask_t* bitMask, const int32_t index, const int8_t newBit)
 {
-    int32_t bitMaskIdx = GetBitMaskIdx(index);
-    int32_t shiftMaskIdx = GetShiftMaskIdx(index);
+    const int32_t bitMaskIdx = GetBitMaskIdx(index);
+    const int32_t shiftMaskIdx = GetShiftMaskIdx(index);
 
     SetBitInBitMask(bitMask, bitMaskIdx, shiftMaskIdx, newBit);
 }
 
-__device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const int64_t* bitMask,
-                                                                const int32_t bitMaskIdx,
-                                                                const int32_t shiftMaskIdx)
+__device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const nullmask_t* bitMask,
+                                                                 const int32_t bitMaskIdx,
+                                                                 const int32_t shiftMaskIdx)
 {
-    uint64_t longOne = 1;
-
-    return (bitMask[bitMaskIdx] >> shiftMaskIdx) & longOne;
+    return (bitMask[bitMaskIdx] >> shiftMaskIdx) & 1ULL;
 }
 
-__device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const int64_t* bitMask, const int32_t index)
+__device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const nullmask_t* bitMask, const int32_t index)
 {
-    int32_t bitMaskIdx = GetBitMaskIdx(index);
-    int32_t shiftMaskIdx = GetShiftMaskIdx(index);
+    const int32_t bitMaskIdx = GetBitMaskIdx(index);
+    const int32_t shiftMaskIdx = GetShiftMaskIdx(index);
 
-	return GetConcreteBitFromBitmask(bitMask, bitMaskIdx, shiftMaskIdx);
+    return GetConcreteBitFromBitmask(bitMask, bitMaskIdx, shiftMaskIdx);
 }
 
-__device__ __host__ int64_t NullValues::GetPartOfBitmaskByte(const int64_t* bitMask, const int32_t shiftMaskIdx, const int32_t bitMaskIdx)
+__device__ __host__ int64_t NullValues::GetPartOfBitmaskByte(const nullmask_t* bitMask,
+                                                             const int32_t shiftMaskIdx,
+                                                             const int32_t bitMaskIdx)
 {
-    uint64_t longOne = 1;
-
-    return ((longOne << (shiftMaskIdx + longOne)) - longOne) &
-                       bitMask[bitMaskIdx];
+    return ((1ULL << (shiftMaskIdx + 1ULL)) - 1ULL) & bitMask[bitMaskIdx];
 }

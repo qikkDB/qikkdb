@@ -163,7 +163,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             int start = NullValues::GetNullBitMaskSize(sentRecords_);
             int nullMaskBufferSize = NullValues::GetNullBitMaskSize(bufferSize);
             ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
-            std::vector<int64_t> nullMaskBuffer(
+            std::vector<nullmask_t> nullMaskBuffer(
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start,
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start + nullMaskBufferSize);
 
@@ -468,9 +468,9 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     if (isNullable)
     {
-        std::vector<int64_t> nullMaskVector;
+        std::vector<nullmask_t> nullMaskVector;
         int32_t nullMaskSize = bulkImportMessage.nullmasklen();
-        std::unordered_map<std::string, std::vector<int64_t>> nullMap;
+        std::unordered_map<std::string, std::vector<nullmask_t>> nullMap;
         for (int i = 0; i < nullMaskSize; i++)
         {
             nullMaskVector.push_back(nullMask[i]);

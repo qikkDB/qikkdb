@@ -116,8 +116,8 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->ProcessBlock(reinterpret_cast<K*>(groupByColumn.GpuPtr),
                            reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize,
-                           reinterpret_cast<int64_t*>(groupByColumn.GpuNullMaskPtr),
-                           reinterpret_cast<int64_t*>(valueColumn.GpuNullMaskPtr));
+                           reinterpret_cast<nullmask_t*>(groupByColumn.GpuNullMaskPtr),
+                           reinterpret_cast<nullmask_t*>(valueColumn.GpuNullMaskPtr));
     }
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -128,9 +128,9 @@ public:
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
         K* outKeys = nullptr;
-        int64_t* outKeyNullMask = nullptr;
+        nullmask_t* outKeyNullMask = nullptr;
         O* outValues = nullptr;
-        int64_t* outValueNullMask = nullptr;
+        nullmask_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, K, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
@@ -170,8 +170,8 @@ public:
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->ProcessBlock(groupByColumn.GpuPtr, reinterpret_cast<V*>(valueColumn.GpuPtr), dataSize,
-                           reinterpret_cast<int64_t*>(groupByColumn.GpuNullMaskPtr),
-                           reinterpret_cast<int64_t*>(valueColumn.GpuNullMaskPtr));
+                           reinterpret_cast<nullmask_t*>(groupByColumn.GpuNullMaskPtr),
+                           reinterpret_cast<nullmask_t*>(valueColumn.GpuNullMaskPtr));
     }
 
     static void GetResults(const std::vector<std::pair<std::string, DataType>>& groupByColumns,
@@ -182,9 +182,9 @@ public:
         std::string groupByColumnName = groupByColumns.begin()->first;
         int32_t outSize;
         GPUMemory::GPUString outKeys;
-        int64_t* outKeyNullMask = nullptr;
+        nullmask_t* outKeyNullMask = nullptr;
         O* outValues = nullptr;
-        int64_t* outValueNullMask = nullptr;
+        nullmask_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::string, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
@@ -274,9 +274,9 @@ public:
     {
         int32_t outSize;
         std::vector<void*> outKeys;
-        std::vector<int64_t*> outKeysNullMasks;
+        std::vector<nullmask_t*> outKeysNullMasks;
         O* outValues = nullptr;
-        int64_t* outValueNullMask = nullptr;
+        nullmask_t* outValueNullMask = nullptr;
         reinterpret_cast<GPUGroupBy<OP, O, std::vector<void*>, V>*>(
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_,

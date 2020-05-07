@@ -38,7 +38,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
         point = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
     }
     std::vector<ColmnarDB::Types::Point> pointVector({point});
-    std::vector<int64_t> nullMaskVector({static_cast<int64_t>(hasValue ? 0 : 1)});
+    std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, pointVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
@@ -63,7 +63,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
         polygon = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
     }
     std::vector<ColmnarDB::Types::ComplexPolygon> polygonVector({polygon});
-    std::vector<int64_t> nullMaskVector({static_cast<int64_t>(hasValue ? 0 : 1)});
+    std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, polygonVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});

@@ -59,8 +59,8 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     std::unordered_map<std::string, DataType> columns;
     columns.emplace("Col1", COLUMN_INT);
     database->CreateTable(columns, "TestTable");
-    std::vector<int64_t> expectedMask;
-    int64_t bitMaskPart = 0;
+    std::vector<nullmask_t> expectedMask;
+    nullmask_t bitMaskPart = 0;
     int nullCount = 0;
     for (int i = 0; i < 16; i++)
     {
@@ -445,7 +445,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
 
     for (int32_t i = 0; i < expectedResults1.size(); i++)
     {
-        int8_t nullBit1 = (nullBitMask1[i / (sizeof(int64_t) * 8)] >> (i % (sizeof(int64_t) * 8))) & 1;
+        int8_t nullBit1 = (nullBitMask1[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit1)
         {
             ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]) << i;
@@ -455,7 +455,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults1[i], 0);
         }
 
-        int8_t nullBit2 = (nullBitMask2[i / (sizeof(int64_t) * 8)] >> (i % (sizeof(int64_t) * 8))) & 1;
+        int8_t nullBit2 = (nullBitMask2[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit2)
         {
             ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
@@ -465,7 +465,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults2[i], "0");
         }
 
-        int8_t nullBit3 = (nullBitMask3[i / (sizeof(int64_t) * 8)] >> (i % (sizeof(int64_t) * 8))) & 1;
+        int8_t nullBit3 = (nullBitMask3[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit3)
         {
             ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
@@ -475,7 +475,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults3[i], "0");
         }
 
-        int8_t nullBit4 = (nullBitMask4[i / (sizeof(int64_t) * 8)] >> (i % (sizeof(int64_t) * 8))) & 1;
+        int8_t nullBit4 = (nullBitMask4[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit4)
         {
             ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);

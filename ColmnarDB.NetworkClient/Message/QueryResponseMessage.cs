@@ -37,7 +37,7 @@ namespace ColmnarDB.NetworkClient.Message {
             "dWVyeVJlc3BvbnNlUG9pbnRQYXlsb2FkEikKCXBvaW50RGF0YRgBIAMoCzIW",
             "LkNvbG1uYXJEQi5UeXBlcy5Qb2ludCIwChpRdWVyeVJlc3BvbnNlU3RyaW5n",
             "UGF5bG9hZBISCgpzdHJpbmdEYXRhGAEgAygJIigKFFF1ZXJ5TnVsbG1hc2tQ",
-            "YXlsb2FkEhAKCG51bGxNYXNrGAEgAygSIssFChRRdWVyeVJlc3BvbnNlUGF5",
+            "YXlsb2FkEhAKCG51bGxNYXNrGAEgAygEIssFChRRdWVyeVJlc3BvbnNlUGF5",
             "bG9hZBJOCgppbnRQYXlsb2FkGAIgASgLMjguQ29sbW5hckRCLk5ldHdvcmtD",
             "bGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlSW50UGF5bG9hZEgAElIKDGZs",
             "b2F0UGF5bG9hZBgDIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1l",
@@ -1096,11 +1096,11 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "nullMask" field.</summary>
     public const int NullMaskFieldNumber = 1;
-    private static readonly pb::FieldCodec<long> _repeated_nullMask_codec
-        = pb::FieldCodec.ForSInt64(10);
-    private readonly pbc::RepeatedField<long> nullMask_ = new pbc::RepeatedField<long>();
+    private static readonly pb::FieldCodec<ulong> _repeated_nullMask_codec
+        = pb::FieldCodec.ForUInt64(10);
+    private readonly pbc::RepeatedField<ulong> nullMask_ = new pbc::RepeatedField<ulong>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<long> NullMask {
+    public pbc::RepeatedField<ulong> NullMask {
       get { return nullMask_; }
     }
 

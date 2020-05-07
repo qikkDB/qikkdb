@@ -231,14 +231,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int32_t> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -277,14 +277,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int64_t> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -323,14 +323,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<double> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -369,14 +369,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<float> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -415,14 +415,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<int8_t> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -484,14 +484,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<ColmnarDB::Types::Point> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -530,14 +530,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -587,14 +587,14 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<std::string> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
@@ -633,14 +633,14 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
             int32_t blockCountOnIdx = block.second.size();
             for (int32_t i = 0; i < blockCountOnIdx; i++)
             {
-                int64_t* mask = block.second.front()->GetNullBitmask();
+                nullmask_t* mask = block.second.front()->GetNullBitmask();
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
                 std::vector<std::string> castedDataToCopy;
-                std::unique_ptr<int64_t[]> newNullMask =
-                    std::unique_ptr<int64_t[]>(new int64_t[NullValues::GetNullBitMaskSize(blockSize)]);
-                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(int64_t));
+                std::unique_ptr<nullmask_t[]> newNullMask =
+                    std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
+                std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {

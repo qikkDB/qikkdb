@@ -24,7 +24,7 @@ __global__ void kernel_fill_indices(int32_t* indices, int32_t dataElementCount);
 
 // Transform the input data null rows to the smallest possible value
 template <typename T>
-__global__ void kernel_transform_null_values(T* inCol, int64_t* nullBitMask, int32_t dataElementCount)
+__global__ void kernel_transform_null_values(T* inCol, nullmask_t* nullBitMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -99,7 +99,7 @@ public:
 
     // Set the null value rows to the smallest possible value for the given type for merge operations
     template <typename T>
-    static void TransformNullValsToSmallestVal(T* inCol, int64_t* nullBitMask, int32_t dataElementCount)
+    static void TransformNullValsToSmallestVal(T* inCol, nullmask_t* nullBitMask, int32_t dataElementCount)
     {
         if (nullBitMask != nullptr)
         {
@@ -115,7 +115,7 @@ public:
     // If nullBitMask is nullptr - dont use null values
     // for(int32_t i = inCols.size() - 1; i >= 0; i--)
     template <typename T>
-    void OrderByColumn(int32_t* outIndices, T* inCol, int64_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
+    void OrderByColumn(int32_t* outIndices, T* inCol, nullmask_t* nullBitMask, int32_t dataElementCount, OrderBy::Order order)
     {
         // Preprocess the columns with the null values
         TransformNullValsToSmallestVal(inCol, nullBitMask, dataElementCount);
@@ -191,5 +191,6 @@ public:
                                 Context::getInstance().getBlockDim()>>>(col, indices, outTemp.get(), dataElementCount);
     }
 
-    static void ReOrderNullValuesByIdx(int64_t* outNullBitMask, int32_t* indices, int64_t* inNullBitMask, int32_t dataElementCount);
+    static void
+    ReOrderNullValuesByIdx(nullmask_t* outNullBitMask, int32_t* indices, nullmask_t* inNullBitMask, int32_t dataElementCount);
 };
