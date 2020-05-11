@@ -1018,7 +1018,7 @@ GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string
 void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
                                      uintptr_t reconstructedReg,
                                      int32_t reconstructedSize,
-                                     int64_t* reconstructedNullMask)
+                                     nullmask_t* reconstructedNullMask)
 {
     if (filter_) // If where mask was used, new buffers were allocated, need to free old GpuPtr
     {
@@ -1042,7 +1042,7 @@ void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
 void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
                                            GPUMemory::GPUString newStruct,
                                            int32_t newElementCount,
-                                           int64_t* newNullMask)
+                                           nullmask_t* newNullMask)
 {
     if (filter_)
     {
@@ -1751,7 +1751,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
                                            ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                           std::vector<int64_t> nullMask, int64_t payloadSize)
+                                           std::vector<nullmask_t> nullMask,
+                                           int64_t payloadSize)
 {
     if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
     {
@@ -1805,15 +1806,14 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         }
         else
         {
-            int64_t longOne = 1;
             int64_t shiftCount = 64 - (dataLength % 64);
-            std::vector<int64_t> nullMaskVec(nullMask.begin(), nullMask.end());
-            int64_t carryBits = nullMaskVec[0] & ((longOne << shiftCount) - 1);
+            std::vector<nullmask_t> nullMaskVec(nullMask.begin(), nullMask.end());
+            int64_t carryBits = nullMaskVec[0] & ((1ULL << shiftCount) - 1);
             responseMessage->mutable_nullbitmasks()->at(key).mutable_nullmask()->at(
                 responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() - 1) |=
                 (carryBits << (64 - shiftCount));
             ShiftNullMaskLeft(nullMaskVec, shiftCount);
-            std::vector<int64_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
+            std::vector<nullmask_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
 
             int64_t nullMasksCount = responseMessage->mutable_nullbitmasks()->at(key).nullmask_size();
             int64_t mergedDataCount = dataLength + payloadSize;
@@ -1959,7 +1959,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
 void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
                                                   const std::string& realName,
                                                   ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                                  std::vector<int64_t> nullMask)
+                                                  std::vector<nullmask_t> nullMask)
 {
     std::string trimmedKey = key;
     std::string realTrimmedName = realName;

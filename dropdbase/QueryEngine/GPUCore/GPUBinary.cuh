@@ -426,7 +426,7 @@ public:
                        GPUMemory::GPUString ACol,
                        GPUMemory::GPUString BCol,
                        int32_t dataElementCount,
-                       int64_t* nullBitMask)
+                       nullmask_t* nullBitMask)
     {
         if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
@@ -452,7 +452,7 @@ class GPUBinary<OP,
 {
 public:
     static void
-    Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, R BCol, int32_t dataElementCount, int64_t* nullBitMask)
+    Binary(GPUMemory::GPUString& outCol, GPUMemory::GPUString ACol, R BCol, int32_t dataElementCount, nullmask_t* nullBitMask)
     {
         if constexpr (std::is_pointer<L>::value && std::is_pointer<R>::value)
         {
@@ -484,7 +484,7 @@ class GPUBinary<OP,
                                         std::is_arithmetic<typename std::remove_pointer<R>::type>::value>::type>
 {
 public:
-    static void Binary(NativeGeoPoint* outCol, L LatCol, R LonCol, int32_t dataElementCount, int64_t* nullBitMask)
+    static void Binary(NativeGeoPoint* outCol, L LatCol, R LonCol, int32_t dataElementCount, nullmask_t* nullBitMask)
     {
         if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {
@@ -517,7 +517,7 @@ public:
                        GPUMemory::GPUPolygon& polygonAin,
                        GPUMemory::GPUPolygon& polygonBin,
                        int32_t dataElementCount,
-                       int64_t* nullBitMask)
+                       nullmask_t* nullBitMask)
     {
         GPUPolygonClipping::clip<OP>(polygonOut, polygonAin, polygonBin,
                                      std::is_pointer<L>::value ? dataElementCount : 1,
@@ -541,7 +541,7 @@ public:
            GPUMemory::GPUPolygon polygonCol,
            typename std::conditional<std::is_pointer<R>::value, NativeGeoPoint*, NativeGeoPoint>::type geoPointCol,
            int32_t dataElementCount,
-           int64_t* nullBitMask)
+           nullmask_t* nullBitMask)
     {
         if constexpr (std::is_pointer<L>::value || std::is_pointer<R>::value)
         {

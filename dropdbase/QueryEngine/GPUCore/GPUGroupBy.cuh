@@ -706,7 +706,7 @@ public:
                     // Calculate sum of values
                     // Initialize new empty sumGroupBy table
                     K* tempKeys = nullptr;
-                    int64_t* tempKeysNulls;
+                    nullmask_t* tempKeysNulls;
                     GPUGroupBy<AggregationFunctions::sum, V, K, V> sumGroupBy(sumElementCount, 1);
                     sumGroupBy.ProcessBlock(
                         keysAllGPU.get(), valuesAllGPU.get(), sumElementCount,
@@ -714,7 +714,7 @@ public:
                         GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
                             .get());
                     sumGroupBy.GetResults(&tempKeys, &valuesMerged, outDataElementCount, &tempKeysNulls);
-                    int64_t firstChar;
+                    nullmask_t firstChar;
                     GPUMemory::copyDeviceToHost(&firstChar, tempKeysNulls, 1);
 
                     // Calculate sum of occurrences

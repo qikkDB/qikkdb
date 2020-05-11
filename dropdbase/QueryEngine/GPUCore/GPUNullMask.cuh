@@ -28,7 +28,7 @@ struct isNotNull
 } // namespace NullMaskOperations
 
 template <typename OP>
-__global__ void kernel_null_mask(int8_t* output, int64_t* AColNullMask, int32_t maskByteSize, int32_t outputSize)
+__global__ void kernel_null_mask(int8_t* output, nullmask_t* AColNullMask, int32_t maskByteSize, int32_t outputSize)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -53,7 +53,7 @@ class GPUNullMask
 {
 public:
     template <typename OP>
-    static void Col(int8_t* output, int64_t* AColMask, int32_t maskByteSize, int32_t outputSize)
+    static void Col(int8_t* output, nullmask_t* AColMask, int32_t maskByteSize, int32_t outputSize)
     {
         kernel_null_mask<OP>
             <<<Context::getInstance().calcGridDim(maskByteSize), Context::getInstance().getBlockDim()>>>(

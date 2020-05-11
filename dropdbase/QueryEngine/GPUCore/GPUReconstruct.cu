@@ -20,7 +20,7 @@ kernel_reconstruct_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t* pre
         {
             int outBitMaskIdx = NullValues::GetBitMaskIdx(prefixSum[i] - 1);
             int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(prefixSum[i] - 1);
-            uint64_t bitFromiPosition = NullValues::GetConcreteBitFromBitmask(ACol, i);
+            nullmask_t bitFromiPosition = NullValues::GetConcreteBitFromBitmask(ACol, i);
             atomicOr(outData + outBitMaskIdx, (bitFromiPosition << outBitMaskShiftIdx));
         }
     }

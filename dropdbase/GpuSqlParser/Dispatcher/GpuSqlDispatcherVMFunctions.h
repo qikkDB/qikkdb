@@ -70,7 +70,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
     int32_t outSize;
     std::unique_ptr<T[]> outData;
     int32_t nullMaskPtrSize = 0;
-    std::vector<int64_t> nullMaskVector = {};
+    std::vector<nullmask_t> nullMaskVector = {};
     if (usingGroupBy_)
     {
         if (isOverallLastBlock_)
@@ -94,11 +94,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
             if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
-                std::unique_ptr<int64_t[]> nullMask(new int64_t[bitMaskSize]);
+                std::unique_ptr<nullmask_t[]> nullMask(new nullmask_t[bitMaskSize]);
                 GPUMemory::copyDeviceToHost(nullMask.get(),
-                                            reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), bitMaskSize);
+                                            reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), bitMaskSize);
                 nullMaskPtrSize = bitMaskSize;
-                nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
+                nullMaskVector = std::vector<nullmask_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
         }
         else
@@ -119,7 +119,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 
                 nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
                 nullMaskVector =
-                    std::vector<int64_t>(reconstructedOrderByColumnsNullMerged_.at(colName).get(),
+                    std::vector<nullmask_t>(reconstructedOrderByColumnsNullMerged_.at(colName).get(),
                                          reconstructedOrderByColumnsNullMerged_.at(colName).get() + nullMaskPtrSize);
             }
             else
@@ -137,12 +137,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
             if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = NullValues::GetNullBitMaskSize(database_->GetBlockSize());
-                std::unique_ptr<int64_t[]> nullMask(new int64_t[bitMaskSize]);
+                std::unique_ptr<nullmask_t[]> nullMask(new nullmask_t[bitMaskSize]);
                 GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
                                                reinterpret_cast<int8_t*>(filter_), col.ElementCount,
-                                               nullMask.get(), reinterpret_cast<int64_t*>(col.GpuNullMaskPtr));
+                                               nullMask.get(),
+                                               reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr));
                 nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskVector = std::vector<int64_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
+                nullMaskVector = std::vector<nullmask_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
             else
             {
@@ -211,7 +212,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
 
         if (!usingJoin_)
         {
-            int64_t* nullMaskPtr = nullptr;
+            nullmask_t* nullMaskPtr = nullptr;
             auto block = dynamic_cast<BlockBase<T>*>(col->GetBlocksList()[blockIndex_]);
             size_t realSize;
             std::tuple<T*, size_t, bool> cacheEntry;
@@ -255,7 +256,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(realSize);
-                    auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
+                    auto cacheMaskEntry =
+                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
                         database_->GetName(), colName + NULL_SUFFIX, blockIndex_, bitMaskCapacity,
                         loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -271,7 +273,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                             offsetBitMaskCapacity = std::min(offsetBitMaskCapacity, maxBitMaskCapacity);
 
 
-                            std::vector<int64_t> maskToOffset(block->GetNullBitmask(),
+                            std::vector<nullmask_t> maskToOffset(block->GetNullBitmask(),
                                                               block->GetNullBitmask() + offsetBitMaskCapacity);
                             ShiftNullMaskLeft(maskToOffset, loadOffset_);
                             GPUMemory::copyHostToDevice(std::get<0>(cacheMaskEntry),
@@ -288,7 +290,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 else
                 {
                     nullMaskPtr =
-                        reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
+                        reinterpret_cast<nullmask_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
                 }
             }
             AddCachedRegister(colName, std::get<0>(cacheEntry), realSize, nullMaskPtr);
@@ -307,7 +309,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
 
             auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
                 database_->GetName(), joinCacheId, blockIndex_, loadSize, loadSize_, loadOffset_);
-            int64_t* nullMaskPtr = nullptr;
+            nullmask_t* nullMaskPtr = nullptr;
 
             if (!std::get<2>(cacheEntry))
             {
@@ -322,7 +324,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 if (allocatedPointers_.find(colName + NULL_SUFFIX) == allocatedPointers_.end())
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize);
-                    auto cacheMaskEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
+                    auto cacheMaskEntry =
+                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
                         database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
                         bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -340,7 +343,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 else
                 {
                     nullMaskPtr =
-                        reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
+                        reinterpret_cast<nullmask_t*>(allocatedPointers_.at(colName + NULL_SUFFIX).GpuPtr);
                 }
             }
             AddCachedRegister(colName, std::get<0>(cacheEntry), loadSize, nullMaskPtr);
@@ -376,7 +379,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::NullMaskCol()
         int8_t* outFilterMask;
 
         outFilterMask = AllocateRegister<int8_t>(reg, loadSize_);
-        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<int64_t*>(columnMask.GpuPtr),
+        GPUNullMask::Col<OP>(outFilterMask, reinterpret_cast<nullmask_t*>(columnMask.GpuPtr),
                              columnMask.ElementCount, loadSize_);
     }
     return InstructionStatus::CONTINUE;

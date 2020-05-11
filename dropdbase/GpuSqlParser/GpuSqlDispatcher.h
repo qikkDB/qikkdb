@@ -41,10 +41,10 @@ struct InsertIntoStruct;
 struct OrderByBlocks
 {
     std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> ReconstructedOrderByOrderColumnBlocks;
-    std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> ReconstructedOrderByOrderColumnNullBlocks;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> ReconstructedOrderByOrderColumnNullBlocks;
 
     std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> ReconstructedOrderByRetColumnBlocks;
-    std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> ReconstructedOrderByRetColumnNullBlocks;
+    std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> ReconstructedOrderByRetColumnNullBlocks;
 };
 
 class GPUOrderBy;
@@ -354,7 +354,7 @@ private:
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    static void ShiftNullMaskLeft(std::vector<int64_t>& mask, int64_t shift);
+    static void ShiftNullMaskLeft(std::vector<nullmask_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
     int32_t GetUnaryDispatchTableIndex(DataType type);
     void ClearCachedBlocks(const std::string& tableName, const std::string& columnName, const int32_t fromBlockIdx = 0);
@@ -439,7 +439,7 @@ public:
                              ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
     static void MergePayloadBitmask(const std::string& key,
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                    std::vector<int64_t> nullMask,
+                                    std::vector<nullmask_t> nullMask,
                                     int64_t payloadSize);
 
 
@@ -721,13 +721,13 @@ public:
                                        const std::string& reg,
                                        int32_t size,
                                        bool useCache = false,
-                                       int64_t* nullMaskPtr = nullptr);
+                                       nullmask_t* nullMaskPtr = nullptr);
 
     /// Check if registerName is contained in allocatedPointers and if so, throw; if not, insert register
     void InsertRegister(const std::string& registerName, PointerAllocation registerValues);
 
     template <typename T>
-    void AddCachedRegister(const std::string& reg, T* ptr, int32_t size, int64_t* nullMaskPtr = nullptr)
+    void AddCachedRegister(const std::string& reg, T* ptr, int32_t size, nullmask_t* nullMaskPtr = nullptr)
     {
         InsertRegister(reg, PointerAllocation{reinterpret_cast<std::uintptr_t>(ptr), size, false,
                                               reinterpret_cast<std::uintptr_t>(nullMaskPtr)});
@@ -1011,24 +1011,24 @@ public:
     void MergePayloadToSelfResponse(const std::string& key,
                                     const std::string& realName,
                                     ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                    std::vector<int64_t> nullMask = {});
+                                    std::vector<nullmask_t> nullMask = {});
 
     GPUMemory::GPUPolygon InsertComplexPolygon(const std::string& databaseName,
                                                const std::string& colName,
                                                const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
                                                int32_t size,
                                                bool useCache = false,
-                                               int64_t* nullMaskPtr = nullptr);
+                                               nullmask_t* nullMaskPtr = nullptr);
     GPUMemory::GPUString InsertString(const std::string& databaseName,
                                       const std::string& colName,
                                       const std::string* strings,
                                       size_t size,
                                       bool useCache = false,
-                                      int64_t* nullMaskPtr = nullptr);
+                                      nullmask_t* nullMaskPtr = nullptr);
     template <typename T>
     CompositeDataTypeAllocation<T> FindCompositeDataTypeAllocation(const std::string& colName);
-    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, int64_t* newNullMask);
-    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, int64_t* newNullMask);
+    void RewriteColumn(PointerAllocation& column, uintptr_t newPtr, int32_t newSize, nullmask_t* newNullMask);
+    void RewriteStringColumn(const std::string& colName, GPUMemory::GPUString newStruct, int32_t newSize, nullmask_t* newNullMask);
 
     template <typename T>
     CompositeDataType<T> InsertConstCompositeDataType(const std::string& str, size_t size = 1);
@@ -1323,7 +1323,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
                                                                   const std::string& reg,
                                                                   int32_t size,
                                                                   bool useCache,
-                                                                  int64_t* nullMaskPtr);
+                                                                  nullmask_t* nullMaskPtr);
 
 template <>
 void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
@@ -1331,7 +1331,7 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPo
     const std::string& reg,
     int32_t size,
     bool useCache,
-    int64_t* nullMaskPtr);
+    nullmask_t* nullMaskPtr);
 
 template <>
 GpuSqlDispatcher::CompositeDataType<std::string>

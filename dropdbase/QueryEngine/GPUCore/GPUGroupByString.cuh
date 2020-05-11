@@ -398,9 +398,9 @@ public:
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(std::vector<int32_t>& keysStringLengths,
                                std::vector<char>& keysAllChars,
-                               int64_t* keysNullMask,
+                               nullmask_t* keysNullMask,
                                V* values,
-                               int64_t* valuesNullMask,
+                               nullmask_t* valuesNullMask,
                                int64_t* occurrences,
                                int32_t* elementCount)
     {
@@ -409,7 +409,7 @@ public:
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<int64_t> keysNullMaskInput = CreateKeyNullMask();
+        cuda_ptr<nullmask_t> keysNullMaskInput = CreateKeyNullMask();
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
                                                 keysBuffer_, occupancyMask.get(), keyBufferSize_);
@@ -605,12 +605,12 @@ public:
 
                 std::vector<int32_t> keysStringLengths;
                 std::vector<char> keysAllChars;
-                std::unique_ptr<int64_t[]> keysNullMask =
-                    std::make_unique<int64_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullmask_t[]> keysNullMask =
+                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<int64_t[]> valuesNullMask =
-                    std::make_unique<int64_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullmask_t[]> valuesNullMask =
+                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<int64_t[]> occurrences =
                     std::make_unique<int64_t[]>(table->GetMaxHashCount());

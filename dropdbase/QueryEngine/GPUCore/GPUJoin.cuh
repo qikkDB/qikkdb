@@ -433,10 +433,10 @@ private:
     void JoinBlockWriteResults(int32_t* resultColumnQABlockIdx,
                                int32_t* resultColumnQBBlockIdx,
                                T* ColumnRBlock,
-                               int64_t* nullBitMaskR,
+                               nullmask_t* nullBitMaskR,
                                int32_t dataElementCountColumnRBlock,
                                T* ColumnSBlock,
-                               int64_t* nullBitMaskS,
+                               nullmask_t* nullBitMaskS,
                                int32_t dataElementCountColumnSBlock)
     {
         //////////////////////////////////////////////////////////////////////////////

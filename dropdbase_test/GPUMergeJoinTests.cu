@@ -149,7 +149,7 @@ TEST(GPUMergeJoinTests, MergeJoinNULLTest)
                                      'a', 'e', 'c', 'f', 'g', 'c'};
     std::vector<int32_t> colBData = {'d', 'g', 'e', 'b', 'f', 'h', 'c', 'a'};
 
-    std::vector<int64_t> colANullMask = {static_cast<int64_t>(0b0000011101000011)};
+    std::vector<nullmask_t> colANullMask = {static_cast<nullmask_t>(0b0000011101000011)};
 
     blockA.InsertData(colAData);
     blockB.InsertData(colBData);

@@ -58,7 +58,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
                     const int32_t bitMaskSize = NullValues::GetNullBitMaskSize(retSize);
                     if (left.DataAllocation.GpuNullMaskPtr && right.DataAllocation.GpuNullMaskPtr)
                     {
-                        GPUBinary<ArithmeticOperations::bitwiseOr, int64_t, int64_t*, int64_t*>::Binary(
+                        GPUBinary<ArithmeticOperations::bitwiseOr, nullmask_t, nullmask_t*, nullmask_t*>::Binary(
                             result.NullMaskPtr, reinterpret_cast<nullmask_t*>(left.DataAllocation.GpuNullMaskPtr),
                             reinterpret_cast<nullmask_t*>(right.DataAllocation.GpuNullMaskPtr), bitMaskSize);
                     }

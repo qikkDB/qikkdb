@@ -58,10 +58,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         GPUMemory::GPUString reorderedColumn;
-        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -78,7 +78,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
                                        col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
@@ -128,10 +128,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
-        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -148,7 +148,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
                                  reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPointColToWKT(outData->getData(), &outSize, reorderedColumn.get(),
@@ -196,10 +196,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int64_t[]> outNullData(new int64_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         GPUMemory::GPUPolygon reorderedColumn;
-        cuda_ptr<int64_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -216,7 +216,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
                                         col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int64_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPolyColToWKT(outData->getData(), &outSize, reorderedColumn,
@@ -271,8 +271,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int64_t[]>>> reconstructedOrderByRetColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 
             for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
             {

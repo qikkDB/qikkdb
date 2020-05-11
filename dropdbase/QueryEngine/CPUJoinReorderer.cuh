@@ -76,7 +76,7 @@ public:
     }
 
     template <typename T>
-    static void reorderNullMaskByJIPushToGPU(int64_t* outNullBlock,
+    static void reorderNullMaskByJIPushToGPU(nullmask_t* outNullBlock,
                                              int32_t& outNullBlockSize,
                                              const ColumnBase<T>& inCol,
                                              int32_t inBlockIdx,
@@ -85,7 +85,7 @@ public:
     {
         // Alloc an output CPU vector
         outNullBlockSize = NullValues::GetNullBitMaskSize(inColJoinIndices[inBlockIdx].size());
-        std::vector<int64_t> outNullBlockVector(outNullBlockSize);
+        std::vector<nullmask_t> outNullBlockVector(outNullBlockSize);
 
         // Fetch the core count
         unsigned int threadCount = std::thread::hardware_concurrency();
@@ -99,7 +99,7 @@ public:
         for (int32_t idx = 0; idx < threadCount; idx++)
         {
             reorderNullThreads.push_back(std::thread{
-                [](std::vector<int64_t>& outNullBlockVector, const ColumnBase<T>& inCol,
+                [](std::vector<nullmask_t>& outNullBlockVector, const ColumnBase<T>& inCol,
                    int32_t inBlockIdx, const std::vector<std::vector<int32_t>>& inColJoinIndices,
                    const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
                     for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
@@ -113,7 +113,7 @@ public:
                             const int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                 inCol.GetBlocksList()[columnBlockId]->GetNullBitmask(), columnRowId);
 
-                            outNullBlockVector[(i + j) / 64] |= (nullBit << j * sizeof(int64_t));
+                            outNullBlockVector[(i + j) / 64] |= (nullBit << j * sizeof(nullmask_t));
                         }
                     }
                 },
