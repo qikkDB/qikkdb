@@ -1957,6 +1957,20 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
     }
 }
 
+void GpuSqlDispatcher::FreeRegisterNullMask(const std::string& col)
+{
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "FreeNullMask: " << col << '\n';
+
+    if (!col.empty() && col.front() == '$' && allocatedPointers_.find(col) != allocatedPointers_.end() &&
+        allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
+    {
+        GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
+        usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(int8_t);
+        allocatedPointers_.erase(col + NULL_SUFFIX);
+        allocatedPointers_.at(col).GpuNullMaskPtr = 0;
+    }
+}
+
 void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
                                                   const std::string& realName,
                                                   ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,

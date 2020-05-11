@@ -43,6 +43,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Unary()
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
                                                                                 {left.Name});
+
+                if constexpr (std::is_same<OP, FilterConditions::logicalNot>::value)
+                {
+                    FreeRegisterNullMask(reg);
+                }
             }
         }
         FreeColumnIfRegister<T>(left.Name);

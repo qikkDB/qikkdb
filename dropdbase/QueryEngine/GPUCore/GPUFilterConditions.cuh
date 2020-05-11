@@ -167,5 +167,14 @@ struct logicalNot
     typedef int8_t RetType;
 };
 
+template <typename OP>
+constexpr bool isFilterOp = std::is_same<OP, FilterConditions::greater>::value ||
+                            std::is_same<OP, FilterConditions::greaterEqual>::value ||
+                            std::is_same<OP, FilterConditions::less>::value ||
+                            std::is_same<OP, FilterConditions::lessEqual>::value ||
+                            std::is_same<OP, FilterConditions::equal>::value ||
+                            std::is_same<OP, FilterConditions::notEqual>::value ||
+                            std::is_same<OP, FilterConditions::logicalAnd>::value ||
+                            std::is_same<OP, FilterConditions::logicalOr>::value;
 
 } // namespace FilterConditions

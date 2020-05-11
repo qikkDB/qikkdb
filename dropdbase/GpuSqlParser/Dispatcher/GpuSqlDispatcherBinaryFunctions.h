@@ -82,6 +82,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
                                                                                 {left.Name, right.Name});
+                if constexpr (FilterConditions::isFilterOp<OP>)
+                {
+                    FreeRegisterNullMask(reg);
+                }
             }
         }
         FreeColumnIfRegister<L>(left.Name);
@@ -122,7 +126,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
                 DispatcherInstructionHelper<ResultType>::StoreInstructionResult(result, *this, reg,
                                                                                 retSize, allocateNullMask,
                                                                                 {left.Name, right.Name});
-                FreeRegisterNullMaskFilterOp<OP>(reg);
+                if constexpr (FilterConditions::isFilterOp<OP>)
+                {
+                    FreeRegisterNullMask(reg);
+                }
             }
         }
         FreeColumnIfRegister<ColType>(col.Name);
@@ -148,22 +155,4 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Binary()
     }
 
     return InstructionStatus::CONTINUE;
-}
-
-template <typename OP>
-void GpuSqlDispatcher::FreeRegisterNullMaskFilterOp(const std::string& col)
-{
-    if constexpr (isFilterOp<OP>)
-    {
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "FreeNullMaskAfterFilter: " << col << '\n';
-
-        if (!col.empty() && col.front() == '$' && allocatedPointers_.find(col) != allocatedPointers_.end() &&
-            allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
-        {
-            GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
-            usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(int8_t);
-            allocatedPointers_.erase(col + NULL_SUFFIX);
-            allocatedPointers_.at(col).GpuNullMaskPtr = 0;
-        }
-    }
 }

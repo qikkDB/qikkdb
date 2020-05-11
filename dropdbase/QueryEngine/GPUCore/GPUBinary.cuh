@@ -378,17 +378,6 @@ kernel_arithmetic(OUT* output, L ACol, R BCol, int32_t dataElementCount, int32_t
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-template <typename OP>
-constexpr bool isFilterOp = std::is_same<OP, FilterConditions::greater>::value ||
-                            std::is_same<OP, FilterConditions::greaterEqual>::value ||
-                            std::is_same<OP, FilterConditions::less>::value ||
-                            std::is_same<OP, FilterConditions::lessEqual>::value ||
-                            std::is_same<OP, FilterConditions::equal>::value ||
-                            std::is_same<OP, FilterConditions::notEqual>::value ||
-                            std::is_same<OP, FilterConditions::logicalAnd>::value ||
-                            std::is_same<OP, FilterConditions::logicalOr>::value;
-
 /// Generic binary operations
 template <typename OP, typename OUT, typename L, typename R, class Enable = void>
 class GPUBinary
@@ -568,7 +557,7 @@ class GPUBinary<OP,
                 OUT,
                 L,
                 R,
-                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                typename std::enable_if<FilterConditions::isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
                                         std::is_arithmetic<typename std::remove_pointer<L>::type>::value &&
                                         std::is_arithmetic<typename std::remove_pointer<R>::type>::value>::type>
 {
@@ -595,7 +584,7 @@ class GPUBinary<OP,
                 OUT,
                 L,
                 R,
-                typename std::enable_if<isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
+                typename std::enable_if<FilterConditions::isFilterOp<OP> && std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
                                         std::is_same<typename std::remove_pointer<L>::type, std::string>::value &&
                                         std::is_same<typename std::remove_pointer<R>::type, std::string>::value>::type>
 {

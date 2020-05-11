@@ -1817,6 +1817,91 @@ void TestOrEqualNullMaskMerging(std::vector<int32_t> colA,
     }
 }
 
+void TestOrIsNullNullMaskMerging(std::vector<int32_t> colA,
+                                 std::vector<bool> colANullMask,
+                                 std::vector<int32_t> colB,
+                                 std::vector<bool> colBNullMask,
+                                 std::vector<int32_t> colC,
+                                 std::vector<int32_t> colCExpectedResult)
+{
+    const std::string aggregationOperation = "COUNT";
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 5;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colA", COLUMN_INT);
+    columns.emplace("colB", COLUMN_INT);
+    columns.emplace("colC", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < colA.size(); i++)
+    {
+        std::string ka = colANullMask[i] ? "NULL" : std::to_string(colA[i]);
+        std::string kb = colBNullMask[i] ? "NULL" : std::to_string(colB[i]);
+        std::string vl = std::to_string(colC[i]);
+        std::string insertQuery =
+            "INSERT INTO TestTable (colA, colB, colC) VALUES (" + ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database,
+                              "SELECT colC FROM TestTable WHERE colA IS NULL OR colB IS NULL;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& colCResult = responseMessage->payloads().at("TestTable.colC");
+
+    ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
+
+    for (int i = 0; i < colCResult.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(colCExpectedResult[i], colCResult.intpayload().intdata()[i]);
+    }
+}
+
+void TestOrNotNullMaskMerging(std::vector<int32_t> colA,
+                              std::vector<bool> colANullMask,
+                              std::vector<int32_t> colB,
+                              std::vector<bool> colBNullMask,
+                              std::vector<int32_t> colC,
+                              std::vector<int32_t> colCExpectedResult)
+{
+    const std::string aggregationOperation = "COUNT";
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 5;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colA", COLUMN_INT);
+    columns.emplace("colB", COLUMN_INT);
+    columns.emplace("colC", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < colA.size(); i++)
+    {
+        std::string ka = colANullMask[i] ? "NULL" : std::to_string(colA[i]);
+        std::string kb = colBNullMask[i] ? "NULL" : std::to_string(colB[i]);
+        std::string vl = std::to_string(colC[i]);
+        std::string insertQuery =
+            "INSERT INTO TestTable (colA, colB, colC) VALUES (" + ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database, "SELECT colC FROM TestTable WHERE !colA OR !colB;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& colCResult = responseMessage->payloads().at("TestTable.colC");
+
+    ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
+
+    for (int i = 0; i < colCResult.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(colCExpectedResult[i], colCResult.intpayload().intdata()[i]);
+    }
+}
+
 // NULL keys tests
 TEST(DispatcherNullTests, GroupByMultiKeyNullKeySum)
 {
@@ -1940,4 +2025,22 @@ TEST(DispatcherNullTests, OrEqualNullMaskMerging)
                                {0, 1, -1, 0, 1, -1, 0, 1, -1},
                                {false, false, true, false, false, true, false, false, true},
                                {1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2, 3, 4, 7});
+}
+
+TEST(DispatcherNullTests, OrIsNullNullMaskMerging)
+{
+    TestOrIsNullNullMaskMerging({0, 0, 0, 1, 1, 1, -1, -1, -1},
+                                {false, false, false, false, false, false, true, true, true},
+                                {0, 1, -1, 0, 1, -1, 0, 1, -1},
+                                {false, false, true, false, false, true, false, false, true},
+                                {1, 2, 3, 4, 5, 6, 7, 8, 9}, {3, 6, 7, 8, 9});
+}
+
+TEST(DispatcherNullTests, OrIsNotNullMaskMerging)
+{
+    TestOrNotNullMaskMerging({0, 0, 0, 1, 1, 1, -1, -1, -1},
+                             {false, false, false, false, false, false, true, true, true},
+                             {0, 1, -1, 0, 1, -1, 0, 1, -1},
+                             {false, false, true, false, false, true, false, false, true},
+                             {1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2, 3, 4, 7});
 }
