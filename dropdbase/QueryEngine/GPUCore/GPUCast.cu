@@ -1,4 +1,5 @@
 #include "GPUCast.cuh"
+#include "GPUStringUnary.cuh"
 
 // Cast single geo point matching 'spaces decimal spaces decimal spaces' pattern e.g. ' 12.3  23.4 '
 __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length)
@@ -45,7 +46,7 @@ __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length)
     return CastNativeGeoPoint(str + 6, length - 7);
 }
 
-__device__ int8_t CastBoolean(char* str, int32_t length)
+__device__ int8_t CastBoolean(char* str, const int32_t length)
 {
     if (length != 4)
     {
@@ -56,7 +57,7 @@ __device__ int8_t CastBoolean(char* str, int32_t length)
     int32_t strIdx = 0;
     do
     {
-        const char c = ToUpper(*(str + strIdx));
+        const char c = StringUnaryOpHierarchy::FixedLength::upper{}(*(str + strIdx));
         if (c != trueVal[strIdx])
         {
             return 0;
@@ -66,15 +67,6 @@ __device__ int8_t CastBoolean(char* str, int32_t length)
     while(strIdx < 4);
 
     return 1;
-}
-
-__device__ char ToUpper(char c)
-{
-    if (c >= 'a' && c <= 'z')
-    {
-        return 'A' + c - 'a';
-    }
-    return c;
 }
 
 template <>

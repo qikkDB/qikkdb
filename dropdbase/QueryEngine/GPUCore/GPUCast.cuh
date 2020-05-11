@@ -18,9 +18,7 @@ __device__ NativeGeoPoint CastNativeGeoPoint(char* str, int32_t length);
 
 __device__ NativeGeoPoint CastWKTPoint(char* str, int32_t length);
 
-__device__ int8_t CastBoolean(char* str, int32_t length);
-
-__device__ char ToUpper(char c);
+__device__ int8_t CastBoolean(char* str, const int32_t length);
 
 template <typename T>
 __device__ int32_t GetNumberOfIntegralDigits(T val)
