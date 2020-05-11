@@ -117,11 +117,21 @@ endif(NOT WIN32)
 add_library(${PROJECT_NAME}_obj STATIC ${SOURCE_FILES} ${CUDA_FILES})
 set_target_properties(${PROJECT_NAME}_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME}_obj PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+if(MSVC)
+    set_target_properties(${PROJECT_NAME}_obj PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif(MSVC)
+
 if(NOT WIN32)
     set_target_properties(${PROJECT_NAME}_obj PROPERTIES LINK_FLAGS_DEBUG "-rdynamic")
 endif(NOT WIN32)
 
 add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+
+if(MSVC)
+    set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif(MSVC)
+
 if(NOT WIN32)
     set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS_DEBUG "-rdynamic")
 endif(NOT WIN32)
@@ -132,11 +142,11 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_obj)
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobufd${suffix})
+    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmtd${suffix})
 ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
-	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobuf${suffix})
+	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobuf${suffix}) 
+    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmt${suffix})
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
-target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${YAML_CPP_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
-

@@ -47,9 +47,15 @@ endif(NOT WIN32)
 add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
 set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME}_test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+
+if(MSVC)
+	set_target_properties(${PROJECT_NAME}_test PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif(MSVC)
+
 if(NOT WIN32)
 	set_target_properties(${PROJECT_NAME}_test PROPERTIES LINK_FLAGS_DEBUG "-rdynamic")
 endif(NOT WIN32)
+
 target_include_directories(${PROJECT_NAME}_test PUBLIC ${GTEST_INCLUDE_DIR}) 
 
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.15)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
 set(PROJECT_NAME dropdbase_instarea)
@@ -33,7 +33,6 @@ include_directories(${CMAKE_BINARY_DIR}/generated)
 if(WIN32)
 	add_definitions(-D_WIN32_WINNT=0x601 -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS -D_CRT_SECURE_NO_WARNINGS)
 endif(WIN32)
-add_definitions(-DBOOST_ALL_DYN_LINK)
 # Find include dirs
 include_directories(${CMAKE_CUDA_TOOLKIT_INCLUDE_DIRECTORIES})
 
@@ -65,7 +64,7 @@ ExternalProject_Add(
     "-Dprotobuf_WITH_ZLIB:BOOL=OFF"
 	"-Dprotobuf_BUILD_PROTOC_BINARIES:BOOL=OFF"
 	"-Dprotobuf_BUILD_SHARED_LIBS:BOOL=OFF"
-	"-Dprotobuf_MSVC_STATIC_RUNTIME:BOOL=OFF"
+	"-Dprotobuf_MSVC_STATIC_RUNTIME:BOOL=ON"
     "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
 	"-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
 	"-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
@@ -82,10 +81,34 @@ link_directories(${CMAKE_CURRENT_BINARY_DIR}/protobuf)
 
 ###### Google Protocol Buffers external project end ########
 
+###### YAML-CPP external project ########
+set(YAML_CPP_TAR_GZ https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.3.tar.gz)
+
+ExternalProject_Add(
+  yaml-cpp-external
+  PREFIX yaml-cpp
+  URL ${YAML_CPP_TAR_GZ}
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/yaml-cpp
+  CMAKE_CACHE_ARGS
+    "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
+    "-DYAML_MSVC_SHARED_RT:BOOL=OFF"
+    "-DYAML_CPP_BUILD_TESTS:BOOL=OFF"
+    # other project specific parameters
+  BUILD_ALWAYS 1
+  STEP_TARGETS build
+  INSTALL_COMMAND ""
+)
+
+EXternalProject_Get_Property(yaml-cpp-external source_dir)
+include_directories(${source_dir}/include)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/yaml-cpp)
+
+###### YAML-CPP external project end ########
+
 ###### Antlr4 external project ########
 
 add_definitions(-DANTLR4CPP_STATIC)
-set(ANTLR4_WITH_STATIC_CRT OFF)
+set(ANTLR4_WITH_STATIC_CRT ON)
 # add external build for antlrcpp
 include(ExternalAntlr4Cpp)
 # add antrl4cpp artifacts to project environment
@@ -119,7 +142,7 @@ ExternalProject_Add(
 	  "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
 	  "-DBUILD_GMOCK:BOOL=OFF"
 	  "-DINSTALL_GTEST:BOOL=OFF"
-	  "-Dgtest_force_shared_crt:BOOL=ON"
+	  "-Dgtest_force_shared_crt:BOOL=OFF"
 	  "-DCMAKE_CXX_COMPILER:STRING=${CMAKE_CXX_COMPILER}"
 	  "-DCMAKE_C_COMPILER:STRING=${CMAKE_C_COMPILER}"
 	  "-DCMAKE_MAKE_PROGRAM:STRING=${CMAKE_MAKE_PROGRAM}"
@@ -164,12 +187,10 @@ add_dependencies(${GTEST_LIBRARY} googletest)
 
 ###### Google Test external project ########
 
-
+set(Boost_USE_STATIC_LIBS ON)
+set(Boost_USE_STATIC_RUNTIME ON)
 find_package(Boost 1.66.0 COMPONENTS system filesystem log iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-
-find_package(yaml-cpp REQUIRED)
-include_directories(${YAML_CPP_INCLUDE_DIRS})
 
 include_directories(.)
 include_directories(messages)
