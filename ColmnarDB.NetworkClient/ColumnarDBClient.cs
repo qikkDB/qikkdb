@@ -15,6 +15,8 @@ using System.Data;
 using ColmnarDB.NetworkClient.Message;
 using ColmnarDB.Types;
 
+using nullmask_t = System.UInt64;
+
 namespace ColmnarDB.NetworkClient
 {
     public class ColumnarDataTable
@@ -258,10 +260,10 @@ namespace ColmnarDB.NetworkClient
 
         }
 
-        private T ValIfNotNulled<T>(T val, int idx, UInt32[] nullMask)
+        private T ValIfNotNulled<T>(T val, int idx, nullmask_t[] nullMask)
         {
-            int shiftOffset = idx % 32;
-            int byteOffset = idx / 32;
+            int shiftOffset = idx % (sizeof(nullmask_t) * 8);
+            int byteOffset = idx / (sizeof(nullmask_t) * 8);
             if ((nullMask[byteOffset] >> shiftOffset & 1) == 0)
             {
                 return val;
@@ -292,7 +294,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.IntPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<int?>(columnData.Value.IntPayload.IntData.ToArray().Select((val, idx) => ValIfNotNulled<int?>(val, idx, nullMask))));
                         }
@@ -305,7 +307,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.FloatPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<float?>(columnData.Value.FloatPayload.FloatData.ToArray().Select((val, idx) => ValIfNotNulled<float?>(val, idx, nullMask))));
                         }
@@ -318,7 +320,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.Int64Payload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<long?>(columnData.Value.Int64Payload.Int64Data.ToArray().Select((val, idx) => ValIfNotNulled<long?>(val, idx, nullMask))));
                         }
@@ -331,7 +333,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.DateTimePayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<DateTime?>(columnData.Value.DateTimePayload.DateTimeData.ToArray().Select((val, idx) => ValIfNotNulled<DateTime?>(DateTimeOffset.FromUnixTimeSeconds(val).UtcDateTime, idx, nullMask))));
                         }
@@ -344,7 +346,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.DoublePayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<double?>(columnData.Value.DoublePayload.DoubleData.ToArray().Select((val, idx) => ValIfNotNulled<double?>(val, idx, nullMask))));
                         }
@@ -357,7 +359,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.PointPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<Point>(columnData.Value.PointPayload.PointData.ToArray().Select((val, idx) => ValIfNotNulled<Point>(val, idx, nullMask))));
                         }
@@ -370,7 +372,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.PolygonPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<ComplexPolygon>(columnData.Value.PolygonPayload.PolygonData.ToArray().Select((val, idx) => ValIfNotNulled<ComplexPolygon>(val, idx, nullMask))));
                         }
@@ -383,7 +385,7 @@ namespace ColmnarDB.NetworkClient
                     case QueryResponsePayload.PayloadOneofCase.StringPayload:
                         if (response.NullBitMasks.ContainsKey(columnData.Key))
                         {
-                            UInt32[] nullMask = new UInt32[response.NullBitMasks[columnData.Key].NullMask.Count()];
+                            nullmask_t[] nullMask = new nullmask_t[response.NullBitMasks[columnData.Key].NullMask.Count()];
                             response.NullBitMasks[columnData.Key].NullMask.CopyTo(nullMask, 0);
                             columnDatas.Add(columnData.Key, new List<string>(columnData.Value.StringPayload.StringData.ToArray().Select((val, idx) => ValIfNotNulled<string>(val, idx, nullMask))));
                         }

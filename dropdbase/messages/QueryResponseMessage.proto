@@ -37,7 +37,7 @@ message QueryResponseStringPayload {
 }
 
 message QueryNullmaskPayload {
-	repeated uint32 nullMask = 1;
+	repeated uint64 nullMask = 1;
 }
 
 message QueryResponsePayload {

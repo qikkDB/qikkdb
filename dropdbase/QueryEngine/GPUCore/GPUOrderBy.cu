@@ -148,7 +148,7 @@ __global__ void kernel_reorder_null_values_by_idx(nullmask_t* outNullBitMask,
     {
         nullmask_t nullBit = NullValues::GetConcreteBitFromBitmask(inNullBitMask, inIndices[i]);
         nullBit <<= NullValues::GetShiftMaskIdx(i);
-        atomicOr(outNullBitMask + NullValues::GetBitMaskIdx(i), nullBit);
+        atomicOr(reinterpret_cast<unsigned long long int*>(outNullBitMask) + NullValues::GetBitMaskIdx(i), nullBit);
     }
 }
 

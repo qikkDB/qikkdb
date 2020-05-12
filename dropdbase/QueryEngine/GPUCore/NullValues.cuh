@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <memory>
 
-typedef uint32_t nullmask_t;
+typedef uint64_t nullmask_t;
 
 class NullValues
 {

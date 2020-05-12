@@ -1364,26 +1364,26 @@ class QueryNullmaskPayload :
   enum : int {
     kNullMaskFieldNumber = 1,
   };
-  // repeated uint32 nullMask = 1;
+  // repeated uint64 nullMask = 1;
   int nullmask_size() const;
   private:
   int _internal_nullmask_size() const;
   public:
   void clear_nullmask();
   private:
-  ::PROTOBUF_NAMESPACE_ID::uint32 _internal_nullmask(int index) const;
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+  ::PROTOBUF_NAMESPACE_ID::uint64 _internal_nullmask(int index) const;
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
       _internal_nullmask() const;
-  void _internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::uint32 value);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+  void _internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
       _internal_mutable_nullmask();
   public:
-  ::PROTOBUF_NAMESPACE_ID::uint32 nullmask(int index) const;
-  void set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::uint32 value);
-  void add_nullmask(::PROTOBUF_NAMESPACE_ID::uint32 value);
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+  ::PROTOBUF_NAMESPACE_ID::uint64 nullmask(int index) const;
+  void set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value);
+  void add_nullmask(::PROTOBUF_NAMESPACE_ID::uint64 value);
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
       nullmask() const;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
       mutable_nullmask();
 
   // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
@@ -1391,7 +1391,7 @@ class QueryNullmaskPayload :
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 > nullmask_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 > nullmask_;
   mutable std::atomic<int> _nullmask_cached_byte_size_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_messages_2fQueryResponseMessage_2eproto;
@@ -2415,7 +2415,7 @@ QueryResponseStringPayload::mutable_stringdata() {
 
 // QueryNullmaskPayload
 
-// repeated uint32 nullMask = 1;
+// repeated uint64 nullMask = 1;
 inline int QueryNullmaskPayload::_internal_nullmask_size() const {
   return nullmask_.size();
 }
@@ -2425,38 +2425,38 @@ inline int QueryNullmaskPayload::nullmask_size() const {
 inline void QueryNullmaskPayload::clear_nullmask() {
   nullmask_.Clear();
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 QueryNullmaskPayload::_internal_nullmask(int index) const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 QueryNullmaskPayload::_internal_nullmask(int index) const {
   return nullmask_.Get(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::uint32 QueryNullmaskPayload::nullmask(int index) const {
+inline ::PROTOBUF_NAMESPACE_ID::uint64 QueryNullmaskPayload::nullmask(int index) const {
   // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
   return _internal_nullmask(index);
 }
-inline void QueryNullmaskPayload::set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void QueryNullmaskPayload::set_nullmask(int index, ::PROTOBUF_NAMESPACE_ID::uint64 value) {
   nullmask_.Set(index, value);
   // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
 }
-inline void QueryNullmaskPayload::_internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void QueryNullmaskPayload::_internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   nullmask_.Add(value);
 }
-inline void QueryNullmaskPayload::add_nullmask(::PROTOBUF_NAMESPACE_ID::uint32 value) {
+inline void QueryNullmaskPayload::add_nullmask(::PROTOBUF_NAMESPACE_ID::uint64 value) {
   _internal_add_nullmask(value);
   // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
 QueryNullmaskPayload::_internal_nullmask() const {
   return nullmask_;
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >&
 QueryNullmaskPayload::nullmask() const {
   // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
   return _internal_nullmask();
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
 QueryNullmaskPayload::_internal_mutable_nullmask() {
   return &nullmask_;
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint32 >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedField< ::PROTOBUF_NAMESPACE_ID::uint64 >*
 QueryNullmaskPayload::mutable_nullmask() {
   // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.nullMask)
   return _internal_mutable_nullmask();

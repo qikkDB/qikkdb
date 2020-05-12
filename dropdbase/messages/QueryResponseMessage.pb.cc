@@ -467,7 +467,7 @@ const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] P
   "ointData\030\001 \003(\0132\026.ColmnarDB.Types.Point\"0"
   "\n\032QueryResponseStringPayload\022\022\n\nstringDa"
   "ta\030\001 \003(\t\"(\n\024QueryNullmaskPayload\022\020\n\010null"
-  "Mask\030\001 \003(\r\"\313\005\n\024QueryResponsePayload\022N\n\ni"
+  "Mask\030\001 \003(\004\"\313\005\n\024QueryResponsePayload\022N\n\ni"
   "ntPayload\030\002 \001(\01328.ColmnarDB.NetworkClien"
   "t.Message.QueryResponseIntPayloadH\000\022R\n\014f"
   "loatPayload\030\003 \001(\0132:.ColmnarDB.NetworkCli"
@@ -2153,10 +2153,10 @@ const char* QueryNullmaskPayload::_InternalParse(const char* ptr, ::PROTOBUF_NAM
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // repeated uint32 nullMask = 1;
+      // repeated uint64 nullMask = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt32Parser(_internal_mutable_nullmask(), ptr, ctx);
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedUInt64Parser(_internal_mutable_nullmask(), ptr, ctx);
           CHK_(ptr);
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 8) {
           _internal_add_nullmask(::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr));
@@ -2189,11 +2189,11 @@ failure:
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated uint32 nullMask = 1;
+  // repeated uint64 nullMask = 1;
   {
     int byte_size = _nullmask_cached_byte_size_.load(std::memory_order_relaxed);
     if (byte_size > 0) {
-      target = stream->WriteUInt32Packed(
+      target = stream->WriteUInt64Packed(
           1, _internal_nullmask(), byte_size, target);
     }
   }
@@ -2214,10 +2214,10 @@ size_t QueryNullmaskPayload::ByteSizeLong() const {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated uint32 nullMask = 1;
+  // repeated uint64 nullMask = 1;
   {
     size_t data_size = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
-      UInt32Size(this->nullmask_);
+      UInt64Size(this->nullmask_);
     if (data_size > 0) {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::Int32Size(
