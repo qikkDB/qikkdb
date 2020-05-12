@@ -12,7 +12,7 @@ namespace NullMaskOperations
 {
 struct isNull
 {
-    __device__ int64_t operator()(int64_t a, int32_t bit)
+    __device__ int8_t operator()(nullmask_t a, int32_t bit)
     {
         return (a >> bit) & 1U;
     }
@@ -20,7 +20,7 @@ struct isNull
 
 struct isNotNull
 {
-    __device__ int64_t operator()(int64_t a, int32_t bit)
+    __device__ int8_t operator()(nullmask_t a, int32_t bit)
     {
         return ((~a) >> bit) & 1U;
     }
@@ -35,7 +35,7 @@ __global__ void kernel_null_mask(int8_t* output, nullmask_t* AColNullMask, int32
 
     for (int32_t i = idx; i < maskByteSize; i += stride)
     {
-        int64_t maskElement = AColNullMask[i];
+        nullmask_t maskElement = AColNullMask[i];
         for (int32_t bit = 0; bit < sizeof(nullmask_t) * 8; bit++)
         {
             int32_t outputIdx = sizeof(nullmask_t) * 8 * i + bit;

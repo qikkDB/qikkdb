@@ -372,7 +372,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
 
                 // Alloc the null collumn and zero it
                 reconstructedOrderByColumnsNullMerged_[orderColumn.first] =
-                    std::make_unique<int64_t[]>(resultSetNullSize);
+                    std::make_unique<nullmask_t[]>(resultSetNullSize);
                 for (int32_t i = 0; i < resultSetNullSize; i++)
                 {
                     reconstructedOrderByColumnsNullMerged_[orderColumn.first].get()[i] = 0;

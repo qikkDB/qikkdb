@@ -816,7 +816,7 @@ public:
     /// <param name="length">Length of inserted data</param>
     void InsertNullData(int32_t length) override
     {
-        std::vector<nullmask_t> nullMask(length, -1); // fill mask with bits 1
+        std::vector<nullmask_t> nullMask(length, 0xFFFFFFFFFFFFFFFF); // fill mask with bits 1
         InsertData(NullArray(length), nullMask);
     }
 

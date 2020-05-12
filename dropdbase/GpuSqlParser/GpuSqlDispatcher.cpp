@@ -1965,7 +1965,7 @@ void GpuSqlDispatcher::FreeRegisterNullMask(const std::string& col)
         allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
     {
         GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
-        usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(int8_t);
+        usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(nullmask_t);
         allocatedPointers_.erase(col + NULL_SUFFIX);
         allocatedPointers_.at(col).GpuNullMaskPtr = 0;
     }
