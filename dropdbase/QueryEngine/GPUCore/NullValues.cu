@@ -12,7 +12,7 @@ __device__ __host__ int32_t NullValues::GetShiftMaskIdx(const int32_t idx)
 
 __device__ __host__ size_t NullValues::GetNullBitMaskSize(const size_t size)
 {
-    return (size + sizeof(nullmask_t) * 8 - 1ULL) / (sizeof(nullmask_t) * 8);
+    return (size + sizeof(nullmask_t) * 8 - static_cast<nullmask_t>(1U)) / (sizeof(nullmask_t) * 8);
 }
 
 __device__ __host__ void
@@ -20,11 +20,11 @@ NullValues::SetBitInBitMask(nullmask_t* bitMask, const int32_t bitMaskIdx, const
 {
     if (newBit)
     {
-        bitMask[bitMaskIdx] |= (1ULL << shiftMaskIdx);
+        bitMask[bitMaskIdx] |= (static_cast<nullmask_t>(1U) << shiftMaskIdx);
     }
     else
     {
-        bitMask[bitMaskIdx] &= ~(1ULL << shiftMaskIdx);
+        bitMask[bitMaskIdx] &= ~(static_cast<nullmask_t>(1U) << shiftMaskIdx);
     }
 }
 
@@ -40,7 +40,7 @@ __device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const nullmask_
                                                                  const int32_t bitMaskIdx,
                                                                  const int32_t shiftMaskIdx)
 {
-    return (bitMask[bitMaskIdx] >> shiftMaskIdx) & 1ULL;
+    return (bitMask[bitMaskIdx] >> shiftMaskIdx) & static_cast<nullmask_t>(1U);
 }
 
 __device__ __host__ int8_t NullValues::GetConcreteBitFromBitmask(const nullmask_t* bitMask, const int32_t index)
@@ -55,5 +55,7 @@ __device__ __host__ nullmask_t NullValues::GetPartOfBitmaskByte(const nullmask_t
                                                              const int32_t shiftMaskIdx,
                                                              const int32_t bitMaskIdx)
 {
-    return ((1ULL << (shiftMaskIdx + 1ULL)) - 1ULL) & bitMask[bitMaskIdx];
+    return ((static_cast<nullmask_t>(1U) << (shiftMaskIdx + static_cast<nullmask_t>(1U))) -
+            static_cast<nullmask_t>(1U)) &
+           bitMask[bitMaskIdx];
 }
