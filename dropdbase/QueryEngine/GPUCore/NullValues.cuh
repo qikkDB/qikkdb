@@ -2,7 +2,11 @@
 #include <cstdint>
 #include <memory>
 
+/// Null Mask Type
 typedef uint64_t nullmask_t;
+
+/// Null Mask Type for CUDA Atomic Operations
+typedef std::conditional<sizeof(nullmask_t) == 8, unsigned long long int, nullmask_t>::type nullmask_cuda_t;
 
 class NullValues
 {
