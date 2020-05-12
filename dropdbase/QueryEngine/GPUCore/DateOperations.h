@@ -240,4 +240,28 @@ struct second
         }
     }
 };
+
+struct weekday
+{
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
+    {
+        return static_cast<int32_t>((((dateTime / 3600LL) / 24LL) + 3LL) % 7LL);
+    }
+};
+
+struct dayOfWeek
+{
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
+    {
+        return static_cast<int32_t>(((((dateTime / 3600LL) / 24LL) + 4LL) % 7LL) + 1LL);
+    }
+};
 } // namespace DateOperations

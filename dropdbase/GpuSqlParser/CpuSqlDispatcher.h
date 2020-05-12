@@ -66,6 +66,8 @@ private:
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> hourFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> minuteFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> secondFunctions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> weekdayFunctions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> dayOfWeekFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> logicalNotFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> minusFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> absoluteFunctions_;

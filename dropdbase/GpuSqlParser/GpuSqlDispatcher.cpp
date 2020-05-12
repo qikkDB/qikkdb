@@ -673,6 +673,16 @@ void GpuSqlDispatcher::AddSecondFunction(DataType type)
     dispatcherFunctions_.push_back(secondFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
+void GpuSqlDispatcher::AddWeekdayFunction(DataType type)
+{
+    dispatcherFunctions_.push_back(weekdayFunctions_[GetUnaryDispatchTableIndex(type)]);
+}
+
+void GpuSqlDispatcher::AddDayOfWeekFunction(DataType type)
+{
+    dispatcherFunctions_.push_back(dayOfWeekFunctions_[GetUnaryDispatchTableIndex(type)]);
+}
+
 void GpuSqlDispatcher::AddAbsoluteFunction(DataType type)
 {
     dispatcherFunctions_.push_back(absoluteFunctions_[GetUnaryDispatchTableIndex(type)]);

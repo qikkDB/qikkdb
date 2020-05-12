@@ -8678,6 +8678,45 @@ TEST(DispatcherTests, DateTimeCol)
     }
 }
 
+TEST(DispatcherTests, DayOfWeekConst)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT WEEKDAY('2020-05-12 02:00:00'), DAYOFWEEK('2020-05-12 "
+                              "02:00:00') FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    std::vector<int32_t> expectedResultsWeekday;
+    std::vector<int32_t> expectedResultsDayOfWeek;
+
+    for (int i = 0; i < 2; i++)
+    {
+        for (int k = 0; k < (1 << 11); k++)
+        {
+            expectedResultsWeekday.push_back(1);
+            expectedResultsDayOfWeek.push_back(3);
+        }
+    }
+
+    auto& payloadsWeekday = result->payloads().at("WEEKDAY(1589241600)");
+    auto& payloadsDayOfWeek = result->payloads().at("DAYOFWEEK(1589241600)");
+
+    ASSERT_EQ(payloadsWeekday.intpayload().intdata_size(), expectedResultsWeekday.size());
+    ASSERT_EQ(payloadsDayOfWeek.intpayload().intdata_size(), expectedResultsDayOfWeek.size());
+
+    for (int i = 0; i < payloadsWeekday.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsWeekday[i], payloadsWeekday.intpayload().intdata()[i]);
+    }
+
+    for (int i = 0; i < payloadsDayOfWeek.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(expectedResultsDayOfWeek[i], payloadsDayOfWeek.intpayload().intdata()[i]);
+    }
+}
+
 TEST(DispatcherTests, RetPolygons)
 {
     Context::getInstance();
@@ -15013,7 +15052,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
     std::vector<std::string> data = {"1", "0",           "TRUE", "trUe", "FAlSE", "false",
                                      "5", "ffaallsssee", "25",   "-101", "3.6"};
     std::vector<int8_t> convertedData = {1, 0, 1, 1, 0, 0, 1, std::numeric_limits<int8_t>::min(),
-                                          1, 1, 1};
+                                         1, 1, 1};
 
     for (int32_t i = 0; i < data.size(); i++)
     {
@@ -15188,7 +15227,8 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     {
         for (int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)
         {
-            newBitmasks.push_back(NullValues::GetConcreteBitFromBitmask(blocksAfterCast[i]->GetNullBitmask(), j));
+            newBitmasks.push_back(
+                NullValues::GetConcreteBitFromBitmask(blocksAfterCast[i]->GetNullBitmask(), j));
         }
     }
 
@@ -15737,7 +15777,7 @@ TEST(DispatcherTests, InsertInto)
     ASSERT_EQ(blocksAa[0]->GetNullBitmask()[0], 63);
     ASSERT_EQ(blocksString[0]->GetNullBitmask()[0], 2047);
 
-	//---------------------------------------------------------
+    //---------------------------------------------------------
     // Insert into new column "colString", other columns should be filled with null values
     GpuSqlCustomParser parserInsert3(database,
                                      "insert into testTable (colString) values (\"abc\");");

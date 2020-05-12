@@ -401,6 +401,16 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* ctx
         dispatcher_.AddSecondFunction(operandType);
         returnDataType = COLUMN_INT;
         break;
+    case GpuSqlLexer::WEEKDAY:
+        reg = "$" + op + "(" + operand + ")";
+        dispatcher_.AddWeekdayFunction(operandType);
+        returnDataType = COLUMN_INT;
+        break;
+    case GpuSqlLexer::DAYOFWEEK:
+        reg = "$" + op + "(" + operand + ")";
+        dispatcher_.AddDayOfWeekFunction(operandType);
+        returnDataType = COLUMN_INT;
+        break;
     case GpuSqlLexer::ABS:
         reg = "$" + op + "(" + operand + ")";
         dispatcher_.AddAbsoluteFunction(operandType);

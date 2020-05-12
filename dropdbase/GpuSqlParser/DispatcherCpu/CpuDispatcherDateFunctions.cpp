@@ -122,7 +122,40 @@ std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuS
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, ColmnarDB::Types::ComplexPolygon>,
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, std::string>,
     &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::second, int8_t>};
-
+std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::weekdayFunctions_ = {
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, int32_t>,
+    &CpuSqlDispatcher::DateExtractConst<DateOperations::weekday>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, float>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, double>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, ColmnarDB::Types::Point>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, ColmnarDB::Types::ComplexPolygon>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, std::string>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::weekday, int8_t>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, int32_t>,
+    &CpuSqlDispatcher::DateExtractCol<DateOperations::weekday>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, float>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, double>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, ColmnarDB::Types::Point>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, ColmnarDB::Types::ComplexPolygon>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, std::string>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::weekday, int8_t>};
+std::array<CpuSqlDispatcher::CpuDispatchFunction, DataType::DATA_TYPE_SIZE> CpuSqlDispatcher::dayOfWeekFunctions_ = {
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, int32_t>,
+    &CpuSqlDispatcher::DateExtractConst<DateOperations::dayOfWeek>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, float>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, double>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, ColmnarDB::Types::Point>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, ColmnarDB::Types::ComplexPolygon>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, std::string>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<DateOperations::dayOfWeek, int8_t>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, int32_t>,
+    &CpuSqlDispatcher::DateExtractCol<DateOperations::dayOfWeek>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, float>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, double>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, ColmnarDB::Types::Point>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, ColmnarDB::Types::ComplexPolygon>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, std::string>,
+    &CpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<DateOperations::dayOfWeek, int8_t>};
 
 int32_t CpuSqlDispatcher::DateToStringCol()
 {

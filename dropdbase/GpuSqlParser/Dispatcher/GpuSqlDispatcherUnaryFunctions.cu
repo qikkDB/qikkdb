@@ -269,6 +269,28 @@ DISPATCHER_UNARY_ERROR(DateOperations::second, std::string)
 DISPATCHER_UNARY_ERROR(DateOperations::second, int8_t)
 END_DISPATCH_TABLE
 
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::weekdayFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, DateOperations::weekday, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, float)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, double)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::weekday, int8_t)
+END_DISPATCH_TABLE
+
+BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::dayOfWeekFunctions_)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, int32_t)
+DISPATCHER_UNARY_FUNCTION_MERGED(GpuSqlDispatcher::Unary, DateOperations::dayOfWeek, int64_t)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, float)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, double)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, ColmnarDB::Types::Point)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, std::string)
+DISPATCHER_UNARY_ERROR(DateOperations::dayOfWeek, int8_t)
+END_DISPATCH_TABLE
+
 BEGIN_UNARY_DISPATCH_TABLE(GpuSqlDispatcher::ltrimFunctions_)
 DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, int32_t)
 DISPATCHER_UNARY_ERROR(StringUnaryOperations::ltrim, int64_t)

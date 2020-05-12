@@ -237,6 +237,8 @@ private:
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> hourFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minuteFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> secondFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> weekdayFunctions_;
+    static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> dayOfWeekFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> minusFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> absoluteFunctions_;
     static std::array<DispatchFunction, DataType::DATA_TYPE_SIZE> sineFunctions_;
@@ -563,6 +565,10 @@ public:
     void AddMinuteFunction(DataType type);
 
     void AddSecondFunction(DataType type);
+
+    void AddWeekdayFunction(DataType type);
+
+    void AddDayOfWeekFunction(DataType type);
 
     void AddAbsoluteFunction(DataType type);
 

@@ -242,6 +242,14 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         reg = "$" + op + "(" + operand + ")";
         returnDataType = COLUMN_INT;
         break;
+    case GpuSqlLexer::WEEKDAY:
+        reg = "$" + op + "(" + operand + ")";
+        returnDataType = COLUMN_INT;
+        break;
+    case GpuSqlLexer::DAYOFWEEK:
+        reg = "$" + op + "(" + operand + ")";
+        returnDataType = COLUMN_INT;
+        break;
     case GpuSqlLexer::ABS:
         reg = "$" + op + "(" + operand + ")";
         returnDataType = GetReturnDataType(operandType);

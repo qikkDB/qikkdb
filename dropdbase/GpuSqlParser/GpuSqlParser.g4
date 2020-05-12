@@ -172,6 +172,8 @@ expression:
 	| op = HOUR LPAREN expression RPAREN											# unaryOperation
 	| op = MINUTE LPAREN expression RPAREN											# unaryOperation
 	| op = SECOND LPAREN expression RPAREN											# unaryOperation
+	| op = WEEKDAY LPAREN expression RPAREN											# unaryOperation
+	| op = DAYOFWEEK LPAREN expression RPAREN										# unaryOperation
 	| op = LTRIM LPAREN expression RPAREN											# unaryOperation
 	| op = RTRIM LPAREN expression RPAREN											# unaryOperation
 	| op = LOWER LPAREN expression RPAREN											# unaryOperation
