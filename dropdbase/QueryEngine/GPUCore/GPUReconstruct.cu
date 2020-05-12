@@ -21,7 +21,7 @@ kernel_reconstruct_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t* pre
             int outBitMaskIdx = NullValues::GetBitMaskIdx(prefixSum[i] - 1);
             int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(prefixSum[i] - 1);
             nullmask_t bitFromiPosition = NullValues::GetConcreteBitFromBitmask(ACol, i);
-            atomicOr(reinterpret_cast<unsigned long long int*>(outData) + outBitMaskIdx,
+            atomicOr(reinterpret_cast<nullmask_cuda_t*>(outData) + outBitMaskIdx,
                      (bitFromiPosition << outBitMaskShiftIdx));
         }
     }
@@ -37,8 +37,8 @@ __global__ void kernel_compress_null_mask(nullmask_t* outData, nullmask_t* ACol,
     {
         int outBitMaskIdx = NullValues::GetBitMaskIdx(i);
         int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(i);
-        atomicOr(reinterpret_cast<unsigned long long int*>(outData) + outBitMaskIdx,
-                 (ACol[i] & 1ULL) << outBitMaskShiftIdx);
+        atomicOr(reinterpret_cast<nullmask_cuda_t*>(outData) + outBitMaskIdx,
+                 (ACol[i] & static_cast<nullmask_t>(1U)) << outBitMaskShiftIdx);
     }
 }
 
