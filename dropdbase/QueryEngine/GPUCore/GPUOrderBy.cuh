@@ -80,9 +80,9 @@ __global__ void kernel_reorder_point_counts_by_poly_idx_lenghts(int32_t* outPoin
                                                                 int32_t dataElementCount);
 
 // Reorder a null column by a given index column
-__global__ void kernel_reorder_null_values_by_idx(int64_t* outNullBitMask,
+__global__ void kernel_reorder_null_values_by_idx(nullmask_t* outNullBitMask,
                                                   int32_t* inIndices,
-                                                  int64_t* inNullBitMask,
+                                                  nullmask_t* inNullBitMask,
                                                   int32_t dataElementCount);
 
 class GPUOrderBy : public IOrderBy

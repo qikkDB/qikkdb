@@ -1571,7 +1571,7 @@ std::unordered_set<ConstraintType> Table::GetConstraintsForColumn(const std::str
 /// Removes column from columns.
 /// </summary>
 /// <param name="columnName">Name of column to be removed.</param>
-void Table::EraseColumn(std::string& columnName)
+void Table::EraseColumn(const std::string& columnName)
 {
     std::unique_lock<std::mutex> lock(*columnsMutex_);
     columns.erase(columnName);

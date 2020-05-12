@@ -87,7 +87,7 @@ public:
     /// Removes column from columns (in memory).
     /// </summary>
     /// <param name="columnName">Name of column to be removed.</param>
-    void EraseColumn(std::string& columnName);
+    void EraseColumn(const std::string& columnName);
 
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database

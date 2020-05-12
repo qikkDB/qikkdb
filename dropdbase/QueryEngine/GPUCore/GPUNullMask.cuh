@@ -36,9 +36,9 @@ __global__ void kernel_null_mask(int8_t* output, nullmask_t* AColNullMask, int32
     for (int32_t i = idx; i < maskByteSize; i += stride)
     {
         int64_t maskElement = AColNullMask[i];
-        for (int32_t bit = 0; bit < 64; bit++)
+        for (int32_t bit = 0; bit < sizeof(nullmask_t) * 8; bit++)
         {
-            int32_t outputIdx = 64 * i + bit;
+            int32_t outputIdx = sizeof(nullmask_t) * 8 * i + bit;
             if (outputIdx < outputSize)
             {
                 output[outputIdx] = OP{}(maskElement, bit);

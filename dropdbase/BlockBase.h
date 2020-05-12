@@ -428,7 +428,7 @@ public:
                 {
                     int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i,
                                                                        (sizeof(nullmask_t) * 8 - 1));
-                    bitMask_[i] <<= 1ULL;
+                    bitMask_[i] <<= 1UL;
                     NullValues::SetBitInBitMask(bitMask_.get(), i, 0, last);
                     last = tmp;
                 }

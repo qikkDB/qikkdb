@@ -113,7 +113,8 @@ public:
                             const int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                 inCol.GetBlocksList()[columnBlockId]->GetNullBitmask(), columnRowId);
 
-                            outNullBlockVector[(i + j) / 64] |= (nullBit << j * sizeof(nullmask_t));
+                            outNullBlockVector[(i + j) / (sizeof(nullmask_t)*8) ] |=
+                                (nullBit << j * sizeof(nullmask_t));
                         }
                     }
                 },

@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <memory>
 
-typedef uint64_t nullmask_t;
+typedef uint32_t nullmask_t;
 
 class NullValues
 {
@@ -24,7 +24,7 @@ public:
     /// <param name="bitMask">bitmask where we are splitting byte</param>
     /// <param name="shiftMaskIdx">define idx in byte, which determine part we want to get<param>
     /// <param name="bitMaskIdx">define which byte we are splitting<param>
-    static __device__ __host__ int64_t GetPartOfBitmaskByte(const nullmask_t* bitMask,
+    static __device__ __host__ nullmask_t GetPartOfBitmaskByte(const nullmask_t* bitMask,
                                                             int32_t shiftMaskIdx,
                                                             int32_t bitMaskIdx);
 };

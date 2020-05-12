@@ -633,7 +633,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                                         .get(),
                                     currentIndicesInBlocks[firstNonzeroBlockIdx]);
                                 nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
-                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / 64] |= nullBit;
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |=
+                                    nullBit;
                             }
                             // Add to the null collumn
                             // ReconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetIdx];
@@ -933,7 +934,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                                         .get(),
                                     currentIndicesInBlocks[blockToMergeIdx]);
                                 nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
-                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / 64] |= nullBit;
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |= nullBit;
                             }
 
                             resultSetIdx++;

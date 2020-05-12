@@ -1797,7 +1797,7 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         default:
             break;
         }
-        if (dataLength % 64 == 0)
+        if (dataLength % (sizeof(nullmask_t) * 8) == 0)
         {
             for (size_t i = 0; i < nullMask.size(); i++)
             {
@@ -1806,12 +1806,12 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         }
         else
         {
-            int64_t shiftCount = 64 - (dataLength % 64);
+            int64_t shiftCount = (sizeof(nullmask_t) * 8) - (dataLength % (sizeof(nullmask_t) * 8));
             std::vector<nullmask_t> nullMaskVec(nullMask.begin(), nullMask.end());
-            int64_t carryBits = nullMaskVec[0] & ((1ULL << shiftCount) - 1);
+            int64_t carryBits = nullMaskVec[0] & ((1UL << shiftCount) - 1);
             responseMessage->mutable_nullbitmasks()->at(key).mutable_nullmask()->at(
                 responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() - 1) |=
-                (carryBits << (64 - shiftCount));
+                (carryBits << ((sizeof(nullmask_t) * 8) - shiftCount));
             ShiftNullMaskLeft(nullMaskVec, shiftCount);
             std::vector<nullmask_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
 
@@ -1819,10 +1819,11 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
             int64_t mergedDataCount = dataLength + payloadSize;
             for (size_t i = 0; i < newNullMask.size(); i++)
             {
-                if (mergedDataCount > responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() * 64)
+                if (mergedDataCount > responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() *
+                                          (sizeof(nullmask_t) * 8))
                 {
                     responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(newNullMask[i]);
-                    mergedDataCount -= 64;
+                    mergedDataCount -= (sizeof(nullmask_t) * 8);
                 }
             }
         }

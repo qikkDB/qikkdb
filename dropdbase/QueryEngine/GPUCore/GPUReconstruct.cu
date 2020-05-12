@@ -36,7 +36,7 @@ __global__ void kernel_compress_null_mask(nullmask_t* outData, nullmask_t* ACol,
     {
         int outBitMaskIdx = NullValues::GetBitMaskIdx(i);
         int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(i);
-        atomicOr(outData + outBitMaskIdx, (ACol[i] & 1) << outBitMaskShiftIdx);
+        atomicOr(outData + outBitMaskIdx, (ACol[i] & 1UL) << outBitMaskShiftIdx);
     }
 }
 
