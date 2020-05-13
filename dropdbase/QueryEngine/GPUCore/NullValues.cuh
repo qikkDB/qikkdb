@@ -14,6 +14,7 @@ public:
     static __device__ __host__ int32_t GetBitMaskIdx(int32_t idx);
     static __device__ __host__ int32_t GetShiftMaskIdx(int32_t idx);
     static __device__ __host__ size_t GetNullBitMaskSize(size_t size);
+    static __device__ __host__ size_t GetNullBitMaskSizeInBytes(size_t size);
     static __device__ __host__ void 
     SetBitInBitMask(nullmask_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx, int8_t newBit);
     static __device__ __host__ void SetBitInBitMask(nullmask_t* bitMask, int32_t index, int8_t newBit);

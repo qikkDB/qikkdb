@@ -15,6 +15,11 @@ __device__ __host__ size_t NullValues::GetNullBitMaskSize(const size_t size)
     return (size + sizeof(nullmask_t) * 8 - static_cast<nullmask_t>(1U)) / (sizeof(nullmask_t) * 8);
 }
 
+__device__ __host__ size_t NullValues::GetNullBitMaskSizeInBytes(size_t size)
+{
+    return GetNullBitMaskSize(size) * sizeof(nullmask_t);
+}
+
 __device__ __host__ void
 NullValues::SetBitInBitMask(nullmask_t* bitMask, const int32_t bitMaskIdx, const int32_t shiftMaskIdx, const int8_t newBit)
 {
