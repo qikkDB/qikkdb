@@ -15,7 +15,7 @@ __device__ __host__ size_t NullValues::GetNullBitMaskSize(const size_t size)
     return (size + sizeof(nullmask_t) * 8 - static_cast<nullmask_t>(1U)) / (sizeof(nullmask_t) * 8);
 }
 
-__device__ __host__ size_t NullValues::GetNullBitMaskSizeInBytes(size_t size)
+__device__ __host__ size_t NullValues::GetNullBitMaskSizeInBytes(const size_t size)
 {
     return GetNullBitMaskSize(size) * sizeof(nullmask_t);
 }
