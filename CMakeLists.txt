@@ -188,8 +188,12 @@ add_dependencies(${GTEST_LIBRARY} googletest)
 ###### Google Test external project ########
 
 set(Boost_USE_STATIC_LIBS ON)
-set(Boost_USE_STATIC_RUNTIME ON)
-find_package(Boost 1.66.0 COMPONENTS system filesystem log iostreams REQUIRED)
+IF(MSVC)
+	set(Boost_USE_STATIC_RUNTIME ON)
+ELSE(MSVC)
+	set(Boost_USE_STATIC_RUNTIME OFF)
+ENDIF(MSVC)
+find_package(Boost 1.66.0 COMPONENTS log_setup log system filesystem iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
 
 include_directories(.)
