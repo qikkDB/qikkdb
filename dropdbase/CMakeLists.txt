@@ -142,11 +142,20 @@ target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_obj)
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobufd${suffix})
-    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmtd${suffix})
+    IF(WIN32)
+        target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmtd${suffix})
+    ENDIF(WIN32)
 ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobuf${suffix}) 
-    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmt${suffix})
+    IF(WIN32)
+        target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmt${suffix})
+    ENDIF(WIN32)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
+
+IF(NOT WIN32)
+    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cpp${suffix})
+ENDIF(NOT WIN32)
+
 
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
