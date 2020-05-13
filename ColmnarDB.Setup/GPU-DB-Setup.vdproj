@@ -16,6 +16,12 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_0FBE028C44E2450FB1ADBC73612AF75E"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_93B13F6B407A41B38A3C268CD1FD195E"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
@@ -34,7 +40,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F9EE9F0170C04E1B98AE9D313982BDAC"
+        "MsmKey" = "8:_EFF21032B32549F5A001653625B3CAD8"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -139,6 +145,26 @@
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0FBE028C44E2450FB1ADBC73612AF75E"
+            {
+            "SourcePath" = "8:..\\build\\release\\client\\win-x64\\ColmnarDB.ConsoleClient.exe"
+            "TargetName" = "8:ColmnarDB.ConsoleClient.exe"
+            "Tag" = "8:"
+            "Folder" = "8:_BF4B8C7ACA9D4A6EB7BF53650D73FA8B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_93B13F6B407A41B38A3C268CD1FD195E"
             {
             "SourcePath" = "8:..\\configuration\\log_config.default"
@@ -199,7 +225,7 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F9EE9F0170C04E1B98AE9D313982BDAC"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EFF21032B32549F5A001653625B3CAD8"
             {
             "SourcePath" = "8:..\\build\\x64-Release\\dropdbase\\dropdbase_instarea.exe"
             "TargetName" = "8:dropdbase_instarea.exe"
@@ -331,7 +357,7 @@
         "Name" = "8:Microsoft Visual Studio"
         "ProductName" = "8:qikkDB"
         "ProductCode" = "8:{2986798B-9107-415B-9BFF-B2013132F02E}"
-        "PackageCode" = "8:{6AC2BC04-1A4C-4178-A8AA-70A18717C4E0}"
+        "PackageCode" = "8:{EF0B4DEE-A164-4449-8673-BCB48391A1BD}"
         "UpgradeCode" = "8:{86B9665A-B9EC-4966-BECB-511E76EBB5F0}"
         "AspNetVersion" = "8:4.0.30319.0"
         "RestartWWWService" = "11:FALSE"
