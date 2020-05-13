@@ -249,7 +249,8 @@ struct weekday
     template <typename T, typename U>
     __device__ T operator()(U dateTime) const
     {
-        return static_cast<int32_t>((((dateTime / 3600LL) / 24LL) + 3LL) % 7LL);
+        const int64_t day = (dateTime < 0 ? (dateTime - 86400LL + 1) : dateTime) / 86400LL;
+        return static_cast<int32_t>((day + 3LL) % 7LL);
     }
 };
 
@@ -261,7 +262,8 @@ struct dayOfWeek
     template <typename T, typename U>
     __device__ T operator()(U dateTime) const
     {
-        return static_cast<int32_t>(((((dateTime / 3600LL) / 24LL) + 4LL) % 7LL) + 1LL);
+        const int64_t day = (dateTime < 0 ? (dateTime - 86400LL + 1) : dateTime) / 86400LL;
+        return static_cast<int32_t>(((day + 4LL) % 7LL) + 1LL);
     }
 };
 } // namespace DateOperations
