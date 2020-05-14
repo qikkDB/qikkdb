@@ -201,6 +201,8 @@ include_directories(messages)
 include_directories(Types)
 include_directories(GpuSqlParser)
 
+OPTION(COMMUNITY_VERSION "Compile with community version restrictions" OFF)
+
 add_subdirectory(dropdbase)
 add_subdirectory(dropdbase_test)
 add_custom_target(make-databases-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory  "${CMAKE_CURRENT_BINARY_DIR}/databases")

@@ -41,8 +41,7 @@ private:
     int32_t GPUCachePercent_ = 75;
     int32_t DBSaveInterval_ = 1000;
 
-    // Trail limitations. These files will be loaded according to licence in the future.
-    // Use -1 for unlimited.
+    // Community limitations. These values might be loaded according to licence in the future.
     int64_t rowsLimit_ = 1000000000;
     int32_t columnsLimit_ = 8;
     int32_t tablesLimit_ = 4;

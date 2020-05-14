@@ -2096,21 +2096,21 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
                              const std::unordered_map<std::string, bool>& areUnique,
                              int32_t blockSize)
 {
-    if (tables_.size() >= Configuration::GetInstance().GetTablesLimit() &&
-        Configuration::GetInstance().GetTablesLimit() != -1)
+#ifdef COMMUNITY
+    if (tables_.size() >= Configuration::GetInstance().GetTablesLimit())
     {
         throw std::runtime_error("Unable to insert new table: " + std::string(tableName) +
                                  ". Community version supports only up to " +
                                  std::to_string(Configuration::GetInstance().GetTablesLimit()) + " tables.");
     }
 
-    if (columns.size() >= Configuration::GetInstance().GetColumnsLimit() &&
-        Configuration::GetInstance().GetColumnsLimit() != -1)
+    if (columns.size() >= Configuration::GetInstance().GetColumnsLimit())
     {
         throw std::runtime_error("Unable to insert new table: " + std::string(tableName) + " with " +
                                  std::to_string(columns.size()) + " columns . Community version supports only up to " +
                                  std::to_string(Configuration::GetInstance().GetColumnsLimit()) + " columns.");
     }
+#endif // COMMUNITY
 
     auto search = tables_.find(tableName);
 
@@ -2175,13 +2175,14 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
     std::lock_guard<std::mutex> lock(dbAccessMutex_);
-    if (Context::getInstance().GetLoadedDatabases().size() >= Configuration::GetInstance().GetDatabasesLimit() &&
-        Configuration::GetInstance().GetDatabasesLimit() != -1)
+#ifdef COMMUNITY
+    if (Context::getInstance().GetLoadedDatabases().size() >= Configuration::GetInstance().GetDatabasesLimit())
     {
         throw std::runtime_error("Unable to insert new database: " + database->GetName() +
                                  ". Community version supports only up to " +
                                  std::to_string(Configuration::GetInstance().GetDatabasesLimit()) + " databases.");
     }
+#endif // COMMUNITY
     if (!Context::getInstance().GetLoadedDatabases().insert({database->name_, database}).second)
     {
         throw std::invalid_argument("Attempt to insert duplicate database name");
