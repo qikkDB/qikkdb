@@ -132,7 +132,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
         }
     }
 
-	saveNecesarry_ = true;
+    saveNecesarry_ = true;
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
@@ -1433,7 +1433,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
     break;
     }
 
-	saveNecesarry_ = true;
+    saveNecesarry_ = true;
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 
@@ -1610,6 +1610,14 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
 /// <param name="dataType">Data type of colum.n</param>
 void Table::CreateColumn(const char* columnName, DataType columnType, bool isNullable, bool isUnique)
 {
+    if (columns.size() >= Configuration::GetInstance().GetColumnsLimit() &&
+        Configuration::GetInstance().GetColumnsLimit() != -1)
+    {
+        throw std::runtime_error("Unable to insert new column: " + std::string(columnName) +
+                                 ". Community version supports only up to " +
+                                 std::to_string(Configuration::GetInstance().GetColumnsLimit()) + " columns.");
+    }
+
     std::unique_ptr<IColumn> column;
 
     if (columnType == COLUMN_INT)
@@ -1888,7 +1896,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
         }
     }
 
-	saveNecesarry_ = true;
+    saveNecesarry_ = true;
     BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for table named: " << name << ".";
 }
 #endif

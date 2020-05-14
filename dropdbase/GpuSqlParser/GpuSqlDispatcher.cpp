@@ -1347,7 +1347,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateDatabase()
     std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
     Database::AddToInMemoryDatabaseList(newDb);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database_ completed sucessfully" << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
 

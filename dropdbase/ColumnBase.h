@@ -559,6 +559,14 @@ public:
                                       int32_t groupId = -1,
                                       bool isNullValue = false)
     {
+        if (size_ >= Configuration::GetInstance().GetRowsLimit() &&
+            Configuration::GetInstance().GetRowsLimit() != -1)
+        {
+            throw std::runtime_error(
+                "Unable to insert new data. Community version supports only up to " +
+                std::to_string(Configuration::GetInstance().GetRowsLimit()) + " rows.");
+        }
+
         size_ += 1;
 
         if (blocks_[groupId].size() == 0)
@@ -592,6 +600,14 @@ public:
                                               int32_t groupId = -1,
                                               bool isNullValue = false)
     {
+        if (size_ >= Configuration::GetInstance().GetRowsLimit() &&
+            Configuration::GetInstance().GetRowsLimit() != -1)
+        {
+            throw std::runtime_error(
+                "Unable to insert new data. Community version supports only up to " +
+                std::to_string(Configuration::GetInstance().GetRowsLimit()) + " rows.");
+        }
+
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
         if (block.IsFull())
@@ -675,6 +691,13 @@ public:
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
     {
+        if (size_ + columnData.size() >= Configuration::GetInstance().GetRowsLimit() &&
+            Configuration::GetInstance().GetRowsLimit() != -1)
+        {
+            throw std::runtime_error(
+                "Unable to insert new data. Community version supports only up to " +
+                std::to_string(Configuration::GetInstance().GetRowsLimit()) + " rows.");
+        }
         int32_t startIdx = 0;
 
         saveNecessary_ = true;
@@ -723,6 +746,14 @@ public:
                     int32_t groupId = -1,
                     bool compress = false)
     {
+        if (size_ + columnData.size() >= Configuration::GetInstance().GetRowsLimit() &&
+            Configuration::GetInstance().GetRowsLimit() != -1)
+        {
+            throw std::runtime_error(
+                "Unable to insert new data. Community version supports only up to " +
+                std::to_string(Configuration::GetInstance().GetRowsLimit()) + " rows.");
+        }
+
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         int32_t startIdx = 0;
@@ -748,7 +779,7 @@ public:
                 {
                     lastBlock->CompressData();
                 }
-                //setColumnStatistics();
+                // setColumnStatistics();
                 return;
             }
 

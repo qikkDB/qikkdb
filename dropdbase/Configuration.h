@@ -41,6 +41,14 @@ private:
     int32_t GPUCachePercent_ = 75;
     int32_t DBSaveInterval_ = 1000;
 
+    // Trail limitations. These files will be loaded according to licence in the future.
+    // Use -1 for unlimited.
+    int64_t rowsLimit_ = 1000000000;
+    int32_t columnsLimit_ = 8;
+    int32_t tablesLimit_ = 4;
+    int32_t databasesLimit_ = 2;
+    int32_t gpusLimit_ = 1;
+
     void LoadConfigurationFile();
 
     /// <summary>
@@ -84,7 +92,7 @@ public:
     {
         return usingGPU_;
     }
-    
+
     bool IsUsingMultipleGPUs() const
     {
         return usingMultipleGPUs_;
@@ -94,7 +102,7 @@ public:
     {
         return usingCompression_;
     }
-    
+
     bool IsUsingWhereEvaluationSpeedup() const
     {
         return usingWhereEvaluationSpeedup_;
@@ -134,7 +142,7 @@ public:
     {
         return GPUMemoryUsagePercent_;
     }
-    
+
 
     int32_t GetGPUCachePercentage() const
     {
@@ -144,5 +152,30 @@ public:
     int32_t GetDBSaveInterval() const
     {
         return DBSaveInterval_;
+    }
+
+    int64_t GetRowsLimit() const
+    {
+        return rowsLimit_;
+    }
+
+    int32_t GetColumnsLimit() const
+    {
+        return columnsLimit_;
+    }
+
+    int32_t GetTablesLimit() const
+    {
+        return tablesLimit_;
+    }
+
+    int32_t GetDatabasesLimit() const
+    {
+        return databasesLimit_;
+    }
+
+    int32_t GetGpusLimit() const
+    {
+        return gpusLimit_;
     }
 };
