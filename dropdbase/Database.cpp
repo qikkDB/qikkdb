@@ -546,6 +546,16 @@ void Database::LoadDatabasesFromDisk()
                 auto database =
                     Database::LoadDatabase(p.path().filename().stem().generic_string().c_str(), path.c_str());
 
+#ifdef COMMUNITY
+                if (Context::getInstance().GetLoadedDatabases().size() >=
+                    Configuration::GetInstance().GetDatabasesLimit())
+                {
+                    throw std::runtime_error(
+                        "Unable to load database: " + database->GetName() + ". Community version supports only up to " +
+                        std::to_string(Configuration::GetInstance().GetDatabasesLimit()) + " databases.");
+                }
+#endif // COMMUNITY
+
                 if (database != nullptr)
                 {
                     database->SetSaveNecessaryToFalseForEverything();
