@@ -82,7 +82,8 @@ set(VERSION_FILES ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Table.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/Context.h)
 
 set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUJoin.cu
@@ -97,6 +98,7 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUDate.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.cu
+                ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherBinaryFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherUnaryFunctions.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/GpuSqlParser/Dispatcher/GpuSqlDispatcherAggregationFunctions.cu
@@ -132,12 +134,18 @@ if(MSVC)
     set_target_properties(${PROJECT_NAME}_common_lib ${PROJECT_NAME}_community_lib ${PROJECT_NAME}_full_lib PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
 endif(MSVC)
 
-add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cu $<TARGET_OBJECTS:${PROJECT_NAME}_common_lib> $<TARGET_OBJECTS:${PROJECT_NAME}_full_lib>)
-add_executable(${PROJECT_NAME}_community ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cu $<TARGET_OBJECTS:${PROJECT_NAME}_common_lib> $<TARGET_OBJECTS:${PROJECT_NAME}_community_lib>)
+add_library(${PROJECT_NAME}_obj STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_common_lib> $<TARGET_OBJECTS:${PROJECT_NAME}_full_lib>)
+add_library(${PROJECT_NAME}_community_obj STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_common_lib> $<TARGET_OBJECTS:${PROJECT_NAME}_community_lib>)
 
-set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_community ${PROJECT_NAME}_full_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
-set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_community ${PROJECT_NAME}_full_lib PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+set_target_properties(${PROJECT_NAME}_obj ${PROJECT_NAME}_community_obj PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(${PROJECT_NAME}_obj ${PROJECT_NAME}_community_obj PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
+if(MSVC)
+    set_target_properties(${PROJECT_NAME}_obj ${PROJECT_NAME}_community_obj PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+endif(MSVC)
+
+add_executable(${PROJECT_NAME} ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
+add_executable(${PROJECT_NAME}_community ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp)
 
 if(MSVC)
     set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_community PROPERTIES MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
@@ -147,32 +155,35 @@ if(NOT WIN32)
     set_target_properties(${PROJECT_NAME} ${PROJECT_NAME}_community PROPERTIES LINK_FLAGS_DEBUG "-rdynamic")
 endif(NOT WIN32)
 
+target_link_libraries(${PROJECT_NAME} PUBLIC ${PROJECT_NAME}_obj)
+target_link_libraries(${PROJECT_NAME}_community PUBLIC ${PROJECT_NAME}_community_obj)
+
 string( TOLOWER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_lower )
 
 IF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
-	target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}protobufd${suffix})
-    target_link_libraries(${PROJECT_NAME}_community PUBLIC ${prefix}protobufd${suffix})
+	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobufd${suffix})
+    target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}protobufd${suffix})
     IF(WIN32)
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}yaml-cppmtd${suffix})
-        target_link_libraries(${PROJECT_NAME}_community PUBLIC ${prefix}yaml-cppmtd${suffix})
+        target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmtd${suffix})
+        target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}yaml-cppmtd${suffix})
     ENDIF(WIN32)
 ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
-	target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}protobuf${suffix}) 
-	target_link_libraries(${PROJECT_NAME}_community PUBLIC ${prefix}protobuf${suffix}) 
+	target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}protobuf${suffix}) 
+	target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}protobuf${suffix}) 
     IF(WIN32)
-        target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}yaml-cppmt${suffix})
-        target_link_libraries(${PROJECT_NAME}_community PUBLIC ${prefix}yaml-cppmt${suffix})
+        target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cppmt${suffix})
+        target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}yaml-cppmt${suffix})
     ENDIF(WIN32)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
 IF(NOT WIN32)
-    target_link_libraries(${PROJECT_NAME} PUBLIC ${prefix}yaml-cpp${suffix})
-    target_link_libraries(${PROJECT_NAME}_community PUBLIC ${prefix}yaml-cpp${suffix})
+    target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${prefix}yaml-cpp${suffix})
+    target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}yaml-cpp${suffix})
 ENDIF(NOT WIN32)
 
 
-target_link_libraries(${PROJECT_NAME} PUBLIC ${Boost_LIBRARIES})
-target_link_libraries(${PROJECT_NAME}_community PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
+target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${Boost_LIBRARIES})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC antlr4_static)
-target_link_libraries(${PROJECT_NAME}_community PUBLIC antlr4_static)
+target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
+target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC antlr4_static)

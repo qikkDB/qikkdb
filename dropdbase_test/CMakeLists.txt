@@ -44,7 +44,7 @@ endif(WIN32)
 if(NOT WIN32)
 	set_source_files_properties(${CUDA_TEST_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --expt-relaxed-constexpr")
 endif(NOT WIN32)
-add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES} $<TARGET_OBJECTS:${PROJECT_NAME}_common_lib> $<TARGET_OBJECTS:${PROJECT_NAME}_full_lib>)
+add_executable(${PROJECT_NAME}_test ${TEST_FILES} ${CUDA_TEST_FILES})
 set_target_properties(${PROJECT_NAME}_test PROPERTIES POSITION_INDEPENDENT_CODE ON)
 set_target_properties(${PROJECT_NAME}_test PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
@@ -68,6 +68,7 @@ ELSE(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 	target_link_libraries(${PROJECT_NAME}_test gtest_main)
 ENDIF(CMAKE_BUILD_TYPE_lower STREQUAL "debug")
 
+target_link_libraries(${PROJECT_NAME}_test ${PROJECT_NAME}_obj)
 
 add_custom_command(
         TARGET ${PROJECT_NAME}_test POST_BUILD
