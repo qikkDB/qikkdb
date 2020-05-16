@@ -119,6 +119,10 @@ add_library(${PROJECT_NAME}_common_lib OBJECT ${SOURCE_FILES} ${CUDA_FILES})
 add_library(${PROJECT_NAME}_community_lib OBJECT ${VERSION_FILES})
 add_library(${PROJECT_NAME}_full_lib OBJECT ${VERSION_FILES})
 
+add_dependencies(${PROJECT_NAME}_common_lib protobuf-external yaml-cpp-external antlr4_static)
+add_dependencies(${PROJECT_NAME}_community_lib protobuf-external yaml-cpp-external antlr4_static)
+add_dependencies(${PROJECT_NAME}_full_lib protobuf-external yaml-cpp-external antlr4_static)
+
 target_compile_definitions(${PROJECT_NAME}_community_lib PUBLIC COMMUNITY)
 
 set_target_properties(${PROJECT_NAME}_common_lib ${PROJECT_NAME}_community_lib ${PROJECT_NAME}_full_lib PROPERTIES POSITION_INDEPENDENT_CODE ON)
