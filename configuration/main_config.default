@@ -20,7 +20,7 @@ GPUMemoryUsagePercent: 100
 # Percentage of allocated GPU memory used for caching columns
 GPUCachePercent: 90
 # How often to save database files (ms)
-DBSaveInterval: 3600000
+DBSaveInterval: 300000
 
 
 # == NETWORK SETTINGS ==

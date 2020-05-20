@@ -11,6 +11,7 @@
 #include "ConstraintType.h"
 #include "QueryEngine/Context.h"
 #include "Table.h"
+#include "BlockBase.h"
 /// <summary>
 /// The main class representing database containing tables with data.
 /// </summary>
@@ -58,13 +59,38 @@ private:
                            const std::string columnName);
 
     /// <summary>
-    /// Write single block into disk. It has to seek the block's position in the
+    /// Write single Int8_t, Int32_t, Int64_t, Float, Double, Point block into disk. It has to seek the block's position in the
     /// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
     /// </summary>
     /// <param name="table">Name of the particular table.</param>
     /// <param name="column">Name of the column to which the block belongs to.</param>
-    static void WriteBlock(const Table& table,
-                           const std::pair<const std::string, std::unique_ptr<IColumn>>& column);
+    /// <param name="block">Block wich is going to be persisted.</param>
+    /// <param name="blockPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
+    template <typename T>
+    static void WriteBlockNumericTypes(const Table& table,
+                                       const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+                                       const BlockBase<T>& block,
+                                       const uint64_t blockPosition)
+    {
+        // TODO
+    }
+
+    /// <summary>
+    /// Write single String or Polygon block into disk. It has to seek the block's position in the
+    /// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
+    /// </summary>
+    /// <param name="table">Name of the particular table.</param>
+    /// <param name="column">Name of the column to which the block belongs to.</param>
+    /// <param name="block">Block wich is going to be persisted.</param>
+    /// <param name="blockPosition">Position of the EOF FRAGMENT_DATA_EXTENSION file.</param>
+    template <typename T>
+    static void WriteBlockStringTypes(const Table& table,
+                                      const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+                                      const BlockBase<T>& block,
+                                      const uint64_t blockPosition)
+    {
+		//TODO
+    }
 
     /// <summary>
     /// Write column into disk (all it's blocks).
@@ -122,7 +148,7 @@ public:
                Context::getInstance().GetLoadedDatabases().end();
     }
 
-	/// <summary>
+    /// <summary>
     /// Returnes names of the loaded databases in memory.
     /// </summary>
     static std::vector<std::string> GetDatabaseNames();

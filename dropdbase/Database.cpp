@@ -510,15 +510,54 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::ifstream colFragDataFile(colPolygon.GetFileFragmentPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPolygon.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    // TODO porobit to nejako s fragmentami !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    colFragDataFile.seekg(0, colFragDataFile.end);
+                    uint64_t blockPosition = colFragDataFile.tellg();
+
+                    if (blockIndex != UINT32_MAX)
+                    {
+                        /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
+                           (we will persist the modified data as new fragments at the end of the file) */
+
+                        uint64_t i = 0;
+                        colAddressFile.seekg(0, colAddressFile.end);
+                        uint64_t colAddressFileLength = colAddressFile.tellg();
+                        colAddressFile.seekg(0, colAddressFile.beg);
+                        while (i < colAddressFileLength)
+                        {
+                            uint32_t currentBlockPosition;
+                            colAddressFile.read(reinterpret_cast<char*>(&currentBlockPosition), sizeof(uint32_t));
+
+                            if (currentBlockPosition == blockIndex)
+                            {
+                                // mark fragment as invalid:
+                                uint32_t value = UINT32_MAX;
+                                colAddressFile.seekp(colAddressFile.tellg() -
+                                                     static_cast<int64_t>(sizeof(uint32_t)));
+                                colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
+                            }
+
+                            i += sizeof(uint32_t);
+                        }
+                    }
+
+                    threads.emplace_back(WriteBlockStringTypes<ColmnarDB::Types::ComplexPolygon>,
+                                         std::ref(table), std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
+            colFragDataFile.close();
         }
         break;
 
@@ -527,19 +566,41 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<ColmnarDB::Types::Point>& colPoint =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPoint.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
 
-                    // TODO seek from address file: seek index * sizeof(int64_t), then read int64_t
-                    int64_t blockPosition = 0; // TODO read from file
-                    // TODO if we seek at the end of the address file, that means, it is a new block,
-                    // TODO so then I need to add that into address file
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>,
+                                         std::ref(table), std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
 
@@ -548,15 +609,54 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<std::string>& colStr =
                 dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::ifstream colFragDataFile(colStr.GetFileFragmentPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colStr.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    // TODO porobit to nejako s fragmentami !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    colFragDataFile.seekg(0, colFragDataFile.end);
+                    uint64_t blockPosition = colFragDataFile.tellg();
+
+                    if (blockIndex != UINT32_MAX)
+                    {
+                        /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
+                           (we will persist the modified data as new fragments at the end of the file) */
+
+                        uint64_t i = 0;
+                        colAddressFile.seekg(0, colAddressFile.end);
+                        uint64_t colAddressFileLength = colAddressFile.tellg();
+                        colAddressFile.seekg(0, colAddressFile.beg);
+                        while (i < colAddressFileLength)
+                        {
+                            uint32_t currentBlockPosition;
+                            colAddressFile.read(reinterpret_cast<char*>(&currentBlockPosition), sizeof(uint32_t));
+
+                            if (currentBlockPosition == blockIndex)
+                            {
+                                // mark fragment as invalid:
+                                uint32_t value = UINT32_MAX;
+                                colAddressFile.seekp(colAddressFile.tellg() -
+                                                     static_cast<int64_t>(sizeof(uint32_t)));
+                                colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
+                            }
+
+                            i += sizeof(uint32_t);
+                        }
+                    }
+
+                    threads.emplace_back(WriteBlockStringTypes<std::string>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
+            colFragDataFile.close();
         }
         break;
 
@@ -564,14 +664,41 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
+
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
 
@@ -579,14 +706,41 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int32_t>& colInt = dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
+
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
 
@@ -594,14 +748,41 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int64_t>& colLong = dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colLong.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
+
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
 
@@ -609,14 +790,41 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colFloat.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
+
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
 
@@ -624,14 +832,41 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<double>& colDouble = dynamic_cast<const ColumnBase<double>&>(*(column.second));
 
+            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
+            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colDouble.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    threads.emplace_back(Database::WriteBlock, std::ref(table), std::ref(column));
+                    uint32_t blockIndex = block->GetIndex();
+                    uint64_t blockPosition;
+
+                    /* if this condition is true, that means, this block has never been persisted on
+                       disk before, so we need to update also COLUMN_ADDRESS_EXTENSION file */
+                    if (blockIndex == UINT32_MAX)
+                    {
+                        // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
+                        colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
+                        colDataFile.seekg(0, colDataFile.end);
+                        blockPosition = colDataFile.tellg();
+                        colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+                    else
+                    {
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                    }
+
+                    threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
+                                         std::ref(column), std::ref(block), blockPosition);
                 }
             }
+
+            colAddressFile.close();
+            colDataFile.close();
         }
         break;
         }
@@ -2293,17 +2528,6 @@ void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
     // erase db from map
     std::lock_guard<std::mutex> lock(dbAccessMutex_);
     Context::getInstance().GetLoadedDatabases().erase(databaseName);
-}
-
-/// <summary>
-/// Write single block into disk. It has to seek the block's position in the
-/// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
-/// </summary>
-/// <param name="table">Name of the particular table.</param>
-/// <param name="column">Name of the column to which the block belongs to.</param>
-void Database::WriteBlock(const Table& table, const std::pair<const std::string, std::unique_ptr<IColumn>>& column)
-{
-    // TODO !!!!!!!!!!!!!
 }
 
 /// <summary>
