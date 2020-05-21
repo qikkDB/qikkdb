@@ -316,11 +316,17 @@ namespace ColmnarDB.ConsoleClient
             public int ThreadsCount { get; set; } = 1;
         }
 
+        public static readonly string IMPORT_BLOCK_SIZE = "blocksize";
+        public static readonly string IMPORT_HASH_HEADER = "hasheader";
+        public static readonly string IMPORT_COLUMN_SEPARATOR = "columnseparator";
+        public static readonly string IMPORT_BATCH_SIZE = "batchsize";
+        public static readonly string IMPORT_THREADS_COUNT = "threadscount";
+
         private static ImportOptions ParseImportOptions(string[] splitParameters)
         {
             ImportOptions importParameters = new ImportOptions();
 
-            string[] acceptedOptions = { "blocksize", "hasheader", "columnseparator", "batchsize", "threadscount" };
+            string[] acceptedOptions = { IMPORT_BLOCK_SIZE, IMPORT_HASH_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
             
             if (splitParameters.Length > 2)
             {
@@ -338,25 +344,25 @@ namespace ColmnarDB.ConsoleClient
                     parametersLookup.TryAdd(optionName, optionValue);
                 }
                                 
-                if (parametersLookup.ContainsKey("blocksize"))
+                if (parametersLookup.ContainsKey(IMPORT_BLOCK_SIZE))
                 {
-                    importParameters.BlockSize = int.Parse(parametersLookup["blocksize"]);
+                    importParameters.BlockSize = int.Parse(parametersLookup[IMPORT_BLOCK_SIZE]);
                 }
-                if (parametersLookup.ContainsKey("hasheader"))
+                if (parametersLookup.ContainsKey(IMPORT_HASH_HEADER))
                 {
-                    importParameters.HasHeader = bool.Parse(parametersLookup["hasheader"]);
+                    importParameters.HasHeader = bool.Parse(parametersLookup[IMPORT_HASH_HEADER]);
                 }
-                if (parametersLookup.ContainsKey("columnseparator"))
+                if (parametersLookup.ContainsKey(IMPORT_COLUMN_SEPARATOR))
                 {
-                    importParameters.ColumnSeparator = parametersLookup["columnseparator"].ElementAt(0);
+                    importParameters.ColumnSeparator = parametersLookup[IMPORT_COLUMN_SEPARATOR].ElementAt(0);
                 }
-                if (parametersLookup.ContainsKey("batchsize"))
+                if (parametersLookup.ContainsKey(IMPORT_BATCH_SIZE))
                 {
-                    importParameters.BatchSize = int.Parse(parametersLookup["batchsize"]);
+                    importParameters.BatchSize = int.Parse(parametersLookup[IMPORT_BATCH_SIZE]);
                 }
-                if (parametersLookup.ContainsKey("threadscount"))
+                if (parametersLookup.ContainsKey(IMPORT_THREADS_COUNT))
                 {
-                    importParameters.ThreadsCount = int.Parse(parametersLookup["threadscount"]);
+                    importParameters.ThreadsCount = int.Parse(parametersLookup[IMPORT_THREADS_COUNT]);
                 }
             }
 
