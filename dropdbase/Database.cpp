@@ -551,7 +551,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockStringTypes<ColmnarDB::Types::ComplexPolygon>,
-                                         std::ref(table), std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(table), std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -595,7 +595,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>,
-                                         std::ref(table), std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(table), std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -650,7 +650,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockStringTypes<std::string>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -693,7 +693,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -735,7 +735,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -777,7 +777,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -819,7 +819,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -861,7 +861,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
-                                         std::ref(column), std::ref(block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
