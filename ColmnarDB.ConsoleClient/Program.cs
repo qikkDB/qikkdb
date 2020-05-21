@@ -214,7 +214,7 @@ namespace ColmnarDB.ConsoleClient
                                     } 
                                 }
                             }
-                            catch (System.IO.FileNotFoundException e)
+                            catch (System.IO.FileNotFoundException)
                             {
                                 Console.WriteLine($"File not found. File path: '{parameters}'.");
                             }
