@@ -48,13 +48,22 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="batchSize">Number of lines processed in one batch, if not specified default value is 100000</param>
         /// <param name="threadsCount">Number of threads for processing csv, if not specified number of cores of the client CPU will be used</param>
         /// <param name="encoding">Encoding of csv, if not specified it will be guessed</param>
-        public void Import(string path, string databaseName, int blockSize = 0, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
+        public void Import(string path, string databaseName,
+            string tableName = "", int blockSize = 0, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
         {
-            this.databaseName = databaseName;            
+            this.databaseName = databaseName;
 
             try
             {
-                tableName = Path.GetFileNameWithoutExtension(path);
+                // Table name from path or from argument if present
+                if(tableName == "")
+                {
+                    this.tableName = Path.GetFileNameWithoutExtension(path);
+                }
+                else
+                {
+                    this.tableName = tableName;
+                }
                 
                 if (encoding == null)
                 {

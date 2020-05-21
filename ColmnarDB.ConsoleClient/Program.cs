@@ -196,7 +196,7 @@ namespace ColmnarDB.ConsoleClient
 
                                                 if (importOptionsScript != null)
                                                 {
-                                                    import.Import(filePath2, database2, blockSize: importOptionsScript.BlockSize, hasHeader: importOptionsScript.HasHeader, columnSeparator: importOptionsScript.ColumnSeparator, threadsCount: importOptionsScript.ThreadsCount, batchSize: importOptionsScript.BatchSize);
+                                                    import.Import(filePath2, database2, tableName: importOptionsScript.TableName, blockSize: importOptionsScript.BlockSize, hasHeader: importOptionsScript.HasHeader, columnSeparator: importOptionsScript.ColumnSeparator, threadsCount: importOptionsScript.ThreadsCount, batchSize: importOptionsScript.BatchSize);
                                                 }
 
                                             }
@@ -253,7 +253,7 @@ namespace ColmnarDB.ConsoleClient
                             var importOptions = ParseImportOptions(splitParameters);
                             if (importOptions != null)
                             {
-                                import.Import(filePath, database, blockSize: importOptions.BlockSize, hasHeader: importOptions.HasHeader, columnSeparator: importOptions.ColumnSeparator, threadsCount: importOptions.ThreadsCount, batchSize: importOptions.BatchSize);
+                                import.Import(filePath, database, tableName: importOptions.TableName, blockSize: importOptions.BlockSize, hasHeader: importOptions.HasHeader, columnSeparator: importOptions.ColumnSeparator, threadsCount: importOptions.ThreadsCount, batchSize: importOptions.BatchSize);
                             }
                             
                             break;
@@ -309,6 +309,7 @@ namespace ColmnarDB.ConsoleClient
 
         private class ImportOptions
         {
+            public string TableName { get; set; } = "";
             public int BlockSize { get; set; } = 0;
             public bool HasHeader { get; set; } = true;
             public char ColumnSeparator { get; set; } = '\0';
@@ -316,6 +317,7 @@ namespace ColmnarDB.ConsoleClient
             public int ThreadsCount { get; set; } = 1;
         }
 
+        public static readonly string IMPORT_TABLE_NAME = "tablename";
         public static readonly string IMPORT_BLOCK_SIZE = "blocksize";
         public static readonly string IMPORT_HAS_HEADER = "hasheader";
         public static readonly string IMPORT_COLUMN_SEPARATOR = "columnseparator";
@@ -326,8 +328,8 @@ namespace ColmnarDB.ConsoleClient
         {
             ImportOptions importParameters = new ImportOptions();
 
-            string[] acceptedOptions = { IMPORT_BLOCK_SIZE, IMPORT_HAS_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
-            
+            string[] acceptedOptions = { IMPORT_TABLE_NAME, IMPORT_BLOCK_SIZE, IMPORT_HAS_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
+
             if (splitParameters.Length > 2)
             {
                 Dictionary<string, string> parametersLookup = new Dictionary<string, string>();
@@ -343,7 +345,11 @@ namespace ColmnarDB.ConsoleClient
                     string optionValue = splitParameterPair[1].ToLower();
                     parametersLookup.TryAdd(optionName, optionValue);
                 }
-                                
+
+                if (parametersLookup.ContainsKey(IMPORT_TABLE_NAME))
+                {
+                    importParameters.TableName = parametersLookup[IMPORT_TABLE_NAME];
+                }
                 if (parametersLookup.ContainsKey(IMPORT_BLOCK_SIZE))
                 {
                     importParameters.BlockSize = int.Parse(parametersLookup[IMPORT_BLOCK_SIZE]);
