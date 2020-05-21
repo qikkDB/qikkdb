@@ -317,7 +317,7 @@ namespace ColmnarDB.ConsoleClient
         }
 
         public static readonly string IMPORT_BLOCK_SIZE = "blocksize";
-        public static readonly string IMPORT_HASH_HEADER = "hasheader";
+        public static readonly string IMPORT_HAS_HEADER = "hasheader";
         public static readonly string IMPORT_COLUMN_SEPARATOR = "columnseparator";
         public static readonly string IMPORT_BATCH_SIZE = "batchsize";
         public static readonly string IMPORT_THREADS_COUNT = "threadscount";
@@ -326,7 +326,7 @@ namespace ColmnarDB.ConsoleClient
         {
             ImportOptions importParameters = new ImportOptions();
 
-            string[] acceptedOptions = { IMPORT_BLOCK_SIZE, IMPORT_HASH_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
+            string[] acceptedOptions = { IMPORT_BLOCK_SIZE, IMPORT_HAS_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
             
             if (splitParameters.Length > 2)
             {
@@ -348,9 +348,9 @@ namespace ColmnarDB.ConsoleClient
                 {
                     importParameters.BlockSize = int.Parse(parametersLookup[IMPORT_BLOCK_SIZE]);
                 }
-                if (parametersLookup.ContainsKey(IMPORT_HASH_HEADER))
+                if (parametersLookup.ContainsKey(IMPORT_HAS_HEADER))
                 {
-                    importParameters.HasHeader = bool.Parse(parametersLookup[IMPORT_HASH_HEADER]);
+                    importParameters.HasHeader = bool.Parse(parametersLookup[IMPORT_HAS_HEADER]);
                 }
                 if (parametersLookup.ContainsKey(IMPORT_COLUMN_SEPARATOR))
                 {
