@@ -106,10 +106,6 @@ private:
         EXCEPTION
     };
 
-    static const std::string KEYS_SUFFIX;
-    static const std::string NULL_SUFFIX;
-    static const std::string RECONSTRUCTED_SUFFIX;
-
     typedef InstructionStatus (GpuSqlDispatcher::*DispatchFunction)();
 
     template <typename T>
@@ -368,6 +364,10 @@ private:
     void HandleHashTableFull();
 
 public:
+    static const std::string KEYS_SUFFIX;
+    static const std::string NULL_SUFFIX;
+    static const std::string RECONSTRUCTED_SUFFIX;
+
     static std::mutex groupByMutex_;
     static std::mutex orderByMutex_;
     static std::mutex loadSizeMutex_;

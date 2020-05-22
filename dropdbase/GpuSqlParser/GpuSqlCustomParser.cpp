@@ -182,6 +182,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
         for (auto& tableName : GpuSqlDispatcher::linkTable)
         {
             lockList.push_back(dbName + "." + tableName.first);
+            lockList.push_back(dbName + "." + tableName.first + GpuSqlDispatcher::NULL_SUFFIX);
         }
         GPUMemoryCache::SetLockList(lockList);
     }
