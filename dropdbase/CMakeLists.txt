@@ -82,8 +82,7 @@ set(VERSION_FILES ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/Table.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/Context.h)
+        ${CMAKE_CURRENT_SOURCE_DIR}/Table.h)
 
 set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu 
                 ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUJoin.cu
@@ -109,17 +108,19 @@ set(CUDA_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/CudaMemAllocator.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMergeJoin.cu
 				${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/NullValues.cu)
 
+set(CUDA_VERSION_FILES 	${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/Context.cu)
+
 if(WIN32)
 	set_source_files_properties(${SOURCE_FILES} ${VERSION_FILES} main.cpp PROPERTIES COMPILE_FLAGS "/wd4251 /wd4275 /wd4244 /wd4267 /wd4305 /bigobj")
-	set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 -Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj /wd4251 /wd4275 /wd4244 /wd4267 /wd4305\" --expt-relaxed-constexpr")
+	set_source_files_properties(${CUDA_FILES} ${CUDA_VERSION_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 -Xcudafe=\"--diag_suppress=field_without_dll_interface --diag_suppress=base_class_has_different_dll_interface\" -Xcompiler=\"/bigobj /wd4251 /wd4275 /wd4244 /wd4267 /wd4305\" --expt-relaxed-constexpr")
 endif(WIN32)
 if(NOT WIN32)
-    set_source_files_properties(${CUDA_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --expt-relaxed-constexpr")
+    set_source_files_properties(${CUDA_FILES} ${CUDA_VERSION_FILES} PROPERTIES COMPILE_FLAGS "-arch sm_60 --expt-relaxed-constexpr")
 endif(NOT WIN32)
 
 add_library(${PROJECT_NAME}_common_lib OBJECT ${SOURCE_FILES} ${CUDA_FILES})
-add_library(${PROJECT_NAME}_community_lib OBJECT ${VERSION_FILES})
-add_library(${PROJECT_NAME}_full_lib OBJECT ${VERSION_FILES})
+add_library(${PROJECT_NAME}_community_lib OBJECT ${VERSION_FILES} ${CUDA_VERSION_FILES})
+add_library(${PROJECT_NAME}_full_lib OBJECT ${VERSION_FILES} ${CUDA_VERSION_FILES})
 
 add_dependencies(${PROJECT_NAME}_common_lib protobuf-external yaml-cpp-external antlr4_static)
 add_dependencies(${PROJECT_NAME}_community_lib protobuf-external yaml-cpp-external antlr4_static)
