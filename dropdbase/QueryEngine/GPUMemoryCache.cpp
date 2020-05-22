@@ -37,11 +37,10 @@ bool GPUMemoryCache::evict()
         // Check if current eviction candidate is evictable
         for (const auto& lockedColumn : GPUMemoryCache::lockList)
         {
-            BOOST_LOG_TRIVIAL(debug) << "CacheLock cmp: " << lockedColumn << " " << it->ref.key;
             std::string currentBlockIndexStr = std::to_string(currentBlockIndex_);
             if (it->ref.key.find(lockedColumn, 0) == 0 &&
                 it->ref.key.find_last_of(currentBlockIndexStr) ==
-                    it->ref.key.length() - currentBlockIndexStr.size())
+                    lockedColumn.length() + 1)  // +1 for "_" before blockIndex
             {
                 isLockedItem = true;
                 break;
@@ -50,16 +49,17 @@ bool GPUMemoryCache::evict()
 
         if (isLockedItem)
         {
+            BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << " Locked: " << it->ref.key;
             continue;
         }
 
         BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_
-                                 << "Evict: " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " "
+                                 << " Evict: " << queueItem.ref.key << " " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " "
                                  << queueItem.ref.size;
         Context::getInstance().GetAllocatorForDevice(deviceID_).Deallocate(reinterpret_cast<int8_t*>(
                                                                                queueItem.ref.ptr));
         usedSize -= queueItem.ref.size;
-        BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << "UsedSize: " << usedSize;
+        BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache" << deviceID_ << " UsedSize: " << usedSize;
         cacheMap.erase(queueItem.ref.key);
         lruQueue.erase(it);
         return true;
