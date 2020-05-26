@@ -349,7 +349,7 @@ namespace ColmnarDB.ConsoleClient
                         Console.WriteLine("Error: Unknown import option " + optionName);
                         return null;
                     }
-                    string optionValue = splitParameterPair[1].ToLower();
+                    string optionValue = splitParameterPair[1];
                     parametersLookup.TryAdd(optionName, optionValue);
                 }
 
