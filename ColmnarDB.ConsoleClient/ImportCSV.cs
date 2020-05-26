@@ -58,12 +58,10 @@ namespace ColmnarDB.ConsoleClient
                 // Table name from path or from argument if present
                 if(tableName == "")
                 {
-                    this.tableName = Path.GetFileNameWithoutExtension(path);
+                    tableName = Path.GetFileNameWithoutExtension(path);
                 }
-                else
-                {
-                    this.tableName = tableName;
-                }
+
+                this.tableName = tableName;
                 
                 if (encoding == null)
                 {
