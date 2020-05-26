@@ -317,18 +317,25 @@ namespace ColmnarDB.ConsoleClient
             public int ThreadsCount { get; set; } = 1;
         }
 
-        public static readonly string IMPORT_TABLE_NAME = "tablename";
-        public static readonly string IMPORT_BLOCK_SIZE = "blocksize";
-        public static readonly string IMPORT_HAS_HEADER = "hasheader";
-        public static readonly string IMPORT_COLUMN_SEPARATOR = "columnseparator";
-        public static readonly string IMPORT_BATCH_SIZE = "batchsize";
-        public static readonly string IMPORT_THREADS_COUNT = "threadscount";
+        public static readonly string IMPORT_TABLE_NAME = "table-name";
+        public static readonly string IMPORT_BLOCK_SIZE = "block-size";
+        public static readonly string IMPORT_HAS_HEADER = "has-header";
+        public static readonly string IMPORT_COLUMN_SEPARATOR = "column-separator";
+        public static readonly string IMPORT_BATCH_SIZE = "batch-size";
+        public static readonly string IMPORT_THREADS_COUNT = "threads-count";
 
         private static ImportOptions ParseImportOptions(string[] splitParameters)
         {
             ImportOptions importParameters = new ImportOptions();
 
-            string[] acceptedOptions = { IMPORT_TABLE_NAME, IMPORT_BLOCK_SIZE, IMPORT_HAS_HEADER, IMPORT_COLUMN_SEPARATOR, IMPORT_BATCH_SIZE, IMPORT_THREADS_COUNT };
+            string[] acceptedOptions = {
+                IMPORT_TABLE_NAME,
+                IMPORT_BLOCK_SIZE,
+                IMPORT_HAS_HEADER,
+                IMPORT_COLUMN_SEPARATOR,
+                IMPORT_BATCH_SIZE,
+                IMPORT_THREADS_COUNT
+            };
 
             if (splitParameters.Length > 2)
             {
