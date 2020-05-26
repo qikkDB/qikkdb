@@ -51,7 +51,8 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 lastResultLen_ = std::max(payload.second.int64payload().int64data().size(), lastResultLen_);
                 break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
-                lastResultLen_ = std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
+                lastResultLen_ =
+                    std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
                 break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
@@ -167,7 +168,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start,
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start + nullMaskBufferSize);
 
-			for (size_t i = 0; i <= nullMaskBufferSize; i++)
+            for (size_t i = 0; i <= nullMaskBufferSize; i++)
             {
                 nullMasks.add_nullmask(nullMaskBuffer[i]);
             }
@@ -468,13 +469,29 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     if (isNullable)
     {
-        std::vector<nullmask_t> nullMaskVector;
-        int32_t nullMaskSize = bulkImportMessage.nullmasklen();
-        std::unordered_map<std::string, std::vector<nullmask_t>> nullMap;
-        for (int i = 0; i < nullMaskSize; i++)
+        constexpr size_t bitMultiplier = sizeof(nullmask_t) / sizeof(uint8_t); // out:in null mask bit count ratio
+        std::vector<nullmask_t> nullMaskVector(
+            NullValues::GetNullBitMaskSize(bulkImportMessage.nullmasklen() * (8 * sizeof(uint8_t))));
+        // Cycle per out null mask
+        for (int i = 0; i < nullMaskVector.size(); i++)
         {
-            nullMaskVector.push_back(nullMask[i]);
+            nullMaskVector[i] = 0;
+            // Cycle to sequentially fill in one full number of out null mask (using OR)
+            for (int j = 0; j < bitMultiplier; j++)
+            {
+                const size_t inputIndex = bitMultiplier * i + j;
+                if (inputIndex < bulkImportMessage.nullmasklen())
+                {
+                    nullMaskVector[i] |= static_cast<nullmask_t>(nullMask[inputIndex])
+                                         << (j * sizeof(uint8_t) * 8U);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
+        std::unordered_map<std::string, std::vector<nullmask_t>> nullMap;
         nullMap.insert({columnName, nullMaskVector});
 
         try
