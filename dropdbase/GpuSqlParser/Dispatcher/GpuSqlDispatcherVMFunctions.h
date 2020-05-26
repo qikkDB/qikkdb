@@ -94,11 +94,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
             if (col.GpuNullMaskPtr)
             {
                 size_t bitMaskSize = NullValues::GetNullBitMaskSize(outSize);
-                std::unique_ptr<nullmask_t[]> nullMask(new nullmask_t[bitMaskSize]);
-                GPUMemory::copyDeviceToHost(nullMask.get(),
+                nullMaskVector.resize(bitMaskSize);
+                GPUMemory::copyDeviceToHost(nullMaskVector.data(),
                                             reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), bitMaskSize);
                 nullMaskPtrSize = bitMaskSize;
-                nullMaskVector = std::vector<nullmask_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
             }
         }
         else
