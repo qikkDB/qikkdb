@@ -18,6 +18,7 @@
 
 std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
+std::mutex Database::dbFilesMutex_;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -498,7 +499,7 @@ void Database::PersistOnlyModified(const char* path)
 /// </summary>
 void Database::SaveAllToDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     BOOST_LOG_TRIVIAL(info) << "Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
@@ -513,7 +514,7 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     BOOST_LOG_TRIVIAL(info)
         << "Saving only modified blocks and columns of the loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -531,7 +532,7 @@ void Database::SaveModifiedToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     if (boost::filesystem::exists(path))
@@ -607,7 +608,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;

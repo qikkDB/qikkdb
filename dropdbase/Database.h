@@ -22,6 +22,7 @@ class Database
 
 private:
     static std::mutex dbAccessMutex_;
+    static std::mutex dbFilesMutex_;
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
