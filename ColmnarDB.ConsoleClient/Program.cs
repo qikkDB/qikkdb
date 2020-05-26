@@ -343,6 +343,12 @@ namespace ColmnarDB.ConsoleClient
                 for (int i = 2; i < splitParameters.Length; i++)
                 {
                     string[] splitParameterPair = splitParameters[i].Split("=");
+                    if (splitParameterPair.Length < 2)
+                    {
+                        Console.WriteLine("Error: Missing \"=\" at import option " + splitParameters[i]);
+                        return null;
+                    }
+
                     string optionName = splitParameterPair[0].ToLower();
                     if (!acceptedOptions.Contains(optionName))
                     {
