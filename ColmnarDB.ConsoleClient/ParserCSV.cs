@@ -62,6 +62,9 @@ namespace ColmnarDB.ConsoleClient
             }
         }
 
+        public static char[] reservedCharacters = { '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', ' ', '@' };
+        public static char[] commonSeparators = { ',', ';', '|', '\t', '\\', '/', ':' };
+
         private Configuration configuration;
         private string[] header;
         private Dictionary<string, Type> types;
@@ -119,14 +122,29 @@ namespace ColmnarDB.ConsoleClient
 
             dataParser = new CsvReader(this.streamReader).Parser;
             dataParser.Configuration.Delimiter = this.configuration.ColumnSeparator.ToString();
-            // skip header at the beginning of the file or at the beginning of thread chunk (this line is usually corrupted)
+            dataParser.Configuration.BadDataFound = null;
+            dataParser.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
+            // skip header at the beginning of the file or 
+            // also at the beginning of thread chunk (this line is usually corrupted because we are somewhere in the middle, therefore this is in try/catch)
             if (startBytePosition == 0 && this.configuration.HasHeader)
             {
-                dataParser.Read();
+                try
+                {
+                    dataParser.Read();
+                }
+                catch
+                {
+                }
             }
             else if (startBytePosition > 0)
             {
-                dataParser.Read();
+                try
+                {
+                    dataParser.Read();
+                }
+                catch
+                {
+                }
             }
 
         }
@@ -134,10 +152,17 @@ namespace ColmnarDB.ConsoleClient
         public static Encoding GuessEncoding(string file)
         {
             Encoding result = Encoding.UTF8;
-            using (var reader = new StreamReader(file, true))
+            try
             {
-                reader.Peek();
-                result = reader.CurrentEncoding;
+                using (var reader = new StreamReader(file, true))
+                {
+                    reader.Peek();
+                    result = reader.CurrentEncoding;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Could not access file when getting encoding. Maybe the file is corrupted.");
             }
             return result;
         }
@@ -145,28 +170,56 @@ namespace ColmnarDB.ConsoleClient
         public static char GuessSeparator(string file, Encoding encoding)
         {
             char result = ',';
-            
-            var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             string sample = "";
-            using (var reader = new StreamReader(stream, encoding))
+
+            try
             {
-                sample = reader.ReadLine();
-            }            
+                var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
 
-            var histogram = sample.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count()).OrderBy(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-
-            char[] commonSeparators = { ',', ';', '|', '\t', '\\', '/' };
-
-            foreach (var value in histogram.Keys)
-            {
-                if (commonSeparators.Contains(value))
+                using (var reader = new StreamReader(stream, encoding))
                 {
-                    result = value;
-                    break;
+                    sample = reader.ReadLine();
+
+                    // if the first line is almost the whole file, it is wrong csv
+                    if (sample.Length >= 0.95 * (reader.BaseStream.Length))
+                    {
+                        throw new Exception("The file seems to have only header or does not follow CSV structure.");
+                    }
                 }
+
+                var histogram = sample.GroupBy(c => c).ToDictionary(g => g.Key, g => g.Count()).OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+                foreach (var value in histogram.Keys)
+                {
+                    if (commonSeparators.Contains(value))
+                    {
+                        result = value;
+                        break;
+                    }
+                }
+
+                // if not common separator (everything is one column), then heuristics is applied
+                if (sample.Split(result).Length == 1)
+                {
+                    foreach (var pair in histogram)
+                    {
+                        if (!Char.IsLetter(pair.Key) && !Char.IsDigit(pair.Key))
+                        {
+                            if (pair.Value > 0.2 * (sample.Length) && pair.Value < 0.5 * (sample.Length))
+                            {
+                                result = pair.Key;
+                            }
+                        }
+                    }
+                }
+
+                stream.Dispose();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error occured while guessing separator. Maybe the file is corrupted or does not follow CSV structure.");
             }
 
-            stream.Dispose();
             return result;
         }
 
@@ -180,6 +233,9 @@ namespace ColmnarDB.ConsoleClient
             var stream = File.Open(file, FileMode.Open, FileAccess.Read, FileShare.Read);
             var parser = new CsvReader(new StreamReader(stream, encoding)).Parser;
             parser.Configuration.Delimiter = separator.ToString();
+            parser.Configuration.BadDataFound = null;
+            parser.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
+
             // Read CSV header
             if (hasHeader)
             {
@@ -210,6 +266,20 @@ namespace ColmnarDB.ConsoleClient
                 }
                 
             }
+
+            if (header.Length == 0)
+            {
+                throw new Exception("Could not extract header. Maybe separator (" + separator + ") was wrongly guessed or first line of the file is not following CSV structure.");
+            }
+
+            for (int i = 0; i < header.Length; i++)
+            {
+                foreach (var reservedCharacter in reservedCharacters)
+                {
+                    header[i] = header[i].Replace(reservedCharacter, '_');
+                }
+            }
+
             Dictionary<string, List<string>> topRows = new Dictionary<string, List<string>>();
             foreach (var head in header)
             {
@@ -217,9 +287,23 @@ namespace ColmnarDB.ConsoleClient
             }
             for (int i = 0; i < 100; i++)
             {
-                var vals = parser.Read();
+                string[] vals = null;
+                try
+                {
+                    vals = parser.Read();
+                }
+                catch (Exception ex)
+                {
+                    continue;
+                }
                 if (vals == null)
                     break;
+
+                if (vals.Length != header.Length)
+                {
+                    continue;
+                }
+
                 rows.Add(vals);
                 int columnIndex = 0;
                 foreach (var val in vals)
@@ -252,7 +336,7 @@ namespace ColmnarDB.ConsoleClient
             bool pointError = false;
             foreach (var value in topNvalues)
             {
-                if (value == "" || value.ToLower() == "null")
+                if (value == "" || value.ToLower() == "null" || value.ToLower() == "nan")
                 {
                     continue;
                 }
@@ -321,7 +405,7 @@ namespace ColmnarDB.ConsoleClient
                     complexPolygonError = true;
                 }
 
-                if (doubleError && longError && intError && datetimeError) break;
+                if (doubleError && longError && intError && datetimeError && singleError && boolError && complexPolygonError && pointError) break;
             }
             if (!intError) return typeof(Int32);
             if (!longError) return typeof(Int64);
@@ -353,9 +437,18 @@ namespace ColmnarDB.ConsoleClient
             int errorCount = 0;
             string errorMsg = null;
             
-            while (((batchSize > 0 && readLinesCount < batchSize) || batchSize == 0) && ((this.startBytePosition + dataParser.Context.CharPosition) <= this.endBytePosition))
+            while (((batchSize > 0 && readLinesCount < batchSize) || batchSize == 0) && ((this.startBytePosition + dataParser.Context.CharPosition) < this.endBytePosition))
             {
-                var row = dataParser.Read();
+                string[] row = null;
+                try
+                {
+                    row = dataParser.Read();
+                }
+                catch
+                {
+                    errorCount++;
+                    continue;
+                }
 
                 if (row == null)
                     break;
