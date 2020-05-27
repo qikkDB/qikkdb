@@ -133,26 +133,14 @@ namespace ColmnarDB.ConsoleClient
             dataParser.Configuration.BadDataFound = null;
             dataParser.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
             // skip header at the beginning of the file or 
-            // also at the beginning of thread chunk (this line is usually corrupted because we are somewhere in the middle, therefore this is in try/catch)
+            // also at the beginning of thread chunk
             if (startBytePosition == 0 && this.configuration.HasHeader)
             {
-                try
-                {
-                    dataParser.Read();
-                }
-                catch
-                {
-                }
+                dataParser.Read();                
             }
             else if (startBytePosition > 0)
             {
-                try
-                {
-                    dataParser.Read();
-                }
-                catch
-                {
-                }
+                dataParser.Read();                
             }
 
         }
