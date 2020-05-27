@@ -161,6 +161,12 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         smallPayload->mutable_payloads()->insert({payload.first, finalPayload});
         if (completeResult->nullbitmasks().find(payload.first) != completeResult->nullbitmasks().end())
         {
+            if ((FRAGMENT_SIZE % (sizeof(nullmask_t) * 8)) != 0)
+            {
+                throw std::runtime_error("TCPClientHandler::FRAGMENT_SIZE (" +
+                                         std::to_string(FRAGMENT_SIZE) + ") must be a multiple of " +
+                                         std::to_string(sizeof(nullmask_t) * 8));
+            }
             int start = NullValues::GetNullBitMaskSize(sentRecords_);
             int nullMaskBufferSize = NullValues::GetNullBitMaskSize(bufferSize);
             ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
