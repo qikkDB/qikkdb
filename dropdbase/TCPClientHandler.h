@@ -12,7 +12,7 @@
 class TCPClientHandler final : public IClientHandler
 {
 private:
-    const int FRAGMENT_SIZE = 1000;
+    const int FRAGMENT_SIZE = 1024; // Must be a multiple of sizeof(nullmask_t)*8
     int sentRecords_;
     int lastResultLen_;
     static std::mutex queryMutex_;
