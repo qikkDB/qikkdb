@@ -62,6 +62,14 @@ namespace ColmnarDB.ConsoleClient
             }
         }
 
+        public class ParserException : Exception
+        {
+            public ParserException(string message) :
+                base(message)
+            {
+            }
+        }
+
         public static char[] reservedCharacters = { '/', '\\', '?', '%', '*', ':', '|', '"', '<', '>', ' ', '@' };
         public static char[] commonSeparators = { ',', ';', '|', '\t', '\\', '/', ':' };
 
@@ -151,6 +159,11 @@ namespace ColmnarDB.ConsoleClient
 
         public static Encoding GuessEncoding(string file)
         {
+            if (!File.Exists(file))
+            {
+                throw new ParserException("Could not find file " + file + ". Check if the path or filename is correct.");
+            }
+
             Encoding result = Encoding.UTF8;
             try
             {
@@ -160,15 +173,20 @@ namespace ColmnarDB.ConsoleClient
                     result = reader.CurrentEncoding;
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception("Could not access file when getting encoding. Maybe the file is corrupted.");
+                throw new ParserException("Could not access file when getting encoding. Maybe the file is corrupted.");
             }
             return result;
         }
 
         public static char GuessSeparator(string file, Encoding encoding)
         {
+            if (!File.Exists(file))
+            {
+                throw new ParserException("Could not find file " + file + ". Check if the path or filename is correct.");
+            }
+
             char result = ',';
             string sample = "";
 
@@ -183,7 +201,7 @@ namespace ColmnarDB.ConsoleClient
                     // if the first line is almost the whole file, it is wrong csv
                     if (sample.Length >= 0.95 * (reader.BaseStream.Length))
                     {
-                        throw new Exception("The file seems to have only header or does not follow CSV structure.");
+                        throw new ParserException("The file seems to have only header or does not follow CSV structure.");
                     }
                 }
 
@@ -215,9 +233,9 @@ namespace ColmnarDB.ConsoleClient
 
                 stream.Dispose();
             }
-            catch (Exception ex)
+            catch
             {
-                throw new Exception("Error occured while guessing separator. Maybe the file is corrupted or does not follow CSV structure.");
+                throw new ParserException("Error occured while guessing separator. Maybe the file is corrupted or does not follow CSV structure.");
             }
 
             return result;
@@ -225,6 +243,11 @@ namespace ColmnarDB.ConsoleClient
 
         public static Dictionary<string, Type> GuessTypes(string file, bool hasHeader, char separator, Encoding encoding)
         {
+            if (!File.Exists(file))
+            {
+                throw new ParserException("Could not find file " + file + ". Check if the path or filename is correct.");
+            }
+
             Dictionary<string, Type> result = new Dictionary<string, Type>();
             string[] header;
             
@@ -269,7 +292,7 @@ namespace ColmnarDB.ConsoleClient
 
             if (header.Length == 0)
             {
-                throw new Exception("Could not extract header. Maybe separator (" + separator + ") was wrongly guessed or first line of the file is not following CSV structure.");
+                throw new ParserException("Could not extract header. Maybe separator (" + separator + ") was wrongly guessed or first line of the file is not following CSV structure.");
             }
 
             for (int i = 0; i < header.Length; i++)
@@ -292,7 +315,7 @@ namespace ColmnarDB.ConsoleClient
                 {
                     vals = parser.Read();
                 }
-                catch (Exception ex)
+                catch
                 {
                     continue;
                 }

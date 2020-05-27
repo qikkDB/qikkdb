@@ -146,6 +146,10 @@ namespace ColmnarDB.ConsoleClient
             {
                 Console.WriteLine("Query Exception: " + e.Message);
             }
+            catch (ParserCSV.ParserException e)
+            {
+                Console.WriteLine("Parser Exception: " + e.Message);
+            }
             catch (Exception e)
             {
                 Console.WriteLine(UnknownException() + e.Message);
