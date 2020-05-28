@@ -83,7 +83,7 @@ __global__ void kernel_reorder_point_counts_by_poly_idx_lenghts(int32_t* outPoin
 __global__ void kernel_reorder_null_values_by_idx(nullmask_t* outNullBitMask,
                                                   int32_t* inIndices,
                                                   nullmask_t* inNullBitMask,
-                                                  int32_t dataElementCount);
+                                                  int32_t rowCount);
 
 class GPUOrderBy : public IOrderBy
 {
@@ -192,5 +192,5 @@ public:
     }
 
     static void
-    ReOrderNullValuesByIdx(nullmask_t* outNullBitMask, int32_t* indices, nullmask_t* inNullBitMask, int32_t dataElementCount);
+    ReOrderNullValuesByIdx(nullmask_t* outNullBitMask, int32_t* indices, nullmask_t* inNullBitMask, int32_t rowCount);
 };
