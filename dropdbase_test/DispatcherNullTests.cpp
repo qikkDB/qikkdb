@@ -593,6 +593,7 @@ TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
     Database::AddToInMemoryDatabaseList(database);
 
     std::unordered_map<std::string, DataType> columns;
+    columns.emplace("ColA", COLUMN_INT);
     columns.emplace("Col1", COLUMN_INT);
     columns.emplace("Col2", COLUMN_STRING);
     columns.emplace("Col3", COLUMN_POINT);
@@ -608,8 +609,8 @@ TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
     {
         if (i % 2)
         {
-            GpuSqlCustomParser parser(database, "INSERT INTO TestTable (Col1, Col2, Col3, Col4) "
-                                                "VALUES (null,null, null, null);");
+            GpuSqlCustomParser parser(database, "INSERT INTO TestTable (ColA, Col1, Col2, Col3, Col4) "
+                                                "VALUES (1, null, null, null, null);");
             parser.Parse();
 
             if (i > 2 && expectedResults1.size() < 9)
@@ -634,7 +635,7 @@ TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
 
             std::stringstream ssQuery;
 
-            ssQuery << "INSERT INTO TestTable (Col1, Col2, Col3, Col4) VALUES (" << valString << ", "
+            ssQuery << "INSERT INTO TestTable (ColA, Col1, Col2, Col3, Col4) VALUES (1, " << valString << ", "
                     << "\"" << valString << "\""
                     << ", " << ssPoint.str() << ", " << ssPolygon.str() << ");";
 
@@ -654,7 +655,7 @@ TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
     }
 
     GpuSqlCustomParser parser(database,
-                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable WHERE Col1 = 1 LIMIT 9 OFFSET 3;");
+                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable WHERE ColA = 1 LIMIT 9 OFFSET 3;");
     auto resultPtr = parser.Parse();
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
