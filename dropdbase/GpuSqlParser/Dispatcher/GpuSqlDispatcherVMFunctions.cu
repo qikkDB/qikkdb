@@ -701,22 +701,17 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
                 }
             }
 
-            outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
+            // Alloc buffers on CPU and copy from GPU
             if (col.GpuNullMaskPtr)
             {
-                size_t bitMaskSize = NullValues::GetNullBitMaskSize(database_->GetBlockSize());
-                std::unique_ptr<nullmask_t[]> nullMask =
-                    std::unique_ptr<nullmask_t[]>(new nullmask_t[bitMaskSize]);
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr, nullptr,
-                                                     col.ElementCount, nullMask.get(),
-                                                     reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr));
-                nullMaskPtrSize = NullValues::GetNullBitMaskSize(outSize);
-                nullMaskVector = std::vector<nullmask_t>(nullMask.get(), nullMask.get() + nullMaskPtrSize);
+                nullMaskVector.resize(nullBitMaskSize);
+                nullMaskPtrSize = nullBitMaskSize;
             }
-            else
-            {
-                GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr, nullptr, col.ElementCount);
-            }
+            outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
+            nullmask_t* outNullMaskPtr = col.GpuNullMaskPtr ? nullMaskVector.data() : nullptr;
+            GPUReconstruct::ReconstructStringCol(outData.get(), &outSize, col.GpuPtr, nullptr,
+                                                 col.ElementCount, outNullMaskPtr,
+                                                 reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr));
         }
         else
         {

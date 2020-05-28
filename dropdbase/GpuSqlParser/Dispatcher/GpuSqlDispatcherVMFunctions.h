@@ -103,15 +103,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
                 }
             }
 
-            outData = std::unique_ptr<T[]>(new T[outSize]);
-            GPUMemory::copyDeviceToHost(outData.get(), reinterpret_cast<T*>(col.GpuPtr), outSize);
+            // Alloc buffers on CPU and copy from GPU
             if (col.GpuNullMaskPtr)
             {
                 nullMaskVector.resize(nullBitMaskSize);
-                GPUMemory::copyDeviceToHost(nullMaskVector.data(),
-                                            reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), nullBitMaskSize);
                 nullMaskPtrSize = nullBitMaskSize;
             }
+            nullmask_t* outNullMaskPtr = col.GpuNullMaskPtr ? nullMaskVector.data() : nullptr;
+            outData = std::unique_ptr<T[]>(new T[outSize]);
+            GPUReconstruct::reconstructCol(outData.get(), &outSize, reinterpret_cast<T*>(col.GpuPtr),
+                                           nullptr, col.ElementCount, outNullMaskPtr, reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr));
         }
         else
         {
