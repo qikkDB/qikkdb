@@ -67,26 +67,90 @@ __device__ int32_t GetHash(DataType* keyTypes,
     return (crc >> hashCoef) ^ (crc & ((1 << hashCoef) - 1));
 }
 
-
-__device__ bool AreEqualMultiKeys(DataType* keyTypes,
+__device__ bool AreEqualMultiKeysInputInput(DataType* keyTypes,
                                   const int32_t keysColCount,
                                   void** keysA,
                                   nullmask_t** keysANullMask,
                                   const int32_t indexA,
                                   void** keysB,
-                                  nullmask_t** keysBNullMask,
-                                  const int32_t indexB,
-                                  const bool compressedBNullMask)
+                                  const int32_t indexB)
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
         const bool nullA = (keysANullMask[t] != nullptr) &&
                            (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexA));
-        const bool nullB =
-            (keysBNullMask[t] != nullptr) &&
-            (compressedBNullMask ?
-                 (NullValues::GetConcreteBitFromBitmask(keysBNullMask[t], indexB)) :
-                 keysBNullMask[t][indexB]);
+        const bool nullB = (keysANullMask[t] != nullptr) &&
+                           (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexB));
+        switch (keyTypes[t])
+        {
+        case DataType::COLUMN_INT:
+            if (nullA != nullB || (!nullA && reinterpret_cast<int32_t*>(keysA[t])[indexA] !=
+                                                 reinterpret_cast<int32_t*>(keysB[t])[indexB]))
+            {
+                return false;
+            }
+            break;
+        case DataType::COLUMN_LONG:
+            if (nullA != nullB || (!nullA && reinterpret_cast<int64_t*>(keysA[t])[indexA] !=
+                                                 reinterpret_cast<int64_t*>(keysB[t])[indexB]))
+            {
+                return false;
+            }
+            break;
+        case DataType::COLUMN_FLOAT:
+            if (nullA != nullB || (!nullA && reinterpret_cast<float*>(keysA[t])[indexA] !=
+                                                 reinterpret_cast<float*>(keysB[t])[indexB]))
+            {
+                return false;
+            }
+            break;
+        case DataType::COLUMN_DOUBLE:
+            if (nullA != nullB || (!nullA && reinterpret_cast<double*>(keysA[t])[indexA] !=
+                                                 reinterpret_cast<double*>(keysB[t])[indexB]))
+            {
+                return false;
+            }
+            break;
+        case DataType::COLUMN_STRING:
+        {
+            GPUMemory::GPUString strColA = *reinterpret_cast<GPUMemory::GPUString*>(keysA[t]);
+            GPUMemory::GPUString strColB = *reinterpret_cast<GPUMemory::GPUString*>(keysB[t]);
+            if (nullA != nullB ||
+                (!nullA && !AreEqualStrings(strColA.allChars + GetStringIndex(strColA.stringIndices, indexA),
+                                            GetStringLength(strColA.stringIndices, indexA), strColB, indexB)))
+            {
+                return false;
+            }
+            break;
+        }
+        case DataType::COLUMN_INT8_T:
+            if (nullA != nullB || (!nullA && reinterpret_cast<int8_t*>(keysA[t])[indexA] !=
+                                                 reinterpret_cast<int8_t*>(keysB[t])[indexB]))
+            {
+                return false;
+            }
+            break;
+        default:
+            break;
+        }
+    }
+    return true;
+}
+
+__device__ bool AreEqualMultiKeysInputBuffer(DataType* keyTypes,
+                                  const int32_t keysColCount,
+                                  void** keysA,
+                                  nullmask_t** keysANullMask,
+                                  const int32_t indexA,
+                                  void** keysB,
+                                  nullarray_t** keysBNullMask,
+                                  const int32_t indexB)
+{
+    for (int32_t t = 0; t < keysColCount; t++)
+    {
+        const bool nullA = (keysANullMask[t] != nullptr) &&
+                           (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexA));
+        const bool nullB = (keysBNullMask[t] != nullptr) && keysBNullMask[t][indexB];
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
@@ -150,18 +214,16 @@ __device__ bool IsNewMultiKey(DataType* keyTypes,
                               nullmask_t** inKeysNullMask,
                               const int32_t i,
                               void** keysBuffer,
-                              nullmask_t** keysNullBuffer,
+                              nullarray_t** keysNullBuffer,
                               int32_t* sourceIndices,
                               const int32_t index)
 {
-    return (sourceIndices[index] >= 0 &&
-            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, inKeysNullMask, i, inKeys,
-                               inKeysNullMask, sourceIndices[index], true)) ||
+    return (sourceIndices[index] >= 0 && !AreEqualMultiKeysInputInput(keyTypes, keysColCount, inKeys, inKeysNullMask,
+                                                            i, inKeys, sourceIndices[index])) ||
            (sourceIndices[index] == GBS_SOURCE_INDEX_KEY_IN_BUFFER &&
-            !AreEqualMultiKeys(keyTypes, keysColCount, inKeys, inKeysNullMask, i, keysBuffer,
-                               keysNullBuffer, index, false));
+            !AreEqualMultiKeysInputBuffer(keyTypes, keysColCount, inKeys, inKeysNullMask, i, keysBuffer,
+                               keysNullBuffer, index));
 }
-
 
 template <>
 void ReconstructSingleKeyColKeep<std::string>(std::vector<void*>* outKeysVector,
@@ -210,11 +272,11 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 
 void AllocKeysBuffer(void*** keysBuffer,
-                     nullmask_t*** keysNullBuffer,
+                     nullarray_t*** keysNullBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
-                     std::vector<nullmask_t*>* pointersNullMask)
+                     std::vector<nullarray_t*>* pointersNullMask)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
     GPUMemory::alloc(keysNullBuffer, keyTypes.size());
@@ -296,7 +358,7 @@ void AllocKeysBuffer(void*** keysBuffer,
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
-        nullmask_t* gpuKeyNullMask;
+        nullarray_t* gpuKeyNullMask;
         GPUMemory::alloc(&gpuKeyNullMask, rowCount);
         GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
         if (pointersNullMask)
@@ -306,7 +368,7 @@ void AllocKeysBuffer(void*** keysBuffer,
     }
 }
 
-void FreeKeysBuffer(void** keysBuffer, nullmask_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
+void FreeKeysBuffer(void** keysBuffer, nullarray_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
     std::vector<DataType> keyTypesHost;
@@ -327,7 +389,7 @@ void FreeKeysBuffer(void** keysBuffer, nullmask_t** keysNullBuffer, DataType* ke
             }
             GPUMemory::free(ptr);
         }
-        nullmask_t* ptrNullBuffer;
+        nullarray_t* ptrNullBuffer;
         GPUMemory::copyDeviceToHost(&ptrNullBuffer, keysNullBuffer + i, 1); // copy single pointer
         if (ptrNullBuffer)
         {
@@ -387,7 +449,7 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          nullmask_t** keysNullBuffer,
+                                          nullarray_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,

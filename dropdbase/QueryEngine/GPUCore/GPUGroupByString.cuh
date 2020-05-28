@@ -40,7 +40,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        int32_t* stringLengths,
                                        GPUMemory::GPUString keysBuffer,
                                        V* values,
-                                       nullmask_t* valuesNullMaskUncompressed,
+                                       nullarray_t* valuesNullMaskUncompressed,
                                        int64_t* keyOccurrenceCount,
                                        const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
@@ -193,7 +193,7 @@ public:
 private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    nullmask_t* valuesNullMaskUncompressed_ = nullptr;
+    nullarray_t* valuesNullMaskUncompressed_ = nullptr;
 
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
@@ -382,10 +382,10 @@ public:
         return keyBufferSize_;
     }
 
-    /// Create memory-wasting null mask for keys - one 1 at [0], other zeros
-    cuda_ptr<nullmask_t> CreateKeyNullMask()
+    /// Create memory-wasting null array for keys - one 1 at [0], other zeros
+    cuda_ptr<nullarray_t> CreateKeyNullArray()
     {
-        cuda_ptr<nullmask_t> keyNullMask(keyBufferSize_, 0);
+        cuda_ptr<nullarray_t> keyNullMask(keyBufferSize_, 0);
         GPUMemory::memset(keyNullMask.get(), 1, 1);
         return keyNullMask;
     }
@@ -398,9 +398,9 @@ public:
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(std::vector<int32_t>& keysStringLengths,
                                std::vector<char>& keysAllChars,
-                               nullmask_t* keysNullMask,
+                               nullarray_t* keysNullMask,
                                V* values,
-                               nullmask_t* valuesNullMask,
+                               nullarray_t* valuesNullMask,
                                int64_t* occurrences,
                                int32_t* elementCount)
     {
@@ -409,7 +409,7 @@ public:
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<nullmask_t> keysNullMaskInput = CreateKeyNullMask();
+        cuda_ptr<nullarray_t> keysNullMaskInput = CreateKeyNullArray();
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
                                                 keysBuffer_, occupancyMask.get(), keyBufferSize_);
@@ -458,7 +458,7 @@ public:
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
         cuda_ptr<nullmask_t> keysNullMaskCompressed =
-            GPUReconstruct::CompressNullMask(CreateKeyNullMask().get(), keyBufferSize_);
+            GPUReconstruct::CompressNullMask(CreateKeyNullArray().get(), keyBufferSize_);
 
         GPUReconstruct::ReconstructStringColKeep(outKeys, outDataElementCount, keysBuffer_,
                                                  occupancyMask.get(), keyBufferSize_,
@@ -583,10 +583,10 @@ public:
 
             std::vector<int32_t> keysAllHostStringLengths;
             std::vector<char> keysAllHostAllChars;
-            std::vector<nullmask_t> keysNullMaskAllHost;
+            std::vector<nullarray_t> keysNullMaskAllHost;
 
             std::vector<V> valuesAllHost;
-            std::vector<nullmask_t> valuesNullMaskAllHost;
+            std::vector<nullarray_t> valuesNullMaskAllHost;
 
             std::vector<int64_t> occurrencesAllHost;
 
@@ -605,12 +605,12 @@ public:
 
                 std::vector<int32_t> keysStringLengths;
                 std::vector<char> keysAllChars;
-                std::unique_ptr<nullmask_t[]> keysNullMask =
-                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullarray_t[]> keysNullMask =
+                    std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<nullmask_t[]> valuesNullMask =
-                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullarray_t[]> valuesNullMask =
+                    std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<int64_t[]> occurrences =
                     std::make_unique<int64_t[]>(table->GetMaxHashCount());
@@ -650,10 +650,10 @@ public:
             if (sumElementCount > 0)
             {
                 cuda_ptr<int32_t> keysAllGPUStringLengths(sumElementCount);
-                cuda_ptr<nullmask_t> keysNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> keysNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
-                cuda_ptr<nullmask_t> valuesNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> valuesNullMaskAllGPU(sumElementCount);
 
                 cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 

@@ -68,7 +68,7 @@ __device__ T genericAtomicCAS(T* address, T compare, T val)
 template <typename AGG, typename K, typename V>
 __global__ void group_by_kernel(K* keys,
                                 V* values,
-                                nullmask_t* valuesNullMask,
+                                nullarray_t* valuesNullMask,
                                 int64_t* keyOccurrenceCount,
                                 const int32_t loweredMaxHashCount,
                                 K* inKeys,
@@ -295,7 +295,7 @@ private:
 
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    nullmask_t* valuesNullMask_ = nullptr;
+    nullarray_t* valuesNullMask_ = nullptr;
 
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
@@ -416,10 +416,10 @@ public:
         return keyBufferSize_;
     }
 
-    /// Create memory-wasting null mask for keys - one 1 at [0], other zeros
-    cuda_ptr<nullmask_t> CreateKeyNullMask()
+    /// Create memory-wasting null array for keys - one 1 at [0], other zeros
+    cuda_ptr<nullarray_t> CreateKeyNullArray()
     {
-        cuda_ptr<nullmask_t> keyNullMask(keyBufferSize_, 0);
+        cuda_ptr<nullarray_t> keyNullMask(keyBufferSize_, 0);
         GPUMemory::memset(keyNullMask.get(), 1, 1);
         return keyNullMask;
     }
@@ -430,9 +430,10 @@ public:
     /// <param name="values">output buffer to fill with reconstructed values</param>
     /// <param name="occurrences">not used buffer if using operations MIN, MAX or SUM - nullptr can be used</param>
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
-    void ReconstructRawNumbers(K* keys, nullmask_t* keysNullMask,
+    void ReconstructRawNumbers(K* keys,
+                               nullarray_t* keysNullMask,
                                V* values,
-                               nullmask_t* valuesNullMask,
+                               nullarray_t* valuesNullMask,
                                int64_t* occurrences,
                                int32_t* elementCount)
     {
@@ -441,7 +442,7 @@ public:
                                     Context::getInstance().getBlockDim()>>>(occupancyMask.get(),
                                                                             keys_, keyBufferSize_);
 
-        cuda_ptr<nullmask_t> keysNullMaskInput = CreateKeyNullMask();
+        cuda_ptr<nullarray_t> keysNullMaskInput = CreateKeyNullArray();
 
         GPUReconstruct::reconstructCol(keys, elementCount, keys_, occupancyMask.get(), keyBufferSize_);
         GPUReconstruct::reconstructCol(keysNullMask, elementCount, keysNullMaskInput.get(),
@@ -494,7 +495,7 @@ public:
                                                                             keys_, keyBufferSize_);
 
         cuda_ptr<nullmask_t> keysNullMaskCompressed =
-            GPUReconstruct::CompressNullMask(CreateKeyNullMask().get(), keyBufferSize_);
+            GPUReconstruct::CompressNullMask(CreateKeyNullArray().get(), keyBufferSize_);
 
         // Reconstruct the keys
         GPUReconstruct::reconstructColKeep(outKeys, outDataElementCount, keys_, occupancyMask.get(),
@@ -610,9 +611,9 @@ public:
             int oldDeviceId = Context::getInstance().getBoundDeviceID();
 
             std::vector<K> keysAllHost;
-            std::vector<nullmask_t> keysNullMaskAllHost;
+            std::vector<nullarray_t> keysNullMaskAllHost;
             std::vector<V> valuesAllHost;
-            std::vector<nullmask_t> valuesNullMaskAllHost;
+            std::vector<nullarray_t> valuesNullMaskAllHost;
             std::vector<int64_t> occurrencesAllHost;
             int32_t sumElementCount = 0;
 
@@ -627,11 +628,11 @@ public:
                 GPUGroupBy<AGG, O, K, V>* table =
                     reinterpret_cast<GPUGroupBy<AGG, O, K, V>*>(tables[i].get());
                 std::unique_ptr<K[]> keys = std::make_unique<K[]>(table->GetMaxHashCount());
-                std::unique_ptr<nullmask_t[]> keysNullMask =
-                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullarray_t[]> keysNullMask =
+                    std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<nullmask_t[]> valuesNullMask =
-                    std::make_unique<nullmask_t[]>(table->GetMaxHashCount());
+                std::unique_ptr<nullarray_t[]> valuesNullMask =
+                    std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
                 std::unique_ptr<int64_t[]> occurrences =
                     std::make_unique<int64_t[]>(table->GetMaxHashCount());
                 int32_t elementCount;
@@ -666,9 +667,9 @@ public:
             if (sumElementCount > 0)
             {
                 cuda_ptr<K> keysAllGPU(sumElementCount);
-                cuda_ptr<nullmask_t> keysNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> keysNullMaskAllGPU(sumElementCount);
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
-                cuda_ptr<nullmask_t> valuesNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> valuesNullMaskAllGPU(sumElementCount);
                 cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 
                 // Copy the condens from host to default device

@@ -46,10 +46,10 @@ __global__ void kernel_reconstruct_col(T* outData, T* ACol, int32_t* prefixSum, 
 
 /// Kernel for reconstructing null masks according to calculated prefixSum and inMask
 __global__ void
-kernel_reconstruct_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount);
+kernel_reconstruct_null_mask(nullmask_t* outNullMask, nullmask_t* inNullMask, int32_t* prefixSum, int8_t* filterMask, int32_t dataElementCount);
 
 /// Kernel for compressing null masks from memory-wasting int8_t* array
-__global__ void kernel_compress_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t dataElementCount);
+__global__ void kernel_compress_null_mask(nullmask_t* outMask, nullarray_t* inArray, int32_t dataElementCount);
 
 /// Kernel for generating array with sorted indexes which point to values where mask is 1.
 template <typename T>
@@ -624,7 +624,7 @@ public:
     }
 
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
-    static cuda_ptr<nullmask_t> CompressNullMask(nullmask_t* inputNullMask, int32_t dataElementCount);
+    static cuda_ptr<nullmask_t> CompressNullMask(nullarray_t* inputNullMask, int32_t dataElementCount);
 };
 
 /// Specialization for Point (not supported but need to be implemented)

@@ -6,7 +6,7 @@
 
 /// Kernel for reconstructing null masks according to calculated prefixSum and inMask
 __global__ void
-kernel_reconstruct_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t* prefixSum, int8_t* inMask, int32_t dataElementCount)
+kernel_reconstruct_null_mask(nullmask_t* outNullMask, nullmask_t* inNullMask, int32_t* prefixSum, int8_t* filterMask, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -16,19 +16,19 @@ kernel_reconstruct_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t* pre
         // Select the elemnts that are "visible" in the mask
         // If the mask is 1 for the output, use the prefix sum for array compaction
         // The prefix sum includes values from the input array on the same element so the index has to be modified
-        if (inMask[i] && (prefixSum[i] - 1) >= 0)
+        if (filterMask[i] && (prefixSum[i] - 1) >= 0)
         {
             int outBitMaskIdx = NullValues::GetBitMaskIdx(prefixSum[i] - 1);
             int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(prefixSum[i] - 1);
-            nullmask_t bitFromiPosition = NullValues::GetConcreteBitFromBitmask(ACol, i);
-            atomicOr(reinterpret_cast<nullmask_cuda_t*>(outData) + outBitMaskIdx,
+            nullmask_t bitFromiPosition = NullValues::GetConcreteBitFromBitmask(inNullMask, i);
+            atomicOr(reinterpret_cast<nullmask_cuda_t*>(outNullMask) + outBitMaskIdx,
                      (bitFromiPosition << outBitMaskShiftIdx));
         }
     }
 }
 
 
-__global__ void kernel_compress_null_mask(nullmask_t* outData, nullmask_t* ACol, int32_t dataElementCount)
+__global__ void kernel_compress_null_mask(nullmask_t* outMask, nullarray_t* inArray, int32_t dataElementCount)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -37,8 +37,8 @@ __global__ void kernel_compress_null_mask(nullmask_t* outData, nullmask_t* ACol,
     {
         int outBitMaskIdx = NullValues::GetBitMaskIdx(i);
         int outBitMaskShiftIdx = NullValues::GetShiftMaskIdx(i);
-        atomicOr(reinterpret_cast<nullmask_cuda_t*>(outData) + outBitMaskIdx,
-                 (ACol[i] & static_cast<nullmask_t>(1U)) << outBitMaskShiftIdx);
+        atomicOr(reinterpret_cast<nullmask_cuda_t*>(outMask) + outBitMaskIdx,
+                 (inArray[i] & static_cast<nullmask_t>(1U)) << outBitMaskShiftIdx);
     }
 }
 
@@ -753,7 +753,7 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
 }
 
 
-cuda_ptr<nullmask_t> GPUReconstruct::CompressNullMask(nullmask_t* inputNullMask, int32_t dataElementCount)
+cuda_ptr<nullmask_t> GPUReconstruct::CompressNullMask(nullarray_t* inputNullMask, int32_t dataElementCount)
 {
     const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(dataElementCount, true);
     cuda_ptr<nullmask_t> nullMaskCompressed(outBitMaskSize, 0);
