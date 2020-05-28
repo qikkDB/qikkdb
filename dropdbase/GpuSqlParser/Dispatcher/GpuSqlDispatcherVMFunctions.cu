@@ -1019,25 +1019,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GetLoadSize()
     return InstructionStatus::CONTINUE;
 }
 
-void GpuSqlDispatcher::ShiftNullMaskLeft(std::vector<nullmask_t>& mask, int64_t shift)
-{
-    constexpr size_t bits = (sizeof(nullmask_t) * 8) - 1;
-    while (shift-- > 0)
-    {
-        nullmask_t carryBit = 0;
-        for (int32_t i = mask.size() - 1; i >= 0; i--)
-        {
-            nullmask_t newCarryBit = mask[i] & static_cast<nullmask_t>(1U);
-            mask[i] >>= static_cast<nullmask_t>(1U);
-            nullmask_t firstZero = ~(static_cast<nullmask_t>(1U) << bits);
-            mask[i] &= firstZero;
-            mask[i] |= (carryBit << bits);
-            carryBit = newCarryBit;
-        }
-    }
-}
-
-
 template <>
 void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatcher::CompositeDataType<std::string> column,
                                                                   const std::string& reg,

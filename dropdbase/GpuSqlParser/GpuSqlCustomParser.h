@@ -48,9 +48,9 @@ private:
     void TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset);
     void TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset, int64_t& payloadSize);
     void TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& payload,
-                             int64_t limit,
-                             int64_t offset,
-                             int64_t payloadSize);
+                             const int64_t limit,
+                             const int64_t offset,
+                             const int64_t payloadSize);
     bool isSingleGpuStatement_;
     bool wasAborted_;
     std::string query_;

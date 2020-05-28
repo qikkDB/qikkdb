@@ -616,24 +616,18 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
 }
 
 void GpuSqlCustomParser::TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& payload,
-                                             int64_t limit,
-                                             int64_t offset,
-                                             int64_t payloadSize)
+                                             const int64_t limit,
+                                             const int64_t offset,
+                                             const int64_t payloadSize)
 {
-    int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
-    int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+    const int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+    const int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
-    std::vector<nullmask_t> nullMaskVector(payload.mutable_nullmask()->begin(),
-                                           payload.mutable_nullmask()->end());
-    GpuSqlDispatcher::ShiftNullMaskLeft(nullMaskVector, clampedOffset);
+    GpuSqlDispatcher::ShiftNullMaskLeft(*payload.mutable_nullmask(), clampedOffset);
 
-    nullMaskVector.erase(nullMaskVector.begin() + NullValues::GetNullBitMaskSize(clampedLimit),
-                         nullMaskVector.end());
-    payload.Clear();
-    for (auto& nullMask : nullMaskVector)
-    {
-        payload.add_nullmask(nullMask);
-    }
+    payload.mutable_nullmask()->erase(payload.mutable_nullmask()->begin() +
+                                          NullValues::GetNullBitMaskSize(clampedLimit),
+                                      payload.mutable_nullmask()->end());
 }
 
 bool GpuSqlCustomParser::ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx)

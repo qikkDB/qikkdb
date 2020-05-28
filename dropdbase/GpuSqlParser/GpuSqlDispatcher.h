@@ -440,7 +440,25 @@ public:
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                                     std::vector<nullmask_t> nullMask,
                                     int64_t payloadSize);
-    static void ShiftNullMaskLeft(std::vector<nullmask_t>& mask, int64_t shift);
+
+    template<typename T>
+    static void ShiftNullMaskLeft(T& mask, int64_t shift)
+    {
+        constexpr size_t bits = (sizeof(nullmask_t) * 8) - 1;
+        while (shift-- > 0)
+        {
+            nullmask_t carryBit = 0;
+            for (int32_t i = mask.size() - 1; i >= 0; i--)
+            {
+                nullmask_t newCarryBit = mask.at(i) & static_cast<nullmask_t>(1U);
+                mask.at(i) >>= static_cast<nullmask_t>(1U);
+                nullmask_t firstZero = ~(static_cast<nullmask_t>(1U) << bits);
+                mask.at(i) &= firstZero;
+                mask.at(i) |= (carryBit << bits);
+                carryBit = newCarryBit;
+            }
+        }
+    }
 
     GpuSqlDispatcher(const std::shared_ptr<Database>& database,
                      std::vector<std::unique_ptr<IGroupBy>>& groupByTables,
