@@ -1,5 +1,4 @@
 #include "GpuSqlCustomParser.h"
-#include "GpuSqlCustomParser.h"
 //
 // Created by Martin Staňo on 2019-01-14.
 //
@@ -476,10 +475,14 @@ void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* response
     {
         std::string key = queryPayload.first;
         ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
-        ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& nullMaskPayload =
-            queryResponseMessage->mutable_nullbitmasks()->at(key);
-        int64_t payloadSize = TrimPayload(payload, limit, offset);
-        //TrimNullMaskPayload(nullMaskPayload, limit, offset, payloadSize);
+        int64_t payloadSize = 0;
+        TrimPayload(payload, limit, offset, payloadSize);
+        if (queryResponseMessage->nullbitmasks().find(key) != queryResponseMessage->nullbitmasks().end())
+        {
+            ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& nullMaskPayload =
+                queryResponseMessage->mutable_nullbitmasks()->at(key);
+            TrimNullMaskPayload(nullMaskPayload, limit, offset, payloadSize);
+        }
     }
 }
 
@@ -487,15 +490,16 @@ void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* response
 /// <param="payload">Payload to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                        int64_t limit,
-                                        int64_t offset)
+void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                     int64_t limit,
+                                     int64_t offset,
+                                     int64_t& payloadSize)
 {
     switch (payload.payload_case())
     {
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
     {
-        int64_t payloadSize = payload.intpayload().intdata().size();
+        payloadSize = payload.intpayload().intdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -505,13 +509,12 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_intpayload()->mutable_intdata()->begin();
         auto end = payload.mutable_intpayload()->mutable_intdata()->end();
         payload.mutable_intpayload()->mutable_intdata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
 
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
     {
-        int64_t payloadSize = payload.floatpayload().floatdata().size();
+        payloadSize = payload.floatpayload().floatdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -521,12 +524,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_floatpayload()->mutable_floatdata()->begin();
         auto end = payload.mutable_floatpayload()->mutable_floatdata()->end();
         payload.mutable_floatpayload()->mutable_floatdata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
     {
-        int64_t payloadSize = payload.int64payload().int64data().size();
+        payloadSize = payload.int64payload().int64data().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -536,12 +538,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_int64payload()->mutable_int64data()->begin();
         auto end = payload.mutable_int64payload()->mutable_int64data()->end();
         payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
     {
-        int64_t payloadSize = payload.datetimepayload().datetimedata().size();
+        payloadSize = payload.datetimepayload().datetimedata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -551,12 +552,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_datetimepayload()->mutable_datetimedata()->begin();
         auto end = payload.mutable_datetimepayload()->mutable_datetimedata()->end();
         payload.mutable_datetimepayload()->mutable_datetimedata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
     {
-        int64_t payloadSize = payload.doublepayload().doubledata().size();
+        payloadSize = payload.doublepayload().doubledata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -566,12 +566,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_doublepayload()->mutable_doubledata()->begin();
         auto end = payload.mutable_doublepayload()->mutable_doubledata()->end();
         payload.mutable_doublepayload()->mutable_doubledata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
     {
-        int64_t payloadSize = payload.pointpayload().pointdata().size();
+        payloadSize = payload.pointpayload().pointdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -581,12 +580,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_pointpayload()->mutable_pointdata()->begin();
         auto end = payload.mutable_pointpayload()->mutable_pointdata()->end();
         payload.mutable_pointpayload()->mutable_pointdata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
     {
-        int64_t payloadSize = payload.polygonpayload().polygondata().size();
+        payloadSize = payload.polygonpayload().polygondata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -596,12 +594,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_polygonpayload()->mutable_polygondata()->begin();
         auto end = payload.mutable_polygonpayload()->mutable_polygondata()->end();
         payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
     {
-        int64_t payloadSize = payload.stringpayload().stringdata().size();
+        payloadSize = payload.stringpayload().stringdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
         int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
 
@@ -611,13 +608,11 @@ int64_t GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::Query
         begin = payload.mutable_stringpayload()->mutable_stringdata()->begin();
         auto end = payload.mutable_stringpayload()->mutable_stringdata()->end();
         payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
-        return payloadSize;
     }
     break;
     case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
-        return 0;
+        break;
     }
-    return 0;
 }
 
 void GpuSqlCustomParser::TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& payload,
@@ -625,6 +620,20 @@ void GpuSqlCustomParser::TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::
                                              int64_t offset,
                                              int64_t payloadSize)
 {
+    int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
+    int64_t clampedLimit = std::clamp<int64_t>(limit, 0, payloadSize - clampedOffset);
+
+    std::vector<nullmask_t> nullMaskVector(payload.mutable_nullmask()->begin(),
+                                           payload.mutable_nullmask()->end());
+    GpuSqlDispatcher::ShiftNullMaskLeft(nullMaskVector, clampedOffset);
+
+    nullMaskVector.erase(nullMaskVector.begin() + NullValues::GetNullBitMaskSize(clampedLimit),
+                         nullMaskVector.end());
+    payload.Clear();
+    for (auto& nullMask : nullMaskVector)
+    {
+        payload.add_nullmask(nullMask);
+    }
 }
 
 bool GpuSqlCustomParser::ContainsAggregation(GpuSqlParser::SelectColumnContext* ctx)

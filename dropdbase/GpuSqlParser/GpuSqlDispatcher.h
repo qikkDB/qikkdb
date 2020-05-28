@@ -350,7 +350,6 @@ private:
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    static void ShiftNullMaskLeft(std::vector<nullmask_t>& mask, int64_t shift);
     int32_t GetBinaryDispatchTableIndex(DataType left, DataType right);
     int32_t GetUnaryDispatchTableIndex(DataType type);
     void ClearCachedBlocks(const std::string& tableName, const std::string& columnName, const int32_t fromBlockIdx = 0);
@@ -441,7 +440,7 @@ public:
                                     ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                                     std::vector<nullmask_t> nullMask,
                                     int64_t payloadSize);
-
+    static void ShiftNullMaskLeft(std::vector<nullmask_t>& mask, int64_t shift);
 
     GpuSqlDispatcher(const std::shared_ptr<Database>& database,
                      std::vector<std::unique_ptr<IGroupBy>>& groupByTables,
