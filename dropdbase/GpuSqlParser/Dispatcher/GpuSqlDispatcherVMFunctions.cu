@@ -663,35 +663,42 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
         if (isOverallLastBlock_)
         {
             // Return key or value col (key if groupByColumns_ contains colName)
-            auto col = FindCompositeDataTypeAllocation<std::string>(
+            const std::string baseRegName =
                 colName + (std::find_if(groupByColumns_.begin(), groupByColumns_.end(),
                                         StringDataTypeComp(colName)) != groupByColumns_.end() ?
                                KEYS_SUFFIX :
-                               ""));
+                               "");
+            auto col = FindCompositeDataTypeAllocation<std::string>(baseRegName);
             outSize = col.ElementCount;
+            const size_t nullBitMaskSize = NullValues::GetNullBitMaskSize(outSize);
 
             if (usingOrderBy_)
             {
                 CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering result block." << '\n';
 
                 GPUMemory::GPUString reorderedColumn;
-                size_t inNullColSize = NullValues::GetNullBitMaskSize(outSize);
-                cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
 
                 PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
                 GPUOrderBy::ReOrderStringByIdx(reorderedColumn,
                                                reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
                                                col.GpuPtr, outSize);
-                GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
-                                                   reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                                   reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), outSize);
-
                 GPUMemory::free(col.GpuPtr);
-                GPUMemory::free(reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
-
                 col.GpuPtr.stringIndices = reorderedColumn.stringIndices;
                 col.GpuPtr.allChars = reorderedColumn.allChars;
-                col.GpuNullMaskPtr = reinterpret_cast<std::uintptr_t>(reorderedNullColumn.release());
+
+                if (col.GpuNullMaskPtr)
+                {
+                    cuda_ptr<nullmask_t> reorderedNullColumn(nullBitMaskSize);
+                    GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
+                                                       reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
+                                                       reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr),
+                                                       outSize);
+
+                    GPUMemory::free(reinterpret_cast<int8_t*>(col.GpuNullMaskPtr));
+                    col.GpuNullMaskPtr = reinterpret_cast<std::uintptr_t>(reorderedNullColumn.release());
+                    PointerAllocation& regNullMask = allocatedPointers_.at(baseRegName + NULL_SUFFIX);
+                    regNullMask.GpuPtr = col.GpuNullMaskPtr;
+                }
             }
 
             outData = std::unique_ptr<std::string[]>(new std::string[outSize]);
