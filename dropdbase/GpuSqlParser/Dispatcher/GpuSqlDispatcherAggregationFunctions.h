@@ -135,13 +135,21 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
                          &outValueNullMask);
+        const int32_t outNullBitMaskSize = NullValues::GetNullBitMaskSize(outSize);
+
         dispatcher.InsertRegister(groupByColumnName + KEYS_SUFFIX,
                                   PointerAllocation{reinterpret_cast<uintptr_t>(outKeys), outSize, true,
                                                     reinterpret_cast<uintptr_t>(outKeyNullMask)});
+        dispatcher.InsertRegister(groupByColumnName + KEYS_SUFFIX + NULL_SUFFIX,
+                                  PointerAllocation{reinterpret_cast<uintptr_t>(outKeyNullMask),
+                                                    outNullBitMaskSize, true, 0});
         if (usingAggregation)
         {
             dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
                                                              reinterpret_cast<uintptr_t>(outValueNullMask)});
+            dispatcher.InsertRegister(reg + NULL_SUFFIX,
+                                      PointerAllocation{reinterpret_cast<uintptr_t>(outValueNullMask),
+                                                        outNullBitMaskSize, true, 0});
         }
     }
 };
@@ -189,12 +197,20 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_, &outKeyNullMask,
                          &outValueNullMask);
+        const int32_t outNullBitMaskSize = NullValues::GetNullBitMaskSize(outSize);
+
         dispatcher.FillCompositeDataTypeRegister<std::string>(outKeys, groupByColumnName + KEYS_SUFFIX,
                                                               outSize, true, outKeyNullMask);
+        dispatcher.InsertRegister(groupByColumnName + KEYS_SUFFIX + NULL_SUFFIX,
+                                  PointerAllocation{reinterpret_cast<uintptr_t>(outKeyNullMask),
+                                                    outNullBitMaskSize, true, 0});
         if (usingAggregation)
         {
             dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
                                                              reinterpret_cast<uintptr_t>(outValueNullMask)});
+            dispatcher.InsertRegister(reg + NULL_SUFFIX,
+                                      PointerAllocation{reinterpret_cast<uintptr_t>(outValueNullMask),
+                                                        outNullBitMaskSize, true, 0});
         }
     }
 };
@@ -281,6 +297,7 @@ public:
             dispatcher.groupByTables_[dispatcher.dispatcherThreadId_].get())
             ->GetResults(&outKeys, &outValues, &outSize, dispatcher.groupByTables_,
                          &outKeysNullMasks, &outValueNullMask);
+        const int32_t outNullBitMaskSize = NullValues::GetNullBitMaskSize(outSize);
 
         for (int32_t i = 0; i < groupByColumns.size(); i++)
         {
@@ -327,11 +344,18 @@ public:
                                          std::to_string(groupByColumns[i].second));
                 break;
             }
+
+            dispatcher.InsertRegister(groupByColumns[i].first + KEYS_SUFFIX + NULL_SUFFIX,
+                                      PointerAllocation{reinterpret_cast<uintptr_t>(outKeysNullMasks[i]),
+                                                        outNullBitMaskSize, true, 0});
         }
         if (usingAggregation)
         {
             dispatcher.InsertRegister(reg, PointerAllocation{reinterpret_cast<uintptr_t>(outValues), outSize, true,
                                                              reinterpret_cast<uintptr_t>(outValueNullMask)});
+            dispatcher.InsertRegister(reg + NULL_SUFFIX,
+                                      PointerAllocation{reinterpret_cast<uintptr_t>(outValueNullMask),
+                                                        outNullBitMaskSize, true, 0});
         }
     }
 };
