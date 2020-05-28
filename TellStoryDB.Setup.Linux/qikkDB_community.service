@@ -1,0 +1,14 @@
+[Unit]
+Description=qikkDB_community
+After=network.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=###USER###
+ExecStart=###DEST_DIR###/bin/qikkDB_community
+WorkingDirectory=###DEST_DIR###/bin
+[Install]
+WantedBy=multi-user.target
