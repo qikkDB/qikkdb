@@ -697,8 +697,8 @@ void Database::DeleteTableFromDisk(const char* tableName)
             {
                 if (boost::filesystem::remove(p.path().string().c_str()))
                 {
-                    BOOST_LOG_TRIVIAL(info) << "File " << columnPath << " from database "
-                                            << name_ << " was successfully removed from disk.";
+                    BOOST_LOG_TRIVIAL(info) << "File " << columnPath << " from database " << name_
+                                            << " was successfully removed from disk.";
                 }
                 else
                 {
@@ -928,6 +928,15 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 << "Block size for table: " + std::string(tableName.get()) +
                        " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
 
+#ifdef COMMUNITY
+            if (database->tables_.size() >= Configuration::GetInstance().GetTablesLimit())
+            {
+                throw std::runtime_error("Unable to load table: " + std::string(tableName.get()) +
+                                         ". Community version supports only up to " +
+                                         std::to_string(Configuration::GetInstance().GetTablesLimit()) + " tables.");
+            }
+#endif // COMMUNITY
+
             database->tables_.emplace(std::make_pair(std::string(tableName.get()),
                                                      Table(database, tableName.get(), tableBlockSize)));
 
@@ -958,6 +967,16 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
 
                 std::unique_ptr<char[]> columnName(new char[columnNameLength]);
                 dbFile.read(columnName.get(), columnNameLength); // read column name
+
+#ifdef COMMUNITY
+                if (columnNames.size() >= Configuration::GetInstance().GetColumnsLimit())
+                {
+                    throw std::runtime_error(
+                        "Unable to load column: " + std::string(columnName.get()) +
+                        ". Community version supports only up to " +
+                        std::to_string(Configuration::GetInstance().GetColumnsLimit()) + " columns.");
+                }
+#endif // COMMUNITY
 
                 columnNames.push_back(columnName.get());
             }
