@@ -511,7 +511,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
             std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::fstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
             std::ifstream colFragDataFile(colPolygon.GetFileFragmentPath(), std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -519,8 +519,12 @@ void Database::PersistOnlyModified(const std::string tableName)
             {
                 if (block->GetSaveNecessary())
                 {
+                    uint64_t strPolDataPos = UINT64_MAX; // this value is there just for debug purposes
+
                     uint32_t blockIndex = block->GetIndex();
                     colFragDataFile.seekg(0, colFragDataFile.end);
+
+                    // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
 
                     if (blockIndex != UINT32_MAX)
@@ -544,14 +548,50 @@ void Database::PersistOnlyModified(const std::string tableName)
                                 colAddressFile.seekp(colAddressFile.tellg() -
                                                      static_cast<int64_t>(sizeof(uint32_t)));
                                 colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
+                                break;
                             }
 
                             i += sizeof(uint32_t);
                         }
+
+                        i = 0;
+                        colDataFile.seekg(0, colDataFile.end);
+                        uint64_t colDataFileLength = colDataFile.tellg();
+                        colDataFile.seekg(0, colDataFile.beg);
+                        while (i < colDataFileLength)
+                        {
+                            uint32_t readBlockIndex;
+                            colDataFile.read(reinterpret_cast<char*>(&readBlockIndex), sizeof(uint32_t));
+
+                            if (readBlockIndex == blockIndex)
+                            {
+                                strPolDataPos = static_cast<uint64_t>(colDataFile.tellg()) - sizeof(uint32_t);
+                                break;
+                            }
+
+                            int32_t readGroupId;
+                            colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
+                            if (column.second->GetIsNullable())
+                            {
+                                // TODO toto bude treba zmenit po zmene NullBit masiek z 8 bitov na 64 bitov
+                                int32_t nullBitMaskLength;
+                                std::unique_ptr<int8_t[]> nullBitMask = nullptr;
+                                int32_t nullBitMaskAllocationSize =
+                                    ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+                                colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
+                                                 sizeof(int32_t)); // read nullBitMask length
+                                nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
+                                colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
+                                                 nullBitMaskLength); // read nullBitMask
+                            }
+                            uint64_t readEntriesCount;
+                            colDataFile.read(reinterpret_cast<char*>(&readEntriesCount), sizeof(uint64_t));
+                        }
                     }
 
-                    threads.emplace_back(WriteBlockStringTypes<ColmnarDB::Types::ComplexPolygon>,
-                                         std::ref(table), std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<ColmnarDB::Types::ComplexPolygon>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition, strPolDataPos);
                 }
             }
 
@@ -594,8 +634,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>,
-                                         std::ref(table), std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<ColmnarDB::Types::Point>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition, 0);
                 }
             }
 
@@ -618,8 +658,12 @@ void Database::PersistOnlyModified(const std::string tableName)
             {
                 if (block->GetSaveNecessary())
                 {
+                    uint64_t strPolDataPos = UINT64_MAX; // this value is there just for debug purposes
+
                     uint32_t blockIndex = block->GetIndex();
                     colFragDataFile.seekg(0, colFragDataFile.end);
+
+                    // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
 
                     if (blockIndex != UINT32_MAX)
@@ -643,14 +687,50 @@ void Database::PersistOnlyModified(const std::string tableName)
                                 colAddressFile.seekp(colAddressFile.tellg() -
                                                      static_cast<int64_t>(sizeof(uint32_t)));
                                 colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
+                                break;
                             }
 
                             i += sizeof(uint32_t);
                         }
+
+                        i = 0;
+                        colDataFile.seekg(0, colDataFile.end);
+                        uint64_t colDataFileLength = colDataFile.tellg();
+                        colDataFile.seekg(0, colDataFile.beg);
+                        while (i < colDataFileLength)
+                        {
+                            uint32_t readBlockIndex;
+                            colDataFile.read(reinterpret_cast<char*>(&readBlockIndex), sizeof(uint32_t));
+
+							if (readBlockIndex == blockIndex)
+                            {
+                                strPolDataPos = static_cast<uint64_t>(colDataFile.tellg()) - sizeof(uint32_t);
+                                break;
+                            }
+
+                            int32_t readGroupId;
+                            colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
+                            if (column.second->GetIsNullable())
+                            {
+                                // TODO toto bude treba zmenit po zmene NullBit masiek z 8 bitov na 64 bitov
+                                int32_t nullBitMaskLength;
+                                std::unique_ptr<int8_t[]> nullBitMask = nullptr;
+                                int32_t nullBitMaskAllocationSize =
+                                    ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+
+                                colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
+                                                 sizeof(int32_t)); // read nullBitMask length
+                                nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
+                                colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
+                                                 nullBitMaskLength); // read nullBitMask
+                            }
+                            uint64_t readEntriesCount;
+                            colDataFile.read(reinterpret_cast<char*>(&readEntriesCount), sizeof(uint64_t));
+                        }
                     }
 
-                    threads.emplace_back(WriteBlockStringTypes<std::string>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<std::string>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, strPolDataPos);
                 }
             }
 
@@ -692,8 +772,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<int8_t>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, 0);
                 }
             }
 
@@ -734,8 +814,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<int32_t>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, 0);
                 }
             }
 
@@ -776,8 +856,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<int64_t>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, 0);
                 }
             }
 
@@ -818,8 +898,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<float>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, 0);
                 }
             }
 
@@ -860,8 +940,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                    threads.emplace_back(WriteBlock<double>, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, 0);
                 }
             }
 

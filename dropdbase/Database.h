@@ -59,38 +59,815 @@ private:
                            const std::string columnName);
 
     /// <summary>
-    /// Write single Int8_t, Int32_t, Int64_t, Float, Double, Point block into disk. It has to seek the block's position in the
-    /// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
+    /// Write single block into disk. It has to seek the block's position
+    /// in the COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
     /// </summary>
     /// <param name="table">Name of the particular table.</param>
     /// <param name="column">Name of the column to which the block belongs to.</param>
     /// <param name="block">Block wich is going to be persisted.</param>
     /// <param name="blockPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
+    /// <param name="strPolDataPos">Block position of COLUMN_DATA_EXTENSION file, used only in ComplexPolygon
+	/// and String block types.</param>
     template <typename T>
-    static void WriteBlockNumericTypes(const Table& table,
-                                       const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                                       const BlockBase<T>& block,
-                                       const uint64_t blockPosition)
+    static void WriteBlock(const Table& table,
+                           const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+                           const BlockBase<T>& block,
+                           const uint64_t blockPosition,
+                           const uint64_t strPolDataPos)
     {
-        // TODO
+
+        std::ofstream colDataFile(fileDataPath, std::ios::binary);
+
+        int32_t blockSize = table.GetBlockSize();
+        std::string fileDataPath = column.second->GetFileDataPath();
+        const std::string tableName = table.GetName();
+
+        // default data path if not specified by user:
+        if (fileDataPath.size() == 0)
+        {
+            fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                           tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+        }
+
+        if (colDataFile.is_open())
+        {
+            const int32_t type = column.second->GetColumnType();
+            const bool isNullable = column.second->GetIsNullable();
+            const bool isUnique = column.second->GetIsUnique();
+
+            switch (type)
+            {
+            case COLUMN_POLYGON:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
+                    dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+
+                std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
+
+                // default data path if not specified by user:
+                if (fileFragmentPath.size() == 0)
+                {
+                    fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
+                                       name_ + SEPARATOR + tableName + SEPARATOR +
+                                       column.second->GetName() + FRAGMENT_DATA_EXTENSION;
+                }
+
+                std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+
+                // persist block data into disk:
+                colFragDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug)
+                    << "Database: Saving block of ComplexPolygon data with index = " << index;
+
+                auto data = block.GetData();
+                int32_t groupId = block.GetGroupId();
+                size_t blockCurrentSize = block.GetSize();
+                int64_t dataByteSize = 0;
+
+				colDataFile.seekp(strPolDataPos);
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write block index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
+
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(uint64_t)); // write number of entries
+
+                if (colFragDataFile.is_open())
+                {
+
+                    // write string data (entries in WKT format) into polygon fragment data file:
+                    for (int32_t i = 0; i < blockCurrentSize; i++)
+                    {
+                        // transform protobuf message into WKT strings:
+                        std::string wktPolygon = ComplexPolygonFactory::WktFromPolygon(data[i]);
+
+                        // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                        dataByteSize += wktPolygon.length() + 1 + sizeof(int32_t);
+
+                        if (dataByteSize <= FRAGMENT_SIZE_BYTES)
+                        {
+                            // writing entries that fit into a fragment
+                            int32_t entryByteLength = wktPolygon.length() + 1; // +1 because '\0'
+
+                            colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                  sizeof(int32_t)); // write entry length
+                            colFragDataFile.write(wktPolygon.c_str(), entryByteLength); // write entry data
+                        }
+                        else
+                        {
+                            // there is still some data which will be saved into next fragment:
+                            // padding the not full fragment to it's maximum size, so the size of fragment is always fixed:
+                            if (dataByteSize - (wktPolygon.length() + 1 + sizeof(int32_t)) < FRAGMENT_SIZE_BYTES)
+                            {
+                                const int32_t freeSpaceByteLength =
+                                    FRAGMENT_SIZE_BYTES -
+                                    (dataByteSize - (wktPolygon.length() + 1 + sizeof(int32_t)));
+
+                                // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                                if (freeSpaceByteLength >= sizeof(int32_t))
+                                {
+                                    int32_t freeSpaceByteLengthNeg = -(freeSpaceByteLength - sizeof(int32_t));
+                                    std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                    colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                          sizeof(int32_t)); // write entry length
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                                }
+                                else
+                                {
+                                    // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                    // do not write int32_t header, because there is no space for it
+                                    std::string emptyStringData(freeSpaceByteLength, '*');
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength); // write empty data
+                                }
+                            }
+
+                            // write the actual entry into another fragment (create a new fragment) and change data byte size:
+                            // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                            dataByteSize = wktPolygon.length() + 1 + sizeof(int32_t);
+
+                            // writing entries that fit into a fragment
+                            int32_t entryByteLength = wktPolygon.length() + 1; // +1 because '\0'
+                            colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                  sizeof(int32_t)); // write entry length
+                            colFragDataFile.write(wktPolygon.c_str(), entryByteLength); // write entry data
+                        }
+
+                        // padding the not full fragment, when there is no data to be saved in another fragmet
+                        if (i == blockCurrentSize - 1)
+                        {
+                            const int32_t freeSpaceByteLength = FRAGMENT_SIZE_BYTES - dataByteSize;
+
+                            // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                            if (freeSpaceByteLength >= sizeof(int32_t))
+                            {
+                                int32_t freeSpaceByteLengthNeg = -(freeSpaceByteLength - sizeof(int32_t));
+                                std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                      sizeof(int32_t)); // write entry length
+                                colFragDataFile.write(emptyStringData.c_str(),
+                                                      freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                            }
+                            else
+                            {
+                                // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                // do not write int32_t header, because there is no space for it
+                                std::string emptyStringData(freeSpaceByteLength, '*');
+                                colFragDataFile.write(emptyStringData.c_str(),
+                                                      freeSpaceByteLength); // write empty data
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Database: Could not open file " +
+                               std::string(Configuration::GetInstance().GetDatabaseDir() + name_ +
+                                           SEPARATOR + tableName + SEPARATOR +
+                                           column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
+                               " for writing. Persisting "
+                        << FRAGMENT_DATA_EXTENSION
+                        << " file was not successful. Check if the process "
+                           "have write access into the folder or file.";
+                }
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+
+                colFragDataFile.close();
+            }
+            break;
+
+            case COLUMN_POINT:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<ColmnarDB::Types::Point>& colPoint =
+                    dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Point data with index = " << index;
+
+                auto data = block.GetData();
+                int32_t groupId = block.GetGroupId();
+                size_t blockCurrentSize = block.GetSize();
+                bool isCompressed = block.IsCompressed();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+
+                // write entries:
+                for (size_t i = 0; i < blockCurrentSize; i++)
+                {
+                    float latitude = data[i].geopoint().latitude();
+                    float longitude = data[i].geopoint().longitude();
+
+                    colDataFile.write(reinterpret_cast<char*>(&latitude), sizeof(float)); // write latitude
+                    colDataFile.write(reinterpret_cast<char*>(&longitude), sizeof(float)); // write longitude
+                }
+
+                // padding to block size with std::numeric_limits<float>::max() values:
+                for (size_t i = blockCurrentSize; i < blockSize; i++)
+                {
+                    float value = std::numeric_limits<float>::max();
+
+                    colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write latitude
+                    colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
+                }
+
+                const int32_t nullBitMaskLength =
+                    (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            case COLUMN_STRING:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<std::string>& colStr =
+                    dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
+
+                std::string fileFragmentPath = colStr.GetFileFragmentPath();
+
+                // default data path if not specified by user:
+                if (fileFragmentPath.size() == 0)
+                {
+                    fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
+                                       name_ + SEPARATOR + tableName + SEPARATOR +
+                                       column.second->GetName() + FRAGMENT_DATA_EXTENSION;
+                }
+
+                std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+
+                // persist block data into disk:
+                colFragDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of String data with index = " << index;
+
+                auto data = block.GetData();
+                int32_t groupId = block.GetGroupId();
+                size_t blockCurrentSize = block.GetSize();
+                int64_t dataByteSize = 0;
+
+				colDataFile.seekp(strPolDataPos);
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+
+
+                if (colFragDataFile.is_open())
+                {
+                    // write string data (entries) into string data file:
+                    for (int32_t i = 0; i < blockCurrentSize; i++)
+                    {
+                        // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                        dataByteSize += data[i].length() + 1 + sizeof(int32_t);
+
+                        if (dataByteSize <= FRAGMENT_SIZE_BYTES)
+                        {
+                            // writing entries that fit into a fragment
+                            int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
+
+                            colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                  sizeof(int32_t)); // write entry length
+                            colFragDataFile.write(data[i].c_str(), entryByteLength); // write entry data
+                        }
+                        else
+                        {
+                            // there is still some data which will be saved into next fragment:
+                            // padding the not full fragment to it's maximum size, so the size of fragment is always fixed:
+                            if (dataByteSize - (data[i].length() + 1 + sizeof(int32_t)) < FRAGMENT_SIZE_BYTES)
+                            {
+                                const int32_t freeSpaceByteLength =
+                                    FRAGMENT_SIZE_BYTES -
+                                    (dataByteSize - (data[i].length() + 1 + sizeof(int32_t)));
+
+                                // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                                if (freeSpaceByteLength >= sizeof(int32_t))
+                                {
+                                    int32_t freeSpaceByteLengthNeg = -(freeSpaceByteLength - sizeof(int32_t));
+                                    std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                    colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                          sizeof(int32_t)); // write entry length
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                                }
+                                else
+                                {
+                                    // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                    // do not write int32_t header, because there is no space for it
+                                    std::string emptyStringData(freeSpaceByteLength, '*');
+                                    colFragDataFile.write(emptyStringData.c_str(),
+                                                          freeSpaceByteLength); // write empty data
+                                }
+                            }
+
+                            // write the actual entry into another fragment (create a new fragment) and change data byte size:
+                            // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
+                            dataByteSize = data[i].length() + 1 + sizeof(int32_t);
+
+                            // writing entries that fit into a fragment
+                            int32_t entryByteLength = data[i].length() + 1; // +1 because '\0'
+                            colFragDataFile.write(reinterpret_cast<char*>(&entryByteLength),
+                                                  sizeof(int32_t)); // write entry length
+                            colFragDataFile.write(data[i].c_str(), entryByteLength); // write entry data
+                        }
+
+                        // padding the not full fragment, when there is no data to be saved in another fragmet
+                        if (i == blockCurrentSize - 1)
+                        {
+                            const int32_t freeSpaceByteLength = FRAGMENT_SIZE_BYTES - dataByteSize;
+
+                            // if there is enough space for padding with int32_t header which tells us how many bytes are padded:
+                            if (freeSpaceByteLength >= sizeof(int32_t))
+                            {
+                                int32_t freeSpaceByteLengthNeg = -(freeSpaceByteLength - sizeof(int32_t));
+                                std::string emptyStringData(freeSpaceByteLength - sizeof(int32_t), '*');
+
+                                colFragDataFile.write(reinterpret_cast<char*>(&freeSpaceByteLengthNeg),
+                                                      sizeof(int32_t)); // write entry length
+                                colFragDataFile.write(emptyStringData.c_str(),
+                                                      freeSpaceByteLength - sizeof(int32_t)); // write empty data
+                            }
+                            else
+                            {
+                                // just write as many '*' as there are free bytes to ensure fixed fragment byte size
+                                // do not write int32_t header, because there is no space for it
+                                std::string emptyStringData(freeSpaceByteLength, '*');
+                                colFragDataFile.write(emptyStringData.c_str(),
+                                                      freeSpaceByteLength); // write empty data
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "Database: Could not open file " +
+                               std::string(Configuration::GetInstance().GetDatabaseDir() + name_ +
+                                           SEPARATOR + tableName + SEPARATOR +
+                                           column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
+                               " for writing. Persisting "
+                        << FRAGMENT_DATA_EXTENSION
+                        << " file was not successful. Check if the process "
+                           "have write access into the folder or file.";
+                }
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+
+                colFragDataFile.close();
+            }
+            break;
+
+            case COLUMN_INT8_T:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int8 data with index = " << index;
+
+                auto data = block.GetData();
+                size_t blockCurrentSize = block.GetSize();
+                std::unique_ptr<int8_t[]> emptyData(new int8_t[blockSize - blockCurrentSize]);
+                std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                          std::numeric_limits<uint8_t>::max());
+                bool isCompressed = block.IsCompressed();
+                int32_t groupId = block.GetGroupId();
+                int8_t min = block.GetMin();
+                int8_t max = block.GetMax();
+                float avg = block.GetAvg();
+                int8_t sum = block.GetSum();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int8_t)); // write statistics min
+                colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int8_t)); // write statistics max
+                colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int8_t)); // write statistics sum
+                colDataFile.write(reinterpret_cast<const char*>(data),
+                                  blockCurrentSize * sizeof(int8_t)); // write block of data
+                colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                  (blockSize - blockCurrentSize) * sizeof(int8_t)); // write empty entries as well
+
+                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            case COLUMN_INT:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<int32_t>& colInt =
+                    dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int32 data with index = " << index;
+
+                auto data = block.GetData();
+                size_t blockCurrentSize = block.GetSize();
+                std::unique_ptr<int32_t[]> emptyData(new int32_t[blockSize - blockCurrentSize]);
+                std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                          std::numeric_limits<uint32_t>::max());
+                bool isCompressed = block.IsCompressed();
+                int32_t groupId = block.GetGroupId();
+                int32_t min = block.GetMin();
+                int32_t max = block.GetMax();
+                float avg = block.GetAvg();
+                int32_t sum = block.GetSum();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int32_t)); // write statistics min
+                colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int32_t)); // write statistics max
+                colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int32_t)); // write statistics sum
+                colDataFile.write(reinterpret_cast<const char*>(data),
+                                  blockCurrentSize * sizeof(int32_t)); // write block of data
+                colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                  (blockSize - blockCurrentSize) * sizeof(int32_t)); // write empty entries as well
+
+                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            case COLUMN_LONG:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<int64_t>& colLong =
+                    dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int64 data with index = " << index;
+
+                auto data = block.GetData();
+                size_t blockCurrentSize = block.GetSize();
+                std::unique_ptr<int64_t[]> emptyData(new int64_t[blockSize - blockCurrentSize]);
+                std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                          std::numeric_limits<uint64_t>::max());
+                bool isCompressed = block.IsCompressed();
+                int32_t groupId = block.GetGroupId();
+                int64_t min = block.GetMin();
+                int64_t max = block.GetMax();
+                float avg = block.GetAvg();
+                int64_t sum = block.GetSum();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                colDataFile.write(reinterpret_cast<char*>(&min), sizeof(int64_t)); // write statistics min
+                colDataFile.write(reinterpret_cast<char*>(&max), sizeof(int64_t)); // write statistics max
+                colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(int64_t)); // write statistics sum
+                colDataFile.write(reinterpret_cast<const char*>(data),
+                                  blockCurrentSize * sizeof(int64_t)); // write block of data
+                colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                  (blockSize - blockCurrentSize) * sizeof(int64_t)); // write empty entries as well
+
+                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            case COLUMN_FLOAT:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Float data with index = " << index;
+
+                auto data = block.GetData();
+                size_t blockCurrentSize = block.GetSize();
+                std::unique_ptr<float[]> emptyData(new float[blockSize - blockCurrentSize]);
+                std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                          std::numeric_limits<float>::max());
+                bool isCompressed = block.IsCompressed();
+                int32_t groupId = block.GetGroupId();
+                float min = block.GetMin();
+                float max = block.GetMax();
+                float avg = block.GetAvg();
+                float sum = block.GetSum();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                colDataFile.write(reinterpret_cast<char*>(&min), sizeof(float)); // write statistics min
+                colDataFile.write(reinterpret_cast<char*>(&max), sizeof(float)); // write statistics max
+                colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(float)); // write statistics sum
+                colDataFile.write(reinterpret_cast<const char*>(data),
+                                  blockCurrentSize * sizeof(float)); // write block of data
+                colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                  (blockSize - blockCurrentSize) * sizeof(float)); // write empty entries as well
+
+                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            case COLUMN_DOUBLE:
+            {
+                uint32_t index = block.GetIndex();
+
+                const ColumnBase<double>& colDouble =
+                    dynamic_cast<const ColumnBase<double>&>(*(column.second));
+
+                // persist block data into disk:
+                colDataFile.seekp(blockPosition);
+
+                BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Double data with index = " << index;
+
+                auto data = block.GetData();
+                size_t blockCurrentSize = block.GetSize();
+                std::unique_ptr<double[]> emptyData(new double[blockSize - blockCurrentSize]);
+                std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
+                          std::numeric_limits<double>::max());
+                bool isCompressed = block.IsCompressed();
+                int32_t groupId = block.GetGroupId();
+                double min = block.GetMin();
+                double max = block.GetMax();
+                float avg = block.GetAvg();
+                double sum = block.GetSum();
+
+                colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
+                colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+                if (isNullable)
+                {
+                    int32_t nullBitMaskLength =
+                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
+                                      sizeof(int32_t)); // write nullBitMask length
+                    colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
+                                      nullBitMaskLength); // write nullBitMask
+                }
+                colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
+                                  sizeof(uint64_t)); // write block length (number of entries)
+                colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
+                colDataFile.write(reinterpret_cast<char*>(&min), sizeof(double)); // write statistics min
+                colDataFile.write(reinterpret_cast<char*>(&max), sizeof(double)); // write statistics max
+                colDataFile.write(reinterpret_cast<char*>(&avg), sizeof(float)); // write statistics avg
+                colDataFile.write(reinterpret_cast<char*>(&sum), sizeof(double)); // write statistics sum
+                colDataFile.write(reinterpret_cast<const char*>(data),
+                                  blockCurrentSize * sizeof(double)); // write block of data
+                colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
+                                  (blockSize - blockCurrentSize) * sizeof(double)); // write empty entries as well
+
+                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+
+                /* check if we did not get UINT32_MAX value in index - this value is reserved
+                to identify new block, which are just in memory and have never been persisted
+                into disk. If index reached this value, it means, the blockSize had been chosen
+                to too small value and we have reached our maximum number of blocks. No new
+                blocks will be persisted in order to at least save the current data.*/
+                if (index == UINT32_MAX)
+                {
+                    BOOST_LOG_TRIVIAL(error)
+                        << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                        << " tha maximum number of block has been reached. For that "
+                           "reason, this block of data and data of other blocks whose have "
+                           "not "
+                           "been persisted yet, will not be persisted in order to protect "
+                           "already persisted data on disk.";
+                    break;
+                }
+            }
+            break;
+
+            default:
+                throw std::domain_error("Unsupported data type (when persisting database): " +
+                                        std::to_string(type));
+                break;
+            }
+
+            colDataFile.close();
+        }
+        else
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "Database: Could not open file " +
+                       std::string(Configuration::GetInstance().GetDatabaseDir() + name_ + SEPARATOR +
+                                   tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
+                       " for writing. Persisting "
+                << COLUMN_DATA_EXTENSION
+                << " file was not successful. Check if the process "
+                   "have write access into the folder or file.";
+        }
     }
 
-    /// <summary>
-    /// Write single String or Polygon block into disk. It has to seek the block's position in the
-    /// COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
-    /// </summary>
-    /// <param name="table">Name of the particular table.</param>
-    /// <param name="column">Name of the column to which the block belongs to.</param>
-    /// <param name="block">Block wich is going to be persisted.</param>
-    /// <param name="blockPosition">Position of the EOF FRAGMENT_DATA_EXTENSION file.</param>
-    template <typename T>
-    static void WriteBlockStringTypes(const Table& table,
-                                      const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                                      const BlockBase<T>& block,
-                                      const uint64_t blockPosition)
-    {
-		//TODO
-    }
 
     /// <summary>
     /// Write column into disk (all it's blocks).
