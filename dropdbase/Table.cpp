@@ -1082,7 +1082,7 @@ std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vec
 }
 #endif
 
-const std::shared_ptr<Database>& Table::GetDatabase()
+const std::shared_ptr<Database>& Table::GetDatabase() const
 {
     return database;
 }

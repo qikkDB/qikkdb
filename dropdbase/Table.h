@@ -62,7 +62,7 @@ private:
     bool GetHasNotNullConstraints();
 
 public:
-    const std::shared_ptr<Database>& GetDatabase();
+    const std::shared_ptr<Database>& GetDatabase() const;
     const std::string& GetName() const;
     void SetTableName(const std::string& newTableName);
     int32_t GetBlockSize() const;

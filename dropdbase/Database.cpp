@@ -1,5 +1,6 @@
 #include <boost/filesystem.hpp>
 #include <boost/log/trivial.hpp>
+#include <boost\algorithm\string\case_conv.hpp>
 #include <cstdint>
 #include <exception>
 #include <fstream>
@@ -17,7 +18,6 @@
 #include "Table.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "QueryEngine/Context.h"
-#include <boost\algorithm\string\case_conv.hpp>
 
 std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
@@ -590,8 +590,9 @@ void Database::PersistOnlyModified(const std::string tableName)
                         }
                     }
 
-                    threads.emplace_back(WriteBlock<ColmnarDB::Types::ComplexPolygon>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, strPolDataPos);
+                    threads.emplace_back(WriteBlockPolygonType,
+                                         std::ref(table), std::ref(column), std::ref(*block),
+                                         blockPosition, strPolDataPos);
                 }
             }
 
@@ -634,8 +635,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<ColmnarDB::Types::Point>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -702,7 +703,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                             uint32_t readBlockIndex;
                             colDataFile.read(reinterpret_cast<char*>(&readBlockIndex), sizeof(uint32_t));
 
-							if (readBlockIndex == blockIndex)
+                            if (readBlockIndex == blockIndex)
                             {
                                 strPolDataPos = static_cast<uint64_t>(colDataFile.tellg()) - sizeof(uint32_t);
                                 break;
@@ -729,8 +730,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         }
                     }
 
-                    threads.emplace_back(WriteBlock<std::string>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, strPolDataPos);
+                    threads.emplace_back(WriteBlockStringType, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition, strPolDataPos);
                 }
             }
 
@@ -772,8 +773,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<int8_t>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -814,8 +815,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<int32_t>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -856,8 +857,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<int64_t>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -898,8 +899,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<float>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
@@ -940,8 +941,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlock<double>, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, 0);
+                    threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
+                                         std::ref(column), std::ref(*block), blockPosition);
                 }
             }
 
