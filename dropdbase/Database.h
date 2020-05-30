@@ -7,14 +7,18 @@
 #include <vector>
 #include <thread>
 #include <mutex>
+#include <fstream>
 #include <limits>
 #include <boost/log/trivial.hpp>
 
 #include "DataType.h"
 #include "ConstraintType.h"
 #include "QueryEngine/Context.h"
+#include "ColumnBase.h"
 #include "Table.h"
 #include "BlockBase.h"
+#include "Types/ComplexPolygon.pb.h"
+
 /// <summary>
 /// The main class representing database containing tables with data.
 /// </summary>
@@ -503,15 +507,15 @@ private:
                                        const uint64_t blockPosition)
     {
         const int32_t blockSize = table.GetBlockSize();
-        const std::string fileDataPath = column.second->GetFileDataPath();
+        std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
         std::ofstream colDataFile(fileDataPath, std::ios::binary);
-        const std::string dbName = table.GetDatabase()->name_;
+        std::string dbName = table.GetDatabase()->name_;
 
         // default data path if not specified by user:
         if (fileDataPath.size() == 0)
         {
-            fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
+            fileDataPath = Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
@@ -535,7 +539,7 @@ private:
             size_t blockCurrentSize = block.GetSize();
             std::unique_ptr<T[]> emptyData(new T[blockSize - blockCurrentSize]);
             std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                      std::numeric_limits<unsigned T>::max());
+                      std::numeric_limits<T>::max());
             bool isCompressed = block.IsCompressed();
             int32_t groupId = block.GetGroupId();
             T min = block.GetMin();

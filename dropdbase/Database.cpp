@@ -1,23 +1,15 @@
 #include <boost/filesystem.hpp>
-#include <boost/log/trivial.hpp>
 #include <boost\algorithm\string\case_conv.hpp>
 #include <cstdint>
 #include <exception>
-#include <fstream>
 #include <stdexcept>
 #include <sys/stat.h>
 #include <sys/types.h>
-#include <thread>
 #include <stdio.h>
-#include <limits>
 
 #include "json/json.h"
-#include "ColumnBase.h"
 #include "Configuration.h"
 #include "Database.h"
-#include "Table.h"
-#include "Types/ComplexPolygon.pb.h"
-#include "QueryEngine/Context.h"
 
 std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
@@ -3117,7 +3109,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int8_t[]> emptyData(new int8_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<uint8_t>::max());
+                              std::numeric_limits<int8_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int8_t min = block->GetMin();
@@ -3193,7 +3185,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int32_t[]> emptyData(new int32_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<uint32_t>::max());
+                              std::numeric_limits<int32_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int32_t min = block->GetMin();
@@ -3269,7 +3261,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     size_t blockCurrentSize = block->GetSize();
                     std::unique_ptr<int64_t[]> emptyData(new int64_t[blockSize - blockCurrentSize]);
                     std::fill(emptyData.get(), emptyData.get() + (blockSize - blockCurrentSize),
-                              std::numeric_limits<uint64_t>::max());
+                              std::numeric_limits<int64_t>::max());
                     bool isCompressed = block->IsCompressed();
                     int32_t groupId = block->GetGroupId();
                     int64_t min = block->GetMin();
