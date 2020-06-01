@@ -1610,14 +1610,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
 /// <param name="dataType">Data type of colum.n</param>
 void Table::CreateColumn(const char* columnName, DataType columnType, bool isNullable, bool isUnique)
 {
-#ifdef COMMUNITY
-    if (columns.size() > Context::getInstance().GetColumnsLimit())
-    {
-        throw std::runtime_error("Unable to insert new column: " + std::string(columnName) +
-                                 ". Community version supports only up to " +
-                                 std::to_string(Context::getInstance().GetColumnsLimit()) + " columns.");
-    }
-#endif // COMMUNITY
+    Context::getInstance().CheckColumnsLimit(columns.size() - 1);
 
     std::unique_ptr<IColumn> column;
 

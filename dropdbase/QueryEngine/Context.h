@@ -119,15 +119,11 @@ public:
 
     std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases();
 
-    int64_t GetRowsLimit() const;
+    void CheckDatabasesLimit(const int64_t databasesCount) const;
 
-    int32_t GetColumnsLimit() const;
+    void CheckTablesLimit(const int64_t tablesCount) const;
 
-    int32_t GetTablesLimit() const;
-
-    int32_t GetDatabasesLimit() const;
-
-    int32_t GetGpusLimit() const;
+    void CheckColumnsLimit(const int64_t columnsCount) const;
 
     void CheckRowsLimit(const int64_t rowsCount) const;
 };

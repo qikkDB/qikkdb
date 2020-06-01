@@ -546,14 +546,8 @@ void Database::LoadDatabasesFromDisk()
                 auto database =
                     Database::LoadDatabase(p.path().filename().stem().generic_string().c_str(), path.c_str());
 
-#ifdef COMMUNITY
-                if (Context::getInstance().GetLoadedDatabases().size() >= Context::getInstance().GetDatabasesLimit())
-                {
-                    throw std::runtime_error(
-                        "Unable to load database: " + database->GetName() + ". Community version supports only up to " +
-                        std::to_string(Context::getInstance().GetDatabasesLimit()) + " databases.");
-                }
-#endif // COMMUNITY
+                Context::getInstance().CheckDatabasesLimit(
+                    Context::getInstance().GetLoadedDatabases().size());
 
                 if (database != nullptr)
                 {
@@ -927,14 +921,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 << "Block size for table: " + std::string(tableName.get()) +
                        " has been loaded and it's value is: " + std::to_string(tableBlockSize) + ".";
 
-#ifdef COMMUNITY
-            if (database->tables_.size() >= Context::getInstance().GetTablesLimit())
-            {
-                throw std::runtime_error("Unable to load table: " + std::string(tableName.get()) +
-                                         ". Community version supports only up to " +
-                                         std::to_string(Context::getInstance().GetTablesLimit()) + " tables.");
-            }
-#endif // COMMUNITY
+            Context::getInstance().CheckTablesLimit(database->tables_.size());
 
             database->tables_.emplace(std::make_pair(std::string(tableName.get()),
                                                      Table(database, tableName.get(), tableBlockSize)));
@@ -967,14 +954,7 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 std::unique_ptr<char[]> columnName(new char[columnNameLength]);
                 dbFile.read(columnName.get(), columnNameLength); // read column name
 
-#ifdef COMMUNITY
-                if (columnNames.size() >= Context::getInstance().GetColumnsLimit())
-                {
-                    throw std::runtime_error("Unable to load column: " + std::string(columnName.get()) +
-                                             ". Community version supports only up to " +
-                                             std::to_string(Context::getInstance().GetColumnsLimit()) + " columns.");
-                }
-#endif // COMMUNITY
+                Context::getInstance().CheckColumnsLimit(columnNames.size());
 
                 columnNames.push_back(columnName.get());
             }
@@ -2123,21 +2103,8 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
                              const std::unordered_map<std::string, bool>& areUnique,
                              int32_t blockSize)
 {
-#ifdef COMMUNITY
-    if (tables_.size() >= Context::getInstance().GetTablesLimit())
-    {
-        throw std::runtime_error("Unable to insert new table: " + std::string(tableName) +
-                                 ". Community version supports only up to " +
-                                 std::to_string(Context::getInstance().GetTablesLimit()) + " tables.");
-    }
-
-    if (columns.size() > Context::getInstance().GetColumnsLimit())
-    {
-        throw std::runtime_error("Unable to insert new table: " + std::string(tableName) + " with " +
-                                 std::to_string(columns.size()) + " columns . Community version supports only up to " +
-                                 std::to_string(Context::getInstance().GetColumnsLimit()) + " columns.");
-    }
-#endif // COMMUNITY
+    Context::getInstance().CheckColumnsLimit(columns.size() - 1);
+    Context::getInstance().CheckTablesLimit(tables_.size());
 
     auto search = tables_.find(tableName);
 
@@ -2202,14 +2169,8 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
 void Database::AddToInMemoryDatabaseList(std::shared_ptr<Database> database)
 {
     std::lock_guard<std::mutex> lock(dbAccessMutex_);
-#ifdef COMMUNITY
-    if (Context::getInstance().GetLoadedDatabases().size() >= Context::getInstance().GetDatabasesLimit())
-    {
-        throw std::runtime_error("Unable to insert new database: " + database->GetName() +
-                                 ". Community version supports only up to " +
-                                 std::to_string(Context::getInstance().GetDatabasesLimit()) + " databases.");
-    }
-#endif // COMMUNITY
+    Context::getInstance().CheckDatabasesLimit(Context::getInstance().GetLoadedDatabases().size());
+
     if (!Context::getInstance().GetLoadedDatabases().insert({database->name_, database}).second)
     {
         throw std::invalid_argument("Attempt to insert duplicate database name");

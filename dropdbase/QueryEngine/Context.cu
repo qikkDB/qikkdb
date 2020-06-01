@@ -1,5 +1,7 @@
 #include "Context.h"
 #include "Context.h"
+#include "Context.h"
+#include "Context.h"
 
 Context::Context()
 {
@@ -35,7 +37,7 @@ void Context::Initialize()
         deviceCount_ = 1;
     }
 #ifdef COMMUNITY
-    deviceCount_ = GetGpusLimit();
+    deviceCount_ = gpusLimit_;
 #endif // COMMUNITY
     const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
@@ -199,29 +201,40 @@ std::unordered_map<std::string, std::shared_ptr<Database>>& Context::GetLoadedDa
     return loadedDatabases_;
 }
 
-int64_t Context::GetRowsLimit() const
+void Context::CheckDatabasesLimit(const int64_t databasesCount) const
 {
-    return rowsLimit_;
+#ifdef COMMUNITY
+    if (databasesCount >= databasesLimit_)
+    {
+        throw std::runtime_error(
+            "Unable to insert new database. Community version supports only up to " +
+            std::to_string(databasesLimit_) + " databases.");
+    }
+#endif // COMMUNITY
 }
 
-int32_t Context::GetColumnsLimit() const
+void Context::CheckTablesLimit(const int64_t tablesCount) const
 {
-    return columnsLimit_;
+#ifdef COMMUNITY
+    if (tablesCount >= tablesLimit_)
+    {
+        throw std::runtime_error(
+            "Unable to insert new table. Community version supports only up to " +
+            std::to_string(tablesLimit_) + " tables.");
+    }
+#endif // COMMUNITY
 }
 
-int32_t Context::GetTablesLimit() const
+void Context::CheckColumnsLimit(const int64_t columnsCount) const
 {
-    return tablesLimit_;
-}
-
-int32_t Context::GetDatabasesLimit() const
-{
-    return databasesLimit_;
-}
-
-int32_t Context::GetGpusLimit() const
-{
-    return gpusLimit_;
+#ifdef COMMUNITY
+    if (columnsCount >= columnsLimit_)
+    {
+        throw std::runtime_error(
+            "Unable to insert new column. Community version supports only up to " +
+            std::to_string(columnsLimit_) + " columns.");
+    }
+#endif // COMMUNITY
 }
 
 void Context::CheckRowsLimit(const int64_t rowsCount) const
@@ -231,7 +244,7 @@ void Context::CheckRowsLimit(const int64_t rowsCount) const
     {
         throw std::runtime_error(
             "Unable to insert new data. Community version supports only up to " +
-            std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
+            std::to_string(rowsLimit_) + " rows.");
     }
 #endif // COMMUNITY
 }
