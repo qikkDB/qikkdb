@@ -41,13 +41,6 @@ private:
     int32_t GPUCachePercent_ = 75;
     int32_t DBSaveInterval_ = 1000;
 
-    // Community limitations. These values might be loaded according to licence in the future.
-    int64_t rowsLimit_ = 1000000000;
-    int32_t columnsLimit_ = 8;
-    int32_t tablesLimit_ = 4;
-    int32_t databasesLimit_ = 2;
-    int32_t gpusLimit_ = 1;
-
     void LoadConfigurationFile();
 
     /// <summary>
@@ -151,30 +144,5 @@ public:
     int32_t GetDBSaveInterval() const
     {
         return DBSaveInterval_;
-    }
-
-    int64_t GetRowsLimit() const
-    {
-        return rowsLimit_;
-    }
-
-    int32_t GetColumnsLimit() const
-    {
-        return columnsLimit_;
-    }
-
-    int32_t GetTablesLimit() const
-    {
-        return tablesLimit_;
-    }
-
-    int32_t GetDatabasesLimit() const
-    {
-        return databasesLimit_;
-    }
-
-    int32_t GetGpusLimit() const
-    {
-        return gpusLimit_;
     }
 };

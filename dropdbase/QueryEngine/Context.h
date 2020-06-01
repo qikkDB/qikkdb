@@ -8,10 +8,11 @@
 
 #include <memory>
 
-#include "../Configuration.h"
 #include "CudaMemAllocator.h"
 #include "GPUError.h"
 #include "GPUMemoryCache.h"
+#include "../Configuration.h"
+
 
 class Database;
 
@@ -41,6 +42,13 @@ private:
 
     // List of loaded databases
     std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
+
+    // Community limitations. These values might be loaded according to licence in the future.
+    const int64_t rowsLimit_ = 1000000000;
+    const int32_t columnsLimit_ = 8;
+    const int32_t tablesLimit_ = 4;
+    const int32_t databasesLimit_ = 2;
+    const int32_t gpusLimit_ = 1;
 
     // Meyer's singleton
     Context();
@@ -110,4 +118,14 @@ public:
     GPUMemoryCache& getCacheForCurrentDevice();
 
     std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases();
+
+    int64_t GetRowsLimit() const;
+
+    int32_t GetColumnsLimit() const;
+
+    int32_t GetTablesLimit() const;
+
+    int32_t GetDatabasesLimit() const;
+
+    int32_t GetGpusLimit() const;
 };

@@ -34,7 +34,7 @@ void Context::Initialize()
         deviceCount_ = 1;
     }
 #ifdef COMMUNITY
-    deviceCount_ = Configuration::GetInstance().GetGpusLimit();
+    deviceCount_ = GetGpusLimit();
 #endif // COMMUNITY
     const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
@@ -196,4 +196,29 @@ GPUMemoryCache& Context::getCacheForCurrentDevice()
 std::unordered_map<std::string, std::shared_ptr<Database>>& Context::GetLoadedDatabases()
 {
     return loadedDatabases_;
+}
+
+int64_t Context::GetRowsLimit() const
+{
+    return rowsLimit_;
+}
+
+int32_t Context::GetColumnsLimit() const
+{
+    return columnsLimit_;
+}
+
+int32_t Context::GetTablesLimit() const
+{
+    return tablesLimit_;
+}
+
+int32_t Context::GetDatabasesLimit() const
+{
+    return databasesLimit_;
+}
+
+int32_t Context::GetGpusLimit() const
+{
+    return gpusLimit_;
 }
