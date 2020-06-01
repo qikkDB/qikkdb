@@ -128,4 +128,6 @@ public:
     int32_t GetDatabasesLimit() const;
 
     int32_t GetGpusLimit() const;
+
+    void CheckRowsLimit(const int64_t rowsCount) const;
 };

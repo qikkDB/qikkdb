@@ -1,4 +1,5 @@
 #include "Context.h"
+#include "Context.h"
 
 Context::Context()
 {
@@ -221,4 +222,16 @@ int32_t Context::GetDatabasesLimit() const
 int32_t Context::GetGpusLimit() const
 {
     return gpusLimit_;
+}
+
+void Context::CheckRowsLimit(const int64_t rowsCount) const
+{
+#ifdef COMMUNITY
+    if (rowsCount >= rowsLimit_)
+    {
+        throw std::runtime_error(
+            "Unable to insert new data. Community version supports only up to " +
+            std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
+    }
+#endif // COMMUNITY
 }

@@ -20,6 +20,8 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/QueryEngine/GPUCore/GPUMemory.cpp
 		${CMAKE_CURRENT_SOURCE_DIR}/Compression/Compression.h
 		${CMAKE_CURRENT_SOURCE_DIR}/Compression/GPUCompression.h
+        ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.h
         ${CMAKE_CURRENT_SOURCE_DIR}/BlockBase.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/ComplexPolygonFactory.cpp
@@ -77,9 +79,7 @@ set(SOURCE_FILES ${CMAKE_CURRENT_SOURCE_DIR}/messages/CSVImportMessage.pb.cc
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/DatabaseGenerator.h)
 
-set(VERSION_FILES ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.cpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/ColumnBase.h
-        ${CMAKE_CURRENT_SOURCE_DIR}/Database.cpp
+set(VERSION_FILES ${CMAKE_CURRENT_SOURCE_DIR}/Database.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Database.h
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.cpp
         ${CMAKE_CURRENT_SOURCE_DIR}/Table.h)

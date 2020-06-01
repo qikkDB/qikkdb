@@ -559,14 +559,7 @@ public:
                                       int32_t groupId = -1,
                                       bool isNullValue = false)
     {
-#ifdef COMMUNITY
-        if (size_ >= Context::getInstance().GetRowsLimit())
-        {
-            throw std::runtime_error(
-                "Unable to insert new data. Community version supports only up to " +
-                std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
-        }
-#endif // COMMUNITY
+        Context::getInstance().CheckRowsLimit(size_);
 
         size_ += 1;
 
@@ -601,14 +594,7 @@ public:
                                               int32_t groupId = -1,
                                               bool isNullValue = false)
     {
-#ifdef COMMUNITY
-        if (size_ >= Context::getInstance().GetRowsLimit())
-        {
-            throw std::runtime_error(
-                "Unable to insert new data. Community version supports only up to " +
-                std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
-        }
-#endif // COMMUNITY
+        Context::getInstance().CheckRowsLimit(size_);
 
         BlockBase<T>& block = *(blocks_[groupId][indexBlock].get());
 
@@ -693,14 +679,7 @@ public:
     /// <param name="columnData">Data to be inserted</param>
     void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
     {
-#ifdef COMMUNITY
-        if (size_ + columnData.size() > Context::getInstance().GetRowsLimit())
-        {
-            throw std::runtime_error(
-                "Unable to insert new data. Community version supports only up to " +
-                std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
-        }
-#endif // COMMUNITY
+        Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
         int32_t startIdx = 0;
 
         saveNecessary_ = true;
@@ -749,14 +728,7 @@ public:
                     int32_t groupId = -1,
                     bool compress = false)
     {
-#ifdef COMMUNITY
-        if (size_ + columnData.size() > Context::getInstance().GetRowsLimit())
-        {
-            throw std::runtime_error(
-                "Unable to insert new data. Community version supports only up to " +
-                std::to_string(Context::getInstance().GetRowsLimit()) + " rows.");
-        }
-#endif // COMMUNITY
+        Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
 
         saveNecessary_ = true;
         BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
