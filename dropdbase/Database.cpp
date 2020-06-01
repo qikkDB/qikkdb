@@ -2131,7 +2131,7 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
                                  std::to_string(Context::getInstance().GetTablesLimit()) + " tables.");
     }
 
-    if (columns.size() >= Context::getInstance().GetColumnsLimit())
+    if (columns.size() > Context::getInstance().GetColumnsLimit())
     {
         throw std::runtime_error("Unable to insert new table: " + std::string(tableName) + " with " +
                                  std::to_string(columns.size()) + " columns . Community version supports only up to " +
