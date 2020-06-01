@@ -443,7 +443,7 @@ public:
     /// <param name="keyTypes">key column types (will be copied to a new buffer)</param>
     /// <param name="sourceIndices">GPU buffer with existing sourceIndices (will be copied to a new buffer)</param>
     /// <param name="keysBuffer">GPU buffer with existing keys (will be copied to a new buffer)</param>
-    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, nullmask_t** keysNullBuffer)
+    GPUGroupBy(int32_t maxHashCount, std::vector<DataType> keyTypes, int32_t* sourceIndices, void** keysBuffer, nullarray_t** keysNullBuffer)
     : GPUGroupBy(maxHashCount, 1, keyTypes)
     {
         // Copy source indices
@@ -517,9 +517,9 @@ public:
                 break;
             }
 
-            nullmask_t* myNullMask;
+            nullarray_t* myNullMask;
             GPUMemory::copyDeviceToHost(&myNullMask, keysNullBuffer_ + i, 1);
-            nullmask_t* srcNullMask;
+            nullarray_t* srcNullMask;
             GPUMemory::copyDeviceToHost(&srcNullMask, keysNullBuffer + i, 1);
             GPUMemory::copyDeviceToDevice(myNullMask, srcNullMask, keyBufferSize_);
         }
@@ -660,7 +660,7 @@ public:
     /// <param name="occurrences">output buffer to fill with reconstructed occurrences</param>
     /// <param name="outDataElementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(std::vector<void*>& multiKeys,
-                               std::vector<std::unique_ptr<nullmask_t[]>>& multiKeysNullMasks,
+                               std::vector<std::unique_ptr<nullarray_t[]>>& multiKeysNullMasks,
                                V* values,
                                nullarray_t* valuesNullMask,
                                int64_t* occurrences,
@@ -721,9 +721,8 @@ public:
             }
 
             // Copy key col pointer to CPU
-            nullmask_t* keyNullSingleBuffer;
-            GPUMemory::copyDeviceToHost(&keyNullSingleBuffer,
-                                        reinterpret_cast<nullmask_t**>(keysNullBuffer_ + t), 1);
+            nullarray_t* keyNullSingleBuffer;
+            GPUMemory::copyDeviceToHost(&keyNullSingleBuffer,(keysNullBuffer_ + t), 1);
 
             GPUReconstruct::reconstructCol(multiKeysNullMasks[t].get(), outDataElementCount,
                                            keyNullSingleBuffer, occupancyMask.get(), keyBufferSize_);
@@ -827,7 +826,7 @@ public:
                 // Copy key col pointer to CPU
                 nullarray_t* keyNullSingleBuffer;
                 GPUMemory::copyDeviceToHost(&keyNullSingleBuffer,
-                                            reinterpret_cast<nullarray_t**>(keysNullBuffer_ + t), 1);
+                                            (keysNullBuffer_ + t), 1);
 
                 // Reconstruct wide null mask
                 nullarray_t* reconstructedNullMask;
@@ -1024,7 +1023,7 @@ public:
                 GPUGroupBy<AGG, O, std::vector<void*>, V>* table =
                     reinterpret_cast<GPUGroupBy<AGG, O, std::vector<void*>, V>*>(tables[i].get());
                 std::vector<void*> multiKeys;
-                std::vector<std::unique_ptr<nullmask_t[]>> keysNullMasks;
+                std::vector<std::unique_ptr<nullarray_t[]>> keysNullMasks;
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
                 std::unique_ptr<nullarray_t[]> valuesNullMask =
                     std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
@@ -1033,7 +1032,7 @@ public:
                 int32_t elementCount;
                 for (int32_t t = 0; t < keysColCount_; t++)
                 {
-                    keysNullMasks.emplace_back(std::make_unique<nullmask_t[]>(table->GetMaxHashCount()));
+                    keysNullMasks.emplace_back(std::make_unique<nullarray_t[]>(table->GetMaxHashCount()));
                 }
 
                 Context::getInstance().bindDeviceToContext(i);
