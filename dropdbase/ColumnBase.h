@@ -544,6 +544,16 @@ public:
         return size_;
     }
 
+    virtual void UpdateSize() override
+    {
+        size_t currentSize = 0;
+        for (auto& block : GetBlocksList())
+        {
+            currentSize += block->GetSize();
+        }
+        size_ = currentSize;
+    }
+
     /// <summary>
     /// Inserts data on proper position in column and split blocks, used with clustered indexes
     /// </summary>

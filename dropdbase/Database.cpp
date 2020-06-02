@@ -2079,6 +2079,7 @@ void Database::LoadColumn(const char* path,
                                     std::string(dbName) + "): " + std::to_string(type));
         }
 
+        table.GetColumns().at(columnName)->UpdateSize();  // Column with special type needs to recount size
         colFile.close();
     }
     else
