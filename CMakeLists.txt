@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 include(${CMAKE_ROOT}/Modules/ExternalProject.cmake)
 SET_DIRECTORY_PROPERTIES(PROPERTIES EP_PREFIX ${CMAKE_BINARY_DIR}/third_party)
-set(PROJECT_NAME dropdbase_instarea)
+set(PROJECT_NAME qikkDB)
 project(${PROJECT_NAME} LANGUAGES C CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 
@@ -25,7 +25,7 @@ if(GIT_IS_DIRTY STREQUAL "DIRTY")
 endif(GIT_IS_DIRTY STREQUAL "DIRTY")
 
 configure_file(
-  ${CMAKE_SOURCE_DIR}/dropdbase/Version.h.in
+  ${CMAKE_SOURCE_DIR}/qikkDB/Version.h.in
   ${CMAKE_BINARY_DIR}/generated/Version.h
 )
 
@@ -202,8 +202,8 @@ include_directories(messages)
 include_directories(Types)
 include_directories(GpuSqlParser)
 
-add_subdirectory(dropdbase)
-add_subdirectory(dropdbase_test)
+add_subdirectory(qikkDB)
+add_subdirectory(qikkDB_test)
 add_custom_target(make-databases-dir ALL COMMAND ${CMAKE_COMMAND} -E make_directory  "${CMAKE_CURRENT_BINARY_DIR}/databases")
 add_custom_target(copy-default-config ALL
         COMMAND ${CMAKE_COMMAND} -E copy_directory
