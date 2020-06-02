@@ -16,7 +16,7 @@ if [ ! -f "build/qikkDB/qikkDB_community" ]; then
     exit 1
 fi
 
-if [ ! -f "publish/console/ColmnarDB.ConsoleClient" ]; then
+if [ ! -f "publish/console/QikkDB.ConsoleClient" ]; then
     echo "Error: Console was not published in srcroot/publish/console."
     echo "Run build_console.sh and try again."
     exit 1

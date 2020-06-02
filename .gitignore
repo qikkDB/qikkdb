@@ -271,12 +271,12 @@ doc/
 databases/
 
 doc/
-dropdbase/GpuSqlParser/.antlr/
+qikkDB/GpuSqlParser/.antlr/
 # User specific configuration files
 configuration/main_config
 configuration/log_config
 
 .antlr
 
-TellStoryDB.Setup.Linux/out
+QikkDB.Setup.Linux/out
 input.txt
