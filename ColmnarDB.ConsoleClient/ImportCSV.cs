@@ -34,7 +34,7 @@ namespace ColmnarDB.ConsoleClient
         {
             this.ipAddress = ipAddress;
             this.port = port;
-            client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");            
+            client = new ColumnarDBClient("Host=" + ipAddress + ";" + "Port=" + port.ToString() + ";");
         }
 
         /// <summary>
@@ -56,13 +56,13 @@ namespace ColmnarDB.ConsoleClient
             try
             {
                 // Table name from path or from argument if present
-                if(tableName == "")
+                if (tableName == "")
                 {
                     tableName = Path.GetFileNameWithoutExtension(path);
                 }
 
                 this.tableName = tableName;
-                
+
                 if (encoding == null)
                 {
                     encoding = ParserCSV.GuessEncoding(path);
@@ -70,7 +70,7 @@ namespace ColmnarDB.ConsoleClient
                 if (columnSeparator == '\0')
                 {
                     columnSeparator = ParserCSV.GuessSeparator(path, encoding);
-                }                
+                }
                 var types = ParserCSV.GuessTypes(path, hasHeader, columnSeparator, encoding);
                 streamLength = ParserCSV.GetStreamLength(path);
 
@@ -103,7 +103,7 @@ namespace ColmnarDB.ConsoleClient
                 bytesImported = new long[threadsCount];
                 linesError = new long[threadsCount];
                 Thread[] threads = new Thread[threadsCount];
-
+                Exception[] threadExceptions = new Exception[threadsCount];
 
                 // Each thread has its own instance of the Parser (because of different position of read) and ColumnarDBClient (because of concurrent bulk import)
                 for (int i = 0; i < threadsCount; i++)
@@ -111,14 +111,33 @@ namespace ColmnarDB.ConsoleClient
                     long start = i * streamThreadLength;
                     long end = i * streamThreadLength + streamThreadLength + 1;
                     int index = i;
-                    threads[index] = new Thread(() => this.ParseAndImportBatch(index, path, configuration, types, start, end));
+                    threadExceptions[index] = null;
+                    threads[index] = new Thread(() =>
+                    {
+                        try
+                        {
+                            this.ParseAndImportBatch(index, path, configuration, types, start, end);
+                        }
+                        catch (Exception ex)
+                        {
+                            threadExceptions[index] = ex;
+                        }
+                    });
                     threads[index].Start();
                     //this.ParseAndImportBatch(index, path, configuration, types, start, end);
                 }
-                
+
                 for (int i = 0; i < threadsCount; i++)
                 {
                     threads[i].Join();
+                }
+
+                for (int i = 0; i < threadsCount; i++)
+                {
+                    if (threadExceptions[i] != null)
+                    {
+                        throw threadExceptions[i];
+                    }
                 }
 
                 for (int i = 0; i < threadsCount; i++)
@@ -131,7 +150,7 @@ namespace ColmnarDB.ConsoleClient
 
                 var endTime = DateTime.Now;
                 Console.WriteLine();
-                Console.WriteLine("Importing done (imported " + lines + " records, " + errors + " failed, " + (endTime - startTime).TotalSeconds.ToString() + "sec.).");                
+                Console.WriteLine("Importing done (imported " + lines + " records, " + errors + " failed, " + (endTime - startTime).TotalSeconds.ToString() + "sec.).");
 
             }
             catch (FileNotFoundException)
@@ -209,7 +228,7 @@ namespace ColmnarDB.ConsoleClient
                 long batchErrorLines;
 
                 var outData = parserCSV.GetNextParsedDataBatch(out batchImportedLines, out batchErrorLines);
-                
+
                 if (outData == null)
                     break;
                 lines += batchImportedLines;
@@ -219,13 +238,21 @@ namespace ColmnarDB.ConsoleClient
                 colData.TableName = tableName;
 
                 mutex.WaitOne();
-                client.BulkImport(colData);
+                try
+                {
+                    client.BulkImport(colData);
+                }
+                catch (Exception)
+                {
+                    mutex.ReleaseMutex();
+                    throw;
+                }
                 mutex.ReleaseMutex();
-                
+
                 linesImported[threadId] = lines;
                 bytesImported[threadId] = parserCSV.GetStreamPosition();
                 linesError[threadId] = errors;
-                
+
                 long totalLinesImported = 0;
                 for (int i = 0; i < linesImported.Length; i++)
                 {
@@ -243,11 +270,11 @@ namespace ColmnarDB.ConsoleClient
                 {
                     totalLinesError += linesError[i];
                 }
-                Console.Write("\rImported " + totalLinesImported + " records so far (" + Math.Min(Math.Round((float)totalBytesImported / streamLength * 100), 100)  + "%)...");
+                Console.Write("\rImported " + totalLinesImported + " records so far (" + Math.Min(Math.Round((float)totalBytesImported / streamLength * 100), 100) + "%)...");
             }
 
             if (stream != null)
-            {                
+            {
                 stream.Dispose();
             }
         }
@@ -290,11 +317,11 @@ namespace ColmnarDB.ConsoleClient
                     client.Query(query);
                 }
                 catch (QueryException)
-                {          
+                {
                     // this exception does not show message and it is necessary to get next result set
                 }
                 catch (Exception)
-                {                    
+                {
                 }
 
                 // get next result to see if new error
@@ -310,7 +337,7 @@ namespace ColmnarDB.ConsoleClient
                 {
                     Console.WriteLine(UnknownException() + e.Message);
                 }
-                
+
             }
             catch (Exception e)
             {
@@ -337,7 +364,7 @@ namespace ColmnarDB.ConsoleClient
             else if (type == typeof(double))
                 result = "DOUBLE";
             else if (type == typeof(DateTime))
-                result = "LONG";            
+                result = "LONG";
             else if (type == typeof(bool))
                 result = "BOOL";
             else if (type == typeof(Point))

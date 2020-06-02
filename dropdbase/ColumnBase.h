@@ -690,6 +690,7 @@ public:
     void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
     {
         Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
+
         int32_t startIdx = 0;
 
         saveNecessary_ = true;

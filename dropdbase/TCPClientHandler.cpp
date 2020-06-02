@@ -508,6 +508,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         {
             BOOST_LOG_TRIVIAL(warning) << e.what();
         }
+        catch (const std::exception& e)
+        {
+            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_message(e.what());
+            return resultMessage;
+        }
     }
     else
     {
@@ -518,6 +524,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         catch (constraint_violation_error& e)
         {
             BOOST_LOG_TRIVIAL(warning) << e.what();
+        }
+        catch (const std::exception& e)
+        {
+            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_message(e.what());
+            return resultMessage;
         }
     }
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);

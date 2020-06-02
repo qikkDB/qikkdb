@@ -2104,8 +2104,8 @@ Table& Database::CreateTable(const std::unordered_map<std::string, DataType>& co
                              const std::unordered_map<std::string, bool>& areUnique,
                              int32_t blockSize)
 {
-    Context::getInstance().CheckColumnsLimit(columns.size() - 1);
     Context::getInstance().CheckTablesLimit(tables_.size());
+    Context::getInstance().CheckColumnsLimit(columns.size() - 1);
 
     auto search = tables_.find(tableName);
 
