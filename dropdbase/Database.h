@@ -610,127 +610,6 @@ private:
     }
 
     /// <summary>
-    /// Write single block Point data into disk. It has to seek the block's position
-    /// in the COLUMN_DATA_EXTENSION file and replace the block's data with the data wich is in memory.
-    /// </summary>
-    /// <param name="table">Name of the particular table.</param>
-    /// <param name="column">Name of the column to which the block belongs to.</param>
-    /// <param name="block">Block wich is going to be persisted.</param>
-    /// <param name="blockPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
-    /// <param name="dbName">Name of the database.</param>
-    /// and String block types.</param>
-    template <>
-    static void
-    WriteBlockNumericTypes<ColmnarDB::Types::Point>(const Table& table,
-                                                    const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                                                    BlockBase<ColmnarDB::Types::Point>& block,
-                                                    const uint64_t blockPosition,
-                                                    const std::string dbName)
-    {
-        int32_t blockSize = table.GetBlockSize();
-        std::string fileDataPath = column.second->GetFileDataPath();
-        const std::string tableName = table.GetName();
-
-        // default data path if not specified by user:
-        if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
-        {
-            fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
-                           tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
-        }
-
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
-
-        if (colDataFile.is_open())
-        {
-            const int32_t type = column.second->GetColumnType();
-            const bool isNullable = column.second->GetIsNullable();
-            const bool isUnique = column.second->GetIsUnique();
-
-            uint32_t index = block.GetIndex();
-
-            const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
-
-            // persist block data into disk:
-            colDataFile.seekp(blockPosition);
-
-            BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Point data with index = " << index;
-
-            auto data = block.GetData();
-            int32_t groupId = block.GetGroupId();
-            size_t blockCurrentSize = block.GetSize();
-            bool isCompressed = block.IsCompressed();
-
-            colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
-            colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-
-            if (isNullable)
-            {
-                int32_t nullBitMaskLength = (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-                colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(int32_t)); // write nullBitMask length
-                colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
-                                  nullBitMaskLength); // write nullBitMask
-            }
-
-            colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
-                              sizeof(uint64_t)); // write block length (number of entries)
-            colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
-
-            // write entries:
-            for (size_t i = 0; i < blockCurrentSize; i++)
-            {
-                float latitude = data[i].geopoint().latitude();
-                float longitude = data[i].geopoint().longitude();
-
-                colDataFile.write(reinterpret_cast<char*>(&latitude), sizeof(float)); // write latitude
-                colDataFile.write(reinterpret_cast<char*>(&longitude), sizeof(float)); // write longitude
-            }
-
-            // padding to block size with std::numeric_limits<float>::max() values:
-            for (size_t i = blockCurrentSize; i < blockSize; i++)
-            {
-                float value = std::numeric_limits<float>::max();
-
-                colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write latitude
-                colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
-            }
-
-            const int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-
-            /* check if we did not get UINT32_MAX value in index - this value is reserved
-            to identify new block, which are just in memory and have never been persisted
-            into disk. If index reached this value, it means, the blockSize had been chosen
-            to too small value and we have reached our maximum number of blocks. No new
-            blocks will be persisted in order to at least save the current data.*/
-            if (index == UINT32_MAX)
-            {
-                BOOST_LOG_TRIVIAL(error)
-                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
-                    << " tha maximum number of block has been reached. For that "
-                       "reason, this block of data and data of other blocks whose have "
-                       "not "
-                       "been persisted yet, will not be persisted in order to protect "
-                       "already persisted data on disk.";
-            }
-
-            colDataFile.close();
-        }
-        else
-        {
-            BOOST_LOG_TRIVIAL(error)
-                << "ERROR: Database: WriteBlockNumericTypes<ColmnarDB::Types::Point> - Could not "
-                   "open file " +
-                       std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
-                                   tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
-                       " for writing. Persisting "
-                << COLUMN_DATA_EXTENSION
-                << " file was not successful. Check if the process "
-                   "have write access into the folder or file.";
-        }
-    }
-
-    /// <summary>
     /// Write column into disk (all it's blocks).
     /// </summary>
     /// <param name="column">Column to be written.</param>
@@ -932,3 +811,11 @@ public:
     /// <param name="databaseName">Name of database to be removed.</param>
     static void RemoveFromInMemoryDatabaseList(const char* databaseName);
 };
+
+template <>
+void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
+    const Table& table,
+    const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
+    BlockBase<ColmnarDB::Types::Point>& block,
+    const uint64_t blockPosition,
+    const std::string dbName);
