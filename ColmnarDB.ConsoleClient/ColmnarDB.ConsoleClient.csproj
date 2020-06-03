@@ -38,7 +38,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="ColmnarDB.ConsoleClient.json">
+    <None Update="config.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

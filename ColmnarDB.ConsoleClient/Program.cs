@@ -38,9 +38,17 @@ namespace ColmnarDB.ConsoleClient
         /// </summary>
         public static void Main(string[] args)
         {
-            ipAddress = GetConfigurationParameter<string>("host");
-            port = GetConfigurationParameter<short>("port");
+            // Parameter from config file
+            if (GetConfigurationParameter<string>("host") != null)
+            {
+                ipAddress = GetConfigurationParameter<string>("host");
+            }                
+            if (GetConfigurationParameter<short?>("port") != null)
+            {
+                port = GetConfigurationParameter<short?>("port").GetValueOrDefault();
+            }
 
+            // Parameter from program arguments
             int timeout = 30000;
             if (args.Length >= 2)
             {
@@ -396,18 +404,15 @@ namespace ColmnarDB.ConsoleClient
 
         }
 
+        private static readonly string configFileName = "config.json";
+
         private static T GetConfigurationParameter<T>(string parameterName)
         {
             Assembly asm = Assembly.GetCallingAssembly();
             
-            string configFileDirectory = Path.GetDirectoryName(asm.Location);
-            string configFileName = string.Format("{0}.json", Path.GetFileNameWithoutExtension(asm.Location));
-
-            string configFilePath = Path.Combine(configFileDirectory, configFileName);
-
-            if (File.Exists(configFilePath))
+            if (File.Exists(configFileName))
             {
-                string configData = File.ReadAllText(configFilePath);
+                string configData = File.ReadAllText(configFileName);
 
                 JObject configObj = (JObject)(JsonConvert.DeserializeObject(configData));
 
