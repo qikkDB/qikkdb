@@ -106,6 +106,51 @@ link_directories(${CMAKE_CURRENT_BINARY_DIR}/yaml-cpp)
 
 ###### YAML-CPP external project end ########
 
+###### JSONCPP external project ########
+string(TOUPPER "${CMAKE_BUILD_TYPE}" CMAKE_BUILD_TYPE_upper )
+set(JSONCPP_TAR_GZ https://github.com/open-source-parsers/jsoncpp/archive/1.9.3.tar.gz)
+
+set(JSONCPP_CMAKE_CACHE_ARGS
+    "-DCMAKE_BUILD_TYPE:STRING=${CMAKE_BUILD_TYPE}"
+    "-DBUILD_STATIC_LIBS:BOOL=ON"
+    "-DBUILD_SHARED_LIBS:BOOL=OFF" 
+    "-DCMAKE_ARCHIVE_OUTPUT_DIRECTORY:STRING=${CMAKE_CURRENT_BINARY_DIR}/jsoncpp"
+    "-DCMAKE_LIBRARY_OUTPUT_DIRECTORY:STRING=${CMAKE_CURRENT_BINARY_DIR}/jsoncpp"
+    "-DJSONCPP_WITH_TESTS:BOOL=OFF"
+    "-DJSONCPP_WITH_POST_BUILD_UNITTEST:BOOL=OFF"
+    "-DJSONCPP_WITH_PKGCONFIG_SUPPORT:BOOL=OFF"
+    "-DJSONCPP_WITH_CMAKE_PACKAGE:BOOL=OFF")
+
+set(JSONCPP_CMAKE_ARGS "")
+
+IF(MSVC)
+    set(JSONCPP_CMAKE_ARGS
+    "-DCMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_upper}=${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE_upper}} /MT$<$<CONFIG:Debug>:d>"
+    "-DCMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_upper}=${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE_upper}} /MT$<$<CONFIG:Debug>:d>"
+    "-DCMAKE_MSVC_RUNTIME_LIBRARY:STRING=MultiThreaded$<$<CONFIG:Debug>:Debug>")
+ENDIF(MSVC)
+
+ExternalProject_Add(
+  jsoncpp-external
+  PREFIX jsoncpp
+  URL ${JSONCPP_TAR_GZ}
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/jsoncpp
+  CMAKE_ARGS
+    ${JSONCPP_CMAKE_ARGS}
+    # other project specific parameters
+  CMAKE_CACHE_ARGS
+    ${JSONCPP_CMAKE_CACHE_ARGS}
+  BUILD_ALWAYS 1
+  STEP_TARGETS build
+  INSTALL_COMMAND ""
+)
+
+EXternalProject_Get_Property(jsoncpp-external source_dir)
+include_directories(${source_dir}/include)
+link_directories(${CMAKE_CURRENT_BINARY_DIR}/jsoncpp)
+
+###### JSONCPP external project end ########
+
 ###### Antlr4 external project ########
 
 add_definitions(-DANTLR4CPP_STATIC)
@@ -196,9 +241,6 @@ ELSE(MSVC)
 ENDIF(MSVC)
 find_package(Boost 1.66.0 COMPONENTS log_setup log system filesystem iostreams REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-
-find_package(jsoncpp CONFIG REQUIRED)
-include_directories(${JSONCPP_INCLUDE_DIRS})
 
 include_directories(.)
 include_directories(messages)
