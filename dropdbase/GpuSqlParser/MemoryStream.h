@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include "../NativeGeoPoint.h"
 
 /// Custom byte array memory stream used to store and read arbitrary data type operands
 /// of dispatcher functions
@@ -45,4 +46,7 @@ void MemoryStream::Insert(const std::string& value);
 
 template <>
 std::string MemoryStream::Read();
+
+template <>
+NativeGeoPoint MemoryStream::Read();
 #endif // DROPDBASE_INSTAREA_MEMORYSTREAM_H

@@ -515,11 +515,17 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     std::string prefix = Configuration::GetInstance().GetDatabaseDir() + dbName +
                          Database::SEPARATOR + "TestTable2" + Database::SEPARATOR;
+    // Replace backslash with slash just to be sure in comparison
+    std::replace(prefix.begin(), prefix.end(), '\\', '/');
 
     for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
     {
-        // delete files which starts with prefix of db name and table name:
-        if (!p.path().string().compare(0, prefix.size(), prefix))
+        // Replace backslash with slash for comparison with prefix
+        std::string columnPath = p.path().string();
+        std::replace(columnPath.begin(), columnPath.end(), '\\', '/');
+
+        // Check files which starts with prefix of db name and table name
+        if (!columnPath.compare(0, prefix.size(), prefix))
         {
             deleted = false;
         }
@@ -531,10 +537,17 @@ TEST_F(DatabaseTests, IntegrationTest)
     deleted = true;
 
     prefix = Configuration::GetInstance().GetDatabaseDir() + dbName + Database::SEPARATOR;
+    // Replace backslash with slash just to be sure in comparison
+    std::replace(prefix.begin(), prefix.end(), '\\', '/');
 
     for (auto& p : boost::filesystem::directory_iterator(Configuration::GetInstance().GetDatabaseDir()))
     {
-        if (!p.path().string().compare(0, prefix.size(), prefix))
+        // Replace backslash with slash for comparison with prefix
+        std::string columnPath = p.path().string();
+        std::replace(columnPath.begin(), columnPath.end(), '\\', '/');
+
+        // Check files which starts with prefix of db name
+        if (!columnPath.compare(0, prefix.size(), prefix))
         {
             deleted = false;
         }

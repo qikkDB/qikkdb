@@ -8,10 +8,11 @@
 
 #include <memory>
 
-#include "../Configuration.h"
 #include "CudaMemAllocator.h"
 #include "GPUError.h"
 #include "GPUMemoryCache.h"
+#include "../Configuration.h"
+
 
 class Database;
 
@@ -42,106 +43,23 @@ private:
     // List of loaded databases
     std::unordered_map<std::string, std::shared_ptr<Database>> loadedDatabases_;
 
-    // Meyer's singleton
-    Context()
-    {
-        Initialize();
-    }
+    // Community limitations. These values might be loaded according to licence in the future.
+    const int64_t rowsLimit_ = 1000000000;
+    const int32_t columnsLimit_ = 8;
+    const int32_t tablesLimit_ = 4;
+    const int32_t databasesLimit_ = 2;
+    const int32_t gpusLimit_ = 1;
 
-    ~Context()
-    {
-        gpuCaches_.clear();
-        gpuAllocators_.clear();
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            // Bind device and clean up
-            bindDeviceToContext(i);
-            cudaDeviceReset();
-        }
-    }
+    // Meyer's singleton
+    Context();
+
+    ~Context();
 
     Context(const Context&) = delete;
 
     Context& operator=(const Context&) = delete;
 
-    void Initialize()
-    {
-        const cudaError_t err = cudaGetDeviceCount(&deviceCount_);
-        if (err != cudaSuccess)
-        {
-            CudaLogBoost::getInstance(CudaLogBoost::error)
-                << "cudaGetDeviceCount returns " << err << " which is " << cudaGetErrorName(err) << '\n';
-            throw std::invalid_argument("ERROR: Unable to get device count");
-        }
-
-        // DANGER     DANGER     DANGER     DANGER      DANGER      DANGER
-        // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
-        // deviceCount_ = 1;
-        /////////////////////// DEADLY DEADLY DEADLY ///////////////////////
-        const int cachePercentage = Configuration::GetInstance().GetGPUCachePercentage();
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing CUDA devices..." << '\n';
-        CudaLogBoost::getInstance(CudaLogBoost::info) << "Found " << deviceCount_ << " CUDA devices" << '\n';
-
-        // Get devices information
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            // Bind device and initialize everything for a device allocators/cache
-            bindDeviceToContext(i);
-
-            // Get devices information
-            cudaDeviceProp deviceProp;
-            if (cudaGetDeviceProperties(&deviceProp, i) != cudaSuccess)
-            {
-                throw std::invalid_argument("ERROR: Failed to get GPU info");
-            }
-            devicesMetaInfoList_.push_back(deviceProp);
-            // Print memory info
-            size_t free, total;
-            cudaMemGetInfo(&free, &total);
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing memory for device " << i << "\n";
-            // Initialize allocators
-            gpuAllocators_.emplace_back(std::make_unique<CudaMemAllocator>(i));
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Initializing cache for device " << i << "\n";
-            // Initialize cache
-            size_t cacheSize = static_cast<int64_t>(free * static_cast<double>(cachePercentage) / 100.0);
-            gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i, cacheSize));
-
-            // Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
-            queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
-
-            // Print device info
-            CudaLogBoost::getInstance(CudaLogBoost::info)
-                << "Device " << i << " Initialization done " << deviceProp.name
-                << "\t maxBlockDim: " << deviceProp.maxThreadsPerBlock << "\n";
-
-            CudaLogBoost::getInstance(CudaLogBoost::info) << "Memory: Total: " << total << " B Free: " << free
-                                                          << "B Cache: " << cacheSize << " B" << '\n';
-        }
-
-        // Bind default device and notify the user
-        bindDeviceToContext(DEFAULT_DEVICE_ID);
-        CudaLogBoost::getInstance(CudaLogBoost::info)
-            << "Bound default device ID: " << getBoundDeviceID() << '\n';
-
-        // Enable peer to peer communication of each GPU to the default device
-        // This operation is unidirectional
-        for (int32_t i = 0; i < deviceCount_; i++)
-        {
-            if (i != DEFAULT_DEVICE_ID)
-            {
-                int32_t canAccessPeer;
-                if (cudaDeviceCanAccessPeer(&canAccessPeer, DEFAULT_DEVICE_ID, i) != cudaSuccess)
-                {
-                    throw std::invalid_argument("ERROR: CUDA peer acces not supported");
-                }
-                if (canAccessPeer == 1)
-                {
-                    cudaDeviceEnablePeerAccess(i, DEFAULT_DEVICE_ID);
-                }
-            }
-        }
-    }
+    void Initialize();
 
 public:
     /// The default bound CUDA device ID
@@ -149,128 +67,63 @@ public:
 
     /// Get a class instance, if class was not initialized prior a new instance is returned
     /// <returns>an instance of this class</returns>
-    static Context& getInstance()
-    {
-        // Static instance - constructor called only once
-        static Context instance;
-        return instance;
-    }
+    static Context& getInstance();
 
     /// Calculate the size of the CUDA grid for kernel launches
     /// <param name="dataElementCount">number of data elements for CUDA to process</param>
-    int32_t calcGridDim(size_t dataElementCount)
-    {
-        if (dataElementCount <= 0)
-        {
-            CheckQueryEngineError(QueryEngineErrorType::GPU_EXTENSION_ERROR,
-                                  "Data Element Count must be > 0");
-        }
-        int blockCount = (dataElementCount + getBlockDim() - 1) / getBlockDim();
-        if (blockCount >= (DEFAULT_GRID_DIMENSION_LIMIT + 1))
-        {
-            blockCount = DEFAULT_GRID_DIMENSION_LIMIT;
-        }
-        return blockCount;
-    }
+    int32_t calcGridDim(size_t dataElementCount);
 
     /// Get default block dimension - the size of a stream multiprocessor
     /// <returns>the size of an optimal block</returns>
-    int32_t getBlockDim() const
-    {
-        return queriedBlockDimensionList[getBoundDeviceID()];
-    }
+    int32_t getBlockDim() const;
 
     /// Get default block dimension for a polygon operation - half the size of a stream
     /// multiprocessor <returns>the size of an optimal block</returns>
-    int32_t getBlockDimPoly() const
-    {
-        return queriedBlockDimensionList[getBoundDeviceID()] / 2;
-    }
+    int32_t getBlockDimPoly() const;
 
     /// Get the currently bound device to the context
     /// <returns>the bound device ID</returns>
-    int32_t getBoundDeviceID() const
-    {
-        int boundDeviceID = -1;
-        cudaGetDevice(&boundDeviceID);
-        return boundDeviceID;
-    }
+    int32_t getBoundDeviceID() const;
 
     /// Get the number of found devices on a platform
     /// <returns>the number of found devices</returns>
-    int32_t getDeviceCount() const
-    {
-        return deviceCount_;
-    }
+    int32_t getDeviceCount() const;
 
     /// Query info about devices and rebinding devices to the context
     /// <returns>Returns a vector of structures of type cudaDeviceProp, the device properties
     /// obtainable from this structre are documented in the CUDA documentation</returns>
-    const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const
-    {
-        return devicesMetaInfoList_;
-    }
+    const std::vector<cudaDeviceProp>& getDevicesMetaInfoList() const;
 
     /// Bind device to the context if neccessary, if the given id is out of range,
     /// the default device is bound
     /// <param name="deviceID">the ID of the device to be bound</param>
-    void bindDeviceToContext(int32_t deviceID)
-    {
-        // Check for invalid range
-        if (deviceID < 0 || deviceID >= deviceCount_)
-        {
-            throw std::out_of_range("ERROR: Device ID not present");
-        }
-        cudaDeviceSynchronize();
-        auto error = cudaSetDevice(deviceID);
-        cudaDeviceSynchronize();
-        CheckCudaError(error);
-    }
+    void bindDeviceToContext(int32_t deviceID);
 
     /// Obtain the memory allocator for a given device
     /// <param name="deviceID">the ID of the device whose allocator has to be found</param>
     /// <returns>the memory allocator for memory operations on the selected device</returns>
-    CudaMemAllocator& GetAllocatorForDevice(int32_t deviceID)
-    {
-        // Check for invalid range
-        if (deviceID < 0 || deviceID >= deviceCount_)
-        {
-            throw std::out_of_range("ERROR: Device ID not present");
-        }
-
-        return *gpuAllocators_.at(deviceID);
-    }
+    CudaMemAllocator& GetAllocatorForDevice(int32_t deviceID);
 
     /// Obtain the memory allocator for the currently bound device
     /// <returns>the memory allocator for memory operations on the current device</returns>
-    CudaMemAllocator& GetAllocatorForCurrentDevice()
-    {
-        return *gpuAllocators_.at(getBoundDeviceID());
-    }
+    CudaMemAllocator& GetAllocatorForCurrentDevice();
 
     /// Obtain the cache for a given device
     /// <param name="deviceID">the ID of the device whose cache has to be found</param>
     /// <returns>the gpu cache on the selected device</returns>
-    GPUMemoryCache& getCacheForDevice(int32_t deviceID)
-    {
-        // Check for invalid range
-        if (deviceID < 0 || deviceID >= deviceCount_)
-        {
-            throw std::out_of_range("ERROR: Device ID not present");
-        }
-
-        return *gpuCaches_.at(deviceID);
-    }
+    GPUMemoryCache& getCacheForDevice(int32_t deviceID);
 
     /// Obtain the cache for the currently bound device
     /// <returns>the cache on the current device</returns>
-    GPUMemoryCache& getCacheForCurrentDevice()
-    {
-        return *gpuCaches_.at(getBoundDeviceID());
-    }
+    GPUMemoryCache& getCacheForCurrentDevice();
 
-    std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases()
-    {
-        return loadedDatabases_;
-    }
+    std::unordered_map<std::string, std::shared_ptr<Database>>& GetLoadedDatabases();
+
+    void CheckDatabasesLimit(const int64_t databasesCount) const;
+
+    void CheckTablesLimit(const int64_t tablesCount) const;
+
+    void CheckColumnsLimit(const int64_t columnsCount) const;
+
+    void CheckRowsLimit(const int64_t rowsCount) const;
 };

@@ -3,6 +3,8 @@
 //
 
 #include "MemoryStream.h"
+#include "../PointFactory.h"
+#include "../Types/Point.pb.h"
 
 // template<>
 // void MemoryStream::insert(const char *value)
@@ -27,6 +29,14 @@ std::string MemoryStream::Read()
     std::string str(buffer_.begin() + readOffset_, buffer_.begin() + readOffset_ + len);
     readOffset_ += len;
     return str;
+}
+
+template <>
+NativeGeoPoint MemoryStream::Read()
+{
+    std::string pointWkt = Read<std::string>();
+    ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(pointWkt);
+    return {pointConst.geopoint().latitude(), pointConst.geopoint().longitude()};
 }
 
 MemoryStream::MemoryStream()

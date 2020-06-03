@@ -26,6 +26,11 @@ enum DataType
     DATA_TYPE_SIZE = 16
 };
 
+enum class PayloadType
+{
+    PAYLOAD_DEFAULT = 0, PAYLOAD_DATE = 1
+};
+
 constexpr int32_t numOfDataTypes = DATA_TYPE_SIZE / 2;
 
 constexpr int32_t GetDataTypeSize(DataType type)
@@ -76,3 +81,5 @@ DataType GetColumnDataTypeFromString(const std::string& dataType);
 std::string GetStringFromColumnDataType(DataType type);
 
 DataType GetConstDataType(DataType type);
+
+PayloadType GetPayloadTypeFromString(const std::string& dataType);

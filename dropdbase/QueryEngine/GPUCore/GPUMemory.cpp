@@ -16,7 +16,7 @@ void GPUMemory::clear()
 
 void GPUMemory::free(void* p_block)
 {
-    Context::getInstance().GetAllocatorForCurrentDevice().deallocate(static_cast<int8_t*>(p_block), 0);
+    Context::getInstance().GetAllocatorForCurrentDevice().Deallocate(static_cast<int8_t*>(p_block));
     CheckCudaError(cudaGetLastError());
 }
 
@@ -53,15 +53,15 @@ void GPUMemory::free(GPUString stringCol)
 
 size_t GPUMemory::CalculateNullMaskSize(size_t dataElementCount, bool for32bit)
 {
-    if (for32bit)
-    {
-        return ((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8)) *
-               (sizeof(int32_t) / sizeof(int8_t));
-    }
-    else
-    {
-        return (dataElementCount + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
-    }
+    /* if (for32bit)
+     {
+         return ((dataElementCount + sizeof(int32_t) * 8 - 1) / (sizeof(int32_t) * 8)) *
+                (sizeof(int32_t) / sizeof(int8_t));
+     }
+     else
+     {*/
+    return NullValues::GetNullBitMaskSize(dataElementCount);
+    //}
 }
 
 template <>

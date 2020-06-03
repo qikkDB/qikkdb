@@ -242,6 +242,14 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         reg = "$" + op + "(" + operand + ")";
         returnDataType = COLUMN_INT;
         break;
+    case GpuSqlLexer::WEEKDAY:
+        reg = "$" + op + "(" + operand + ")";
+        returnDataType = COLUMN_INT;
+        break;
+    case GpuSqlLexer::DAYOFWEEK:
+        reg = "$" + op + "(" + operand + ")";
+        returnDataType = COLUMN_INT;
+        break;
     case GpuSqlLexer::ABS:
         reg = "$" + op + "(" + operand + ")";
         returnDataType = GetReturnDataType(operandType);
@@ -420,6 +428,7 @@ void CpuWhereListener::exitGeoReference(GpuSqlParser::GeoReferenceContext* ctx)
 void CpuWhereListener::exitVarReference(GpuSqlParser::VarReferenceContext* ctx)
 {
     std::string colName = ctx->columnId()->getText();
+    TrimDelimitedIdentifier(colName);
 
     if (columnAliasContexts_.find(colName) != columnAliasContexts_.end() && !insideAlias_)
     {
@@ -532,6 +541,7 @@ void CpuWhereListener::ExtractColumnAliasContexts(GpuSqlParser::SelectColumnsCon
         if (selectColumn->alias())
         {
             std::string alias = selectColumn->alias()->getText();
+            TrimDelimitedIdentifier(alias);
             if (columnAliasContexts_.find(alias) != columnAliasContexts_.end())
             {
                 throw AliasRedefinitionException(alias);
@@ -691,6 +701,7 @@ std::pair<std::string, DataType> CpuWhereListener::GenerateAndValidateColumnName
     std::string column;
 
     std::string col = ctx->column()->getText();
+    TrimDelimitedIdentifier(col);
 
     if (ctx->table())
     {

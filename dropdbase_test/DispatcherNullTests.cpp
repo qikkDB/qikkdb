@@ -59,8 +59,8 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     std::unordered_map<std::string, DataType> columns;
     columns.emplace("Col1", COLUMN_INT);
     database->CreateTable(columns, "TestTable");
-    std::vector<int8_t> expectedMask;
-    int8_t bitMaskPart = 0;
+    std::vector<nullmask_t> expectedMask;
+    nullmask_t bitMaskPart = 0;
     int nullCount = 0;
     for (int i = 0; i < 16; i++)
     {
@@ -82,11 +82,11 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
-    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
-    ASSERT_EQ(nullBitMask.size(), expectedMask.size());
-    for (int i = 0; i < nullBitMask.size(); i++)
+    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1").nullmask();
+    // ASSERT_EQ(nullBitMask.size(), expectedMask.size());
+    for (int i = 0; i < expectedMask.size(); i++)
     {
-        ASSERT_FLOAT_EQ(expectedMask[i], nullBitMask[i]);
+        ASSERT_EQ(expectedMask[i], nullBitMask[i]);
     }
     Database::RemoveFromInMemoryDatabaseList("TestDb");
 }
@@ -185,18 +185,14 @@ TEST(DispatcherNullTests, OrderByNullTest)
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     std::stable_sort(expectedResults.begin(), expectedResults.end());
-
-    // Print null column
-    int32_t nullColSize =
-        (payload.intpayload().intdata_size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
 
     ASSERT_EQ(payload.intpayload().intdata_size(), expectedResults.size());
     for (int32_t i = 0; i < expectedResults.size(); i++)
     {
-        int8_t nullBit = (nullBitMask[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit = NullValues::GetConcreteBitFromBitmask(nullBitMask.begin(), i);
         if (!nullBit)
         {
             ASSERT_EQ(expectedResults[i], payload.intpayload().intdata()[i]);
@@ -285,16 +281,16 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
     auto& payload1 = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     auto& payload2 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2").nullmask();
 
     auto& payload3 = result->payloads().at("TestTable.Col3");
-    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3").nullmask();
 
     auto& payload4 = result->payloads().at("TestTable.Col4");
-    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4").nullmask();
 
 
     ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
@@ -304,7 +300,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
 
     for (int32_t i = 0; i < expectedResults1.size(); i++)
     {
-        int8_t nullBit1 = (nullBitMask1[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit1 = NullValues::GetConcreteBitFromBitmask(nullBitMask1.begin(), i);
         if (!nullBit1)
         {
             ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]);
@@ -314,7 +310,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults1[i], 0);
         }
 
-        int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit2 = NullValues::GetConcreteBitFromBitmask(nullBitMask2.begin(), i);
         if (!nullBit2)
         {
             ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
@@ -324,7 +320,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults2[i], "0");
         }
 
-        int8_t nullBit3 = (nullBitMask3[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit3 = NullValues::GetConcreteBitFromBitmask(nullBitMask3.begin(), i);
         if (!nullBit3)
         {
             ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
@@ -334,7 +330,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
             ASSERT_EQ(expectedResults3[i], "0");
         }
 
-        int8_t nullBit4 = (nullBitMask4[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit4 = NullValues::GetConcreteBitFromBitmask(nullBitMask4.begin(), i);
         if (!nullBit4)
         {
             ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);
@@ -430,16 +426,16 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
     auto& payload1 = result->payloads().at("TestTable.Col1");
-    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1").nullmask();
 
     auto& payload2 = result->payloads().at("TestTable.Col2");
-    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2").nullmask();
 
     auto& payload3 = result->payloads().at("TestTable.Col3");
-    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3").nullmask();
 
     auto& payload4 = result->payloads().at("TestTable.Col4");
-    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4").nullmask();
 
 
     ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
@@ -449,7 +445,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
 
     for (int32_t i = 0; i < expectedResults1.size(); i++)
     {
-        int8_t nullBit1 = (nullBitMask1[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit1 = (nullBitMask1[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit1)
         {
             ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]) << i;
@@ -459,7 +455,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults1[i], 0);
         }
 
-        int8_t nullBit2 = (nullBitMask2[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit2 = (nullBitMask2[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit2)
         {
             ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
@@ -469,7 +465,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults2[i], "0");
         }
 
-        int8_t nullBit3 = (nullBitMask3[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit3 = (nullBitMask3[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit3)
         {
             ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
@@ -479,7 +475,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
             ASSERT_EQ(expectedResults3[i], "0");
         }
 
-        int8_t nullBit4 = (nullBitMask4[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBit4 = (nullBitMask4[i / (sizeof(nullmask_t) * 8)] >> (i % (sizeof(nullmask_t) * 8))) & 1;
         if (!nullBit4)
         {
             ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);
@@ -563,16 +559,16 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 
 
     auto& payloadA = result->payloads().at("TestTableR.ColA");
-    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA").nullmask();
 
     auto& payloadB = result->payloads().at("TestTableS.ColB");
-    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
+    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB").nullmask();
 
     ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
     for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
     {
-        int8_t nullBitA = (nullBitMaskA[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
-        int8_t nullBitB = (nullBitMaskB[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+        int8_t nullBitA = NullValues::GetConcreteBitFromBitmask(nullBitMaskA.begin(), i);
+        int8_t nullBitB = NullValues::GetConcreteBitFromBitmask(nullBitMaskB.begin(), i);
 
         ASSERT_EQ(nullBitA, nullBitB);
 
@@ -584,6 +580,149 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
 
 
     Database::RemoveFromInMemoryDatabaseList("TestDbJoinNULL");
+}
+
+TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
+{
+    srand(42);
+    Database::RemoveFromInMemoryDatabaseList("TestDbLimitOffsetNULL");
+
+    int32_t blockSize = 1 << 5;
+
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDbLimitOffsetNULL"));
+    Database::AddToInMemoryDatabaseList(database);
+
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("ColA", COLUMN_INT);
+    columns.emplace("Col1", COLUMN_INT);
+    columns.emplace("Col2", COLUMN_STRING);
+    columns.emplace("Col3", COLUMN_POINT);
+    columns.emplace("Col4", COLUMN_POLYGON);
+    database->CreateTable(columns, "TestTable");
+
+    std::vector<int32_t> expectedResults1;
+    std::vector<std::string> expectedResults2;
+    std::vector<std::string> expectedResults3;
+    std::vector<std::string> expectedResults4;
+
+    for (int32_t i = 0; i < 17; i++)
+    {
+        if (i % 2)
+        {
+            GpuSqlCustomParser parser(database, "INSERT INTO TestTable (ColA, Col1, Col2, Col3, Col4) "
+                                                "VALUES (1, null, null, null, null);");
+            parser.Parse();
+
+            if (i > 2 && expectedResults1.size() < 9)
+            {
+                expectedResults1.push_back(0);
+                expectedResults2.push_back("0");
+                expectedResults3.push_back("0");
+                expectedResults4.push_back("0");
+            }
+        }
+        else
+        {
+            int32_t val = 1;
+            std::string valString = std::to_string(1);
+
+            std::stringstream ssPoint;
+            std::stringstream ssPolygon;
+
+            ssPoint << "POINT(" << valString << " " << valString << ")";
+            ssPolygon << "POLYGON((" << valString << " " << valString << ", " << valString << " "
+                      << valString << "))";
+
+            std::stringstream ssQuery;
+
+            ssQuery << "INSERT INTO TestTable (ColA, Col1, Col2, Col3, Col4) VALUES (1, " << valString << ", "
+                    << "\"" << valString << "\""
+                    << ", " << ssPoint.str() << ", " << ssPolygon.str() << ");";
+
+            GpuSqlCustomParser parser(database, ssQuery.str());
+            parser.Parse();
+
+            if (i > 2 && expectedResults1.size() < 9)
+            {
+                expectedResults1.push_back(val);
+                expectedResults2.push_back(valString);
+                expectedResults3.push_back(
+                    PointFactory::WktFromPoint(PointFactory::FromWkt(ssPoint.str()), true));
+                expectedResults4.push_back(
+                    ComplexPolygonFactory::WktFromPolygon(ComplexPolygonFactory::FromWkt(ssPolygon.str()), true));
+            }
+        }
+    }
+
+    GpuSqlCustomParser parser(database,
+                              "SELECT Col1, Col2, Col3, Col4 FROM TestTable WHERE ColA = 1 LIMIT 9 OFFSET 3;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto column = dynamic_cast<ColumnBase<int32_t>*>(
+        database->GetTables().at("TestTable").GetColumns().at("Col1").get());
+
+    auto& payload1 = result->payloads().at("TestTable.Col1");
+    auto& nullBitMask1 = result->nullbitmasks().at("TestTable.Col1").nullmask();
+
+    auto& payload2 = result->payloads().at("TestTable.Col2");
+    auto& nullBitMask2 = result->nullbitmasks().at("TestTable.Col2").nullmask();
+
+    auto& payload3 = result->payloads().at("TestTable.Col3");
+    auto& nullBitMask3 = result->nullbitmasks().at("TestTable.Col3").nullmask();
+
+    auto& payload4 = result->payloads().at("TestTable.Col4");
+    auto& nullBitMask4 = result->nullbitmasks().at("TestTable.Col4").nullmask();
+
+
+    ASSERT_EQ(payload1.intpayload().intdata_size(), expectedResults1.size());
+    ASSERT_EQ(payload2.stringpayload().stringdata_size(), expectedResults2.size());
+    ASSERT_EQ(payload3.stringpayload().stringdata_size(), expectedResults3.size());
+    ASSERT_EQ(payload4.stringpayload().stringdata_size(), expectedResults4.size());
+
+    for (int32_t i = 0; i < expectedResults1.size(); i++)
+    {
+        int8_t nullBit1 = NullValues::GetConcreteBitFromBitmask(nullBitMask1.begin(), i);
+        if (!nullBit1)
+        {
+            ASSERT_EQ(expectedResults1[i], payload1.intpayload().intdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults1[i], 0);
+        }
+
+        int8_t nullBit2 = NullValues::GetConcreteBitFromBitmask(nullBitMask2.begin(), i);
+        if (!nullBit2)
+        {
+            ASSERT_EQ(expectedResults2[i], payload2.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults2[i], "0");
+        }
+
+        int8_t nullBit3 = NullValues::GetConcreteBitFromBitmask(nullBitMask3.begin(), i);
+        if (!nullBit3)
+        {
+            ASSERT_EQ(expectedResults3[i], payload3.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults3[i], "0");
+        }
+
+        int8_t nullBit4 = NullValues::GetConcreteBitFromBitmask(nullBitMask4.begin(), i);
+        if (!nullBit4)
+        {
+            ASSERT_EQ(expectedResults4[i], payload4.stringpayload().stringdata()[i]);
+        }
+        else
+        {
+            ASSERT_EQ(expectedResults4[i], "0");
+        }
+    }
+
+    Database::RemoveFromInMemoryDatabaseList("TestDbLimitOffsetNULL");
 }
 
 /*
@@ -751,10 +890,10 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
         database->GetTables().at("TestTableS").GetColumns().at("ColB").get());
 
     auto& payloadA = result->payloads().at("TestTableR.ColA");
-    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA");
+    auto& nullBitMaskA = result->nullbitmasks().at("TestTableR.ColA").nullmask();
 
     auto& payloadB = result->payloads().at("TestTableS.ColB");
-    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB");
+    auto& nullBitMaskB = result->nullbitmasks().at("TestTableS.ColB").nullmask();
 
     ASSERT_EQ(payloadA.intpayload().intdata_size(), payloadB.intpayload().intdata_size());
     for (int32_t i = 0; i < payloadA.intpayload().intdata_size(); i++)
@@ -823,8 +962,8 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -903,8 +1042,8 @@ TEST(DispatcherNullTests, GroupByNullKeyAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1006,8 +1145,8 @@ TEST(DispatcherNullTests, GroupByNullValueSum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1103,8 +1242,8 @@ TEST(DispatcherNullTests, GroupByNullValueAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1193,8 +1332,8 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("COUNT(colVals)");
 
@@ -1273,8 +1412,8 @@ TEST(DispatcherNullTests, GroupByStringNullKeySum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1372,8 +1511,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueSum)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("SUM(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("SUM(colVals)");
 
@@ -1468,8 +1607,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueAvg)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("AVG(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("AVG(colVals)");
 
@@ -1555,8 +1694,8 @@ TEST(DispatcherNullTests, GroupByStringNullValueCount)
         dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
-    const std::string& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys");
-    const std::string& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)");
+    auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
+    auto& valuesNullMaskResult = responseMessage->nullbitmasks().at("COUNT(colVals)").nullmask();
     auto& keysResult = responseMessage->payloads().at("TestTable.colKeys");
     auto& valuesResult = responseMessage->payloads().at("COUNT(colVals)");
 
@@ -1640,12 +1779,10 @@ void TestGBMK(std::string aggregationOperation,
         << "colKeysB null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains(aggregationOperation + "(colVals)"))
         << "colVals null mask does not exist";
-    const std::string& keysANullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysA");
-    const std::string& keysBNullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysB");
-    const std::string& valuesNullMaskResult =
-        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)");
+    auto& keysANullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysA").nullmask();
+    auto& keysBNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysB").nullmask();
+    auto& valuesNullMaskResult =
+        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)").nullmask();
     auto& keysAResult = responseMessage->payloads().at("TestTable.colKeysA");
     auto& keysBResult = responseMessage->payloads().at("TestTable.colKeysB");
     auto& valuesResult = responseMessage->payloads().at(aggregationOperation + "(colVals)");
@@ -1736,12 +1873,10 @@ void TestGBMKCount(std::vector<int32_t> keysA,
         << "colKeysB null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains(aggregationOperation + "(colVals)"))
         << "colVals null mask does not exist";
-    const std::string& keysANullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysA");
-    const std::string& keysBNullMaskResult =
-        responseMessage->nullbitmasks().at("TestTable.colKeysB");
-    const std::string& valuesNullMaskResult =
-        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)");
+    auto& keysANullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysA").nullmask();
+    auto& keysBNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeysB").nullmask();
+    auto& valuesNullMaskResult =
+        responseMessage->nullbitmasks().at(aggregationOperation + "(colVals)").nullmask();
     auto& keysAResult = responseMessage->payloads().at("TestTable.colKeysA");
     auto& keysBResult = responseMessage->payloads().at("TestTable.colKeysB");
     auto& valuesResult = responseMessage->payloads().at(aggregationOperation + "(colVals)");
@@ -1780,6 +1915,133 @@ void TestGBMKCount(std::vector<int32_t> keysA,
                   << std::endl;
         ASSERT_FALSE(valIsNull);
         ASSERT_EQ(valuesExpectedResult[foundIndex], valuesResult.int64payload().int64data()[i]);
+    }
+}
+
+void TestOrEqualNullMaskMerging(std::vector<int32_t> colA,
+                                std::vector<bool> colANullMask,
+                                std::vector<int32_t> colB,
+                                std::vector<bool> colBNullMask,
+                                std::vector<int32_t> colC,
+                                std::vector<int32_t> colCExpectedResult)
+{
+    const std::string aggregationOperation = "COUNT";
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 4;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colA", COLUMN_INT);
+    columns.emplace("colB", COLUMN_INT);
+    columns.emplace("colC", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < colA.size(); i++)
+    {
+        std::string ka = colANullMask[i] ? "NULL" : std::to_string(colA[i]);
+        std::string kb = colBNullMask[i] ? "NULL" : std::to_string(colB[i]);
+        std::string vl = std::to_string(colC[i]);
+        std::string insertQuery =
+            "INSERT INTO TestTable (colA, colB, colC) VALUES (" + ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database, "SELECT colC FROM TestTable WHERE colA = 0 OR colB = 0;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& colCResult = responseMessage->payloads().at("TestTable.colC");
+
+    ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
+
+    for (int i = 0; i < colCResult.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(colCExpectedResult[i], colCResult.intpayload().intdata()[i]);
+    }
+}
+
+void TestOrIsNullNullMaskMerging(std::vector<int32_t> colA,
+                                 std::vector<bool> colANullMask,
+                                 std::vector<int32_t> colB,
+                                 std::vector<bool> colBNullMask,
+                                 std::vector<int32_t> colC,
+                                 std::vector<int32_t> colCExpectedResult)
+{
+    const std::string aggregationOperation = "COUNT";
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 5;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colA", COLUMN_INT);
+    columns.emplace("colB", COLUMN_INT);
+    columns.emplace("colC", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < colA.size(); i++)
+    {
+        std::string ka = colANullMask[i] ? "NULL" : std::to_string(colA[i]);
+        std::string kb = colBNullMask[i] ? "NULL" : std::to_string(colB[i]);
+        std::string vl = std::to_string(colC[i]);
+        std::string insertQuery =
+            "INSERT INTO TestTable (colA, colB, colC) VALUES (" + ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database,
+                              "SELECT colC FROM TestTable WHERE colA IS NULL OR colB IS NULL;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& colCResult = responseMessage->payloads().at("TestTable.colC");
+
+    ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
+
+    for (int i = 0; i < colCResult.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(colCExpectedResult[i], colCResult.intpayload().intdata()[i]);
+    }
+}
+
+void TestOrNotNullMaskMerging(std::vector<int32_t> colA,
+                              std::vector<bool> colANullMask,
+                              std::vector<int32_t> colB,
+                              std::vector<bool> colBNullMask,
+                              std::vector<int32_t> colC,
+                              std::vector<int32_t> colCExpectedResult)
+{
+    const std::string aggregationOperation = "COUNT";
+    Database::RemoveFromInMemoryDatabaseList("TestDb");
+    const int blockSize = 5;
+    std::shared_ptr<Database> database(std::make_shared<Database>("TestDb", blockSize));
+    Database::AddToInMemoryDatabaseList(database);
+    std::unordered_map<std::string, DataType> columns;
+    columns.emplace("colA", COLUMN_INT);
+    columns.emplace("colB", COLUMN_INT);
+    columns.emplace("colC", COLUMN_INT);
+    database->CreateTable(columns, "TestTable");
+    for (int i = 0; i < colA.size(); i++)
+    {
+        std::string ka = colANullMask[i] ? "NULL" : std::to_string(colA[i]);
+        std::string kb = colBNullMask[i] ? "NULL" : std::to_string(colB[i]);
+        std::string vl = std::to_string(colC[i]);
+        std::string insertQuery =
+            "INSERT INTO TestTable (colA, colB, colC) VALUES (" + ka + ", " + kb + ", " + vl + ");";
+        std::cout << insertQuery << std::endl;
+        GpuSqlCustomParser parser(database, insertQuery);
+        parser.Parse();
+    }
+    GpuSqlCustomParser parser(database, "SELECT colC FROM TestTable WHERE !colA OR !colB;");
+    auto resultPtr = parser.Parse();
+    auto responseMessage =
+        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& colCResult = responseMessage->payloads().at("TestTable.colC");
+
+    ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
+
+    for (int i = 0; i < colCResult.intpayload().intdata_size(); i++)
+    {
+        ASSERT_EQ(colCExpectedResult[i], colCResult.intpayload().intdata()[i]);
     }
 }
 
@@ -1897,4 +2159,31 @@ TEST(DispatcherNullTests, GroupByMultiKeyNullValueCount)
                   {false, false, true, false, false, true, true, false, false, true, false, false, false, false},
                   {0, -1, 1, -1, 2, 1}, {false, false, false, false, false, false},
                   {0, -1, -1, 1, 0, 7}, {false, false, false, false, false, false}, {3, 2, 0, 2, 2, 1});
+}
+
+TEST(DispatcherNullTests, OrEqualNullMaskMerging)
+{
+    TestOrEqualNullMaskMerging({0, 0, 0, 1, 1, 1, -1, -1, -1},
+                               {false, false, false, false, false, false, true, true, true},
+                               {0, 1, -1, 0, 1, -1, 0, 1, -1},
+                               {false, false, true, false, false, true, false, false, true},
+                               {1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2, 3, 4, 7});
+}
+
+TEST(DispatcherNullTests, OrIsNullNullMaskMerging)
+{
+    TestOrIsNullNullMaskMerging({0, 0, 0, 1, 1, 1, -1, -1, -1},
+                                {false, false, false, false, false, false, true, true, true},
+                                {0, 1, -1, 0, 1, -1, 0, 1, -1},
+                                {false, false, true, false, false, true, false, false, true},
+                                {1, 2, 3, 4, 5, 6, 7, 8, 9}, {3, 6, 7, 8, 9});
+}
+
+TEST(DispatcherNullTests, OrIsNotNullMaskMerging)
+{
+    TestOrNotNullMaskMerging({0, 0, 0, 1, 1, 1, -1, -1, -1},
+                             {false, false, false, false, false, false, true, true, true},
+                             {0, 1, -1, 0, 1, -1, 0, 1, -1},
+                             {false, false, true, false, false, true, false, false, true},
+                             {1, 2, 3, 4, 5, 6, 7, 8, 9}, {1, 2, 3, 4, 7});
 }

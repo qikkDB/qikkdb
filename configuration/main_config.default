@@ -6,7 +6,7 @@ UsingMultipleGPUs: true
 # Use compression of database files
 UsingCompression: false
 # Use clustered index when evaluating WHERE clause (skip filtered blocks)
-UsingWhereEvaluationSpeedup: true
+UsingWhereEvaluationSpeedup: false
 
 # Path to database files
 DatabaseFilesDir: ../databases/
@@ -18,10 +18,9 @@ GroupByBuckets: 262144
 # Overall usage of GPU memory (VRAM), should be 100
 GPUMemoryUsagePercent: 100
 # Percentage of allocated GPU memory used for caching columns
-GPUCachePercent: 90
+GPUCachePercent: 75
 # How often to save database files (ms)
 DBSaveInterval: 300000
-
 
 # == NETWORK SETTINGS ==
 ListenIP: 127.0.0.1

@@ -832,7 +832,7 @@ TEST(BlockTests, BlockStatisticsNullValues)
 	auto& blockInt = dynamic_cast<ColumnBase<int32_t>*>(columnInt.get())->AddBlock();
 
 	std::vector<int32_t> dataInt = {1, 42, 53, 102, 56, 23, 56, 190};
-	std::vector<int8_t> vectorMask;
+    std::vector<nullmask_t> vectorMask;
 	vectorMask.push_back(3);
 
 	blockInt.InsertData(dataInt);

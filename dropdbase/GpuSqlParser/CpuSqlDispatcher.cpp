@@ -205,6 +205,12 @@ void CpuSqlDispatcher::AddUnaryOperation(DataType type, size_t opType)
     case GpuSqlLexer::SECOND:
         cpuDispatcherFunctions_.push_back(secondFunctions_[type]);
         break;
+    case GpuSqlLexer::WEEKDAY:
+        cpuDispatcherFunctions_.push_back(weekdayFunctions_[type]);
+        break;
+    case GpuSqlLexer::DAYOFWEEK:
+        cpuDispatcherFunctions_.push_back(dayOfWeekFunctions_[type]);
+        break;
     case GpuSqlLexer::ABS:
         cpuDispatcherFunctions_.push_back(absoluteFunctions_[type]);
         break;

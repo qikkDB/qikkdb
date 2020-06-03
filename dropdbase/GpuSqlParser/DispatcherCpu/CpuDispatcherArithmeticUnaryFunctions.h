@@ -8,7 +8,8 @@ int32_t CpuSqlDispatcher::ArithmeticUnaryCol()
     auto colName = arguments_.Read<std::string>();
     auto reg = arguments_.Read<std::string>();
 
-    typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
+    typedef typename std::conditional<std::is_same<typename OP::RetType, void>::value,
+                                      typename std::remove_pointer<T>::type, typename OP::RetType>::type ResultType;
 
     if (LoadCol<T>(colName))
     {
@@ -48,7 +49,8 @@ int32_t CpuSqlDispatcher::ArithmeticUnaryConst()
     T cnst = arguments_.Read<T>();
     auto reg = arguments_.Read<std::string>();
 
-    typedef typename std::conditional<OP::isFloatRetType, float, T>::type ResultType;
+    typedef typename std::conditional<std::is_same<typename OP::RetType, void>::value,
+                                      typename std::remove_pointer<T>::type, typename OP::RetType>::type ResultType;
 
     ResultType* resultMin = AllocateRegister<ResultType>(reg + "_min", 1, !OP::isMonotonous);
     ResultType* resultMax = AllocateRegister<ResultType>(reg + "_max", 1, !OP::isMonotonous);

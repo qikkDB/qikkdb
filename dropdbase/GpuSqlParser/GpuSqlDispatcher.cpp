@@ -14,6 +14,7 @@
 #include "../Database.h"
 #include "../Table.h"
 #include "../ConstraintType.h"
+#include "../Configuration.h"
 #include "LoadColHelper.h"
 #include "InsertIntoStruct.h"
 #include <any>
@@ -64,12 +65,12 @@ GpuSqlDispatcher::GpuSqlDispatcher(const std::shared_ptr<Database>& database,
   constPointCounter_(0), constPolygonCounter_(0), constStringCounter_(0), filter_(0),
   usedRegisterMemory_(0), maxRegisterMemory_(0), // TODO value from config e.g.
   groupByTables_(groupByTables), dispatcherThreadId_(dispatcherThreadId), insideAggregation_(false),
-  insideGroupBy_(false), usingGroupBy_(false), usingOrderBy_(false), usingJoin_(false),
-  isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true), aborted_(false),
-  groupByHashTableFull_(false), hashTableMultiplier_(1), loadNecessary_(1), cpuDispatcher_(database),
-  jmpInstructionPosition_(0), insertIntoData_(std::make_unique<InsertIntoStruct>()),
-  joinIndices_(nullptr), orderByTable_(nullptr), orderByBlocks_(orderByBlocks),
-  loadedTableName_(""), loadSize_(0), loadOffset_(0)
+  insideGroupBy_(false), insideWhere_(false), usingGroupBy_(false), usingOrderBy_(false),
+  usingJoin_(false), isLastBlockOfDevice_(false), isOverallLastBlock_(false), noLoad_(true),
+  aborted_(false), groupByHashTableFull_(false), hashTableMultiplier_(1), loadNecessary_(1),
+  cpuDispatcher_(database), jmpInstructionPosition_(0),
+  insertIntoData_(std::make_unique<InsertIntoStruct>()), joinIndices_(nullptr), orderByTable_(nullptr),
+  orderByBlocks_(orderByBlocks), loadedTableName_(""), loadSize_(0), loadOffset_(0)
 {
 }
 
@@ -334,6 +335,25 @@ int32_t GpuSqlDispatcher::GetUnaryDispatchTableIndex(DataType type)
     return 2 * lConst + constOffset;
 }
 
+void GpuSqlDispatcher::ClearCachedBlocks(const std::string& tableName, const std::string& columnName, const int32_t fromBlockIdx)
+{
+    int32_t blockCount =
+        database_->GetTables().at(tableName).GetColumns().at(columnName).get()->GetBlockCount();
+    for (int32_t i = fromBlockIdx; i < blockCount; i++)
+    {
+        Context::getInstance()
+            .getCacheForDevice(i % Context::getInstance().getDeviceCount())
+            .clearCachedBlock(database_->GetName(), tableName + "." + columnName, i);
+
+        if (database_->GetTables().at(tableName).GetColumns().at(columnName).get()->GetIsNullable())
+        {
+            Context::getInstance()
+                .getCacheForDevice(i % Context::getInstance().getDeviceCount())
+                .clearCachedBlock(database_->GetName(), tableName + "." + columnName + NULL_SUFFIX, i);
+        }
+    }
+}
+
 void GpuSqlDispatcher::ResetBlocksProcessing()
 {
     CudaLogBoost::getInstance(CudaLogBoost::info)
@@ -343,6 +363,7 @@ void GpuSqlDispatcher::ResetBlocksProcessing()
     instructionPointer_ = 0;
     insideAggregation_ = false;
     insideGroupBy_ = false;
+    insideWhere_ = false;
     usingGroupBy_ = false;
     usingOrderBy_ = false;
     usingJoin_ = false;
@@ -652,6 +673,16 @@ void GpuSqlDispatcher::AddSecondFunction(DataType type)
     dispatcherFunctions_.push_back(secondFunctions_[GetUnaryDispatchTableIndex(type)]);
 }
 
+void GpuSqlDispatcher::AddWeekdayFunction(DataType type)
+{
+    dispatcherFunctions_.push_back(weekdayFunctions_[GetUnaryDispatchTableIndex(type)]);
+}
+
+void GpuSqlDispatcher::AddDayOfWeekFunction(DataType type)
+{
+    dispatcherFunctions_.push_back(dayOfWeekFunctions_[GetUnaryDispatchTableIndex(type)]);
+}
+
 void GpuSqlDispatcher::AddAbsoluteFunction(DataType type)
 {
     dispatcherFunctions_.push_back(absoluteFunctions_[GetUnaryDispatchTableIndex(type)]);
@@ -909,23 +940,6 @@ void GpuSqlDispatcher::AddBetweenFunction(DataType op1, DataType op2, DataType o
     // TODO: Between
 }
 
-void GpuSqlDispatcher::FillPolygonRegister(GPUMemory::GPUPolygon& polygonColumn,
-                                           const std::string& reg,
-                                           int32_t size,
-                                           bool useCache,
-                                           int8_t* nullMaskPtr)
-{
-    InsertRegister(reg + "_polyPoints",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyPoints), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_pointIdx",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.pointIdx), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_polyIdx",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(polygonColumn.polyIdx), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-}
-
 void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAllocation registerValues)
 {
     if (allocatedPointers_.find(registerName) == allocatedPointers_.end())
@@ -936,20 +950,6 @@ void GpuSqlDispatcher::InsertRegister(const std::string& registerName, PointerAl
     {
         throw std::runtime_error("Attempt to overwrite existing register \"" + registerName + "\"");
     }
-}
-
-void GpuSqlDispatcher::FillStringRegister(GPUMemory::GPUString& stringColumn,
-                                          const std::string& reg,
-                                          int32_t size,
-                                          bool useCache,
-                                          int8_t* nullMaskPtr)
-{
-    InsertRegister(reg + "_stringIndices",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.stringIndices), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
-    InsertRegister(reg + "_allChars",
-                   PointerAllocation{reinterpret_cast<uintptr_t>(stringColumn.allChars), size,
-                                     !useCache, reinterpret_cast<uintptr_t>(nullMaskPtr)});
 }
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::string& colName)
@@ -983,113 +983,24 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
 
         auto blockNullMask =
             database_->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex_);
-        size_t blockNullMaskSize = (loadSize_ + 8 * sizeof(int8_t) - 1) / (8 * sizeof(int8_t));
+        size_t blockNullMaskSize = NullValues::GetNullBitMaskSize(loadSize_);
 
-        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<int8_t>(
+        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
             database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize, loadSize_, loadOffset_);
         if (!std::get<2>(cacheEntry))
         {
             GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
         }
-        AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), loadSize_);
+        AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), blockNullMaskSize);
 
         noLoad_ = false;
     }
     return InstructionStatus::CONTINUE;
 }
 
-GPUMemory::GPUPolygon
-GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
-                                       const std::string& colName,
-                                       const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
-                                       int32_t size,
-                                       bool useCache,
-                                       int8_t* nullMaskPtr)
-{
-    if (useCache)
-    {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
-                                                                             blockIndex_, loadSize_, loadOffset_))
-        {
-            GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
-            GPUMemory::GPUPolygon polygon;
-            polygon.polyPoints =
-                std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints",
-                                                            blockIndex_, size, loadSize_, loadOffset_));
-            polygon.pointIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx",
-                                                     blockIndex_, size, loadSize_, loadOffset_));
-            polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
-                                                                   size, loadSize_, loadOffset_));
-
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-
-            return polygon;
-        }
-        else
-        {
-            GPUMemory::GPUPolygon polygon =
-                ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName,
-                                                         blockIndex_, loadSize_, loadOffset_);
-            FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-            return polygon;
-        }
-    }
-    else
-    {
-        GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-        FillPolygonRegister(polygon, colName, size, useCache, nullMaskPtr);
-        return polygon;
-    }
-}
-
-GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseName,
-                                                    const std::string& colName,
-                                                    const std::string* strings,
-                                                    const size_t stringCount,
-                                                    bool useCache,
-                                                    int8_t* nullMaskPtr)
-{
-    if (useCache)
-    {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
-                                                                             blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
-                                                                             blockIndex_, loadSize_, loadOffset_))
-        {
-            GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
-            GPUMemory::GPUString gpuString;
-            gpuString.stringIndices =
-                std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
-                                                     blockIndex_, stringCount, loadSize_, loadOffset_));
-            gpuString.allChars =
-                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
-                                                  stringCount, loadSize_, loadOffset_));
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-            return gpuString;
-        }
-        else
-        {
-            GPUMemory::GPUString gpuString =
-                StringFactory::PrepareGPUString(strings, stringCount, databaseName, colName,
-                                                blockIndex_, loadSize_, loadOffset_);
-            FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-            return gpuString;
-        }
-    }
-    else
-    {
-        GPUMemory::GPUString gpuString = StringFactory::PrepareGPUString(strings, stringCount);
-        FillStringRegister(gpuString, colName, stringCount, useCache, nullMaskPtr);
-        return gpuString;
-    }
-}
-
-std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComplexPolygon(std::string colName)
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName)
 {
     GPUMemory::GPUPolygon polygon;
     int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
@@ -1099,26 +1010,25 @@ std::tuple<GPUMemory::GPUPolygon, int32_t, int8_t*> GpuSqlDispatcher::FindComple
     polygon.pointIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_pointIdx").GpuPtr);
     polygon.polyIdx = reinterpret_cast<int32_t*>(allocatedPointers_.at(colName + "_polyIdx").GpuPtr);
 
-    return std::make_tuple(polygon, size,
-                           reinterpret_cast<int8_t*>(allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr));
+    return {polygon, size, allocatedPointers_.at(colName + "_polyPoints").GpuNullMaskPtr};
 }
 
-std::tuple<GPUMemory::GPUString, int32_t, int8_t*> GpuSqlDispatcher::FindStringColumn(const std::string& colName)
+template <>
+GpuSqlDispatcher::CompositeDataTypeAllocation<std::string>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string& colName)
 {
     GPUMemory::GPUString gpuString;
     int32_t size = allocatedPointers_.at(colName + "_stringIndices").ElementCount;
     gpuString.stringIndices =
         reinterpret_cast<int64_t*>(allocatedPointers_.at(colName + "_stringIndices").GpuPtr);
     gpuString.allChars = reinterpret_cast<char*>(allocatedPointers_.at(colName + "_allChars").GpuPtr);
-    return std::make_tuple(gpuString, size,
-                           reinterpret_cast<int8_t*>(
-                               allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr));
+    return {gpuString, size, allocatedPointers_.at(colName + "_stringIndices").GpuNullMaskPtr};
 }
 
 void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
                                      uintptr_t reconstructedReg,
                                      int32_t reconstructedSize,
-                                     int8_t* reconstructedNullMask)
+                                     nullmask_t* reconstructedNullMask)
 {
     if (filter_) // If where mask was used, new buffers were allocated, need to free old GpuPtr
     {
@@ -1142,12 +1052,12 @@ void GpuSqlDispatcher::RewriteColumn(PointerAllocation& column,
 void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
                                            GPUMemory::GPUString newStruct,
                                            int32_t newElementCount,
-                                           int8_t* newNullMask)
+                                           nullmask_t* newNullMask)
 {
     if (filter_)
     {
-        const auto column = FindStringColumn(colName);
-        GPUMemory::free(std::get<0>(column));
+        const auto column = FindCompositeDataTypeAllocation<std::string>(colName);
+        GPUMemory::free(column.GpuPtr);
         // Do not free null mask (std::get<2>) because it is stored also as col_nullmask in allocated pointers
     }
 
@@ -1166,13 +1076,6 @@ void GpuSqlDispatcher::RewriteStringColumn(const std::string& colName,
     allChars.GpuNullMaskPtr = reinterpret_cast<uintptr_t>(newNullMask);
 }
 
-GPUMemory::GPUString GpuSqlDispatcher::InsertConstStringGpu(const std::string& str, const size_t size)
-{
-    std::vector<std::string> strings(size, str);
-    std::string name = "constString" + std::to_string(constStringCounter_);
-    constStringCounter_++;
-    return InsertString(database_->GetName(), name, strings.data(), size);
-}
 
 /// Clears all allocated buffers
 /// Resets memory stream reading index to prepare for execution on the next block of data
@@ -1204,6 +1107,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Fil()
     auto reg = arguments_.Read<std::string>();
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Filter: " << reg << '\n';
     filter_ = allocatedPointers_.at(reg).GpuPtr;
+    insideWhere_ = false;
     return InstructionStatus::CONTINUE;
 }
 
@@ -1211,8 +1115,11 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::WhereEvaluation()
 {
     bool containsAggFunction = arguments_.Read<bool>();
     // loadNecessary_ = (usingJoin_ || containsAggFunction) ? 1 : cpuDispatcher_.Execute(blockIndex_);
-    loadNecessary_ = usingJoin_ ? 1 : cpuDispatcher_.Execute(blockIndex_);
+    loadNecessary_ = usingJoin_ ? 1 :
+                                  (!Configuration::GetInstance().IsUsingWhereEvaluationSpeedup() ||
+                                   cpuDispatcher_.Execute(blockIndex_));
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Where load evaluation: " << loadNecessary_ << '\n';
+    insideWhere_ = true;
     return InstructionStatus::CONTINUE;
 }
 
@@ -1292,7 +1199,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowDatabases()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, databases_map.size());
+    InsertIntoPayload(payload, outData, databases_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse("Databases", "Databases", payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show databases completed sucessfully" << '\n';
@@ -1318,7 +1225,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowTables()
     }
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
-    InsertIntoPayload(payload, outData, tables_map.size());
+    InsertIntoPayload(payload, outData, tables_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse(db, db, payload);
 
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Show tables completed sucessfully" << '\n';
@@ -1351,8 +1258,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowColumns()
 
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
-    InsertIntoPayload(payloadName, outDataName, columns_map.size());
-    InsertIntoPayload(payloadType, outDataType, columns_map.size());
+    InsertIntoPayload(payloadName, outDataName, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadType, outDataType, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse(tab + "_columns", tab + "_columns", payloadName);
     MergePayloadToSelfResponse(tab + "_types", tab + "_types", payloadType);
 
@@ -1393,9 +1300,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintType;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintColumns;
 
-    InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size());
-    InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size());
-    InsertIntoPayload(payloadConstraintColumns, outDataConstraintColumns, constraints.size());
+    InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadConstraintColumns, outDataConstraintColumns, constraints.size(),
+                      PayloadType::PAYLOAD_DEFAULT);
 
     MergePayloadToSelfResponse(tab + "_constraints", tab + "_constraints", payloadConstraintName);
     MergePayloadToSelfResponse(tab + "_cnstrn_types", tab + "_cnstrn_types", payloadConstraintType);
@@ -1421,8 +1329,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowQueryColumnTypes()
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnName;
     ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnType;
 
-    InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize);
-    InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize);
+    InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize, PayloadType::PAYLOAD_DEFAULT);
+    InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize, PayloadType::PAYLOAD_DEFAULT);
 
     MergePayloadToSelfResponse("ColumnName", "ColumnName", payloadColumnName);
     MergePayloadToSelfResponse("TypeName", "TypeName", payloadColumnType);
@@ -1439,7 +1347,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateDatabase()
     std::shared_ptr<Database> newDb = std::make_shared<Database>(newDbName.c_str(), newDbBlockSize);
     Database::AddToInMemoryDatabaseList(newDb);
 
-    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database_ completed sucessfully" << '\n';
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "Create database completed sucessfully" << '\n';
     return InstructionStatus::FINISH;
 }
 
@@ -1557,58 +1465,69 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
             auto newColumn =
                 database_->GetTables().at(tableName).GetColumns().at(alterColumnName + "_temp").get();
 
-            switch (originType)
-            {
-            case COLUMN_INT:
-            {
-                dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+            ClearCachedBlocks(tableName, alterColumnName);
 
-            case COLUMN_LONG:
+            try
             {
-                dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                switch (originType)
+                {
+                case COLUMN_INT:
+                {
+                    dynamic_cast<ColumnBase<int32_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_FLOAT:
-            {
-                dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_LONG:
+                {
+                    dynamic_cast<ColumnBase<int64_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_DOUBLE:
-            {
-                dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_FLOAT:
+                {
+                    dynamic_cast<ColumnBase<float>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_POINT:
-            {
-                dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_DOUBLE:
+                {
+                    dynamic_cast<ColumnBase<double>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_POLYGON:
-            {
-                dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_POINT:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_STRING:
-            {
-                dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
-            }
+                case COLUMN_POLYGON:
+                {
+                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
 
-            case COLUMN_INT8_T:
-            {
-                dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
-                break;
+                case COLUMN_STRING:
+                {
+                    dynamic_cast<ColumnBase<std::string>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+
+                case COLUMN_INT8_T:
+                {
+                    dynamic_cast<ColumnBase<int8_t>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    break;
+                }
+                default:
+                    throw std::runtime_error(
+                        "Attempt to execute unsupported column type conversion.");
+                    break;
+                }
             }
-            default:
-                throw std::runtime_error("Attempt to execute unsupported column type conversion.");
-                break;
+            catch (const std::runtime_error& e)
+            {
+                database_->GetTables().at(tableName).EraseColumn(alterColumnName + "_temp");
+                throw;
             }
 
             database_->GetTables().at(tableName).EraseColumn(alterColumnName);
@@ -1767,7 +1686,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int8_t[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1777,7 +1697,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1787,17 +1708,29 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int64_t[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
-    for (int i = 0; i < dataSize; i++)
+    if (payloadType == PayloadType::PAYLOAD_DATE)
     {
-        payload.mutable_int64payload()->add_int64data(data[i]);
+        for (int i = 0; i < dataSize; i++)
+        {
+            payload.mutable_datetimepayload()->add_datetimedata(data[i]);
+        }
+    }
+    else
+    {
+        for (int i = 0; i < dataSize; i++)
+        {
+            payload.mutable_int64payload()->add_int64data(data[i]);
+        }
     }
 }
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<float[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1807,7 +1740,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<double[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1817,7 +1751,8 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<std::string[]>& data,
-                                         int32_t dataSize)
+                                         const int32_t dataSize,
+                                         const PayloadType payloadType)
 {
     for (int i = 0; i < dataSize; i++)
     {
@@ -1827,11 +1762,19 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 
 void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
                                            ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                           const std::string& nullMask)
+                                           std::vector<nullmask_t> nullMask,
+                                           int64_t payloadSize)
 {
     if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
     {
-        responseMessage->mutable_nullbitmasks()->insert({key, nullMask});
+        ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMaskMess;
+
+        for (size_t i = 0; i < nullMask.size(); i++)
+        {
+            nullMaskMess.add_nullmask(nullMask[i]);
+        }
+
+        responseMessage->mutable_nullbitmasks()->insert({key, nullMaskMess});
     }
     else // If there is payload with existing key, merge or aggregate according to key
     {
@@ -1843,6 +1786,9 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
             break;
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             dataLength = responseMessage->payloads().at(key).int64payload().int64data_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            dataLength = responseMessage->payloads().at(key).datetimepayload().datetimedata_size();
             break;
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             dataLength = responseMessage->payloads().at(key).floatpayload().floatdata_size();
@@ -1862,19 +1808,35 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         default:
             break;
         }
-        if (dataLength % 8 == 0)
+        if (dataLength % (sizeof(nullmask_t) * 8) == 0)
         {
-            responseMessage->mutable_nullbitmasks()->at(key) += nullMask;
+            for (size_t i = 0; i < nullMask.size(); i++)
+            {
+                responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(nullMask[i]);
+            }
         }
         else
         {
-            int shiftCount = 8 - (dataLength % 8);
-            std::vector<int8_t> nullMaskVec(nullMask.begin(), nullMask.end());
-            int8_t carryBits = nullMaskVec[0] & ((1 << shiftCount) - 1);
-            responseMessage->mutable_nullbitmasks()->at(key).back() |= (carryBits << (8 - shiftCount));
+            int64_t shiftCount = (sizeof(nullmask_t) * 8) - (dataLength % (sizeof(nullmask_t) * 8));
+            std::vector<nullmask_t> nullMaskVec(nullMask.begin(), nullMask.end());
+            nullmask_t carryBits = nullMaskVec[0] & ((static_cast<nullmask_t>(1U) << shiftCount) -
+                                                     static_cast<nullmask_t>(1U));
+            responseMessage->mutable_nullbitmasks()->at(key).mutable_nullmask()->at(
+                responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() -
+                static_cast<nullmask_t>(1U)) |=
+                (carryBits << ((sizeof(nullmask_t) * 8) - shiftCount));
             ShiftNullMaskLeft(nullMaskVec, shiftCount);
-            std::string newNullMask(nullMaskVec.begin(), nullMaskVec.end());
-            responseMessage->mutable_nullbitmasks()->at(key) += newNullMask;
+            std::vector<nullmask_t> newNullMask(nullMaskVec.begin(), nullMaskVec.end());
+
+            int64_t mergedDataCount = dataLength + payloadSize;
+            for (size_t i = 0; i < newNullMask.size(); i++)
+            {
+                if (mergedDataCount > responseMessage->mutable_nullbitmasks()->at(key).nullmask_size() *
+                                          (sizeof(nullmask_t) * 8))
+                {
+                    responseMessage->mutable_nullbitmasks()->at(key).add_nullmask(newNullMask[i]);
+                }
+            }
         }
     }
 }
@@ -1943,6 +1905,21 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                 }
                 break;
             }
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            {
+                std::pair<bool, int64_t> result = AggregateOnCPU<int64_t>(
+                    operation, payload.datetimepayload().datetimedata()[0],
+                    responseMessage->payloads().at(trimmedKey).datetimepayload().datetimedata()[0]);
+                aggregationOperationFound = result.first;
+                if (aggregationOperationFound)
+                {
+                    responseMessage->mutable_payloads()
+                        ->at(trimmedKey)
+                        .mutable_datetimepayload()
+                        ->set_datetimedata(0, result.second);
+                }
+                break;
+            }
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             {
                 std::pair<bool, float> result = AggregateOnCPU<float>(
@@ -1991,10 +1968,24 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
     }
 }
 
+void GpuSqlDispatcher::FreeRegisterNullMask(const std::string& col)
+{
+    CudaLogBoost::getInstance(CudaLogBoost::info) << "FreeNullMask: " << col << '\n';
+
+    if (!col.empty() && col.front() == '$' && allocatedPointers_.find(col) != allocatedPointers_.end() &&
+        allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
+    {
+        GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
+        usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(nullmask_t);
+        allocatedPointers_.erase(col + NULL_SUFFIX);
+        allocatedPointers_.at(col).GpuNullMaskPtr = 0;
+    }
+}
+
 void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
                                                   const std::string& realName,
                                                   ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
-                                                  const std::string& nullBitMaskString)
+                                                  std::vector<nullmask_t> nullMask)
 {
     std::string trimmedKey = key;
     std::string realTrimmedName = realName;
@@ -2008,9 +1999,37 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
         realTrimmedName = realName.substr(1, std::string::npos);
     }
 
-    if (!nullBitMaskString.empty())
+    if (!nullMask.empty())
     {
-        MergePayloadBitmask(trimmedKey, &responseMessage_, nullBitMaskString);
+        int64_t payloadSize;
+        switch (payload.payload_case())
+        {
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            payloadSize = payload.intpayload().intdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            payloadSize = payload.int64payload().int64data_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            payloadSize = payload.floatpayload().floatdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            payloadSize = payload.doublepayload().doubledata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+            payloadSize = payload.stringpayload().stringdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+            payloadSize = payload.pointpayload().pointdata_size();
+            break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+            payloadSize = payload.polygonpayload().polygondata_size();
+            break;
+        default:
+            break;
+        }
+
+        MergePayloadBitmask(trimmedKey, &responseMessage_, nullMask, payloadSize);
     }
     MergePayload(trimmedKey, realTrimmedName, &responseMessage_, payload);
 }

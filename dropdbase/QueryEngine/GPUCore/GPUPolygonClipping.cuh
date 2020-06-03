@@ -9,12 +9,12 @@
 #include <cuda_runtime.h>
 #include <device_launch_parameters.h>
 
-#include "GPUArithmetic.cuh"
 #include "GPUMemory.cuh"
 #include "GPUReconstruct.cuh"
 
 #include "../../../cub/cub.cuh"
 #include "../../NativeGeoPoint.h"
+#include "../../Types/ComplexPolygon.pb.h"
 #include "../Context.h"
 #include "cuda_ptr.h"
 
@@ -23,6 +23,8 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
+    typedef ColmnarDB::Types::ComplexPolygon RetType;
+
     __device__ __host__ void operator()(bool turnTable[2]) const
     {
         turnTable[0] = true;
@@ -32,11 +34,18 @@ struct polyIntersect
 
 struct polyUnion
 {
+    typedef ColmnarDB::Types::ComplexPolygon RetType;
+
     __device__ __host__ void operator()(bool turnTable[2]) const
     {
         turnTable[0] = false;
         turnTable[1] = false;
     }
+};
+
+struct contains
+{
+    typedef int8_t RetType;
 };
 } // namespace PolygonFunctions
 
@@ -62,15 +71,15 @@ struct LLPolyVertex
     int32_t nextIdx; // Index of the next member in the ll
     int32_t crossIdx; // Index in the other complex polygon for cross linking during traversal
 
-	// Getting and setting the bit flags for the polygon linked list methods
-	// Getters
+    // Getting and setting the bit flags for the polygon linked list methods
+    // Getters
     __device__ bool GetHasIntersections();
     __device__ bool GetIsIntersection();
     __device__ bool GetIsValidIntersection();
     __device__ bool GetIsEntry();
     __device__ bool GetWasProcessed();
 
-	// Setters
+    // Setters
     __device__ bool SetHasIntersections(bool flag);
     __device__ void SetIsIntersection(bool flag);
     __device__ void SetIsValidIntersection(bool flag);
@@ -125,6 +134,20 @@ __global__ void kernel_label_intersections(LLPolyVertex* llPolygonBuffers,
                                            bool isPrimaryConst,
                                            bool isSecondaryConst,
                                            int32_t dataElementCount);
+
+template <typename T>
+__global__ void
+kernel_point_in_polygon(int8_t* outMask, GPUMemory::GPUPolygon polygonCol, int32_t polygonCount, T geoPointCol, int32_t pointCount)
+{
+    const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+    const int32_t stride = blockDim.x * gridDim.x;
+
+    for (int32_t i = idx; i < (pointCount > polygonCount ? pointCount : polygonCount); i += stride)
+    {
+        int32_t polyIdx = (polygonCount == 1) ? 0 : i;
+        outMask[i] = is_point_in_complex_polygon_at(maybe_deref(geoPointCol, i), polygonCol, polyIdx);
+    }
+}
 
 // Clip the polygons in different phases
 template <typename OP>
@@ -278,7 +301,8 @@ __device__ void clip_polygons(int32_t* polyCount,
                 do
                 {
                     llPolygonBuffersTable[turnNumber][nextIdx].SetWasProcessed(true);
-                    llPolygonBuffersTable[1 - turnNumber][llPolygonBuffersTable[turnNumber][nextIdx].crossIdx].SetWasProcessed(true);
+                    llPolygonBuffersTable[1 - turnNumber][llPolygonBuffersTable[turnNumber][nextIdx].crossIdx]
+                        .SetWasProcessed(true);
 
                     bool forward =
                         (llPolygonBuffersTable[turnNumber][nextIdx].GetIsEntry() == turnTable[turnNumber]);
@@ -418,7 +442,7 @@ __global__ void kernel_clip_polyPoints(int32_t* polyCount,
 
 class GPUPolygonClipping
 {
-private:
+public:
     template <typename OP>
     static void clip(GPUMemory::GPUPolygon& polygonOut,
                      GPUMemory::GPUPolygon& polygonAin,
@@ -584,47 +608,5 @@ private:
                 llPolygonBBufferSizesPrefixSum.get(), PolygonAIntersectionPresenceFlags.get(),
                 PolygonBIntersectionPresenceFlags.get(), isAConst, isBConst, dataElementCount);
         CheckCudaError(cudaGetLastError());
-    }
-
-public:
-    // This method expects polygonOut to be with unallocated arrays !!!
-    // If the result set is empty, only the polyIdx member of the struct is valid - size == dataElementCount, containing zeros only
-    template <typename OP>
-    static bool ColCol(GPUMemory::GPUPolygon& polygonOut,
-                       GPUMemory::GPUPolygon& polygonAin,
-                       GPUMemory::GPUPolygon& polygonBin,
-                       int32_t dataElementCount)
-    {
-        clip<OP>(polygonOut, polygonAin, polygonBin, dataElementCount, dataElementCount);
-        return false;
-    }
-    template <typename OP>
-    static bool ColConst(GPUMemory::GPUPolygon& polygonOut,
-                         GPUMemory::GPUPolygon& polygonAin,
-                         GPUMemory::GPUPolygon& polygonBinConst,
-                         int32_t dataElementCount)
-    {
-        clip<OP>(polygonOut, polygonAin, polygonBinConst, dataElementCount, 1);
-        return false;
-    }
-
-    template <typename OP>
-    static bool ConstCol(GPUMemory::GPUPolygon& polygonOut,
-                         GPUMemory::GPUPolygon& polygonAinConst,
-                         GPUMemory::GPUPolygon& polygonBin,
-                         int32_t dataElementCount)
-    {
-        clip<OP>(polygonOut, polygonAinConst, polygonBin, 1, dataElementCount);
-        return false;
-    }
-
-    template <typename OP>
-    static bool ConstConst(GPUMemory::GPUPolygon& polygonOut,
-                           GPUMemory::GPUPolygon& polygonAinConst,
-                           GPUMemory::GPUPolygon& polygonBinConst,
-                           int32_t dataElementCount)
-    {
-        clip<OP>(polygonOut, polygonAinConst, polygonBinConst, 1, 1);
-        return false;
     }
 };

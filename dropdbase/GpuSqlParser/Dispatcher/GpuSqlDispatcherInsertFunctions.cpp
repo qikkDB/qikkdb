@@ -38,7 +38,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
         point = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
     }
     std::vector<ColmnarDB::Types::Point> pointVector({point});
-    std::vector<int8_t> nullMaskVector({static_cast<int8_t>(hasValue ? 0 : 1)});
+    std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, pointVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
@@ -63,7 +63,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
         polygon = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
     }
     std::vector<ColmnarDB::Types::ComplexPolygon> polygonVector({polygon});
-    std::vector<int8_t> nullMaskVector({static_cast<int8_t>(hasValue ? 0 : 1)});
+    std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, polygonVector});
     insertIntoNullMasks_.insert({column, nullMaskVector});
@@ -73,43 +73,21 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
 
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertIntoDone()
 {
-    Context& context = Context::getInstance();
-
     std::string table = arguments_.Read<std::string>();
 
     for (auto& column : insertIntoData_->insertIntoData)
     {
         const int32_t blockCount =
             database_->GetTables().at(table).GetColumns().at(column.first)->GetBlockCount();
-        const bool isColNullable =
-            database_->GetTables().at(table).GetColumns().at(column.first)->GetIsNullable();
 
         if (database_->GetTables().at(table).GetSortingColumns().empty())
         {
             const int32_t lastBlockIdx = std::max(blockCount - 1, 0);
-
-            context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
-                .clearCachedBlock(database_->GetName(), table + "." + column.first, lastBlockIdx);
-
-            if (isColNullable)
-            {
-                context.getCacheForDevice(lastBlockIdx % context.getDeviceCount())
-                    .clearCachedBlock(database_->GetName(), table + "." + column.first + NULL_SUFFIX, lastBlockIdx);
-            }
+            ClearCachedBlocks(table, column.first, lastBlockIdx);
         }
         else
         {
-            for (int32_t i = 0; i < blockCount; i++)
-            {
-                context.getCacheForDevice(i % context.getDeviceCount())
-                    .clearCachedBlock(database_->GetName(), table + "." + column.first, i);
-
-                if (isColNullable)
-                {
-                    context.getCacheForDevice(i % context.getDeviceCount())
-                        .clearCachedBlock(database_->GetName(), table + "." + column.first + NULL_SUFFIX, i);
-                }
-            }
+            ClearCachedBlocks(table, column.first);
         }
     }
 

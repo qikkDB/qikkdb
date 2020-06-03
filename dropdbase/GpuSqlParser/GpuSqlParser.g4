@@ -91,7 +91,7 @@ selectColumns: (
 			)*
 		)
 	);
-selectColumn: expression (AS alias)?;
+selectColumn: expression (AS alias)? (RETPAYLOAD retpayload)?;
 selectAllColumns: ASTERISK;
 whereClause: expression;
 orderByColumns: ((orderByColumn (COMMA orderByColumn)*));
@@ -141,6 +141,7 @@ columnValue: (
 		| BOOLEANLIT
 	);
 constraint: ( UNIQUE | INDEX | NOTNULL);
+retpayload: datatype;
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation
@@ -171,6 +172,8 @@ expression:
 	| op = HOUR LPAREN expression RPAREN											# unaryOperation
 	| op = MINUTE LPAREN expression RPAREN											# unaryOperation
 	| op = SECOND LPAREN expression RPAREN											# unaryOperation
+	| op = WEEKDAY LPAREN expression RPAREN											# unaryOperation
+	| op = DAYOFWEEK LPAREN expression RPAREN										# unaryOperation
 	| op = LTRIM LPAREN expression RPAREN											# unaryOperation
 	| op = RTRIM LPAREN expression RPAREN											# unaryOperation
 	| op = LOWER LPAREN expression RPAREN											# unaryOperation

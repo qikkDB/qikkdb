@@ -103,31 +103,32 @@ void polyTest(std::vector<int32_t>& polyApolyIdx,
 
     if (!isAConst && !isBConst)
     {
-        GPUPolygonClipping::ColCol<OP>(polygonOut, polygonA, polygonB, dataElementCount);
+        GPUPolygonClipping::clip<OP>(polygonOut, polygonA, polygonB, dataElementCount, dataElementCount);
     }
     else if (!isAConst && isBConst)
     {
-        GPUPolygonClipping::ColConst<OP>(polygonOut, polygonA, polygonB, dataElementCount);
+        GPUPolygonClipping::clip<OP>(polygonOut, polygonA, polygonB, dataElementCount, 1);
     }
     else if (isAConst && !isBConst)
     {
-        GPUPolygonClipping::ConstCol<OP>(polygonOut, polygonA, polygonB, dataElementCount);
+        GPUPolygonClipping::clip<OP>(polygonOut, polygonA, polygonB, 1, dataElementCount);
     }
     else if (isAConst && isBConst)
     {
-        GPUPolygonClipping::ConstConst<OP>(polygonOut, polygonA, polygonB, dataElementCount);
+        GPUPolygonClipping::clip<OP>(polygonOut, polygonA, polygonB, 1, 1);
+        ;
     }
 
     // Copy back the results
     outPolyIdx.resize(dataElementCount);
     GPUMemory::copyDeviceToHost(&outPolyIdx[0], polygonOut.polyIdx, outPolyIdx.size());
 
-	// Check if a result set is empty
+    // Check if a result set is empty
     if (outPolyIdx[dataElementCount - 1] <= 0)
     {
         outPointIdx.resize(0);
         outPolyPoints.resize(0);
-	}
+    }
     else
     {
         outPointIdx.resize(outPolyIdx[dataElementCount - 1]);
@@ -490,8 +491,8 @@ TEST(GPUPolygonClippingTests, IntersectColColEmptyResultSetTest)
 
     // Run the intersect test
     polyTest<PolygonFunctions::polyIntersect>(polyApolyIdx, polyApointsIdx, polyApolyPoints,
-                                          polyBpolyIdx, polyBpointsIdx, polyBpolyPoints, outPolyIdx,
-                                          outPointIdx, outPolyPoints, false, false, 1);
+                                              polyBpolyIdx, polyBpointsIdx, polyBpolyPoints,
+                                              outPolyIdx, outPointIdx, outPolyPoints, false, false, 1);
 
     ASSERT_EQ(outPolyIdx.size(), 1);
     ASSERT_EQ(outPolyIdx[0], 0);

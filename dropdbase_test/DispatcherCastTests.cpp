@@ -107,6 +107,31 @@ protected:
         }
     }
 
+    void CastStringToBooleanGenericTest(std::vector<std::string> strings, std::vector<int8_t> expectedResult)
+    {
+        auto columns = std::unordered_map<std::string, DataType>();
+        columns.insert(std::make_pair<std::string, DataType>("colString", DataType::COLUMN_STRING));
+        castDatabase->CreateTable(columns, tableName.c_str());
+
+        reinterpret_cast<ColumnBase<std::string>*>(
+            castDatabase->GetTables().at(tableName).GetColumns().at("colString").get())
+            ->InsertData(strings);
+
+        // Execute the query_
+        GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS BOOL) FROM " + tableName + ";");
+        auto resultPtr = parser.Parse();
+        auto result =
+            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        auto& payloadCast = result->payloads().at("CAST(colStringASBOOL)");
+
+        ASSERT_EQ(expectedResult.size(), payloadCast.intpayload().intdata_size())
+            << " wrong number of keys";
+        for (int32_t i = 0; i < payloadCast.intpayload().intdata_size(); i++)
+        {
+            ASSERT_EQ(expectedResult[i], payloadCast.intpayload().intdata()[i]) << i;
+        }
+    }
+
     void CastPolygonToStringGenericTest(std::vector<std::string> polygonWkts, std::vector<std::string> expectedResult)
     {
         auto columns = std::unordered_map<std::string, DataType>();
@@ -243,6 +268,12 @@ TEST_F(DispatcherCastTests, StringToPointTest)
                                  {"POINT(12.2200 12.3450)", "POINT(13.0000 13.3456)", "POINT(14.2670 14.0000)",
                                   "POINT(15.2000 15.3000)", "POINT(16.2000 16.3000)", "POINT(17.2000 17.3000)",
                                   "POINT(18.2000 18.3000)", "POINT(18.2000 18.3000)"});
+}
+
+TEST_F(DispatcherCastTests, StringToBooleanTest)
+{
+    CastStringToBooleanGenericTest({"nic  ", "TRUEnotSo", "nada  ", "False", "FALSE", "True", "TRuE", "truE"},
+                                   {0, 0, 0, 0, 0, 1, 1, 1});
 }
 
 TEST_F(DispatcherCastTests, PolygonToStringTest)

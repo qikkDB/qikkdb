@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -191,30 +192,13 @@ namespace ColmnarDB.ConsoleClient
                                                     filePath2 = filePath2.Substring(1, filePath2.Length - 2);
                                                 }
 
-                                                if (splitParameters2.Length == 2)
+                                                var importOptionsScript = ParseImportOptions(splitParameters2);
+
+                                                if (importOptionsScript != null)
                                                 {
-                                                    import.Import(filePath2, database2);
+                                                    import.Import(filePath2, database2, tableName: importOptionsScript.TableName, blockSize: importOptionsScript.BlockSize, hasHeader: importOptionsScript.HasHeader, columnSeparator: importOptionsScript.ColumnSeparator, threadsCount: importOptionsScript.ThreadsCount, batchSize: importOptionsScript.BatchSize);
                                                 }
-                                                else if (splitParameters2.Length == 3)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]));
-                                                }
-                                                else if (splitParameters2.Length == 4)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]));
-                                                }
-                                                else if (splitParameters2.Length == 5)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0));
-                                                }
-                                                else if (splitParameters2.Length == 6)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]));
-                                                }
-                                                else if (splitParameters2.Length == 7)
-                                                {
-                                                    import.Import(filePath2, database2, int.Parse(splitParameters2[2]), bool.Parse(splitParameters2[3]), columnSeparator: splitParameters2[4].ElementAt(0), threadsCount: int.Parse(splitParameters2[5]), batchSize: int.Parse(splitParameters2[6]));
-                                                }
+
                                             }
                                             else
                                             {
@@ -230,7 +214,7 @@ namespace ColmnarDB.ConsoleClient
                                     } 
                                 }
                             }
-                            catch (System.IO.FileNotFoundException e)
+                            catch (System.IO.FileNotFoundException)
                             {
                                 Console.WriteLine($"File not found. File path: '{parameters}'.");
                             }
@@ -266,31 +250,12 @@ namespace ColmnarDB.ConsoleClient
                                 filePath = filePath.Substring(1, filePath.Length - 2);
                             }
 
-                            if (splitParameters.Length == 2)
+                            var importOptions = ParseImportOptions(splitParameters);
+                            if (importOptions != null)
                             {
-                                import.Import(filePath, database);
+                                import.Import(filePath, database, tableName: importOptions.TableName, blockSize: importOptions.BlockSize, hasHeader: importOptions.HasHeader, columnSeparator: importOptions.ColumnSeparator, threadsCount: importOptions.ThreadsCount, batchSize: importOptions.BatchSize);
                             }
-                            else if (splitParameters.Length == 3)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]));
-                            }
-                            else if (splitParameters.Length == 4)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]));
-                            }
-                            else if (splitParameters.Length == 5)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0));
-                            }
-                            else if (splitParameters.Length == 6)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]));
-                            }
-                            else if (splitParameters.Length == 7)
-                            {
-                                import.Import(filePath, database, int.Parse(splitParameters[2]), bool.Parse(splitParameters[3]), columnSeparator: splitParameters[4].ElementAt(0), threadsCount: int.Parse(splitParameters[5]), batchSize: int.Parse(splitParameters[6]));
-                            }
-
+                            
                             break;
 
                         case "h":
@@ -340,6 +305,87 @@ namespace ColmnarDB.ConsoleClient
             {
                 mutex.ReleaseMutex();
             }
+        }
+
+        private class ImportOptions
+        {
+            public string TableName { get; set; } = "";
+            public int BlockSize { get; set; } = 0;
+            public bool HasHeader { get; set; } = true;
+            public char ColumnSeparator { get; set; } = '\0';
+            public int BatchSize { get; set; } = 100000;
+            public int ThreadsCount { get; set; } = 1;
+        }
+
+        public static readonly string IMPORT_TABLE_NAME = "table-name";
+        public static readonly string IMPORT_BLOCK_SIZE = "block-size";
+        public static readonly string IMPORT_HAS_HEADER = "has-header";
+        public static readonly string IMPORT_COLUMN_SEPARATOR = "column-separator";
+        public static readonly string IMPORT_BATCH_SIZE = "batch-size";
+        public static readonly string IMPORT_THREADS_COUNT = "threads-count";
+
+        private static ImportOptions ParseImportOptions(string[] splitParameters)
+        {
+            ImportOptions importParameters = new ImportOptions();
+
+            string[] acceptedOptions = {
+                IMPORT_TABLE_NAME,
+                IMPORT_BLOCK_SIZE,
+                IMPORT_HAS_HEADER,
+                IMPORT_COLUMN_SEPARATOR,
+                IMPORT_BATCH_SIZE,
+                IMPORT_THREADS_COUNT
+            };
+
+            if (splitParameters.Length > 2)
+            {
+                Dictionary<string, string> parametersLookup = new Dictionary<string, string>();
+                for (int i = 2; i < splitParameters.Length; i++)
+                {
+                    string[] splitParameterPair = splitParameters[i].Split("=");
+                    if (splitParameterPair.Length < 2)
+                    {
+                        Console.WriteLine("Error: Missing \"=\" at import option " + splitParameters[i]);
+                        return null;
+                    }
+
+                    string optionName = splitParameterPair[0].ToLower();
+                    if (!acceptedOptions.Contains(optionName))
+                    {
+                        Console.WriteLine("Error: Unknown import option " + optionName);
+                        return null;
+                    }
+                    string optionValue = splitParameterPair[1];
+                    parametersLookup.TryAdd(optionName, optionValue);
+                }
+
+                if (parametersLookup.ContainsKey(IMPORT_TABLE_NAME))
+                {
+                    importParameters.TableName = parametersLookup[IMPORT_TABLE_NAME];
+                }
+                if (parametersLookup.ContainsKey(IMPORT_BLOCK_SIZE))
+                {
+                    importParameters.BlockSize = int.Parse(parametersLookup[IMPORT_BLOCK_SIZE]);
+                }
+                if (parametersLookup.ContainsKey(IMPORT_HAS_HEADER))
+                {
+                    importParameters.HasHeader = bool.Parse(parametersLookup[IMPORT_HAS_HEADER]);
+                }
+                if (parametersLookup.ContainsKey(IMPORT_COLUMN_SEPARATOR))
+                {
+                    importParameters.ColumnSeparator = parametersLookup[IMPORT_COLUMN_SEPARATOR].ElementAt(0);
+                }
+                if (parametersLookup.ContainsKey(IMPORT_BATCH_SIZE))
+                {
+                    importParameters.BatchSize = int.Parse(parametersLookup[IMPORT_BATCH_SIZE]);
+                }
+                if (parametersLookup.ContainsKey(IMPORT_THREADS_COUNT))
+                {
+                    importParameters.ThreadsCount = int.Parse(parametersLookup[IMPORT_THREADS_COUNT]);
+                }
+            }
+
+            return importParameters;
         }
     }
 }

@@ -4,6 +4,7 @@
 #include <map>
 #include <unordered_map>
 #include <list>
+#include <mutex>
 
 
 /// A class for memory allocation operations
@@ -29,6 +30,8 @@ private:
     std::list<BlockInfo> chainedBlocks_;
     std::multimap<size_t, std::list<BlockInfo>::iterator> blocksBySize_;
     std::unordered_map<void*, std::list<BlockInfo>::iterator> allocatedBlocks_;
+    std::mutex allocator_mutex_; // Mutex for each allocator (gpu card)
+
     void SplitBlock(std::multimap<size_t, std::list<BlockInfo>::iterator>::iterator blockIterator,
                     size_t requestedSize);
     friend void
@@ -50,7 +53,7 @@ public:
     CudaMemAllocator(const CudaMemAllocator&) = delete;
     CudaMemAllocator(CudaMemAllocator&& other) = delete;
     CudaMemAllocator& operator=(const CudaMemAllocator&) = delete;
-    int8_t* allocate(std::ptrdiff_t num_bytes);
-    void deallocate(int8_t* ptr, size_t num_bytes);
+    int8_t* Allocate(std::ptrdiff_t numBytes);
+    void Deallocate(int8_t* ptr);
     void Clear();
 };

@@ -8,7 +8,7 @@ namespace ArithmeticUnaryOperations
 struct minus
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = false;
+    typedef void RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -20,7 +20,7 @@ struct minus
 struct absolute
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = false;
+    typedef void RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -32,7 +32,7 @@ struct absolute
 struct sine
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -44,7 +44,7 @@ struct sine
 struct cosine
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -56,7 +56,7 @@ struct cosine
 struct tangent
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -68,7 +68,7 @@ struct tangent
 struct cotangent
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -80,7 +80,7 @@ struct cotangent
 struct arcsine
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -92,7 +92,7 @@ struct arcsine
 struct arccosine
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -104,7 +104,7 @@ struct arccosine
 struct arctangent
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -116,7 +116,7 @@ struct arctangent
 struct logarithm10
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -128,7 +128,7 @@ struct logarithm10
 struct logarithmNatural
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -140,7 +140,7 @@ struct logarithmNatural
 struct exponential
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -152,7 +152,7 @@ struct exponential
 struct squareRoot
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -164,7 +164,7 @@ struct squareRoot
 struct square
 {
     static constexpr bool isMonotonous = false;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U a) const
     {
@@ -176,7 +176,7 @@ struct square
 struct sign
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = false;
+    typedef void RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U val) const
     {
@@ -188,7 +188,7 @@ struct sign
 struct round
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U val) const
     {
@@ -200,7 +200,7 @@ struct round
 struct floor
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U val) const
     {
@@ -212,7 +212,7 @@ struct floor
 struct ceil
 {
     static constexpr bool isMonotonous = true;
-    static constexpr bool isFloatRetType = true;
+    typedef float RetType;
     template <typename T, typename U>
     __device__ __host__ T operator()(U val) const
     {

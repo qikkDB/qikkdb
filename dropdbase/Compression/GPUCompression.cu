@@ -51,15 +51,15 @@ bool compressAAFL(const int CWARP_SIZE,
 
     // Device allocations for compression
     auto& cudaAllocator = Context::getInstance().GetAllocatorForCurrentDevice();
-    deviceUncompressed = reinterpret_cast<T*>(cudaAllocator.allocate(uncompressedDataSize));
-    deviceCompressed = reinterpret_cast<T*>(cudaAllocator.allocate(
+    deviceUncompressed = reinterpret_cast<T*>(cudaAllocator.Allocate(uncompressedDataSize));
+    deviceCompressed = reinterpret_cast<T*>(cudaAllocator.Allocate(
         uncompressedDataSize)); // first we do not know what will be the size, therfore data_size
     deviceBitLength = reinterpret_cast<unsigned char*>(
-        cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned char)));
+        cudaAllocator.Allocate(compressionBlocksCount * sizeof(unsigned char)));
     devicePositionId = reinterpret_cast<unsigned long*>(
-        cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned long)));
+        cudaAllocator.Allocate(compressionBlocksCount * sizeof(unsigned long)));
     deviceCompressedElementsCount =
-        reinterpret_cast<unsigned long*>(cudaAllocator.allocate(sizeof(unsigned long)));
+        reinterpret_cast<unsigned long*>(cudaAllocator.Allocate(sizeof(unsigned long)));
 
     // Copy data CPU->GPU
     cudaMemcpy(deviceUncompressed, hostUncompressed, uncompressedDataSize, cudaMemcpyHostToDevice);
@@ -136,13 +136,11 @@ bool compressAAFL(const int CWARP_SIZE,
     }
 
     // Clean up device allocations
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceUncompressed), uncompressedDataSize);
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceCompressed), uncompressedDataSize);
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceBitLength),
-                             compressionBlocksCount * sizeof(unsigned char));
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(devicePositionId),
-                             compressionBlocksCount * sizeof(unsigned long));
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceCompressedElementsCount), sizeof(long));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceUncompressed));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceCompressed));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceBitLength));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(devicePositionId));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceCompressedElementsCount));
     CheckCudaError(cudaGetLastError());
 
     return result;
@@ -307,12 +305,12 @@ bool decompressAAFL(const int CWARP_SIZE,
 
     // Device allocations for decompression
     auto& cudaAllocator = Context::getInstance().GetAllocatorForCurrentDevice();
-    deviceUncompressed = reinterpret_cast<T*>(cudaAllocator.allocate(uncompressedDataSize));
-    deviceCompressed = reinterpret_cast<T*>(cudaAllocator.allocate(compressedDataSize));
+    deviceUncompressed = reinterpret_cast<T*>(cudaAllocator.Allocate(uncompressedDataSize));
+    deviceCompressed = reinterpret_cast<T*>(cudaAllocator.Allocate(compressedDataSize));
     deviceBitLength = reinterpret_cast<unsigned char*>(
-        cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned char)));
+        cudaAllocator.Allocate(compressionBlocksCount * sizeof(unsigned char)));
     devicePositionId = reinterpret_cast<unsigned long*>(
-        cudaAllocator.allocate(compressionBlocksCount * sizeof(unsigned long)));
+        cudaAllocator.Allocate(compressionBlocksCount * sizeof(unsigned long)));
     CheckCudaError(cudaGetLastError());
 
     // Decoding single array of type T into separate arrays (of compression meta data)
@@ -352,12 +350,10 @@ bool decompressAAFL(const int CWARP_SIZE,
     CheckCudaError(cudaGetLastError());
 
     // Clean up device allocations
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceUncompressed), uncompressedDataSize);
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceCompressed), uncompressedDataSize);
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(deviceBitLength),
-                             compressionBlocksCount * sizeof(unsigned char));
-    cudaAllocator.deallocate(reinterpret_cast<int8_t*>(devicePositionId),
-                             compressionBlocksCount * sizeof(unsigned long));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceUncompressed));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceCompressed));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(deviceBitLength));
+    cudaAllocator.Deallocate(reinterpret_cast<int8_t*>(devicePositionId));
     CheckCudaError(cudaGetLastError());
 
     // Assignment into output parameter

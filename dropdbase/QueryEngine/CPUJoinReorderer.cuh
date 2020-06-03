@@ -76,7 +76,7 @@ public:
     }
 
     template <typename T>
-    static void reorderNullMaskByJIPushToGPU(int8_t* outNullBlock,
+    static void reorderNullMaskByJIPushToGPU(nullmask_t* outNullBlock,
                                              int32_t& outNullBlockSize,
                                              const ColumnBase<T>& inCol,
                                              int32_t inBlockIdx,
@@ -84,9 +84,8 @@ public:
                                              const int32_t blockSize)
     {
         // Alloc an output CPU vector
-        outNullBlockSize =
-            (inColJoinIndices[inBlockIdx].size() + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
-        std::vector<int8_t> outNullBlockVector(outNullBlockSize);
+        outNullBlockSize = NullValues::GetNullBitMaskSize(inColJoinIndices[inBlockIdx].size());
+        std::vector<nullmask_t> outNullBlockVector(outNullBlockSize);
 
         // Fetch the core count
         unsigned int threadCount = std::thread::hardware_concurrency();
@@ -100,7 +99,7 @@ public:
         for (int32_t idx = 0; idx < threadCount; idx++)
         {
             reorderNullThreads.push_back(std::thread{
-                [](std::vector<int8_t>& outNullBlockVector, const ColumnBase<T>& inCol,
+                [](std::vector<nullmask_t>& outNullBlockVector, const ColumnBase<T>& inCol,
                    int32_t inBlockIdx, const std::vector<std::vector<int32_t>>& inColJoinIndices,
                    const int32_t blockSize, const int32_t threadId, const int32_t threadCount) {
                     for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
@@ -111,12 +110,11 @@ public:
                             const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
                             const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
 
-                            const int8_t nullBit =
-                                (inCol.GetBlocksList()[columnBlockId]->GetNullBitmask()[columnRowId / (sizeof(int8_t) * 8)] >>
-                                 (columnRowId % (sizeof(int8_t) * 8))) &
-                                1;
+                            const int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                inCol.GetBlocksList()[columnBlockId]->GetNullBitmask(), columnRowId);
 
-                            outNullBlockVector[(i + j) / 8] |= (nullBit << j);
+                            outNullBlockVector[(i + j) / (sizeof(nullmask_t)*8) ] |=
+                                (nullBit << j * sizeof(nullmask_t));
                         }
                     }
                 },

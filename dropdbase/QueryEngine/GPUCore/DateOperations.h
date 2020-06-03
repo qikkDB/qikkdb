@@ -37,7 +37,11 @@ __constant__ const int64_t START_DAYS_OF_MONTHS[] = {
 // Placeholder functor for exception throwing
 struct toString
 {
-    __device__ __host__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef std::string RetType;
+
+    template <typename T, typename U>
+    __device__ __host__ T operator()(U dateTime) const
     {
         return 0;
     }
@@ -46,7 +50,11 @@ struct toString
 /// Year
 struct year
 {
-    __device__ __host__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ __host__ T operator()(U dateTime) const
     {
 #ifndef __CUDACC__
         using namespace std;
@@ -87,7 +95,11 @@ struct year
 /// Month 1-12
 struct month
 {
-    __device__ __host__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ __host__ T operator()(U dateTime) const
     {
 #ifndef __CUDACC__
         using namespace std;
@@ -127,7 +139,11 @@ struct month
 /// Day 1-28/29/30/31
 struct day
 {
-    __device__ __host__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ __host__ T operator()(U dateTime) const
     {
 #ifndef __CUDACC__
         using namespace std;
@@ -168,7 +184,11 @@ struct day
 /// Hour 0-23
 struct hour
 {
-    __device__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
     {
         if (dateTime < 0)
         {
@@ -184,7 +204,11 @@ struct hour
 /// Minute 0-59
 struct minute
 {
-    __device__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
     {
         if (dateTime < 0)
         {
@@ -200,7 +224,11 @@ struct minute
 /// Second 0-59
 struct second
 {
-    __device__ int32_t operator()(int64_t dateTime) const
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
     {
         if (dateTime < 0)
         {
@@ -210,6 +238,32 @@ struct second
         {
             return static_cast<int32_t>(dateTime % 60LL);
         }
+    }
+};
+
+struct weekday
+{
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
+    {
+        const int64_t day = (dateTime < 0 ? (dateTime - 86400LL + 1) : dateTime) / 86400LL;
+        return static_cast<int32_t>((day + 3LL) % 7LL);
+    }
+};
+
+struct dayOfWeek
+{
+    static constexpr bool isMonotonous = false;
+    typedef int32_t RetType;
+
+    template <typename T, typename U>
+    __device__ T operator()(U dateTime) const
+    {
+        const int64_t day = (dateTime < 0 ? (dateTime - 86400LL + 1) : dateTime) / 86400LL;
+        return static_cast<int32_t>(((day + 4LL) % 7LL) + 1LL);
     }
 };
 } // namespace DateOperations

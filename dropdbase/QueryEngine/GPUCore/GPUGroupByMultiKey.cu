@@ -3,7 +3,7 @@
 __device__ int32_t GetHash(DataType* keyTypes,
                            const int32_t keysColCount,
                            void** inKeys,
-                           int8_t** inKeysNullMask,
+                           nullmask_t** inKeysNullMask,
                            const int32_t i,
                            const int32_t hashCoef)
 {
@@ -13,7 +13,7 @@ __device__ int32_t GetHash(DataType* keyTypes,
     {
         uint32_t hash;
         const bool null = (inKeysNullMask[t] != nullptr) &&
-                          ((inKeysNullMask[t][i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1);
+                          NullValues::GetConcreteBitFromBitmask(inKeysNullMask[t], i);
         if (null)
         {
             hash = 0;
@@ -71,22 +71,21 @@ __device__ int32_t GetHash(DataType* keyTypes,
 __device__ bool AreEqualMultiKeys(DataType* keyTypes,
                                   const int32_t keysColCount,
                                   void** keysA,
-                                  int8_t** keysANullMask,
+                                  nullmask_t** keysANullMask,
                                   const int32_t indexA,
                                   void** keysB,
-                                  int8_t** keysBNullMask,
+                                  nullmask_t** keysBNullMask,
                                   const int32_t indexB,
                                   const bool compressedBNullMask)
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
-        const bool nullA =
-            (keysANullMask[t] != nullptr) &&
-            ((keysANullMask[t][indexA / (sizeof(int8_t) * 8)] >> (indexA % (sizeof(int8_t) * 8))) & 1);
+        const bool nullA = (keysANullMask[t] != nullptr) &&
+                           (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexA));
         const bool nullB =
             (keysBNullMask[t] != nullptr) &&
             (compressedBNullMask ?
-                 ((keysBNullMask[t][indexB / (sizeof(int8_t) * 8)] >> (indexB % (sizeof(int8_t) * 8))) & 1) :
+                 (NullValues::GetConcreteBitFromBitmask(keysBNullMask[t], indexB)) :
                  keysBNullMask[t][indexB]);
         switch (keyTypes[t])
         {
@@ -148,10 +147,10 @@ __device__ bool AreEqualMultiKeys(DataType* keyTypes,
 __device__ bool IsNewMultiKey(DataType* keyTypes,
                               const int32_t keysColCount,
                               void** inKeys,
-                              int8_t** inKeysNullMask,
+                              nullmask_t** inKeysNullMask,
                               const int32_t i,
                               void** keysBuffer,
-                              int8_t** keysNullBuffer,
+                              nullmask_t** keysNullBuffer,
                               int32_t* sourceIndices,
                               const int32_t index)
 {
@@ -211,11 +210,11 @@ void ReconstructSingleKeyCol<std::string>(std::vector<void*>* outKeysVector,
 
 
 void AllocKeysBuffer(void*** keysBuffer,
-                     int8_t*** keysNullBuffer,
+                     nullmask_t*** keysNullBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
-                     std::vector<int8_t*>* pointersNullMask)
+                     std::vector<nullmask_t*>* pointersNullMask)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
     GPUMemory::alloc(keysNullBuffer, keyTypes.size());
@@ -297,7 +296,7 @@ void AllocKeysBuffer(void*** keysBuffer,
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
-        int8_t* gpuKeyNullMask;
+        nullmask_t* gpuKeyNullMask;
         GPUMemory::alloc(&gpuKeyNullMask, rowCount);
         GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
         if (pointersNullMask)
@@ -307,7 +306,7 @@ void AllocKeysBuffer(void*** keysBuffer,
     }
 }
 
-void FreeKeysBuffer(void** keysBuffer, int8_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
+void FreeKeysBuffer(void** keysBuffer, nullmask_t** keysNullBuffer, DataType* keyTypes, int32_t keysColCount)
 {
     // Copy data types back from GPU
     std::vector<DataType> keyTypesHost;
@@ -328,7 +327,7 @@ void FreeKeysBuffer(void** keysBuffer, int8_t** keysNullBuffer, DataType* keyTyp
             }
             GPUMemory::free(ptr);
         }
-        int8_t* ptrNullBuffer;
+        nullmask_t* ptrNullBuffer;
         GPUMemory::copyDeviceToHost(&ptrNullBuffer, keysNullBuffer + i, 1); // copy single pointer
         if (ptrNullBuffer)
         {
@@ -388,12 +387,12 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                                           int32_t keysColCount,
                                           int32_t* sourceIndices,
                                           void** keysBuffer,
-                                          int8_t** keysNullBuffer,
+                                          nullmask_t** keysNullBuffer,
                                           GPUMemory::GPUString* stringSideBuffers,
                                           int32_t** stringLengthsBuffers,
                                           int32_t maxHashCount,
                                           void** inKeys,
-                                          int8_t** inKeysNullMask)
+                                          nullmask_t** inKeysNullMask)
 {
     const int32_t idx = blockIdx.x * blockDim.x + threadIdx.x;
     const int32_t stride = blockDim.x * gridDim.x;
@@ -444,9 +443,8 @@ __global__ void kernel_collect_multi_keys(DataType* keyTypes,
                 // If using keys null mask
                 if (inKeysNullMask[t] != nullptr)
                 {
-                    keysNullBuffer[t][i] = (inKeysNullMask[t][sourceIndices[i] / (sizeof(int8_t) * 8)] >>
-                                            (sourceIndices[i] % (sizeof(int8_t) * 8))) &
-                                           1;
+                    keysNullBuffer[t][i] =
+                        NullValues::GetConcreteBitFromBitmask(inKeysNullMask[t], sourceIndices[i]);
                 }
                 else // If not, set added key as not null
                 {

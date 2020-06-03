@@ -52,16 +52,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
             return loadFlag;
         }
 
-        auto col = FindStringColumn(colName);
-        size_t inSize = std::get<1>(col);
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        auto col = FindCompositeDataTypeAllocation<std::string>(colName);
+        size_t inSize = col.ElementCount;
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         GPUMemory::GPUString reorderedColumn;
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -75,10 +75,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
         }
 
         GPUOrderBy::ReOrderStringByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                       std::get<0>(col), inSize);
+                                       col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           std::get<2>(col), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructStringCol(outData->getData(), &outSize, reorderedColumn,
@@ -124,14 +124,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 
         PointerAllocation col = allocatedPointers_.at(colName);
         size_t inSize = col.ElementCount;
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         cuda_ptr<NativeGeoPoint> reorderedColumn(inSize);
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -148,7 +148,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
                                  reinterpret_cast<NativeGeoPoint*>(col.GpuPtr), col.ElementCount);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           reinterpret_cast<int8_t*>(col.GpuNullMaskPtr), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPointColToWKT(outData->getData(), &outSize, reorderedColumn.get(),
@@ -190,16 +190,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
             return loadFlag;
         }
 
-        auto col = FindComplexPolygon(colName);
-        size_t inSize = std::get<1>(col);
-        size_t inNullColSize = (inSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+        auto col = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
+        size_t inSize = col.ElementCount;
+        size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 
         std::unique_ptr<VariantArray<std::string>> outData =
             std::make_unique<VariantArray<std::string>>(inSize);
-        std::unique_ptr<int8_t[]> outNullData(new int8_t[inNullColSize]);
+        std::unique_ptr<nullmask_t[]> outNullData(new nullmask_t[inNullColSize]);
 
         GPUMemory::GPUPolygon reorderedColumn;
-        cuda_ptr<int8_t> reorderedNullColumn(inNullColSize);
+        cuda_ptr<nullmask_t> reorderedNullColumn(inNullColSize);
         cuda_ptr<int8_t> reorderedFilterMask(nullptr);
 
         PointerAllocation orderByIndices = allocatedPointers_.at("$orderByIndices");
@@ -213,10 +213,10 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
         }
 
         GPUOrderBy::ReOrderPolygonByIdx(reorderedColumn, reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                        std::get<0>(col), inSize);
+                                        col.GpuPtr, inSize);
         GPUOrderBy::ReOrderNullValuesByIdx(reorderedNullColumn.get(),
                                            reinterpret_cast<int32_t*>(orderByIndices.GpuPtr),
-                                           std::get<2>(col), inSize);
+                                           reinterpret_cast<nullmask_t*>(col.GpuNullMaskPtr), inSize);
 
         int32_t outSize;
         GPUReconstruct::ReconstructPolyColToWKT(outData->getData(), &outSize, reorderedColumn,
@@ -271,8 +271,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByOrderColumnBlocks;
             std::unordered_map<std::string, std::vector<std::unique_ptr<IVariantArray>>> reconstructedOrderByRetColumnBlocks;
 
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
-            std::unordered_map<std::string, std::vector<std::unique_ptr<int8_t[]>>> reconstructedOrderByRetColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> reconstructedOrderByOrderColumnNullBlocks;
+            std::unordered_map<std::string, std::vector<std::unique_ptr<nullmask_t[]>>> reconstructedOrderByRetColumnNullBlocks;
 
             for (int32_t i = 0; i < Context::getInstance().getDeviceCount(); i++)
             {
@@ -330,7 +330,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                 sizeOfBlocks[i] = blockSize;
             }
 
-            resultSetNullSize = (resultSetSize + sizeof(int8_t) * 8 - 1) / (sizeof(int8_t) * 8);
+            resultSetNullSize = NullValues::GetNullBitMaskSize(resultSetSize);
 
             // Allocate the result map by inserting a column name and iVariantArray pair
             for (auto& orderColumn : reconstructedOrderByRetColumnBlocks)
@@ -372,7 +372,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
 
                 // Alloc the null collumn and zero it
                 reconstructedOrderByColumnsNullMerged_[orderColumn.first] =
-                    std::make_unique<int8_t[]>(resultSetNullSize);
+                    std::make_unique<nullmask_t[]>(resultSetNullSize);
                 for (int32_t i = 0; i < resultSetNullSize; i++)
                 {
                     reconstructedOrderByColumnsNullMerged_[orderColumn.first].get()[i] = 0;
@@ -628,16 +628,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
 
                                 // Write the null columns 1
                                 // 1. retrieve the null value, 2. set the null value
-                                int32_t nullMaskIdx =
-                                    currentIndicesInBlocks[firstNonzeroBlockIdx] / (sizeof(int8_t) * 8);
-                                int32_t shiftIdx =
-                                    currentIndicesInBlocks[firstNonzeroBlockIdx] % (sizeof(int8_t) * 8);
-                                int8_t nullBit =
-                                    (reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroBlockIdx][nullMaskIdx] >>
-                                     shiftIdx) &
-                                    1;
-                                nullBit <<= (resultSetIdx % (sizeof(int8_t) * 8));
-                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / 8] |= nullBit;
+                                int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                    reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroBlockIdx]
+                                        .get(),
+                                    currentIndicesInBlocks[firstNonzeroBlockIdx]);
+                                nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |=
+                                    nullBit;
                             }
                             // Add to the null collumn
                             // ReconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetIdx];
@@ -931,17 +928,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                                 default:
                                     break;
                                 }
-                                int32_t nullMaskIdx =
-                                    currentIndicesInBlocks[blockToMergeIdx] / (sizeof(int8_t) * 8);
-                                int32_t shiftIdx =
-                                    currentIndicesInBlocks[blockToMergeIdx] % (sizeof(int8_t) * 8);
                                 // Write the null columns 2
-                                int8_t nullBit =
-                                    (reconstructedOrderByRetColumnNullBlocks[retColumn.first][blockToMergeIdx][nullMaskIdx] >>
-                                     (shiftIdx)) &
-                                    1;
-                                nullBit <<= (resultSetIdx % (sizeof(int8_t) * 8));
-                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / 8] |= nullBit;
+                                int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                    reconstructedOrderByRetColumnNullBlocks[retColumn.first][blockToMergeIdx]
+                                        .get(),
+                                    currentIndicesInBlocks[blockToMergeIdx]);
+                                nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |= nullBit;
                             }
 
                             resultSetIdx++;

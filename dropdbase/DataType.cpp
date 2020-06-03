@@ -47,6 +47,24 @@ DataType GetColumnDataTypeFromString(const std::string& dataType)
     }
 }
 
+PayloadType GetPayloadTypeFromString(const std::string& dataType)
+{
+    std::string type = dataType;
+
+    for (auto& c : type)
+    {
+        c = toupper(c);
+    }
+    if ( type == "DATE" || type == "DATETIME")
+    {
+        return PayloadType::PAYLOAD_DATE;
+    }
+    else
+    {
+        return PayloadType::PAYLOAD_DEFAULT;
+    }
+}
+
 std::string GetStringFromColumnDataType(DataType type)
 {
     switch (type)

@@ -591,7 +591,7 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_basic)
     table.CreateColumn("ColumnInt2", COLUMN_INT);
 
     std::unordered_map<std::string, std::any> data;
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
 
     std::vector<int32_t> dataInt1({2, 1, 5, 8, 102, 67, 5, 1});
     std::vector<int32_t> dataInt2({21, 12, 50, 80, 1020, 670, 60, 13});
@@ -599,8 +599,8 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_basic)
     data.insert({"ColumnInt1", dataInt1});
     data.insert({"ColumnInt2", dataInt2});
 
-    std::vector<int8_t> vectorMask1;
-    std::vector<int8_t> vectorMask2;
+    std::vector<nullmask_t> vectorMask1;
+    std::vector<nullmask_t> vectorMask2;
     vectorMask1.push_back(3);
     vectorMask2.push_back(11);
 
@@ -646,7 +646,7 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
     table.CreateColumn("ColumnInt3", COLUMN_INT);
 
     std::unordered_map<std::string, std::any> data;
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
 
     std::vector<int32_t> dataInt1({9, 5, 5, 7, 12, 4, 8, 5});
     std::vector<int32_t> dataInt2({7, 5, 7, 5, 12, 89, 56, 7});
@@ -660,9 +660,9 @@ TEST(TableTests, ClusteredIndexInsertWithNullValues_advanced)
     data.insert({"ColumnInt2", dataInt2});
     data.insert({"ColumnInt3", dataInt3});
 
-    std::vector<int8_t> vectorMask1;
-    std::vector<int8_t> vectorMask2;
-    std::vector<int8_t> vectorMask3;
+    std::vector<nullmask_t> vectorMask1;
+    std::vector<nullmask_t> vectorMask2;
+    std::vector<nullmask_t> vectorMask3;
     vectorMask1.push_back(60);
     vectorMask2.push_back(90);
     vectorMask3.push_back(204);
@@ -1501,9 +1501,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     data6.insert({"ColumnIntA", dataIntA6});
     data6.insert({"ColumnIntB", dataIntB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -1542,9 +1542,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     data7.insert({"ColumnIntA", dataIntA7});
     data7.insert({"ColumnIntB", dataIntB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -1578,7 +1578,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Int)
     ASSERT_EQ(blockIntB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockIntB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockIntB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_NoDuplicityInData_Int)
@@ -2079,9 +2079,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -2120,9 +2120,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -2156,7 +2156,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Long)
     ASSERT_EQ(blockB7[0]->GetData()[6], 1);
     ASSERT_EQ(blockB7[0]->GetData()[7], 8);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
@@ -2324,9 +2324,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -2363,9 +2363,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -2397,7 +2397,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Float)
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[6], 1.0f);
     ASSERT_FLOAT_EQ(blockB7[0]->GetData()[7], 8.0f);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
@@ -2565,9 +2565,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -2604,9 +2604,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -2639,7 +2639,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Double)
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[6], 1.0);
     ASSERT_DOUBLE_EQ(blockB7[0]->GetData()[7], 8.0);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
@@ -2818,9 +2818,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -2859,9 +2859,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -2895,7 +2895,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_String)
     ASSERT_EQ(blockB7[0]->GetData()[6], "w");
     ASSERT_EQ(blockB7[0]->GetData()[7], "q");
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
@@ -3101,9 +3101,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -3146,9 +3146,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -3182,7 +3182,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[6]), "POINT(719.11 11.12)");
     ASSERT_EQ(PointFactory::WktFromPoint(blockB7[0]->GetData()[7]), "POINT(6.11 11.12)");
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
@@ -3426,9 +3426,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     data6.insert({"ColumnA", dataA6});
     data6.insert({"ColumnB", dataB6});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask;
-    std::vector<int8_t> vectorMaskA;
-    std::vector<int8_t> vectorMaskB;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask;
+    std::vector<nullmask_t> vectorMaskA;
+    std::vector<nullmask_t> vectorMaskB;
     vectorMaskA.push_back(3);
     vectorMaskB.push_back(0);
 
@@ -3473,9 +3473,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     data7.insert({"ColumnA", dataA7});
     data7.insert({"ColumnB", dataB7});
 
-    std::unordered_map<std::string, std::vector<int8_t>> nullMask1;
-    std::vector<int8_t> vectorMaskA1;
-    std::vector<int8_t> vectorMaskB1;
+    std::unordered_map<std::string, std::vector<nullmask_t>> nullMask1;
+    std::vector<nullmask_t> vectorMaskA1;
+    std::vector<nullmask_t> vectorMaskB1;
     vectorMaskA1.push_back(0);
     vectorMaskB1.push_back(3);
 
@@ -3511,7 +3511,7 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[6]), resultB[6]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockB7[0]->GetData()[7]), resultB[7]);
 
-    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], -64);
+    ASSERT_EQ(blockB7[0]->GetNullBitmask()[0], 192);
 }
 
 TEST(TableTests, SetIsNullable)

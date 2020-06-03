@@ -66,6 +66,8 @@ private:
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> hourFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> minuteFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> secondFunctions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> weekdayFunctions_;
+    static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> dayOfWeekFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> logicalNotFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> minusFunctions_;
     static std::array<CpuDispatchFunction, DataType::DATA_TYPE_SIZE> absoluteFunctions_;
@@ -235,9 +237,9 @@ public:
     template <typename OP, typename T, typename U>
     int32_t arithmeticConstConst();
 
-	int32_t DateToStringCol();
+    int32_t DateToStringCol();
 
-	int32_t DateToStringConst();
+    int32_t DateToStringConst();
 
     template <typename OP>
     int32_t DateExtractCol();

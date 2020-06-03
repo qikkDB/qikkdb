@@ -50,6 +50,10 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
                 lastResultLen_ = std::max(payload.second.int64payload().int64data().size(), lastResultLen_);
                 break;
+            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+                lastResultLen_ =
+                    std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
+                break;
             case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
                 break;
@@ -116,6 +120,13 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
                     payload.second.int64payload().int64data()[i]);
             }
             break;
+        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
+            {
+                finalPayload.mutable_datetimepayload()->add_datetimedata(
+                    payload.second.datetimepayload().datetimedata()[i]);
+            }
+            break;
         case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
@@ -150,11 +161,25 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         smallPayload->mutable_payloads()->insert({payload.first, finalPayload});
         if (completeResult->nullbitmasks().find(payload.first) != completeResult->nullbitmasks().end())
         {
-            int start = (sentRecords_ + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            int nullMaskBufferSize = (bufferSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
-            auto nullBitMask =
-                completeResult->nullbitmasks().at(payload.first).substr(start, nullMaskBufferSize);
-            smallPayload->mutable_nullbitmasks()->insert({payload.first, nullBitMask});
+            if ((FRAGMENT_SIZE % (sizeof(nullmask_t) * 8)) != 0)
+            {
+                throw std::runtime_error("TCPClientHandler::FRAGMENT_SIZE (" +
+                                         std::to_string(FRAGMENT_SIZE) + ") must be a multiple of " +
+                                         std::to_string(sizeof(nullmask_t) * 8));
+            }
+            int start = NullValues::GetNullBitMaskSize(sentRecords_);
+            int nullMaskBufferSize = NullValues::GetNullBitMaskSize(bufferSize);
+            ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
+            std::vector<nullmask_t> nullMaskBuffer(
+                completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start,
+                completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start + nullMaskBufferSize);
+
+            for (size_t i = 0; i <= nullMaskBufferSize; i++)
+            {
+                nullMasks.add_nullmask(nullMaskBuffer[i]);
+            }
+
+            smallPayload->mutable_nullbitmasks()->insert({payload.first, nullMasks});
         }
     }
     sentRecords_ += FRAGMENT_SIZE;
@@ -450,13 +475,29 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     if (isNullable)
     {
-        std::vector<int8_t> nullMaskVector;
-        int32_t nullMaskSize = bulkImportMessage.nullmasklen();
-        std::unordered_map<std::string, std::vector<int8_t>> nullMap;
-        for (int i = 0; i < nullMaskSize; i++)
+        constexpr size_t bitMultiplier = sizeof(nullmask_t) / sizeof(uint8_t); // out:in null mask bit count ratio
+        std::vector<nullmask_t> nullMaskVector(
+            NullValues::GetNullBitMaskSize(bulkImportMessage.nullmasklen() * (8 * sizeof(uint8_t))));
+        // Cycle per out null mask
+        for (int i = 0; i < nullMaskVector.size(); i++)
         {
-            nullMaskVector.push_back(nullMask[i]);
+            nullMaskVector[i] = 0;
+            // Cycle to sequentially fill in one full number of out null mask (using OR)
+            for (int j = 0; j < bitMultiplier; j++)
+            {
+                const size_t inputIndex = bitMultiplier * i + j;
+                if (inputIndex < bulkImportMessage.nullmasklen())
+                {
+                    nullMaskVector[i] |= static_cast<nullmask_t>(nullMask[inputIndex])
+                                         << (j * sizeof(uint8_t) * 8U);
+                }
+                else
+                {
+                    break;
+                }
+            }
         }
+        std::unordered_map<std::string, std::vector<nullmask_t>> nullMap;
         nullMap.insert({columnName, nullMaskVector});
 
         try
@@ -466,6 +507,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         catch (constraint_violation_error& e)
         {
             BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: " << e.what();
+        }
+        catch (const std::exception& e)
+        {
+            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_message(e.what());
+            return resultMessage;
         }
     }
     else
@@ -477,6 +524,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         catch (constraint_violation_error& e)
         {
             BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: " << e.what();
+        }
+        catch (const std::exception& e)
+        {
+            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_message(e.what());
+            return resultMessage;
         }
     }
     resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
