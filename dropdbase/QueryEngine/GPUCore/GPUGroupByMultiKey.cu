@@ -143,14 +143,14 @@ __device__ bool AreEqualMultiKeysInputBuffer(DataType* keyTypes,
                                   nullmask_t** keysANullMask,
                                   const int32_t indexA,
                                   void** keysB,
-                                  nullarray_t** keysBNullMask,
+                                  nullarray_t** keysBNullArray,
                                   const int32_t indexB)
 {
     for (int32_t t = 0; t < keysColCount; t++)
     {
         const bool nullA = (keysANullMask[t] != nullptr) &&
                            (NullValues::GetConcreteBitFromBitmask(keysANullMask[t], indexA));
-        const bool nullB = (keysBNullMask[t] != nullptr) && keysBNullMask[t][indexB];
+        const bool nullB = (keysBNullArray[t] != nullptr) && keysBNullArray[t][indexB];
         switch (keyTypes[t])
         {
         case DataType::COLUMN_INT:
@@ -276,7 +276,7 @@ void AllocKeysBuffer(void*** keysBuffer,
                      std::vector<DataType>& keyTypes,
                      int32_t rowCount,
                      std::vector<void*>* pointers,
-                     std::vector<nullarray_t*>* pointersNullMask)
+                     std::vector<nullarray_t*>* pointersNullArray)
 {
     GPUMemory::alloc(keysBuffer, keyTypes.size());
     GPUMemory::alloc(keysNullBuffer, keyTypes.size());
@@ -358,12 +358,12 @@ void AllocKeysBuffer(void*** keysBuffer,
                                                            std::to_string(keyTypes[i]) + " is not supported");
             break;
         }
-        nullarray_t* gpuKeyNullMask;
-        GPUMemory::alloc(&gpuKeyNullMask, rowCount);
-        GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullMask, 1);
-        if (pointersNullMask)
+        nullarray_t* gpuKeyNullArray;
+        GPUMemory::alloc(&gpuKeyNullArray, rowCount);
+        GPUMemory::copyHostToDevice(*keysNullBuffer + i, &gpuKeyNullArray, 1);
+        if (pointersNullArray)
         {
-            pointersNullMask->emplace_back(gpuKeyNullMask);
+            pointersNullArray->emplace_back(gpuKeyNullArray);
         }
     }
 }

@@ -753,13 +753,13 @@ void GPUReconstruct::ReconstructPointColToWKT(std::string* outStringData,
 }
 
 
-cuda_ptr<nullmask_t> GPUReconstruct::CompressNullMask(nullarray_t* inputNullMask, int32_t dataElementCount)
+cuda_ptr<nullmask_t> GPUReconstruct::CompressNullMask(nullarray_t* inputNullArray, int32_t dataElementCount)
 {
     const size_t outBitMaskSize = GPUMemory::CalculateNullMaskSize(dataElementCount, true);
     cuda_ptr<nullmask_t> nullMaskCompressed(outBitMaskSize, 0);
     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(dataElementCount),
                                 Context::getInstance().getBlockDim()>>>(
-        reinterpret_cast<nullmask_t*>(nullMaskCompressed.get()), inputNullMask, dataElementCount);
+        reinterpret_cast<nullmask_t*>(nullMaskCompressed.get()), inputNullArray, dataElementCount);
     return nullMaskCompressed;
 }
 

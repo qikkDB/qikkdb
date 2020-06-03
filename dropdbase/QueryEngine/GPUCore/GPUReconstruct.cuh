@@ -624,7 +624,7 @@ public:
     }
 
     // Compress memory-wasting null mask with size equal to dataElementCount (aligning to 32 bit)
-    static cuda_ptr<nullmask_t> CompressNullMask(nullarray_t* inputNullMask, int32_t dataElementCount);
+    static cuda_ptr<nullmask_t> CompressNullMask(nullarray_t* inputNullArray, int32_t dataElementCount);
 };
 
 /// Specialization for Point (not supported but need to be implemented)

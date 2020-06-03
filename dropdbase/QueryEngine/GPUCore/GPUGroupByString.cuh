@@ -40,7 +40,7 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                                        int32_t* stringLengths,
                                        GPUMemory::GPUString keysBuffer,
                                        V* values,
-                                       nullarray_t* valuesNullMaskUncompressed,
+                                       nullarray_t* valuesNullArrayUncompressed,
                                        int64_t* keyOccurrenceCount,
                                        const int32_t loweredMaxHashCount,
                                        GPUMemory::GPUString inKeys,
@@ -131,9 +131,9 @@ __global__ void kernel_group_by_string(int32_t* sourceIndices,
                 if (values)
                 {
                     AGG{}(values + foundIndex * arrayMultiplier + threadIdx.x % arrayMultiplier, inValues[i]);
-                    if (valuesNullMaskUncompressed[foundIndex])
+                    if (valuesNullArrayUncompressed[foundIndex])
                     {
-                        valuesNullMaskUncompressed[foundIndex] = 0;
+                        valuesNullArrayUncompressed[foundIndex] = 0;
                     }
                 }
                 // Increment occurrence counter
@@ -193,7 +193,7 @@ public:
 private:
     /// Value buffer of the hash table
     V* values_ = nullptr;
-    nullarray_t* valuesNullMaskUncompressed_ = nullptr;
+    nullarray_t* valuesNullArrayUncompressed_ = nullptr;
 
     /// Count of values aggregated per key (helper buffer of the hash table)
     int64_t* keyOccurrenceCount_ = nullptr;
@@ -225,7 +225,7 @@ public:
             if (USE_VALUES)
             {
                 GPUMemory::alloc(&values_, valueBufferSize);
-                GPUMemory::allocAndSet(&valuesNullMaskUncompressed_, 1, keyBufferSize_);
+                GPUMemory::allocAndSet(&valuesNullArrayUncompressed_, 1, keyBufferSize_);
             }
             if (USE_KEY_OCCURRENCES)
             {
@@ -246,9 +246,9 @@ public:
             {
                 GPUMemory::free(values_);
             }
-            if (valuesNullMaskUncompressed_)
+            if (valuesNullArrayUncompressed_)
             {
-                GPUMemory::free(valuesNullMaskUncompressed_);
+                GPUMemory::free(valuesNullArrayUncompressed_);
             }
             if (keyOccurrenceCount_)
             {
@@ -314,7 +314,7 @@ public:
         if (USE_VALUES)
         {
             GPUMemory::free(values_);
-            GPUMemory::free(valuesNullMaskUncompressed_);
+            GPUMemory::free(valuesNullArrayUncompressed_);
         }
         if (USE_KEY_OCCURRENCES)
         {
@@ -340,7 +340,7 @@ public:
         {
             Context& context = Context::getInstance();
             kernel_group_by_string<AGG><<<context.calcGridDim(dataElementCount), context.getBlockDim()>>>(
-                sourceIndices_, stringLengths_, keysBuffer_, values_, valuesNullMaskUncompressed_,
+                sourceIndices_, stringLengths_, keysBuffer_, values_, valuesNullArrayUncompressed_,
                 keyOccurrenceCount_, keyBufferSize_ - 1, inKeys, inValues, dataElementCount,
                 valueBufferMultiplier_, errorFlagSwapper_.GetFlagPointer(), inKeysNullMask, inValuesNullMask);
             errorFlagSwapper_.Swap();
@@ -385,9 +385,9 @@ public:
     /// Create memory-wasting null array for keys - one 1 at [0], other zeros
     cuda_ptr<nullarray_t> CreateKeyNullArray()
     {
-        cuda_ptr<nullarray_t> keyNullMask(keyBufferSize_, 0);
-        GPUMemory::memset(keyNullMask.get(), 1, 1);
-        return keyNullMask;
+        cuda_ptr<nullarray_t> keyNullArray(keyBufferSize_, 0);
+        GPUMemory::memset(keyNullArray.get(), 1, 1);
+        return keyNullArray;
     }
 
     /// Reconstruct needed raw fields (do not calculate final results yet)
@@ -398,9 +398,9 @@ public:
     /// <param name="elementCount">ouptut buffer to fill with element count (one int32_t number)</param>
     void ReconstructRawNumbers(std::vector<int32_t>& keysStringLengths,
                                std::vector<char>& keysAllChars,
-                               nullarray_t* keysNullMask,
+                               nullarray_t* keysNullArray,
                                V* values,
-                               nullarray_t* valuesNullMask,
+                               nullarray_t* valuesNullArray,
                                int64_t* occurrences,
                                int32_t* elementCount)
     {
@@ -409,11 +409,11 @@ public:
         kernel_source_indices_to_mask<<<context.calcGridDim(keyBufferSize_), context.getBlockDim()>>>(
             occupancyMask.get(), sourceIndices_, keyBufferSize_);
 
-        cuda_ptr<nullarray_t> keysNullMaskInput = CreateKeyNullArray();
+        cuda_ptr<nullarray_t> keysNullArrayInput = CreateKeyNullArray();
 
         GPUReconstruct::ReconstructStringColRaw(keysStringLengths, keysAllChars, elementCount,
                                                 keysBuffer_, occupancyMask.get(), keyBufferSize_);
-        GPUReconstruct::reconstructCol(keysNullMask, elementCount, keysNullMaskInput.get(),
+        GPUReconstruct::reconstructCol(keysNullArray, elementCount, keysNullArrayInput.get(),
                                        occupancyMask.get(), keyBufferSize_);
 
         // Merge multipied arrays (values and occurrences)
@@ -428,7 +428,7 @@ public:
         {
             GPUReconstruct::reconstructCol(values, elementCount, mergedValues.get(),
                                            occupancyMask.get(), keyBufferSize_);
-            GPUReconstruct::reconstructCol(valuesNullMask, elementCount, valuesNullMaskUncompressed_,
+            GPUReconstruct::reconstructCol(valuesNullArray, elementCount, valuesNullArrayUncompressed_,
                                            occupancyMask.get(), keyBufferSize_);
         }
         if (USE_KEY_OCCURRENCES)
@@ -483,7 +483,7 @@ public:
                     kernel_compress_null_mask<<<Context::getInstance().calcGridDim(keyBufferSize_),
                                                 Context::getInstance().getBlockDim()>>>(
                         reinterpret_cast<nullmask_t*>(valuesNullMaskCompressed.get()),
-                        valuesNullMaskUncompressed_, keyBufferSize_);
+                        valuesNullArrayUncompressed_, keyBufferSize_);
                 }
 
                 // Reconstruct aggregated values
@@ -583,10 +583,10 @@ public:
 
             std::vector<int32_t> keysAllHostStringLengths;
             std::vector<char> keysAllHostAllChars;
-            std::vector<nullarray_t> keysNullMaskAllHost;
+            std::vector<nullarray_t> keysNullArrayAllHost;
 
             std::vector<V> valuesAllHost;
-            std::vector<nullarray_t> valuesNullMaskAllHost;
+            std::vector<nullarray_t> valuesNullArrayAllHost;
 
             std::vector<int64_t> occurrencesAllHost;
 
@@ -605,11 +605,11 @@ public:
 
                 std::vector<int32_t> keysStringLengths;
                 std::vector<char> keysAllChars;
-                std::unique_ptr<nullarray_t[]> keysNullMask =
+                std::unique_ptr<nullarray_t[]> keysNullArray =
                     std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<V[]> values = std::make_unique<V[]>(table->GetMaxHashCount());
-                std::unique_ptr<nullarray_t[]> valuesNullMask =
+                std::unique_ptr<nullarray_t[]> valuesNullArray =
                     std::make_unique<nullarray_t[]>(table->GetMaxHashCount());
 
                 std::unique_ptr<int64_t[]> occurrences =
@@ -619,8 +619,8 @@ public:
                 Context::getInstance().bindDeviceToContext(i);
 
                 // Reconstruct keys and values
-                table->ReconstructRawNumbers(keysStringLengths, keysAllChars, keysNullMask.get(),
-                                             values.get(), valuesNullMask.get(), occurrences.get(),
+                table->ReconstructRawNumbers(keysStringLengths, keysAllChars, keysNullArray.get(),
+                                             values.get(), valuesNullArray.get(), occurrences.get(),
                                              &elementCount);
 
                 // Append data to host vectors
@@ -629,14 +629,14 @@ public:
                 keysAllHostAllChars.insert(keysAllHostAllChars.end(), keysAllChars.begin(),
                                            keysAllChars.end());
 
-                keysNullMaskAllHost.insert(keysNullMaskAllHost.end(), keysNullMask.get(),
-                                           keysNullMask.get() + elementCount);
+                keysNullArrayAllHost.insert(keysNullArrayAllHost.end(), keysNullArray.get(),
+                                            keysNullArray.get() + elementCount);
 
                 if (USE_VALUES)
                 {
                     valuesAllHost.insert(valuesAllHost.end(), values.get(), values.get() + elementCount);
-                    valuesNullMaskAllHost.insert(valuesNullMaskAllHost.end(), valuesNullMask.get(),
-                                                 valuesNullMask.get() + elementCount);
+                    valuesNullArrayAllHost.insert(valuesNullArrayAllHost.end(), valuesNullArray.get(),
+                                                  valuesNullArray.get() + elementCount);
                 }
                 if (USE_KEY_OCCURRENCES)
                 {
@@ -650,23 +650,23 @@ public:
             if (sumElementCount > 0)
             {
                 cuda_ptr<int32_t> keysAllGPUStringLengths(sumElementCount);
-                cuda_ptr<nullarray_t> keysNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> keysNullArrayAllGPU(sumElementCount);
 
                 cuda_ptr<V> valuesAllGPU(sumElementCount);
-                cuda_ptr<nullarray_t> valuesNullMaskAllGPU(sumElementCount);
+                cuda_ptr<nullarray_t> valuesNullArrayAllGPU(sumElementCount);
 
                 cuda_ptr<int64_t> occurrencesAllGPU(sumElementCount);
 
                 // Copy the condens from host to default device
                 GPUMemory::copyHostToDevice(keysAllGPUStringLengths.get(),
                                             keysAllHostStringLengths.data(), sumElementCount);
-                GPUMemory::copyHostToDevice(keysNullMaskAllGPU.get(), keysNullMaskAllHost.data(), sumElementCount);
+                GPUMemory::copyHostToDevice(keysNullArrayAllGPU.get(), keysNullArrayAllHost.data(), sumElementCount);
 
                 if (USE_VALUES)
                 {
                     GPUMemory::copyHostToDevice(valuesAllGPU.get(), valuesAllHost.data(), sumElementCount);
-                    GPUMemory::copyHostToDevice(valuesNullMaskAllGPU.get(),
-                                                valuesNullMaskAllHost.data(), sumElementCount);
+                    GPUMemory::copyHostToDevice(valuesNullArrayAllGPU.get(),
+                                                valuesNullArrayAllHost.data(), sumElementCount);
                 }
                 if (USE_KEY_OCCURRENCES)
                 {
@@ -687,8 +687,8 @@ public:
                     GPUGroupBy<AGG, O, std::string, V> finalGroupBy(sumElementCount, 1);
                     finalGroupBy.ProcessBlock(
                         keysAllGPU, valuesAllGPU.get(), sumElementCount,
-                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
-                        GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
+                        GPUReconstruct::CompressNullMask(keysNullArrayAllGPU.get(), sumElementCount).get(),
+                        GPUReconstruct::CompressNullMask(valuesNullArrayAllGPU.get(), sumElementCount)
                             .get());
                     finalGroupBy.GetResults(outKeys, outValues, outDataElementCount,
                                             outKeysNullMask, outValuesNullMask);
@@ -704,8 +704,8 @@ public:
                     GPUGroupBy<AggregationFunctions::sum, V, std::string, V> sumGroupBy(sumElementCount, 1);
                     sumGroupBy.ProcessBlock(
                         keysAllGPU, valuesAllGPU.get(), sumElementCount,
-                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
-                        GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
+                        GPUReconstruct::CompressNullMask(keysNullArrayAllGPU.get(), sumElementCount).get(),
+                        GPUReconstruct::CompressNullMask(valuesNullArrayAllGPU.get(), sumElementCount)
                             .get());
                     sumGroupBy.GetResults(&keysToDiscard, &valuesMerged, outDataElementCount);
                     GPUMemory::free(keysToDiscard);
@@ -717,8 +717,8 @@ public:
                         sumGroupBy.keysBuffer_);
                     countGroupBy.ProcessBlock(
                         keysAllGPU, occurrencesAllGPU.get(), sumElementCount,
-                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
-                        GPUReconstruct::CompressNullMask(valuesNullMaskAllGPU.get(), sumElementCount)
+                        GPUReconstruct::CompressNullMask(keysNullArrayAllGPU.get(), sumElementCount).get(),
+                        GPUReconstruct::CompressNullMask(valuesNullArrayAllGPU.get(), sumElementCount)
                             .get());
                     countGroupBy.GetResults(outKeys, &occurrencesMerged, outDataElementCount,
                                             outKeysNullMask, outValuesNullMask);
@@ -756,7 +756,7 @@ public:
                     GPUGroupBy<AggregationFunctions::sum, int64_t, std::string, int64_t> finalGroupBy(sumElementCount, 1);
                     finalGroupBy.ProcessBlock(
                         keysAllGPU, occurrencesAllGPU.get(), sumElementCount,
-                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+                        GPUReconstruct::CompressNullMask(keysNullArrayAllGPU.get(), sumElementCount).get(),
                         nullptr);
                     // reinterpret_cast is needed to solve compilation error
                     finalGroupBy.GetResults(outKeys, reinterpret_cast<int64_t**>(outValues),
@@ -768,7 +768,7 @@ public:
                     GPUGroupBy<AGG, O, std::string, V> finalGroupBy(sumElementCount, 1);
                     finalGroupBy.ProcessBlock(
                         keysAllGPU, nullptr, sumElementCount,
-                        GPUReconstruct::CompressNullMask(keysNullMaskAllGPU.get(), sumElementCount).get(),
+                        GPUReconstruct::CompressNullMask(keysNullArrayAllGPU.get(), sumElementCount).get(),
                         nullptr);
                     finalGroupBy.GetResults(outKeys, outValues, outDataElementCount,
                                             outKeysNullMask, outValuesNullMask);
