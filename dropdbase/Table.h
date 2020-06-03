@@ -42,14 +42,14 @@ private:
                                         int32_t iterator,
                                         const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks);
     int32_t GetDataRangeInSortingColumn();
-    std::tuple<std::vector<std::any>, std::vector<int8_t>>
+    std::tuple<std::vector<std::any>, std::vector<uint8_t>>
     GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std::any>& data,
                                    int32_t iterator,
                                    const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks);
     std::tuple<int32_t, int32_t> GetIndicesFromTotalIndex(int32_t index, bool positionToCompare);
     std::tuple<std::vector<std::any>, std::vector<int8_t>> GetRowAndBitmaskOnIndex(int32_t index);
-    CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow, int32_t index);
-    std::tuple<int32_t, int32_t> GetIndex(std::vector<std::any> rowToInsert, std::vector<int8_t> maskOfRow);
+    CompareResult CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskOfRow, int32_t index);
+    std::tuple<int32_t, int32_t> GetIndex(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskOfRow);
     int32_t GetDataSizeOfInsertedColumns(const std::unordered_map<std::string, std::any>& data);
     void CheckUniqueConstraintInData(const std::unordered_map<std::string, std::any>& data, int32_t dataSize);
 #endif

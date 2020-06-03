@@ -15205,7 +15205,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     auto blocksBeforeCast =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
-    std::vector<int8_t> oldBitmasks;
+    std::vector<nullmask_t> oldBitmasks;
     for (int32_t i = 0; i < 5; i++)
     {
         oldBitmasks.push_back(0);
@@ -15222,7 +15222,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     auto blocksAfterCast =
         dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("col").get())->GetBlocksList();
 
-    std::vector<int8_t> newBitmasks;
+    std::vector<nullmask_t> newBitmasks;
     for (int32_t i = 0; i < blocksAfterCast.size(); i++)
     {
         for (int32_t j = 0; j < blocksAfterCast[i]->GetSize(); j++)

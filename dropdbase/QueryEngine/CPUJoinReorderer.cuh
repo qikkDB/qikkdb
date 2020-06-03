@@ -110,7 +110,7 @@ public:
                             const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
                             const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
 
-                            const int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                            const nullmask_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                 inCol.GetBlocksList()[columnBlockId]->GetNullBitmask(), columnRowId);
 
                             outNullBlockVector[(i + j) / (sizeof(nullmask_t)*8) ] |=

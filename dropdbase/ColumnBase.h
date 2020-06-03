@@ -215,7 +215,7 @@ public:
 
                     for (int32_t j = 0; j < mapBlock.second[i]->GetSize() && !isNullValue; j++)
                     {
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
 
                         if (bit)
                         {
@@ -406,7 +406,7 @@ public:
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
                 const nullmask_t* nullBitMask = srcBlocks[srcBlockIndex]->GetNullBitmask();
-                const bool isNullValue = NullValues::GetConcreteBitFromBitmask(nullBitMask, srcRowIndex);
+                const nullmask_t isNullValue = NullValues::GetConcreteBitFromBitmask(nullBitMask, srcRowIndex);
 
                 InsertDataOnSpecificPositionResizing(dstBlockIndex, dstRowIndex,
                                                      srcBlocks[srcBlockIndex]->GetData()[srcRowIndex],
@@ -567,7 +567,7 @@ public:
                                       const int32_t indexInBlock,
                                       const T& columnData,
                                       int32_t groupId = -1,
-                                      bool isNullValue = false)
+                                      nullmask_t isNullValue = false)
     {
         Context::getInstance().CheckRowsLimit(size_);
 
@@ -757,7 +757,7 @@ public:
                 {
                     if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                     {
-                        NullValues::SetBitInBitMask(maskPtr, i, 1);
+                        NullValues::SetBitInBitMask(maskPtr, i, static_cast<nullmask_t>(1U));
                     }
                     maskIdx++;
                 }
@@ -779,7 +779,7 @@ public:
             {
                 if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                 {
-                    NullValues::SetBitInBitMask(maskPtr, i, 1);
+                    NullValues::SetBitInBitMask(maskPtr, i, static_cast<nullmask_t>(1U));
                 }
                 maskIdx++;
             }
@@ -801,7 +801,7 @@ public:
             {
                 if (NullValues::GetConcreteBitFromBitmask(nullMask.data(), maskIdx))
                 {
-                    NullValues::SetBitInBitMask(maskPtr, i, 1);
+                    NullValues::SetBitInBitMask(maskPtr, i, static_cast<nullmask_t>(1U));
                 }
                 maskIdx++;
             }

@@ -40,8 +40,7 @@ kernel_calc_hash_histo(int32_t* HashTableHisto, int32_t hashTableSize, T* Column
         {
             if (nullBitMaskR)
             {
-                bool nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
-                //(nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+                nullmask_t nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
                 if (nullBitR)
                 {
                     // Value in R col NULL - do nothing
@@ -84,8 +83,7 @@ __global__ void kernel_put_data_to_buckets(int32_t* HashTableHashBuckets,
         {
             if (nullBitMaskR)
             {
-                bool nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
-                //(nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+                nullmask_t nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
                 if (nullBitR)
                 {
                     // Value in R col NULL - do nothing
@@ -144,8 +142,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                 {
                     if (nullBitMaskR)
                     {
-                        bool nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
-                        //(nullBitMaskR[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+                        nullmask_t nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
                         if (nullBitR)
                         {
                             // Value in R col NULL - do nothing
@@ -154,8 +151,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                         {
                             if (nullBitMaskS)
                             {
-                                bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
-                                //(nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+                                nullmask_t nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
                                 if (nullBitS)
                                 {
                                     // Value in S col NULL - do nothing
@@ -183,8 +179,7 @@ __global__ void kernel_calc_join_histo(int32_t* JoinTableHisto,
                     {
                         if (nullBitMaskS)
                         {
-                            bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
-                            //(nullBitMaskS[i / (sizeof(int8_t) * 8)] >> (i % (sizeof(int8_t) * 8))) & 1;
+                            nullmask_t nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
                             if (nullBitS)
                             {
                                 // Value in S col NULL - do nothing
@@ -251,7 +246,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                     // Write them to the calculated offset of the prefix sum buffer
                     if (nullBitMaskR)
                     {
-                        bool nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
+                        nullmask_t nullBitR = NullValues::GetConcreteBitFromBitmask(nullBitMaskR, i);
                         if (nullBitR)
                         {
                             // Value in R col NULL - do nothing
@@ -260,7 +255,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                         {
                             if (nullBitMaskS)
                             {
-                                bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
+                                nullmask_t nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
                                 if (nullBitS)
                                 {
                                     // Value in S col NULL - do nothing
@@ -298,7 +293,7 @@ __global__ void kernel_distribute_results_to_buffer(int32_t* resultColumnQABlock
                     {
                         if (nullBitMaskS)
                         {
-                            bool nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
+                            nullmask_t nullBitS = NullValues::GetConcreteBitFromBitmask(nullBitMaskS, i);
                             if (nullBitS)
                             {
                                 // Value in S col NULL - do nothing
