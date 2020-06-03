@@ -31,6 +31,7 @@ class Database
 
 private:
     static std::mutex dbAccessMutex_;
+    static std::mutex dbFilesMutex_;
     std::string name_;
     int32_t blockSize_;
     std::unordered_map<std::string, Table> tables_;
@@ -75,24 +76,26 @@ private:
     /// <param name="fragmentPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
     /// <param name="dataPosition">Block position of COLUMN_DATA_EXTENSION file, used only in ComplexPolygon
     /// and String block types.</param>
+    /// <param name="dbName">Name of the database.</param>
     static void WriteBlockPolygonType(const Table& table,
                                       const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                                       BlockBase<ColmnarDB::Types::ComplexPolygon>& block,
                                       const uint64_t fragmentPosition,
-                                      const uint64_t dataPosition)
+                                      const uint64_t dataPosition,
+                                      const std::string dbName)
     {
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
-        const std::string dbName = table.GetDatabase()->name_;
 
         // default data path if not specified by user:
-        if (fileDataPath.size() == 0)
+        if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
         {
             fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
+
+        std::ofstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -108,7 +111,7 @@ private:
             std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
 
             // default data path if not specified by user:
-            if (fileFragmentPath.size() == 0)
+            if (fileFragmentPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
             {
                 fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName +
                                    SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
@@ -236,7 +239,7 @@ private:
             else
             {
                 BOOST_LOG_TRIVIAL(error)
-                    << "Database: Could not open file " +
+                    << "ERROR: Database: WriteBlockPolygonType, case1 - Could not open file " +
                            std::string(Configuration::GetInstance().GetDatabaseDir() + dbName +
                                        SEPARATOR + tableName + SEPARATOR +
                                        column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -267,7 +270,7 @@ private:
         else
         {
             BOOST_LOG_TRIVIAL(error)
-                << "Database: Could not open file " +
+                << "ERROR: Database: WriteBlockPolygonType, case2 - Could not open file " +
                        std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR + tableName +
                                    SEPARATOR + column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
                        " for writing. Persisting "
@@ -303,24 +306,26 @@ private:
     /// <param name="fragmentPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
     /// <param name="dataPosition">Block position of COLUMN_DATA_EXTENSION file, used only in
     /// ComplexPolygon and String block types.</param>
+    /// <param name="dbName">Name of the database.</param>
     static void WriteBlockStringType(const Table& table,
                                      const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                                      BlockBase<std::string>& block,
                                      const uint64_t fragmentPosition,
-                                     const uint64_t dataPosition)
+                                     const uint64_t dataPosition,
+                                     const std::string dbName)
     {
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
-        const std::string dbName = table.GetDatabase()->name_;
 
         // default data path if not specified by user:
-        if (fileDataPath.size() == 0)
+        if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
         {
             fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
+
+        std::ofstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -336,7 +341,7 @@ private:
             std::string fileFragmentPath = colStr.GetFileFragmentPath();
 
             // default data path if not specified by user:
-            if (fileFragmentPath.size() == 0)
+            if (fileFragmentPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
             {
                 fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName +
                                    SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
@@ -461,7 +466,7 @@ private:
             else
             {
                 BOOST_LOG_TRIVIAL(error)
-                    << "Database: Could not open file " +
+                    << "ERROR: Database: WriteBlockStringType - Could not open file " +
                            std::string(Configuration::GetInstance().GetDatabaseDir() + dbName +
                                        SEPARATOR + tableName + SEPARATOR +
                                        column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -499,25 +504,27 @@ private:
     /// <param name="column">Name of the column to which the block belongs to.</param>
     /// <param name="block">Block wich is going to be persisted.</param>
     /// <param name="blockPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
+    /// <param name="dbName">Name of the database.</param>
     /// and String block types.</param>
     template <typename T>
     static void WriteBlockNumericTypes(const Table& table,
                                        const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                                        BlockBase<T>& block,
-                                       const uint64_t blockPosition)
+                                       const uint64_t blockPosition,
+                                       const std::string dbName)
     {
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
-        std::string dbName = table.GetDatabase()->name_;
 
         // default data path if not specified by user:
-        if (fileDataPath.size() == 0)
+        if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
         {
             fileDataPath = Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
+
+        std::ofstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -592,7 +599,7 @@ private:
         else
         {
             BOOST_LOG_TRIVIAL(error)
-                << "Database: Could not open file " +
+                << "ERROR: Database: WriteBlockNumericTypes - Could not open file " +
                        std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                                    tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
                        " for writing. Persisting "
@@ -610,26 +617,28 @@ private:
     /// <param name="column">Name of the column to which the block belongs to.</param>
     /// <param name="block">Block wich is going to be persisted.</param>
     /// <param name="blockPosition">Block position saved in COLUMN_ADDRESS_EXTENSION file.</param>
+    /// <param name="dbName">Name of the database.</param>
     /// and String block types.</param>
     template <>
     static void
     WriteBlockNumericTypes<ColmnarDB::Types::Point>(const Table& table,
                                                     const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
                                                     BlockBase<ColmnarDB::Types::Point>& block,
-                                                    const uint64_t blockPosition)
+                                                    const uint64_t blockPosition,
+                                                    const std::string dbName)
     {
         int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
-        std::string dbName = table.GetDatabase()->name_;
 
         // default data path if not specified by user:
-        if (fileDataPath.size() == 0)
+        if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
         {
             fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
+
+        std::ofstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -710,7 +719,8 @@ private:
         else
         {
             BOOST_LOG_TRIVIAL(error)
-                << "Database: Could not open file " +
+                << "ERROR: Database: WriteBlockNumericTypes<ColmnarDB::Types::Point> - Could not "
+                   "open file " +
                        std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                                    tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
                        " for writing. Persisting "

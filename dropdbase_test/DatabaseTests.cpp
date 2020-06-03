@@ -21,6 +21,13 @@ protected:
     virtual void SetUp()
     {
         database = std::make_shared<Database>(dbName.c_str(), blockSize);
+
+		// clear directory to make sure, there are no old database files, but do not remove directory:
+        boost::filesystem::path path_to_remove(path);
+        for (boost::filesystem::directory_iterator end_dir_it, it(path_to_remove); it != end_dir_it; ++it)
+        {
+            boost::filesystem::remove_all(it->path());
+        }
     }
 
     virtual void TearDown()
@@ -41,6 +48,7 @@ protected:
 /// Integration test - tests the following fucntions and procedures:
 ///  - Persist()
 ///  - SaveAllToDisk()
+///  - SaveModifiedToDisk()
 ///  - LoadDatabasesFromDisk()
 ///  - LoadDatabase()
 ///  - LoadColumns()
@@ -180,7 +188,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     std::string storePath = path + dbName;
     boost::filesystem::remove_all(storePath);
 
-    Database::SaveAllToDisk();
+    Database::SaveModifiedToDisk();
 
     for (auto& db : Database::GetDatabaseNames())
     {

@@ -13,6 +13,7 @@
 
 std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
+std::mutex Database::dbFilesMutex_;
 
 /// <summary>
 /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
@@ -228,7 +229,7 @@ void Database::PersistOnlyDbFile()
                 const std::string fileAddressPath = column.second->GetFileAddressPath();
                 const std::string fileDataPath = column.second->GetFileDataPath();
 
-                if (fileAddressPath.size() == 0)
+                if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
                 {
                     columnsJSON["file_path_address_file"] =
                         path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + COLUMN_ADDRESS_EXTENSION;
@@ -246,7 +247,7 @@ void Database::PersistOnlyDbFile()
                                              << tableName << " of database " << name_ << ".";
                 }
 
-                if (fileDataPath.size() == 0)
+                if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
                 {
                     columnsJSON["file_path_data_file"] = path + name_ + SEPARATOR + tableName +
                                                          SEPARATOR + columnName + COLUMN_DATA_EXTENSION;
@@ -270,7 +271,8 @@ void Database::PersistOnlyDbFile()
                     const std::string fileFragmentPath = column.second->GetFileFragmentPath();
                     const std::string encoding = column.second->GetEncoding();
 
-                    if (fileFragmentPath.size() == 0)
+                    if (fileFragmentPath.size() == 0 ||
+                        fileFragmentPath == Configuration::GetInstance().GetDatabaseDir())
                     {
                         columnsJSON["file_path_string_data_file"] =
                             path + name_ + SEPARATOR + tableName + SEPARATOR + columnName + FRAGMENT_DATA_EXTENSION;
@@ -400,7 +402,8 @@ void Database::PersistOnlyDbFile()
     }
     else
     {
-        BOOST_LOG_TRIVIAL(error) << "Database: Could not open file " << filePath << " for writing. Persisting "
+        BOOST_LOG_TRIVIAL(error) << "ERROR: Database: PersistOnlyDbFile() - Could not open file "
+                                 << filePath << " for writing. Persisting "
                                  << " file was not successful. Check if the process "
                                     "have write access into the folder or file.";
     }
@@ -452,7 +455,7 @@ void Database::Persist()
 /// </summary>
 void Database::SaveModifiedToDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     BOOST_LOG_TRIVIAL(info)
         << "Database: Saving modified columns of loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
@@ -475,8 +478,6 @@ void Database::SaveModifiedToDisk()
 /// <param name="tableName">Name of the table which modified blocks of data will be saved.</param>
 void Database::PersistOnlyModified(const std::string tableName)
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
-
     // always persist at least db file
     PersistOnlyDbFile();
 
@@ -502,9 +503,43 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::fstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
-            std::ifstream colFragDataFile(colPolygon.GetFileFragmentPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+            std::string fileFragmentPath = column.second->GetFileFragmentPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileFragmentPath.size() == 0 || fileFragmentPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                   SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                   FRAGMENT_DATA_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPolygon.GetBlocksList())
@@ -582,9 +617,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         }
                     }
 
-                    threads.emplace_back(WriteBlockPolygonType,
-                                         std::ref(table), std::ref(column), std::ref(*block),
-                                         blockPosition, strPolDataPos);
+                    threads.emplace_back(WriteBlockPolygonType, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, strPolDataPos, name_);
                 }
             }
 
@@ -599,8 +633,33 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<ColmnarDB::Types::Point>& colPoint =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPoint.GetBlocksList())
@@ -628,7 +687,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -642,9 +701,43 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<std::string>& colStr =
                 dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
-            std::ifstream colFragDataFile(colStr.GetFileFragmentPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+            std::string fileFragmentPath = colStr.GetFileFragmentPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileFragmentPath.size() == 0 || fileFragmentPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                   SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                   FRAGMENT_DATA_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colStr.GetBlocksList())
@@ -664,10 +757,12 @@ void Database::PersistOnlyModified(const std::string tableName)
                         /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
                            (we will persist the modified data as new fragments at the end of the file) */
 
+
                         uint64_t i = 0;
                         colAddressFile.seekg(0, colAddressFile.end);
                         uint64_t colAddressFileLength = colAddressFile.tellg();
                         colAddressFile.seekg(0, colAddressFile.beg);
+
                         while (i < colAddressFileLength)
                         {
                             uint32_t currentBlockPosition;
@@ -722,8 +817,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                         }
                     }
 
-                    threads.emplace_back(WriteBlockStringType, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, strPolDataPos);
+                    threads.emplace_back(WriteBlockStringType, std::ref(table), std::ref(column),
+                                         std::ref(*block), blockPosition, strPolDataPos, name_);
                 }
             }
 
@@ -737,8 +832,33 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int8_t>& colInt = dynamic_cast<const ColumnBase<int8_t>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
@@ -766,7 +886,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -779,8 +899,33 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int32_t>& colInt = dynamic_cast<const ColumnBase<int32_t>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
@@ -808,7 +953,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -821,8 +966,33 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<int64_t>& colLong = dynamic_cast<const ColumnBase<int64_t>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colLong.GetBlocksList())
@@ -850,7 +1020,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -863,8 +1033,33 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<float>& colFloat = dynamic_cast<const ColumnBase<float>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colFloat.GetBlocksList())
@@ -892,7 +1087,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -905,8 +1100,33 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
             const ColumnBase<double>& colDouble = dynamic_cast<const ColumnBase<double>&>(*(column.second));
 
-            std::fstream colAddressFile(column.second->GetFileAddressPath(), std::ios::binary);
-            std::ifstream colDataFile(column.second->GetFileDataPath(), std::ios::binary);
+            std::string fileDataPath = column.second->GetFileDataPath();
+            std::string fileAddressPath = column.second->GetFileAddressPath();
+
+            // default data path if not specified by user:
+            if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ + SEPARATOR +
+                               tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
+            }
+
+            // default data path if not specified by user:
+            if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
+            {
+                fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + name_ +
+                                  SEPARATOR + tableName + SEPARATOR + column.second->GetName() +
+                                  COLUMN_ADDRESS_EXTENSION;
+            }
+
+            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            if (!boost::filesystem::exists(fileAddressPath))
+            {
+                std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
+                colAddressFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colDouble.GetBlocksList())
@@ -934,7 +1154,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
 
                     threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition);
+                                         std::ref(column), std::ref(*block), blockPosition, name_);
                 }
             }
 
@@ -957,7 +1177,7 @@ void Database::PersistOnlyModified(const std::string tableName)
 /// </summary>
 void Database::SaveAllToDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     BOOST_LOG_TRIVIAL(info) << "Database: Saving all loaded databases to disk has started...";
     auto path = Configuration::GetInstance().GetDatabaseDir().c_str();
     for (auto& database : Context::getInstance().GetLoadedDatabases())
@@ -972,7 +1192,7 @@ void Database::SaveAllToDisk()
 /// </summary>
 void Database::LoadDatabasesFromDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     if (boost::filesystem::exists(path))
@@ -1047,7 +1267,7 @@ void Database::RenameTable(const std::string& oldTableName, const std::string& n
 /// </summary>
 void Database::DeleteDatabaseFromDisk()
 {
-    std::unique_lock<std::mutex> lock(dbMutex_);
+    std::unique_lock<std::mutex> lock(dbFilesMutex_);
     auto& path = Configuration::GetInstance().GetDatabaseDir();
 
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
@@ -2619,14 +2839,14 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
     const std::string tableName = table.GetName();
 
     // default data path if not specified by user:
-    if (fileDataPath.size() == 0)
+    if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
     {
         fileDataPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
                        tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
     }
 
     // default data path if not specified by user:
-    if (fileAddressPath.size() == 0)
+    if (fileAddressPath.size() == 0 || fileAddressPath == Configuration::GetInstance().GetDatabaseDir())
     {
         fileAddressPath = Configuration::GetInstance().GetDatabaseDir().c_str() + dbName + SEPARATOR +
                           tableName + SEPARATOR + column.second->GetName() + COLUMN_ADDRESS_EXTENSION;
@@ -2660,7 +2880,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
 
                 // default data path if not specified by user:
-                if (fileFragmentPath.size() == 0)
+                if (fileFragmentPath.size() == 0 ||
+                    fileFragmentPath == Configuration::GetInstance().GetDatabaseDir())
                 {
                     fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
                                        dbName + SEPARATOR + tableName + SEPARATOR +
@@ -2798,7 +3019,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     else
                     {
                         BOOST_LOG_TRIVIAL(error)
-                            << "Database: Could not open file " +
+                            << "ERROR: Database: WriteColumn, case1 - Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
                                                dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -2923,7 +3144,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 std::string fileFragmentPath = colStr.GetFileFragmentPath();
 
                 // default data path if not specified by user:
-                if (fileFragmentPath.size() == 0)
+                if (fileFragmentPath.size() == 0 ||
+                    fileFragmentPath == Configuration::GetInstance().GetDatabaseDir())
                 {
                     fileFragmentPath = Configuration::GetInstance().GetDatabaseDir().c_str() +
                                        dbName + SEPARATOR + tableName + SEPARATOR +
@@ -3061,7 +3283,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     else
                     {
                         BOOST_LOG_TRIVIAL(error)
-                            << "Database: Could not open file " +
+                            << "ERROR: Database: WriteColumn, case2 - Could not open file " +
                                    std::string(Configuration::GetInstance().GetDatabaseDir() +
                                                dbName + SEPARATOR + tableName + SEPARATOR +
                                                column.second->GetName() + FRAGMENT_DATA_EXTENSION) +
@@ -3498,7 +3720,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
     else
     {
         BOOST_LOG_TRIVIAL(error)
-            << "Database: Could not open file " +
+            << "ERROR: Database: WriteColumn, case3 - Could not open file " +
                    std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                                tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +
                    " for writing. Persisting "
