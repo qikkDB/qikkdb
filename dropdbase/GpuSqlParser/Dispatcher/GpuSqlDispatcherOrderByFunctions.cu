@@ -628,13 +628,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
 
                                 // Write the null columns 1
                                 // 1. retrieve the null value, 2. set the null value
-                                int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                const uint8_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                     reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroBlockIdx]
                                         .get(),
                                     currentIndicesInBlocks[firstNonzeroBlockIdx]);
-                                nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
                                 reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |=
-                                    nullBit;
+                                    (static_cast<nullmask_t>(nullBit)
+                                     << NullValues::GetShiftMaskIdx(resultSetIdx));
                             }
                             // Add to the null collumn
                             // ReconstructedOrderByOrderColumnNullBlocks[retColumn.first].get()[resultSetIdx];
@@ -929,12 +929,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                                     break;
                                 }
                                 // Write the null columns 2
-                                int8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                const uint8_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                     reconstructedOrderByRetColumnNullBlocks[retColumn.first][blockToMergeIdx]
                                         .get(),
                                     currentIndicesInBlocks[blockToMergeIdx]);
-                                nullBit <<= NullValues::GetShiftMaskIdx(resultSetIdx);
-                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |= nullBit;
+                                reconstructedOrderByColumnsNullMerged_[retColumn.first][resultSetIdx / (sizeof(nullmask_t) * 8)] |=
+                                    (static_cast<nullmask_t>(nullBit)
+                                     << NullValues::GetShiftMaskIdx(resultSetIdx));
                             }
 
                             resultSetIdx++;
