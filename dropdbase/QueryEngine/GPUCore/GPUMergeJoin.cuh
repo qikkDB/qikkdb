@@ -233,8 +233,8 @@ __global__ void kernel_eval_predicate_merge_path(int8_t* joinPredicateMask,
         if (colABlockNullMask)
         {
             // Fetch the null flag
-            const bool nullFlag = static_cast<int32_t>(static_cast<uint8_t>(
-                NullValues::GetConcreteBitFromBitmask(colABlockNullMask, colABlockIndices[mergeAIndices[i]])));
+            const nullmask_t nullFlag =
+                NullValues::GetConcreteBitFromBitmask(colABlockNullMask, colABlockIndices[mergeAIndices[i]]);
 
 
             // Evaluate the join condition

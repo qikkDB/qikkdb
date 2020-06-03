@@ -393,7 +393,7 @@ public:
     /// <param name="index">index in block where data will be inserted</param>
     /// <param name="data">value to insert<param>
     /// <param name="isNullValue">whether data is null value flag<param>
-    void InsertDataOnSpecificPosition(int32_t index, const T& data, bool isNullValue = false)
+    void InsertDataOnSpecificPosition(int32_t index, const T& data, nullmask_t isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
         {
@@ -407,13 +407,13 @@ public:
             int32_t bitMaskIdx = NullValues::GetBitMaskIdx(index);
             int32_t shiftIdx = NullValues::GetShiftMaskIdx(index);
 
-            int8_t last = isNullValue ? 1 : 0;
+            nullmask_t last = isNullValue ? static_cast<nullmask_t>(1U) : static_cast<nullmask_t>(0U);
 
             if (isNullable_)
             {
                 for (size_t i = shiftIdx; i < (sizeof(nullmask_t) * 8); i++)
                 {
-                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), bitMaskIdx, i);
+                    nullmask_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), bitMaskIdx, i);
 
                     if (last != tmp)
                     {
@@ -426,7 +426,7 @@ public:
                 int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
                 for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
                 {
-                    int8_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i,
+                    nullmask_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i,
                                                                        (sizeof(nullmask_t) * 8 - 1));
                     bitMask_[i] <<= static_cast<nullmask_t>(1U);
                     NullValues::SetBitInBitMask(bitMask_.get(), i, 0, last);

@@ -628,7 +628,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
 
                                 // Write the null columns 1
                                 // 1. retrieve the null value, 2. set the null value
-                                const uint8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                const nullmask_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                     reconstructedOrderByRetColumnNullBlocks[retColumn.first][firstNonzeroBlockIdx]
                                         .get(),
                                     currentIndicesInBlocks[firstNonzeroBlockIdx]);
@@ -929,7 +929,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructRetAllBl
                                     break;
                                 }
                                 // Write the null columns 2
-                                const uint8_t nullBit = NullValues::GetConcreteBitFromBitmask(
+                                const nullmask_t nullBit = NullValues::GetConcreteBitFromBitmask(
                                     reconstructedOrderByRetColumnNullBlocks[retColumn.first][blockToMergeIdx]
                                         .get(),
                                     currentIndicesInBlocks[blockToMergeIdx]);

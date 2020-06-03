@@ -247,14 +247,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stol(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<int32_t>();
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -293,14 +293,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stoll(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<int64_t>();
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -339,14 +339,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stod(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<double>();
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -385,14 +385,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = std::stof(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = GetNullConstant<float>();
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -431,8 +431,8 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     std::string upperStr = dataToCopy[j];
                     std::transform(dataToCopy[j].begin(), dataToCopy[j].end(), upperStr.begin(), ::toupper);
 
-                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
-                    if (bit == 1)
+                    const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                    if (bit == static_cast<nullmask_t>(1U))
                     {
                         data = GetNullConstant<int8_t>();
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
@@ -460,7 +460,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                             catch (std::invalid_argument)
                             {
                                 data = GetNullConstant<int8_t>();
-                                NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                                NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                             }
                         }
                     }
@@ -500,14 +500,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = PointFactory::FromWkt(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -546,14 +546,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     {
                         data = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
 
-                        const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                        const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                         NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                     }
                     catch (std::invalid_argument)
                     {
                         data = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
 
-                        NullValues::SetBitInBitMask(newNullMask.get(), j, 1);
+                        NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
                     castedDataToCopy.push_back(data);
                 }
@@ -601,7 +601,7 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
                     std::string data = PointFactory::WktFromPoint(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                    const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                     NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                 }
 
@@ -647,7 +647,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* des
                     std::string data = ComplexPolygonFactory::WktFromPolygon(dataToCopy[j]);
                     castedDataToCopy.push_back(data);
 
-                    const int8_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
+                    const nullmask_t bit = NullValues::GetConcreteBitFromBitmask(mask, j);
                     NullValues::SetBitInBitMask(newNullMask.get(), j, bit);
                 }
 

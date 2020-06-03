@@ -32,7 +32,7 @@ __global__ void kernel_transform_null_values(T* inCol, nullmask_t* nullBitMask, 
     for (int32_t i = idx; i < dataElementCount; i += stride)
     {
         // Retrieve the null flag
-        bool isNullFlag = NullValues::GetConcreteBitFromBitmask(nullBitMask, i);
+        nullmask_t isNullFlag = NullValues::GetConcreteBitFromBitmask(nullBitMask, i);
         if (isNullFlag)
         {
             inCol[i] = std::numeric_limits<T>::lowest();

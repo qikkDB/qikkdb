@@ -164,8 +164,8 @@ protected:
 
         for (int32_t i = 0; i < correctA.size(); i++)
         {
-            int8_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
-            int8_t nullBBit = NullValues::GetConcreteBitFromBitmask(payloadBNullBitMask.begin(), i);
+            nullmask_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
+            nullmask_t nullBBit = NullValues::GetConcreteBitFromBitmask(payloadBNullBitMask.begin(), i);
             ASSERT_EQ(correctANull[i], nullABit == 1);
             ASSERT_EQ(correctBNull[i], nullBBit == 1);
             if (!nullABit)
@@ -220,7 +220,7 @@ protected:
 
         for (int32_t i = 0; i < correctA.size(); i++)
         {
-            int8_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
+            nullmask_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
             ASSERT_EQ(correctANull[i], nullABit == 1);
             if (!nullABit)
             {
@@ -283,8 +283,8 @@ protected:
 
         for (int32_t i = 0; i < correctA.size(); i++)
         {
-            int8_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
-            int8_t nullBBit = NullValues::GetConcreteBitFromBitmask(payloadBNullBitMask.begin(), i);
+            nullmask_t nullABit = NullValues::GetConcreteBitFromBitmask(payloadANullBitMask.begin(), i);
+            nullmask_t nullBBit = NullValues::GetConcreteBitFromBitmask(payloadBNullBitMask.begin(), i);
             ASSERT_EQ(correctANull[i], nullABit == 1);
             ASSERT_EQ(correctBNull[i], nullBBit == 1);
             if (!nullABit)

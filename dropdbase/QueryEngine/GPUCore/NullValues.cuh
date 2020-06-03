@@ -19,12 +19,12 @@ public:
     static __device__ __host__ size_t GetNullBitMaskSize(size_t size);
     static __device__ __host__ size_t GetNullBitMaskSizeInBytes(size_t size);
     static __device__ __host__ void 
-    SetBitInBitMask(nullmask_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx, int8_t newBit);
-    static __device__ __host__ void SetBitInBitMask(nullmask_t* bitMask, int32_t index, int8_t newBit);
-    static __device__ __host__ int8_t GetConcreteBitFromBitmask(const nullmask_t* bitMask,
+    SetBitInBitMask(nullmask_t* bitMask, int32_t bitMaskIdx, int32_t shiftMaskIdx, nullmask_t newBit);
+    static __device__ __host__ void SetBitInBitMask(nullmask_t* bitMask, int32_t index, nullmask_t newBit);
+    static __device__ __host__ nullmask_t GetConcreteBitFromBitmask(const nullmask_t* bitMask,
                                                                 int32_t bitMaskIdx,
                                                                 int32_t shiftMaskIdx);
-    static __device__ __host__ int8_t GetConcreteBitFromBitmask(const nullmask_t* bitMask, int32_t index);
+    static __device__ __host__ nullmask_t GetConcreteBitFromBitmask(const nullmask_t* bitMask, int32_t index);
 
 	/// <summary>
     /// Get right part of bitmask Byte
