@@ -443,7 +443,7 @@ public:
                                     std::vector<nullmask_t> nullMask,
                                     int64_t payloadSize);
 
-    template<typename T>
+    template <typename T>
     static void ShiftNullMaskLeft(T& mask, int64_t shift)
     {
         constexpr size_t bits = (sizeof(nullmask_t) * 8) - 1;
@@ -792,11 +792,8 @@ public:
 
                 return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
             }
-            else
-            {
-                return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column,
-                        InstructionStatus::CONTINUE, ""};
-            }
+
+            return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column, InstructionStatus::CONTINUE, ""};
         }
 
         static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
@@ -893,19 +890,17 @@ public:
 
                 return {column.GpuPtr, column, loadFlag, colName};
             }
-            else
-            {
-                const std::string cnst = dispatcher.arguments_.Read<std::string>();
-                const int32_t retSize = dispatcher.GetBlockSize();
-                if (retSize == 0)
-                {
-                    return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
-                }
 
-                CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
-                column = {gpuComposite, 0, 0};
-                return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
+            const std::string cnst = dispatcher.arguments_.Read<std::string>();
+            const int32_t retSize = dispatcher.GetBlockSize();
+            if (retSize == 0)
+            {
+                return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
             }
+
+            CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
+            column = {gpuComposite, 0, 0};
+            return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
         }
 
         static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
@@ -1024,7 +1019,8 @@ public:
             if (allocatedPointers_.find(col + NULL_SUFFIX) != allocatedPointers_.end())
             {
                 GPUMemory::free(reinterpret_cast<void*>(allocatedPointers_.at(col + NULL_SUFFIX).GpuPtr));
-                usedRegisterMemory_ -= allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(nullmask_t);
+                usedRegisterMemory_ -=
+                    allocatedPointers_.at(col + NULL_SUFFIX).ElementCount * sizeof(nullmask_t);
                 allocatedPointers_.erase(col + NULL_SUFFIX);
             }
         }

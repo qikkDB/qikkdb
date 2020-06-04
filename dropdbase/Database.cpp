@@ -164,6 +164,9 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         dstColumn.ResizeColumn(&column);
         break;
     }
+    default:
+        throw std::runtime_error("Unsupported column type.");
+        break;
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Copying data (column name: " << columnName
@@ -302,6 +305,10 @@ void Database::SetSaveNecessaryToFalseForEverything()
                 }
             }
             break;
+
+            default:
+                throw std::runtime_error("Unsupported column type.");
+                break;
             }
         }
     }
@@ -2079,7 +2086,7 @@ void Database::LoadColumn(const char* path,
                                     std::string(dbName) + "): " + std::to_string(type));
         }
 
-        table.GetColumns().at(columnName)->UpdateSize();  // Column with special type needs to recount size
+        table.GetColumns().at(columnName)->UpdateSize(); // Column with special type needs to recount size
         colFile.close();
     }
     else

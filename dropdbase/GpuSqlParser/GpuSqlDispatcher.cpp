@@ -152,6 +152,8 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                         << "Abort Dispatch Execution, exception thrown in some thread"
                         << "\n";
                     break;
+                default:
+                    break;
                 }
             }
             // Check err again because for LOAD_SKIPPED case it was changed

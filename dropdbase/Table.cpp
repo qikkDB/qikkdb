@@ -500,6 +500,9 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
                     }
                 }
                 break;
+                default:
+                    throw std::runtime_error("Unsupported column type.");
+                    break;
                 }
             }
         }
@@ -748,6 +751,9 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
 
             case COLUMN_POLYGON:
                 resultRow.push_back(ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0]);
+                break;
+            default:
+                throw std::runtime_error("Unsupported column type.");
                 break;
             }
         }
@@ -1302,6 +1308,10 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
         }
     }
     break;
+
+    default:
+        throw std::runtime_error("Unsupported column type.");
+        break;
     }
 
 
@@ -1431,6 +1441,10 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
         }
     }
     break;
+
+    default:
+        throw std::runtime_error("Unsupported column type.");
+        break;
     }
 
     saveNecesarry_ = true;

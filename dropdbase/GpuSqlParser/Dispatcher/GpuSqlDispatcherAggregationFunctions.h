@@ -36,8 +36,6 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
 
     int32_t reconstructOutSize;
 
-    IN* reconstructOutReg = nullptr;
-    nullmask_t* reconstructOutNullMask = nullptr;
     constexpr bool isCount = std::is_same<OP, AggregationFunctions::count>::value;
     if constexpr (isCount) // TODO consider null values
     {
@@ -56,6 +54,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
     }
     else
     {
+        IN* reconstructOutReg = nullptr;
+        nullmask_t* reconstructOutNullMask = nullptr;
         GPUReconstruct::reconstructColKeep<IN>(&reconstructOutReg, &reconstructOutSize,
                                                reinterpret_cast<IN*>(column.GpuPtr),
                                                reinterpret_cast<int8_t*>(filter_),

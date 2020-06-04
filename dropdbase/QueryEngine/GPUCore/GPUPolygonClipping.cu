@@ -27,7 +27,7 @@
 }
 
 // Bit setters
-__device__ bool LLPolyVertex::SetHasIntersections(bool flag)
+__device__ void LLPolyVertex::SetHasIntersections(bool flag)
 {
     llflags = (llflags & 0xEF) | ((static_cast<uint8_t>(flag)) << 4);
 }
@@ -413,8 +413,6 @@ __global__ void kernel_label_intersections(LLPolyVertex* llPolygonBuffers,
             const int32_t localIdx = pointIdx - polygonPrimary.PointIdxAt(polyIdx);
 
             const int32_t begIdx = ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx;
-            const int32_t endIdx =
-                ((i == 0) ? 0 : llPolygonBufferSizesPrefixSum[i - 1]) + localIdx + pointCount - 1;
 
             // Check the inclusion of the first point in the other polygon
             bool isPointInPolygon = !is_point_in_complex_polygon_at(llPolygonBuffers[begIdx].vertex,

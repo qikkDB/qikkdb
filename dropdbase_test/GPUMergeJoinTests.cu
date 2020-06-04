@@ -11,10 +11,7 @@
 TEST(GPUMergeJoinTests, MergeJoinTest)
 {
     // Initialize test buffers
-    const int32_t BLOCK_COUNT_A = 1;
     const int32_t BLOCK_SIZE_A = 13;
-
-    const int32_t BLOCK_COUNT_B = 1;
     const int32_t BLOCK_SIZE_B = 8;
 
     ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A, false, false);
@@ -133,10 +130,7 @@ TEST(GPUMergeJoinTests, MergeJoinReorderTest)
 TEST(GPUMergeJoinTests, MergeJoinNULLTest)
 {
     // Initialize test buffers
-    const int32_t BLOCK_COUNT_A = 1;
     const int32_t BLOCK_SIZE_A = 13;
-
-    const int32_t BLOCK_COUNT_B = 1;
     const int32_t BLOCK_SIZE_B = 8;
 
     ColumnBase<int32_t> colA("ColA", BLOCK_SIZE_A, true, false);

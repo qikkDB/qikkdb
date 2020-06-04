@@ -80,7 +80,7 @@ struct LLPolyVertex
     __device__ bool GetWasProcessed();
 
     // Setters
-    __device__ bool SetHasIntersections(bool flag);
+    __device__ void SetHasIntersections(bool flag);
     __device__ void SetIsIntersection(bool flag);
     __device__ void SetIsValidIntersection(bool flag);
     __device__ void SetIsEntry(bool flag);
@@ -181,7 +181,6 @@ __device__ void clip_polygons(int32_t* polyCount,
         const int32_t k = polygonB.TotalPointCountAt(iBIdx);
 
         const int32_t llABegOffset = ((i == 0) ? 0 : llPolygonABufferSizesPrefixSum[i - 1]);
-        const int32_t llBBegOffset = ((i == 0) ? 0 : llPolygonBBufferSizesPrefixSum[i - 1]);
 
         const int32_t begIdxA = llABegOffset + n;
         const int32_t endIdxA = llPolygonABufferSizesPrefixSum[i];

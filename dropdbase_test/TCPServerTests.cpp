@@ -419,7 +419,7 @@ TEST(TCPServer, ServerMessageInfoHeartbeat)
 {
     try
     {
-        printf("\ServerMessageInfoHeartbeat\n");
+        printf("\nServerMessageInfoHeartbeat\n");
         TCPServer<DummyClientHandler, ClientPoolWorker> testServer("127.0.0.1", 12345, false);
         auto future = std::thread([&testServer]() { testServer.Run(); });
         boost::asio::io_context context;
@@ -429,7 +429,7 @@ TEST(TCPServer, ServerMessageInfoHeartbeat)
         ASSERT_NO_THROW(disconnect(sock, context));
         testServer.Abort();
         future.join();
-        printf("\ServerMessageInfoHeartbeat\n");
+        printf("\nServerMessageInfoHeartbeat\n");
     }
     catch (...)
     {
