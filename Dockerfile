@@ -53,6 +53,15 @@ RUN	mkdir build_dropdbase \
 
 RUN cd build_dropdbase && ninja
 
+# Build client console
+FROM microsoft/dotnet:2.2-sdk AS console-build
+WORKDIR /src
+COPY ./ColmnarDB.ConsoleClient ColmnarDB.ConsoleClient/
+COPY ./ColmnarDB.NetworkClient ColmnarDB.NetworkClient/
+RUN dotnet restore ColmnarDB.ConsoleClient/ColmnarDB.ConsoleClient.csproj
+WORKDIR /src/ColmnarDB.ConsoleClient
+RUN dotnet publish -c Release -r linux-x64 --self-contained true ColmnarDB.ConsoleClient.csproj -o /app
+
 # Application
 FROM nvidia/cuda:10.2-runtime
 
@@ -69,5 +78,9 @@ RUN ldconfig /opt/boost_1.69/lib
 COPY configuration /configuration
 
 RUN mkdir /databases
+
+# Copy client console from console-build into app (without dotnet dependencies)
+RUN mkdir /client
+COPY --from=console-build /app ./client
 
 ENTRYPOINT ["./dropdbase_instarea"]
