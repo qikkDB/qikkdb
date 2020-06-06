@@ -509,11 +509,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -525,7 +532,7 @@ void Database::PersistOnlyModified(const std::string tableName)
             {
                 if (block->GetSaveNecessary())
                 {
-                    uint64_t strPolDataPos = UINT64_MAX; // this value is there just for debug purposes
+                    uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
                     colFragDataFile.seekg(0, colFragDataFile.end);
@@ -630,11 +637,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -707,11 +721,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -723,7 +744,7 @@ void Database::PersistOnlyModified(const std::string tableName)
             {
                 if (block->GetSaveNecessary())
                 {
-                    uint64_t strPolDataPos = UINT64_MAX; // this value is there just for debug purposes
+                    uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
                     colFragDataFile.seekg(0, colFragDataFile.end);
@@ -829,11 +850,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -896,11 +924,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -963,11 +998,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -1030,11 +1072,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
@@ -1097,11 +1146,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                   COLUMN_ADDRESS_EXTENSION;
             }
 
-            // if the file does not exists, create it, because fstream need s file to exists before opening it:
+            // if the file does not exists, create it, because fstream needs file to exists before opening it:
             if (!boost::filesystem::exists(fileAddressPath))
             {
                 std::ofstream colAddressFile(fileAddressPath, std::ios::binary);
                 colAddressFile.close();
+            }
+
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileDataPath))
+            {
+                std::ofstream colDataFile(fileDataPath, std::ios::binary);
+                colDataFile.close();
             }
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);

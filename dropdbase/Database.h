@@ -95,7 +95,8 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
+        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
+        colDataFile.seekp(0, colDataFile.beg);
 
         if (colDataFile.is_open())
         {
@@ -118,7 +119,8 @@ private:
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+            std::ofstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
+            colFragDataFile.seekp(0, colFragDataFile.beg);
 
             // persist block data into disk:
             colFragDataFile.seekp(fragmentPosition);
@@ -325,7 +327,8 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
+        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
+        colDataFile.seekp(0, colDataFile.beg);
 
         if (colDataFile.is_open())
         {
@@ -348,7 +351,8 @@ private:
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+            std::ofstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
+            colFragDataFile.seekp(0, colFragDataFile.beg);
 
             // persist block data into disk:
             colFragDataFile.seekp(fragmentPosition);
@@ -524,7 +528,8 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::binary);
+        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
+        colDataFile.seekp(0, colDataFile.beg);
 
         if (colDataFile.is_open())
         {
