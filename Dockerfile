@@ -12,7 +12,6 @@ RUN mkdir /databases
 # Install needed packages in non-interactive mode
 ENV DEBIAN_FRONTEND noninteractive
 RUN apt-get update && apt-get install -y build-essential \
-	cmake \
 	ninja-build \
 	clang-7 \
 	clang++-7 \
@@ -22,18 +21,10 @@ RUN apt-get update && apt-get install -y build-essential \
 	uuid-dev \
 	pkg-config \
 	python2.7-dev
-
-# Install yaml	
-RUN mkdir -p ./yaml-cpp/src \
-	&& mkdir -p ./yaml-cpp/build \
-	&& cd ./yaml-cpp/src \
-    && curl -SL https://github.com/jbeder/yaml-cpp/archive/yaml-cpp-0.6.2.tar.gz \
-    | tar -xz \
-	&& cd ../build \
-	&& cmake -DCMAKE_BUILD_TYPE=Release ../src/yaml-cpp-yaml-cpp-0.6.2 \
-	&& make -j \
-	&& make -j install
 	
+# Install CMake 3.17
+RUN wget -qO- "https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C /usr/local
+
 WORKDIR /build	
 	
 # Install boost
