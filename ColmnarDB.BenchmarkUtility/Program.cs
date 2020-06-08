@@ -69,7 +69,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "-b"))
                 {
-                    //test telco queries:
+                    // test telco queries:
                     use.Use(telcoDbName, client);
   
                     client.UseDatabase(telcoDbName);
@@ -82,7 +82,7 @@ namespace ColmnarDB.BenchmarkUtility
                         Console.WriteLine($"Executing benchmark query: {queryString}");
                         resultFile.WriteLine(queryString);
 
-                        //execute query first time (no cache):
+                        // execute query first time (no cache):
                         double resultSum = 0;
                         try
                         {
@@ -103,11 +103,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         resultSum = Math.Round(resultSum);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        //execute query N times (used cache):
+                        // execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             try
@@ -128,11 +128,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
                         Console.WriteLine(avgQueryExec + " (average cached N runs)");
 
-                        //check if query execution time is acceptable and save the result:
+                        // check if query execution time is acceptable and save the result:
                         int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
                         if (avgQueryExec < queryExpectedExecTime)
                         {
@@ -151,7 +151,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "-g"))
                 {
-                    //test geo queries:
+                    // test geo queries:
                     use.Use(geoDbName, client);
             
                     client.UseDatabase(geoDbName);
@@ -164,7 +164,7 @@ namespace ColmnarDB.BenchmarkUtility
                         Console.WriteLine($"Executing benchmark query: {queryString}");
                         resultFile.WriteLine(queryString);
 
-                        //execute query first time (no cache):
+                        // execute query first time (no cache):
                         double resultSum = 0;
                         try
                         {
@@ -185,11 +185,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         resultSum = Math.Round(resultSum);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        //execute query N times (used cache):
+                        // execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             try
@@ -210,11 +210,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
                         Console.WriteLine(avgQueryExec + " (average cached N runs)");
 
-                        //check if query execution time is acceptable and save the result:
+                        // check if query execution time is acceptable and save the result:
                         int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
                         if (avgQueryExec < queryExpectedExecTime)
                         {
@@ -233,7 +233,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "-t"))
                 {
-                    //test taxi queries:
+                    // test taxi queries:
                     use.Use(taxiDbName, client);
 
                     client.UseDatabase(taxiDbName);
@@ -246,7 +246,7 @@ namespace ColmnarDB.BenchmarkUtility
                         Console.WriteLine($"Executing benchmark query: {queryString}");
                         resultFile.WriteLine(queryString);
 
-                        //execute query first time (no cache):
+                        // execute query first time (no cache):
                         double resultSum = 0;
                         client.Query(queryString);
                         Dictionary<string, float> executionTimes = null;
@@ -259,11 +259,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         resultSum = Math.Round(resultSum);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.WriteLine((resultSum).ToString() + " (first run)");
 
-                        //execute query N times (used cache):
+                        // execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             client.Query(queryString);
@@ -274,7 +274,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }
                         }
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum / numberOfQueryExec).ToString() + " (average cached N runs)");
                         Console.WriteLine((resultSum / numberOfQueryExec) + " (average cached N runs)");
                     }
@@ -283,7 +283,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "--ci"))
                 {
-                    //test taxi queries:
+                    // test taxi queries:
                     use.Use(taxiDbName, client);
             
                     client.UseDatabase(taxiDbName);
@@ -291,7 +291,7 @@ namespace ColmnarDB.BenchmarkUtility
                     var queryFile = new System.IO.StreamReader(ciQueriesPath);
                     Console.WriteLine($"Benchmark queries from file '{ciQueriesPath}' were loaded.");
 
-                    int queryIndex = 1; //indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
+                    int queryIndex = 1; // indexing from 1, not zero, because we use to call it taxi rides query number 1, not number 0, so it is not confusing
                     Dictionary<string, IList> columnData = null;
 
                     while ((queryString = queryFile.ReadLine()) != null)
@@ -299,7 +299,7 @@ namespace ColmnarDB.BenchmarkUtility
                         Console.WriteLine($"Executing benchmark query: {queryString}");
                         resultFile.WriteLine(queryString);
 
-                        //execute query first time (no cache):
+                        // execute query first time (no cache):
                         double resultSum = 0;
                         try
                         {
@@ -313,14 +313,14 @@ namespace ColmnarDB.BenchmarkUtility
                         Dictionary<string, float> executionTimes = null;
                         ColumnarDataTable result = null;
 
-                        //read file where the results of a particular query are saved:
+                        // read file where the results of a particular query are saved:
                         var queryExpectedResultFile = new StreamReader($"../../../ColmnarDB.BenchmarkUtility/{taxiDbName}_testQuery_{queryIndex}.txt");
                         queryIndex++;
 
-                        //read the file header
+                        // read the file header
                         var expectedColumnNames = queryExpectedResultFile.ReadLine().Split('|');
 
-                        //read expected column data types
+                        // read expected column data types
                         var expectedDataTypes = queryExpectedResultFile.ReadLine().Split('|');
 
                         Dictionary<string, IList> exptectedColumns = new Dictionary<string, IList>();
@@ -372,7 +372,7 @@ namespace ColmnarDB.BenchmarkUtility
                             
                         }
 
-                        //read results from a file:
+                        // read results from a file:
                         while ((queryExptectedString = queryExpectedResultFile.ReadLine()) != null)
                         {
                             var results = queryExptectedString.Split('|');
@@ -402,7 +402,7 @@ namespace ColmnarDB.BenchmarkUtility
                             }
                         }
 
-                        //check if the expected result dictionary is the same as actual query result dictionary:
+                        // check if the expected result dictionary is the same as actual query result dictionary:
                         for (int i = 0; i < expectedColumnNames.Length; i++)
                         {
                             try
@@ -415,7 +415,7 @@ namespace ColmnarDB.BenchmarkUtility
                                 }
                                 else
                                 {
-                                    //check each element in result's lists
+                                    // check each element in result's lists
                                     for (int j = 0; j < exptectedColumns[expectedColumnNames[i]].Count; j++)
                                     {
                                         bool tempCorrectResultsPassed = true;
@@ -474,11 +474,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         resultSum = Math.Round(resultSum);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        //execute query N times (used cache):
+                        // execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             try
@@ -499,11 +499,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
                         Console.WriteLine(avgQueryExec + " (average cached N runs)");
 
-                        //check if query execution time is acceptable and save the result:
+                        // check if query execution time is acceptable and save the result:
                         int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
                         if (avgQueryExec < queryExpectedExecTime)
                         {
@@ -522,7 +522,7 @@ namespace ColmnarDB.BenchmarkUtility
 
                 if (String.Equals(arg, "-a") || String.Equals(arg, "-s"))
                 {
-                    //test stcs queries:
+                    // test stcs queries:
                     use.Use(stcsDbName, client);
             
                     client.UseDatabase(stcsDbName);
@@ -535,7 +535,7 @@ namespace ColmnarDB.BenchmarkUtility
                         Console.WriteLine($"Executing benchmark query: {queryString}");
                         resultFile.WriteLine(queryString);
 
-                        //execute query first time (no cache):
+                        // execute query first time (no cache):
                         double resultSum = 0;
                         try
                         {
@@ -556,11 +556,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         resultSum = Math.Round(resultSum);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine((resultSum).ToString() + " (first run)");
                         Console.WriteLine((resultSum).ToString() + " (first run)"); 
 
-                        //execute query N times (used cache):
+                        // execute query N times (used cache):
                         for (int i = 0; i < numberOfQueryExec; i++)
                         {
                             try
@@ -581,11 +581,11 @@ namespace ColmnarDB.BenchmarkUtility
 
                         double avgQueryExec = Math.Round(resultSum / numberOfQueryExec);
 
-                        //save query result to a file:
+                        // save query result to a file:
                         resultFile.WriteLine(avgQueryExec.ToString() + " (average cached N runs)");
                         Console.WriteLine(avgQueryExec + " (average cached N runs)");
 
-                        //check if query execution time is acceptable and save the result:
+                        // check if query execution time is acceptable and save the result:
                         int queryExpectedExecTime = System.Convert.ToInt32(queryFile.ReadLine());
                         if (avgQueryExec < queryExpectedExecTime)
                         {
@@ -604,32 +604,32 @@ namespace ColmnarDB.BenchmarkUtility
             }
             resultFile.Close();
 
-            //return exit code:
+            // return exit code:
             if (correctResultsPassed && avgTimePassed)
             {
-                //everything was successful
+                // everything was successful
                 return 0;
             }
 
             if (!correctResultsPassed && avgTimePassed)
             {
-                //query results were not correct, but query has finished in expected time
+                // query results were not correct, but query has finished in expected time
                 return 1;
             }
 
             if (correctResultsPassed && !avgTimePassed)
             {
-                //query results were corrcet, but query has not finished in expected time
+                // query results were corrcet, but query has not finished in expected time
                 return 2;
             }
 
             if (!correctResultsPassed && !avgTimePassed)
             {
-                //neither query results were correct, nor query has finished execution in expected time
+                // neither query results were correct, nor query has finished execution in expected time
                 return 3;
             }
 
-            //something else has happend
+            // something else has happend
             return 4;
         }    
     }

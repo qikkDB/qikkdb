@@ -7,8 +7,8 @@
 #include <sys/types.h>
 #include <stdio.h>
 #include <algorithm>
+#include <json/json.h>
 
-#include "json/json.h"
 #include "Configuration.h"
 #include "Database.h"
 
@@ -31,7 +31,8 @@ Database::~Database()
 {
     Context& context = Context::getInstance();
     int32_t oldDeviceID = context.getBoundDeviceID();
-    // Clear cache for all devices
+
+    // clear cache for all devices:
     for (int32_t deviceID = 0; deviceID < Context::getInstance().getDeviceCount(); deviceID++)
     {
         context.bindDeviceToContext(deviceID);
@@ -318,7 +319,7 @@ void Database::PersistOnlyDbFile()
                         dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
                     columnsJSON["default_entry_value"] =
-                        POLYGON_DEFAULT_VALUE; // We need to hardcode it due to Google Protobuffers
+                        POLYGON_DEFAULT_VALUE; // we need to hardcode it due to Google Protobuffers
                 }
                 break;
 
@@ -586,11 +587,10 @@ void Database::PersistOnlyModified(const std::string tableName)
                             colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
                             if (column.second->GetIsNullable())
                             {
-                                // TODO toto bude treba zmenit po zmene NullBit masiek z 8 bitov na 64 bitov
                                 int32_t nullBitMaskLength;
                                 std::unique_ptr<int8_t[]> nullBitMask = nullptr;
-                                int32_t nullBitMaskAllocationSize =
-                                    ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                                const int32_t nullBitMaskAllocationSize =
+                                    NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
 
                                 colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
                                                  sizeof(int32_t)); // read nullBitMask length
@@ -800,11 +800,10 @@ void Database::PersistOnlyModified(const std::string tableName)
                             colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
                             if (column.second->GetIsNullable())
                             {
-                                // TODO toto bude treba zmenit po zmene NullBit masiek z 8 bitov na 64 bitov
                                 int32_t nullBitMaskLength;
                                 std::unique_ptr<int8_t[]> nullBitMask = nullptr;
-                                int32_t nullBitMaskAllocationSize =
-                                    ((table.GetBlockSize() + sizeof(int8_t) * 8 - 1) / (8 * sizeof(int8_t)));
+                                const int32_t nullBitMaskAllocationSize =
+                                    NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
 
                                 colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
                                                  sizeof(int32_t)); // read nullBitMask length
@@ -1332,7 +1331,7 @@ void Database::DeleteDatabaseFromDisk()
     // std::cout << "DeleteDatabaseFromDisk path: " << path << std::endl;
     if (boost::filesystem::exists(path))
     {
-        // Delete main DB_EXTENSION file
+        // delete main DB_EXTENSION file
         if (boost::filesystem::remove(path + name_ + DB_EXTENSION))
         {
             BOOST_LOG_TRIVIAL(info) << "Database: Main (" << DB_EXTENSION << ") file of db "
@@ -1344,19 +1343,19 @@ void Database::DeleteDatabaseFromDisk()
                                        << name_ << " was NOT removed from disk. No such file or write access.";
         }
 
-        // Delete tables and columns
+        // delete tables and columns
         std::string prefix(path + name_ + SEPARATOR);
-        // Replace backslash with slash for comparison reasons
+        // replace backslash with slash for comparison reasons
         std::replace(prefix.begin(), prefix.end(), '\\', '/');
 
-        // Iterate through all files in database directory
+        // iterate through all files in database directory
         for (auto& p : boost::filesystem::directory_iterator(path))
         {
-            // Replace backslash with slash for comparison with prefix
+            // replace backslash with slash for comparison with prefix
             std::string columnPath = p.path().string();
             std::replace(columnPath.begin(), columnPath.end(), '\\', '/');
 
-            // Delete files which starts with prefix of db name:
+            // delete files which starts with prefix of db name:
             if (!columnPath.compare(0, prefix.size(), prefix))
             {
                 if (boost::filesystem::remove(p.path().string().c_str()))
@@ -1393,12 +1392,12 @@ void Database::DeleteTableFromDisk(const char* tableName)
     if (boost::filesystem::exists(path))
     {
         std::string prefix(path + name_ + SEPARATOR + std::string(tableName) + SEPARATOR);
-        // Replace backslash with slash for comparison reasons
+        // replace backslash with slash for comparison reasons
         std::replace(prefix.begin(), prefix.end(), '\\', '/');
 
         for (auto& p : boost::filesystem::directory_iterator(path))
         {
-            // Replace backslash with slash for comparison with prefix
+            // replace backslash with slash for comparison with prefix
             std::string columnPath = p.path().string();
             std::replace(columnPath.begin(), columnPath.end(), '\\', '/');
 
@@ -2789,7 +2788,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                 << "If the column should have zero blocks of data, this behavior is correct.";
         }
 
-        table.GetColumns().at(columnName)->UpdateSize(); // Column with special type needs to recount size
+        table.GetColumns().at(columnName)->UpdateSize(); // column with special type needs to recount size
         colFile.close();
     }
     break;
