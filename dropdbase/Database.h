@@ -138,9 +138,9 @@ private:
 
             if (isNullable)
             {
-                int32_t nullBitMaskLength = (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
                 colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(int32_t)); // write nullBitMask length
+                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
                                   nullBitMaskLength); // write nullBitMask
             }
@@ -354,7 +354,7 @@ private:
             colFragDataFile.seekp(0, colFragDataFile.beg);
 
             // persist block data into disk:
-            colFragDataFile.seekp(fragmentPosition);
+            colFragDataFile.seekp(0, fragmentPosition);
 
             BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of String data with index = " << index;
 
@@ -369,16 +369,15 @@ private:
 
             if (isNullable)
             {
-                int32_t nullBitMaskLength = (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
                 colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(int32_t)); // write nullBitMask length
+                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
                                   nullBitMaskLength); // write nullBitMask
             }
 
             colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
                               sizeof(uint64_t)); // write block length (number of entries)
-
 
             if (colFragDataFile.is_open())
             {
@@ -562,9 +561,9 @@ private:
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
             if (isNullable)
             {
-                int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
                 colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(int32_t)); // write nullBitMask length
+                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
                                   nullBitMaskLength); // write nullBitMask
             }
@@ -580,7 +579,7 @@ private:
             colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                               (blockSize - blockCurrentSize) * sizeof(T)); // write empty entries as well
 
-            int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            const uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
 
             /* check if we did not get UINT32_MAX value in index - this value is reserved
             to identify new block, which are just in memory and have never been persisted

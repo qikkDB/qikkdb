@@ -185,7 +185,7 @@ TEST_F(DatabaseTests, IntegrationTest)
         dynamic_cast<ColumnBase<int8_t>*>(colBool2.get())->AddBlock(dataBool2);
     }
 
-    std::string storePath = path + dbName;
+    const std::string storePath = path + dbName;
     boost::filesystem::remove_all(storePath);
 
     Database::SaveModifiedToDisk();
@@ -558,9 +558,11 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     // first table default values:
     ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns2.at("colInteger").get())->GetDefaultValue(), 0);
-    ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(firstTableColumns2.at("colDouble").get())->GetDefaultValue(), 0.000000);
+    ASSERT_EQ(dynamic_cast<ColumnBase<double>*>(firstTableColumns2.at("colDouble").get())->GetDefaultValue(),
+              0.000000);
     ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns2.at("colString").get())->GetDefaultValue(), "");
-    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns2.at("colIntegerEmpty").get())->GetDefaultValue(), 0);
+    ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns2.at("colIntegerEmpty").get())->GetDefaultValue(),
+              0);
     ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(firstTableColumns2.at("colStringEmpty").get())->GetDefaultValue(),
               "");
 
@@ -696,7 +698,8 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ(dynamic_cast<ColumnBase<int32_t>*>(secondTableColumns2.at("colInteger").get())->GetDefaultValue(), 0);
     ASSERT_DOUBLE_EQ(dynamic_cast<ColumnBase<double>*>(secondTableColumns2.at("colDouble").get())->GetDefaultValue(),
                      0.000000);
-    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(secondTableColumns2.at("colString").get())->GetDefaultValue(), "");
+    ASSERT_EQ(dynamic_cast<ColumnBase<std::string>*>(secondTableColumns2.at("colString").get())->GetDefaultValue(),
+              "");
     ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(secondTableColumns2.at("colFloat").get())->GetDefaultValue(),
                     0.000000);
     ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(secondTableColumns2.at("colLong").get())->GetDefaultValue(), 0);

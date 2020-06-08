@@ -17,7 +17,7 @@ std::mutex Database::dbAccessMutex_;
 std::mutex Database::dbFilesMutex_;
 
 /// <summary>
-/// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
+/// Initializes a new instance of the Database class.
 /// </summary>
 /// <param name="databaseName">Database name.</param>
 /// <param name="blockSize">Block size of all blocks in this database.</param>
@@ -536,7 +536,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
-                    colFragDataFile.seekg(0, colFragDataFile.end);
+                    //colFragDataFile.seekg(0, colFragDataFile.end);
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
@@ -546,12 +546,13 @@ void Database::PersistOnlyModified(const std::string tableName)
                         /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
                            (we will persist the modified data as new fragments at the end of the file) */
 
-                        uint64_t i = 0;
-                        colAddressFile.seekg(0, colAddressFile.end);
-                        uint64_t colAddressFileLength = colAddressFile.tellg();
-                        colAddressFile.seekg(0, colAddressFile.beg);
-                        while (i < colAddressFileLength)
+                        while (!colAddressFile.eof())
                         {
+                            if (colAddressFile.eof())
+                            {
+                                break;
+                            }
+
                             uint32_t currentBlockPosition;
                             colAddressFile.read(reinterpret_cast<char*>(&currentBlockPosition), sizeof(uint32_t));
 
@@ -564,16 +565,15 @@ void Database::PersistOnlyModified(const std::string tableName)
                                 colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
                                 break;
                             }
-
-                            i += sizeof(uint32_t);
                         }
 
-                        i = 0;
-                        colDataFile.seekg(0, colDataFile.end);
-                        uint64_t colDataFileLength = colDataFile.tellg();
-                        colDataFile.seekg(0, colDataFile.beg);
-                        while (i < colDataFileLength)
+                        while (!colDataFile.eof())
                         {
+                            if (colDataFile.eof())
+                            {
+                                break;
+                            }
+
                             uint32_t readBlockIndex;
                             colDataFile.read(reinterpret_cast<char*>(&readBlockIndex), sizeof(uint32_t));
 
@@ -589,11 +589,11 @@ void Database::PersistOnlyModified(const std::string tableName)
                             {
                                 int32_t nullBitMaskLength;
                                 std::unique_ptr<int8_t[]> nullBitMask = nullptr;
-                                const int32_t nullBitMaskAllocationSize =
+                                const uint32_t nullBitMaskAllocationSize =
                                     NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
 
                                 colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
-                                                 sizeof(int32_t)); // read nullBitMask length
+                                                 sizeof(uint32_t)); // read nullBitMask length
                                 nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
                                 colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
                                                  nullBitMaskLength); // read nullBitMask
@@ -601,6 +601,10 @@ void Database::PersistOnlyModified(const std::string tableName)
                             uint64_t readEntriesCount;
                             colDataFile.read(reinterpret_cast<char*>(&readEntriesCount), sizeof(uint64_t));
                         }
+                    }
+                    else
+                    {
+                        block->SetIndex(colPolygon.GetBlocksList().size() + 1);
                     }
 
                     threads.emplace_back(WriteBlockPolygonType, std::ref(table), std::ref(column),
@@ -671,6 +675,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colPoint.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -737,7 +742,7 @@ void Database::PersistOnlyModified(const std::string tableName)
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
-            std::ifstream colFragDataFile(fileFragmentPath, std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colStr.GetBlocksList())
@@ -747,7 +752,6 @@ void Database::PersistOnlyModified(const std::string tableName)
                     uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
-                    colFragDataFile.seekg(0, colFragDataFile.end);
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
@@ -756,15 +760,13 @@ void Database::PersistOnlyModified(const std::string tableName)
                     {
                         /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
                            (we will persist the modified data as new fragments at the end of the file) */
-
-
-                        uint64_t i = 0;
-                        colAddressFile.seekg(0, colAddressFile.end);
-                        uint64_t colAddressFileLength = colAddressFile.tellg();
-                        colAddressFile.seekg(0, colAddressFile.beg);
-
-                        while (i < colAddressFileLength)
+                        while (!colAddressFile.eof())
                         {
+                            if (colAddressFile.eof())
+                            {
+                                break;
+                            }
+
                             uint32_t currentBlockPosition;
                             colAddressFile.read(reinterpret_cast<char*>(&currentBlockPosition), sizeof(uint32_t));
 
@@ -777,16 +779,18 @@ void Database::PersistOnlyModified(const std::string tableName)
                                 colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
                                 break;
                             }
-
-                            i += sizeof(uint32_t);
                         }
 
-                        i = 0;
                         colDataFile.seekg(0, colDataFile.end);
                         uint64_t colDataFileLength = colDataFile.tellg();
                         colDataFile.seekg(0, colDataFile.beg);
-                        while (i < colDataFileLength)
+                        while (!colDataFile.eof())
                         {
+                            if (!colDataFile.eof())
+                            {
+                                break;
+                            }
+
                             uint32_t readBlockIndex;
                             colDataFile.read(reinterpret_cast<char*>(&readBlockIndex), sizeof(uint32_t));
 
@@ -800,13 +804,13 @@ void Database::PersistOnlyModified(const std::string tableName)
                             colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
                             if (column.second->GetIsNullable())
                             {
-                                int32_t nullBitMaskLength;
+                                uint32_t nullBitMaskLength;
                                 std::unique_ptr<int8_t[]> nullBitMask = nullptr;
-                                const int32_t nullBitMaskAllocationSize =
+                                const uint32_t nullBitMaskAllocationSize =
                                     NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
 
                                 colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
-                                                 sizeof(int32_t)); // read nullBitMask length
+                                                 sizeof(uint32_t)); // read nullBitMask length
                                 nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
                                 colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
                                                  nullBitMaskLength); // read nullBitMask
@@ -814,6 +818,10 @@ void Database::PersistOnlyModified(const std::string tableName)
                             uint64_t readEntriesCount;
                             colDataFile.read(reinterpret_cast<char*>(&readEntriesCount), sizeof(uint64_t));
                         }
+                    }
+                    else
+                    {
+                        block->SetIndex(colStr.GetBlocksList().size() + 1);
                     }
 
                     threads.emplace_back(WriteBlockStringType, std::ref(table), std::ref(column),
@@ -883,6 +891,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colInt.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -957,6 +966,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colInt.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -1031,6 +1041,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colLong.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -1105,6 +1116,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colFloat.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -1179,6 +1191,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
+                        block->SetIndex(colDouble.GetBlocksList().size() + 1);
                     }
                     else
                     {
@@ -1751,7 +1764,7 @@ void Database::LoadColumn(const std::string fileDbPath,
     BOOST_LOG_TRIVIAL(info) << "Database: Loading " << COLUMN_DATA_EXTENSION
                             << " file with name : " << fileDataPath << ".";
 
-    const int32_t nullBitMaskAllocationSize = NullValues::GetNullBitMaskSize(table.GetBlockSize());
+    const uint32_t nullBitMaskAllocationSize = NullValues::GetNullBitMaskSize(table.GetBlockSize());
 
     switch (type)
     {
@@ -1805,11 +1818,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -1954,11 +1967,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2097,11 +2110,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2254,11 +2267,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2366,11 +2379,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2477,11 +2490,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2588,11 +2601,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2699,11 +2712,11 @@ void Database::LoadColumn(const std::string fileDbPath,
                 int32_t groupId;
                 colFile.read(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // read block groupId
 
-                int32_t nullBitMaskLength;
+                uint32_t nullBitMaskLength;
 
                 if (isNullable)
                 {
-                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // read nullBitMask length
+                    colFile.read(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // read nullBitMask length
                 }
 
                 std::unique_ptr<nullmask_t[]> nullBitMask = nullptr;
@@ -2986,8 +2999,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3153,8 +3166,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3182,8 +3195,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                         colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
                     }
 
-                    const int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3246,8 +3259,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3418,8 +3431,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3435,8 +3448,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                                       (blockSize - blockCurrentSize) * sizeof(int8_t)); // write empty entries as well
 
-                    int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3492,8 +3505,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3509,8 +3522,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                                       (blockSize - blockCurrentSize) * sizeof(int32_t)); // write empty entries as well
 
-                    int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3566,8 +3579,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3583,8 +3596,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                                       (blockSize - blockCurrentSize) * sizeof(int64_t)); // write empty entries as well
 
-                    int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3639,8 +3652,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3656,8 +3669,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                                       (blockSize - blockCurrentSize) * sizeof(float)); // write empty entries as well
 
-                    int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3714,8 +3727,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
                     if (isNullable)
                     {
-                        int32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
-                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(int32_t)); // write nullBitMask length
+                        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
+                        colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
                                           nullBitMaskLength); // write nullBitMask
                     }
@@ -3731,8 +3744,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                                       (blockSize - blockCurrentSize) * sizeof(double)); // write empty entries as well
 
-                    int32_t nullBitMaskLength =
-                        (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+                    const uint32_t nullBitMaskLength =
+                        NullValues::GetNullBitMaskSizeInBytes(block->GetSize());
 
                     colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
 
@@ -3852,9 +3865,9 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
 
         if (isNullable)
         {
-            int32_t nullBitMaskLength = (block.GetSize() + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+            uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
             colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                              sizeof(int32_t)); // write nullBitMask length
+                              sizeof(uint32_t)); // write nullBitMask length
             colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
                               nullBitMaskLength); // write nullBitMask
         }
@@ -3882,7 +3895,7 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
             colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
         }
 
-        const int32_t nullBitMaskLength = (blockCurrentSize + sizeof(char) * 8 - 1) / (sizeof(char) * 8);
+        const uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(blockCurrentSize);
 
         /* check if we did not get UINT32_MAX value in index - this value is reserved
         to identify new block, which are just in memory and have never been persisted

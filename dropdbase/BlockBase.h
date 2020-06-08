@@ -48,7 +48,7 @@ private:
     /* This is ID of the block, which has to be unique and it is used mainly when indexing
     the COLUMN_ADDRESS_EXTENSION file. If this index is equal to UINT32_MAX value, that means,
     this block has never been persisted before into disk and we need to alocate a disk space for it. */
-    const uint32_t index_ = UINT32_MAX;
+    uint32_t index_ = UINT32_MAX;
 
 public:
     /// <summary>
@@ -237,6 +237,11 @@ public:
     const uint32_t GetIndex() const
     {
         return index_;
+    }
+
+	void SetIndex(uint32_t newIndexVal)
+    {
+        index_ = newIndexVal;
     }
 
     void SetSaveNecessaryToFalse()
