@@ -667,10 +667,11 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
 
     for (auto column : sortingColumns)
     {
-        nullmask_t isNullValue = 0;
+        int8_t isNullValue = 0;
         if (nullMasks.find(column) != nullMasks.end())
         {
-            isNullValue = (NullValues::GetConcreteBitFromBitmask(nullMasks.at(column).data(), iterator) && static_cast<uint8_t>(1U));
+            isNullValue = (NullValues::GetConcreteBitFromBitmask(nullMasks.at(column).data(), iterator) &&
+                           static_cast<uint8_t>(1U));
         }
 
         maskOfRow.push_back(isNullValue);
@@ -868,7 +869,7 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
     std::vector<std::any> resultRow;
     std::vector<int8_t> maskOfRow;
 
-    nullmask_t isNullValue = 0;
+    int8_t isNullValue = 0;
 
     for (auto sortingColumn : sortingColumns)
     {
@@ -882,7 +883,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
             isNullValue =
                 NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock);
+                                                      indexInBlock) &&
+                static_cast<uint8_t>(1U);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -893,7 +895,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
             isNullValue =
                 NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock);
+                                                      indexInBlock) &&
+                static_cast<uint8_t>(1U);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -904,7 +907,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
             isNullValue =
                 NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock);
+                                                      indexInBlock) &&
+                static_cast<uint8_t>(1U);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -915,7 +919,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
             isNullValue =
                 NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock);
+                                                      indexInBlock) &&
+                static_cast<uint8_t>(1U);
             maskOfRow.push_back(isNullValue);
         }
 
@@ -926,7 +931,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
             isNullValue =
                 NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock);
+                                                      indexInBlock) &&
+                static_cast<uint8_t>(1U);
             maskOfRow.push_back(isNullValue);
         }
     }
