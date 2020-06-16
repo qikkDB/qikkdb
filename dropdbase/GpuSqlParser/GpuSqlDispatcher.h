@@ -792,8 +792,11 @@ public:
 
                 return {reinterpret_cast<AllocatedDataType<T>>(column.GpuPtr), column, loadFlag, colName};
             }
-
-            return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column, InstructionStatus::CONTINUE, ""};
+            else
+            {
+                return {dispatcher.arguments_.Read<AllocatedDataType<T>>(), column,
+                        InstructionStatus::CONTINUE, ""};
+            }
         }
 
         static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
@@ -890,17 +893,19 @@ public:
 
                 return {column.GpuPtr, column, loadFlag, colName};
             }
-
-            const std::string cnst = dispatcher.arguments_.Read<std::string>();
-            const int32_t retSize = dispatcher.GetBlockSize();
-            if (retSize == 0)
+            else
             {
-                return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
-            }
+                const std::string cnst = dispatcher.arguments_.Read<std::string>();
+                const int32_t retSize = dispatcher.GetBlockSize();
+                if (retSize == 0)
+                {
+                    return {column.GpuPtr, column, InstructionStatus::OUT_OF_BLOCKS, ""};
+                }
 
-            CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
-            column = {gpuComposite, 0, 0};
-            return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
+                CompositeDataType<T> gpuComposite = dispatcher.InsertConstCompositeDataType<T>(cnst, retSize);
+                column = {gpuComposite, 0, 0};
+                return {gpuComposite, column, InstructionStatus::CONTINUE, ""};
+            }
         }
 
         static InstructionResult<T> AllocateInstructionResult(GpuSqlDispatcher& dispatcher,
