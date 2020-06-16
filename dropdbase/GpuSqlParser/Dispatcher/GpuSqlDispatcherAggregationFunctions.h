@@ -31,8 +31,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AggregationCol()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "AggCol: " << colName << " " << reg << '\n';
 
+    const std::string inRegName =
+        colName + (std::is_same<IN, std::string>::value ?
+                       "_stringIndices" :
+                       (std::is_same<IN, ColmnarDB::Types::ComplexPolygon>::value ? "_polyIdx" : ""));
+
     PointerAllocation dummyAllocation = PointerAllocation{0, std::numeric_limits<int32_t>::max(), false, 0};
-    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(colName);
+    PointerAllocation& column = aggAsterisk ? dummyAllocation : allocatedPointers_.at(inRegName);
 
     int32_t reconstructOutSize;
 

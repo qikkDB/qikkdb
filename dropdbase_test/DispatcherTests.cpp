@@ -9343,6 +9343,32 @@ TEST(DispatcherTests, AggregationCount)
     ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
 }
 
+TEST(DispatcherTests, AggregationCountString)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(colString1) FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloads = result->payloads().at("COUNT(colString1)");
+    ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+    ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+}
+
+TEST(DispatcherTests, AggregationCountPolygon)
+{
+    Context::getInstance();
+
+    GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
+                              "SELECT COUNT(colPolygon1) FROM TableA;");
+    auto resultPtr = parser.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto& payloads = result->payloads().at("COUNT(colPolygon1)");
+    ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
+    ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
+}
+
 
 TEST(DispatcherTests, Alias)
 {
