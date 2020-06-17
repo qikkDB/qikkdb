@@ -101,5 +101,11 @@ public:
                      std::exception_ptr e) override;
 };
 
+class CustomErrorStrategy : public antlr4::DefaultErrorStrategy
+{
+public:
+    void reportInputMismatch(antlr4::Parser* recognizer, const antlr4::InputMismatchException& e) override;
+};
+
 
 #endif // DROPDBASE_INSTAREA_GPUSQLCUSTOMPARSER_H

@@ -16,6 +16,8 @@
 #include "../messages/QueryResponseMessage.pb.h"
 #include "../Database.h"
 #include "LoadColHelper.h"
+#include "GpuSqlParser.h"
+#include "GpuSqlLexer.h"
 #include <iostream>
 #include <future>
 #include <thread>
@@ -47,8 +49,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     antlr4::ANTLRInputStream sqlInputStream(query_);
     GpuSqlLexer sqlLexer(&sqlInputStream);
     std::unique_ptr<ThrowErrorListener> throwErrorListener = std::make_unique<ThrowErrorListener>();
-    std::shared_ptr<antlr4::DefaultErrorStrategy> defaultErrorStrategy =
-        std::make_shared<antlr4::DefaultErrorStrategy>();
+    std::shared_ptr<CustomErrorStrategy> customErrorStrategy = std::make_shared<CustomErrorStrategy>();
 
     sqlLexer.removeErrorListeners();
     sqlLexer.addErrorListener(throwErrorListener.get());
@@ -57,7 +58,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     GpuSqlParser parser(&commonTokenStream);
     parser.removeErrorListeners();
     parser.addErrorListener(throwErrorListener.get());
-    parser.setErrorHandler(defaultErrorStrategy);
+    parser.setErrorHandler(customErrorStrategy);
     parser.getInterpreter<antlr4::atn::ParserATNSimulator>()->setPredictionMode(antlr4::atn::PredictionMode::SLL);
 
     GpuSqlParser::StatementContext* statement = parser.statement();
@@ -684,10 +685,59 @@ void ThrowErrorListener::syntaxError(antlr4::Recognizer* recognizer,
                                      const std::string& msg,
                                      std::exception_ptr e)
 {
-    std::string badSymbol = offendingSymbol == nullptr ? std::string("") : offendingSymbol->getText();
-    std::string finalMsg = "Error: line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) +
-                           " " + msg + " near symbol '" + badSymbol + "'";
+    const std::string finalMsg =
+        "Error: line " + std::to_string(line) + ":" + std::to_string(charPositionInLine) + " " + msg;
 
     BOOST_LOG_TRIVIAL(debug) << finalMsg;
     throw antlr4::ParseCancellationException(finalMsg);
+}
+
+void CustomErrorStrategy::reportInputMismatch(antlr4::Parser* recognizer, const antlr4::InputMismatchException& e)
+{
+    const std::string badSymbol =
+        e.getOffendingToken() == nullptr ? std::string("") : e.getOffendingToken()->getText();
+
+    std::string msg = "mismatched input " + getTokenErrorDisplay(e.getOffendingToken()) +
+                      " expecting " + e.getExpectedTokens().toString(recognizer->getVocabulary()) +
+                      " near symbol '" + badSymbol + "'.";
+
+    // add more custom semantic check error messages here
+
+    if (dynamic_cast<GpuSqlParser::UnaryOperationContext*>(e.getCtx()) &&
+        dynamic_cast<GpuSqlParser::UnaryOperationContext*>(e.getCtx())->LPAREN() == nullptr &&
+        dynamic_cast<GpuSqlParser::UnaryOperationContext*>(e.getCtx())->expression() == nullptr &&
+        dynamic_cast<GpuSqlParser::UnaryOperationContext*>(e.getCtx())->RPAREN() == nullptr)
+    {
+        auto ctx = dynamic_cast<GpuSqlParser::UnaryOperationContext*>(e.getCtx());
+        msg += " Incomplete call of unary function: '" + ctx->op->getText() +
+               "' or ambiguous column name detected (confused with "
+               "function name). Complete the function call with parenthesis and arguments or use "
+               "delimited identifier for a column.";
+    }
+
+    else if (dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx()) &&
+             dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx())->LPAREN() == nullptr &&
+             dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx())->left == nullptr &&
+             dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx())->right == nullptr &&
+             dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx())->RPAREN() == nullptr)
+    {
+        auto ctx = dynamic_cast<GpuSqlParser::BinaryOperationContext*>(e.getCtx());
+        msg += " Incomplete call of binary function: '" + ctx->op->getText() +
+               "' or ambiguous column name detected (confused with "
+               "function name). Complete the function call with parenthesis and arguments or use "
+               "delimited identifier for a column.";
+    }
+
+    else if (dynamic_cast<GpuSqlParser::AggregationContext*>(e.getCtx()) &&
+             dynamic_cast<GpuSqlParser::AggregationContext*>(e.getCtx())->LPAREN() == nullptr &&
+             dynamic_cast<GpuSqlParser::AggregationContext*>(e.getCtx())->expression() == nullptr &&
+             dynamic_cast<GpuSqlParser::AggregationContext*>(e.getCtx())->RPAREN() == nullptr)
+    {
+        auto ctx = dynamic_cast<GpuSqlParser::AggregationContext*>(e.getCtx());
+        msg += " Incomplete call of aggregation function: '" + ctx->op->getText() +
+               "' or ambiguous column name detected (confused with "
+               "function name). Complete the function call with parenthesis and arguments or use "
+               "delimited identifier for a column.";
+    }
+    recognizer->notifyErrorListeners(e.getOffendingToken(), msg, std::make_exception_ptr(e));
 }
