@@ -105,7 +105,7 @@ public:
                     for (int32_t i = 8 * threadId; i < inColJoinIndices[inBlockIdx].size(); i += 8 * threadCount)
                     {
                         // Avodid write conflicts by assigning 8 rows to one core
-                        for (int32_t j = 0; j < 8; j++)
+                        for (int32_t j = 0; j < 8 && (i + j) < inColJoinIndices[inBlockIdx].size(); j++)
                         {
                             const int32_t columnBlockId = inColJoinIndices[inBlockIdx][i + j] / blockSize;
                             const int32_t columnRowId = inColJoinIndices[inBlockIdx][i + j] % blockSize;
