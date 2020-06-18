@@ -557,9 +557,9 @@ public:
                            bool saveNecessary = true,
                            const uint32_t index = UINT32_MAX)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize,
-                                                                  *this, isCompressed, isNullable_,
-                                                                  countBlockStatistics, saveNecessary, index));
+        blocks_[groupId].push_back(
+            std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize, *this, isCompressed,
+                                           isNullable_, countBlockStatistics, saveNecessary, index));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
@@ -1079,13 +1079,33 @@ public:
         return ::GetColumnType<T>();
     };
 
-    virtual int32_t GetBlockCount() const override
+    virtual const uint32_t GetBlockCount() const override
     {
-        int32_t ret = 0;
+        uint32_t ret = 0;
 
         for (auto& block : blocks_)
         {
             ret += block.second.size();
+        }
+
+        return ret;
+    }
+
+    /// <summary>
+    /// Calculate number of already persisted blocks into disk.
+    /// </summary>
+    /// <returns>Number of already persisted blocks.</returns>
+    virtual const uint32_t GetNumberOfPersistedBlocks() const override
+    {
+        uint32_t ret = 0;
+
+        for (auto& block : blocks_)
+        {
+			// if the index is equal to UINT32_MAX, that means, this block has never been persisted (reserved value):
+            if (block.second.front()->GetIndex() != UINT32_MAX)
+            {
+                ret++;
+            }
         }
 
         return ret;

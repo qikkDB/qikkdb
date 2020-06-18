@@ -11,7 +11,7 @@ class IColumn
 public:
     virtual const std::string& GetName() const = 0;
     virtual DataType GetColumnType() const = 0;
-    virtual int32_t GetBlockCount() const = 0;
+    virtual const uint32_t GetBlockCount() const = 0;
     virtual size_t GetBlockSize(int32_t blockIndex) const = 0;
     virtual int64_t GetSize() const = 0;
     virtual void UpdateSize() = 0;
@@ -34,6 +34,7 @@ public:
     virtual void SetFileDataPath(const std::string newFilePath) = 0;
     virtual void SetFileFragmentPath(const std::string newFilePath) = 0;
     virtual void SetEncoding(const std::string newEncoding) = 0;
+    virtual const uint32_t GetNumberOfPersistedBlocks() const = 0;
 
     virtual ~IColumn(){};
 };

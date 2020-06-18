@@ -474,9 +474,9 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
-            std::string fileDataPath = column.second->GetFileDataPath();
-            std::string fileAddressPath = column.second->GetFileAddressPath();
-            std::string fileFragmentPath = column.second->GetFileFragmentPath();
+            std::string fileDataPath = colPolygon.GetFileDataPath();
+            std::string fileAddressPath = colPolygon.GetFileAddressPath();
+            std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
 
             // default data path if not specified by user:
             if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
@@ -517,7 +517,7 @@ void Database::PersistOnlyModified(const std::string tableName)
 
             std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
-            std::ifstream colFragDataFile(fileFragmentPath, std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPolygon.GetBlocksList())
@@ -527,7 +527,6 @@ void Database::PersistOnlyModified(const std::string tableName)
                     uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
-                    // colFragDataFile.seekg(0, colFragDataFile.end);
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
@@ -536,7 +535,6 @@ void Database::PersistOnlyModified(const std::string tableName)
                     {
                         /* the block has been persisted at least once, so we need to mark all its current fragments as invalid
                            (we will persist the modified data as new fragments at the end of the file) */
-
                         while (!colAddressFile.eof())
                         {
                             if (colAddressFile.eof())
@@ -595,7 +593,9 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
                     else
                     {
-                        block->SetIndex(colPolygon.GetBlocksList().size() + 1);
+                        block->SetIndex(colPolygon.GetNumberOfPersistedBlocks()); // because we are indexing from zero
+                        uint32_t value = block->GetIndex();
+                        colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
                     }
 
                     WriteBlockPolygonType(table, column, *block, blockPosition, strPolDataPos, name_);
@@ -665,7 +665,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colPoint.GetBlocksList().size() + 1);
+                        block->SetIndex(colPoint.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
@@ -688,8 +688,8 @@ void Database::PersistOnlyModified(const std::string tableName)
             const ColumnBase<std::string>& colStr =
                 dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
 
-            std::string fileDataPath = column.second->GetFileDataPath();
-            std::string fileAddressPath = column.second->GetFileAddressPath();
+            std::string fileDataPath = colStr.GetFileDataPath();
+            std::string fileAddressPath = colStr.GetFileAddressPath();
             std::string fileFragmentPath = colStr.GetFileFragmentPath();
 
             // default data path if not specified by user:
@@ -770,9 +770,6 @@ void Database::PersistOnlyModified(const std::string tableName)
                             }
                         }
 
-                        colDataFile.seekg(0, colDataFile.end);
-                        uint64_t colDataFileLength = colDataFile.tellg();
-                        colDataFile.seekg(0, colDataFile.beg);
                         while (!colDataFile.eof())
                         {
                             if (!colDataFile.eof())
@@ -810,8 +807,10 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
                     else
                     {
-                        block->SetIndex(colStr.GetBlocksList().size() + 1);
-                    }
+                        block->SetIndex(colStr.GetNumberOfPersistedBlocks()); // because we are indexing from zero
+                        uint32_t value = block->GetIndex();
+                        colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
+					}
 
                     WriteBlockStringType(table, column, *block, blockPosition, strPolDataPos, name_);
                 }
@@ -879,7 +878,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colInt.GetBlocksList().size() + 1);
+                        block->SetIndex(colInt.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
@@ -953,7 +952,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colInt.GetBlocksList().size() + 1);
+                        block->SetIndex(colInt.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
@@ -1027,7 +1026,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colLong.GetBlocksList().size() + 1);
+                        block->SetIndex(colLong.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
@@ -1101,7 +1100,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colFloat.GetBlocksList().size() + 1);
+                        block->SetIndex(colFloat.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
@@ -1175,7 +1174,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colDataFile.seekg(0, colDataFile.end);
                         blockPosition = colDataFile.tellg();
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
-                        block->SetIndex(colDouble.GetBlocksList().size() + 1);
+                        block->SetIndex(colDouble.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
