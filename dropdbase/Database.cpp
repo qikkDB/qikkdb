@@ -426,16 +426,9 @@ void Database::Persist()
     {
         auto& columns = table.second.GetColumns();
 
-        std::vector<std::thread> threads;
-
         for (const auto& column : columns)
         {
-            threads.emplace_back(Database::WriteColumn, std::ref(column), name_, std::ref(table.second));
-        }
-
-        for (int j = 0; j < columns.size(); j++)
-        {
-            threads[j].join();
+            Database::WriteColumn(column, name_, table.second);
         }
     }
 
@@ -469,9 +462,7 @@ void Database::PersistOnlyModified(const std::string tableName)
 
     const auto& columns = table.GetColumns();
 
-    std::vector<std::thread> threads;
-
-    // fork threads for writing columns:
+    // Sequentially write all modified columns
     for (auto& column : columns)
     {
         const int32_t type = column.second->GetColumnType();
@@ -536,7 +527,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                     uint64_t strPolDataPos = 0;
 
                     uint32_t blockIndex = block->GetIndex();
-                    //colFragDataFile.seekg(0, colFragDataFile.end);
+                    // colFragDataFile.seekg(0, colFragDataFile.end);
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
                     uint64_t blockPosition = colFragDataFile.tellg();
@@ -607,8 +598,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         block->SetIndex(colPolygon.GetBlocksList().size() + 1);
                     }
 
-                    threads.emplace_back(WriteBlockPolygonType, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, strPolDataPos, name_);
+                    WriteBlockPolygonType(table, column, *block, blockPosition, strPolDataPos, name_);
                 }
             }
 
@@ -684,8 +674,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<ColmnarDB::Types::Point>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<ColmnarDB::Types::Point>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -824,8 +813,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         block->SetIndex(colStr.GetBlocksList().size() + 1);
                     }
 
-                    threads.emplace_back(WriteBlockStringType, std::ref(table), std::ref(column),
-                                         std::ref(*block), blockPosition, strPolDataPos, name_);
+                    WriteBlockStringType(table, column, *block, blockPosition, strPolDataPos, name_);
                 }
             }
 
@@ -900,8 +888,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int8_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<int8_t>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -975,8 +962,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int32_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<int32_t>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -1050,8 +1036,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<int64_t>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<int64_t>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -1125,8 +1110,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<float>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<float>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -1200,8 +1184,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    threads.emplace_back(WriteBlockNumericTypes<double>, std::ref(table),
-                                         std::ref(column), std::ref(*block), blockPosition, name_);
+                    WriteBlockNumericTypes<double>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -1210,12 +1193,6 @@ void Database::PersistOnlyModified(const std::string tableName)
         }
         break;
         }
-    }
-
-    // join threads:
-    for (int j = 0; j < threads.size(); j++)
-    {
-        threads[j].join();
     }
 }
 
@@ -1674,8 +1651,6 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
             table.SetSortingColumns(sortingColumnNames);
             table.SetSaveInterval(tableSaveInterval);
 
-            std::vector<std::thread> threads;
-
             for (Json::Value columnJSON : columnArray)
             {
                 const std::string columnName = columnJSON["column_name"].asString();
@@ -1698,14 +1673,9 @@ std::shared_ptr<Database> Database::LoadDatabase(const char* fileDbName, const c
                 const bool isHidden = columnJSON["hidden"].asBool();
 
                 columnNames.push_back(columnName);
-                threads.emplace_back(Database::LoadColumn, filePath, filePathAddressFile, filePathDataFile,
-                                     filePathStrDataFile, encoding, persistenceFormatVersion, columnType,
-                                     isNullable, isUnique, defaultValue, std::ref(table), columnName);
-            }
-
-            for (int i = 0; i < columnNames.size(); i++)
-            {
-                threads[i].join();
+                Database::LoadColumn(filePath, filePathAddressFile, filePathDataFile,
+                                     filePathStrDataFile, encoding, persistenceFormatVersion,
+                                     columnType, isNullable, isUnique, defaultValue, table, columnName);
             }
         }
 
