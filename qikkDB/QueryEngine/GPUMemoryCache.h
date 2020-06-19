@@ -115,14 +115,14 @@ public:
             return {reinterpret_cast<T*>(cacheMap.at(columnBlock).ptr),
                     cacheMap.at(columnBlock).size / sizeof(T), true};
         }
-        size_t sizeToInsert = sizeof(T) * size;
+        const size_t sizeToInsert = sizeof(T) * size;
 
         if (sizeToInsert > maxSize_)
         {
             throw std::length_error("Tried to cache block larger than maximum cache size");
         }
 
-        while (!tryInsert(sizeToInsert))
+        while (!tryInsert(sizeToInsert) || !GetAllocator().TryAllocate(sizeToInsert))
         {
             if (!evict())
             {
@@ -130,7 +130,7 @@ public:
             }
         }
 
-        T* newPtr = reinterpret_cast<T*>(GetAllocator().Allocate(size * sizeof(T)));
+        T* newPtr = reinterpret_cast<T*>(GetAllocator().Allocate(sizeToInsert));
         usedSize += sizeToInsert;
         CacheEntry newCacheEntry{columnBlock, reinterpret_cast<std::uintptr_t>(newPtr),
                                  sizeToInsert, lruQueue.end()};

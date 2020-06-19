@@ -231,6 +231,22 @@ int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
     return static_cast<int8_t*>((*blockInfoIt).ptr);
 }
 
+/// Check if we really can allocate a new block of size numBytes
+bool CudaMemAllocator::TryAllocate(const std::ptrdiff_t numBytes)
+{
+    // std::unique_lock<std::mutex> lock{allocator_mutex_}; // TODO consider using
+    if (numBytes <= 0)
+    {
+        throw std::out_of_range("Invalid allocation size");
+    }
+
+    // Minimal allocation unit is 512bytes, same as cudaMalloc. Thurst relies on this internally.
+    const size_t alignedSize = numBytes % 512 == 0 ? numBytes : numBytes + (512 - numBytes % 512);
+    auto it = blocksBySize_.lower_bound(alignedSize);
+
+    return it != blocksBySize_.end();
+}
+
 /// Deallocate data with the allocator
 /// < param name="ptr">the pointer to be freed</param>
 void CudaMemAllocator::Deallocate(int8_t* ptr)
