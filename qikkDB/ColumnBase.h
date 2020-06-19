@@ -181,6 +181,17 @@ public:
         return isNullable_;
     }
 
+    virtual void SetIsNullableInBlocks(const bool isNullable)
+    {
+        for (auto const& mapBlock : blocks_)
+        {
+            for (int32_t i = 0; i < mapBlock.second.size(); i++)
+            {
+                mapBlock.second[i]->SetIsNullable(isNullable);
+            }
+        }
+    }
+
     /// <summary>
     /// set isNullable_ flag, checking is there null value in column which doesnt allow to set FALSE flag
     /// </summary>
@@ -202,6 +213,7 @@ public:
                                                      name_ + ", column has UNIQUE constraint (drop this constraint first)");
             }
             isNullable_ = true;
+            SetIsNullableInBlocks(isNullable);
             BOOST_LOG_TRIVIAL(debug) << "Flag isNullable_ was set to TRUE for column named: " << name_ << ".";
         }
         else
@@ -234,6 +246,7 @@ public:
             else
             {
                 isNullable_ = false;
+                SetIsNullableInBlocks(isNullable);
                 BOOST_LOG_TRIVIAL(debug)
                     << "Flag isNullable_ was set to FALSE for column named: " << name_ << ".";
             }

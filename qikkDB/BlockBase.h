@@ -199,6 +199,36 @@ public:
         return isNullable_;
     }
 
+    void SetIsNullable(const bool isNullable)
+    {
+        if (isNullable_ == isNullable)
+        {
+            // No change, do nothing
+            return;
+        }
+
+        else if (isNullable)
+        {
+            const int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
+            bitMask_ = std::unique_ptr<nullmask_t[]>(new nullmask_t[bitMaskCapacity]);
+            std::memset(bitMask_.get(), 0, bitMaskCapacity * sizeof(nullmask_t));
+            GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
+            isNullMaskRegistered_ = true;
+            isNullable_ = isNullable;
+        }
+
+        else
+        {
+            if (isNullMaskRegistered_)
+            {
+                GPUMemory::hostUnregister(bitMask_.get());
+                isNullMaskRegistered_ = false;
+            }
+            bitMask_.reset();
+            isNullable_ = isNullable;
+        }
+    }
+
     nullmask_t* GetNullBitmask()
     {
         return bitMask_.get();
