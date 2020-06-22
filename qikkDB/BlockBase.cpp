@@ -7,6 +7,11 @@
 #include <algorithm>
 #include <cmath>
 
+/// <summary>
+/// Update block statistics.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data, bool isNullValue)
 {
@@ -43,6 +48,11 @@ void BlockBase<int32_t>::updateBlockStatistics(const int32_t& data, bool isNullV
     }
 }
 
+/// <summary>
+/// Update block statistics.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data, bool isNullValue)
 {
@@ -79,6 +89,11 @@ void BlockBase<int64_t>::updateBlockStatistics(const int64_t& data, bool isNullV
     }
 }
 
+/// <summary>
+/// Update block statistics.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<float>::updateBlockStatistics(const float& data, bool isNullValue)
 {
@@ -115,6 +130,11 @@ void BlockBase<float>::updateBlockStatistics(const float& data, bool isNullValue
     }
 }
 
+/// <summary>
+/// Update block statistics.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<double>::updateBlockStatistics(const double& data, bool isNullValue)
 {
@@ -151,6 +171,11 @@ void BlockBase<double>::updateBlockStatistics(const double& data, bool isNullVal
     }
 }
 
+/// <summary>
+/// Update block statistics. For point are min, max and sum set to default point value and avg is 0.0.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::Types::Point& data, bool isNullValue)
 {
@@ -165,6 +190,11 @@ void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::
     size_++;
 }
 
+/// <summary>
+/// Update block statistics. For polygon are min, max and sum set to default polygon value and avg is 0.0.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const ColmnarDB::Types::ComplexPolygon& data,
                                                                         bool isNullValue)
@@ -180,6 +210,11 @@ void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const Co
     size_++;
 }
 
+/// <summary>
+/// Update block statistics. For string is sum "" and avg 0.0.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<std::string>::updateBlockStatistics(const std::string& data, bool isNullValue)
 {
@@ -214,6 +249,11 @@ void BlockBase<std::string>::updateBlockStatistics(const std::string& data, bool
     }
 }
 
+/// <summary>
+/// Update block statistics.
+/// </summary>
+/// <param name="data">Data that are inserted into block.</param>
+/// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
 void BlockBase<int8_t>::updateBlockStatistics(const int8_t& data, bool isNullValue)
 {
@@ -265,7 +305,7 @@ void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
 
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < insertedDataSize; i++)
+        for (int64_t i = 0; i < insertedDataSize; i++)
         {
             updateBlockStatistics(data_[i + oldDataSize], false);
         }
@@ -280,15 +320,13 @@ void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
         sum_ = 0;
         size_t count = 0;
         countOfNotNullValues_ = 0;
-        isFullOfNullValue_ = true;
-        for (int i = 0; i < size_; i++)
+        for (int64_t i = 0; i < size_; i++)
         {
             nullmask_t isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
 
-                isFullOfNullValue_ = false;
                 min_ = std::min(min_, data_[i]);
                 max_ = std::max(max_, data_[i]);
                 sum_ += data_[i];
@@ -300,6 +338,11 @@ void BlockBase<int32_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
@@ -311,7 +354,7 @@ void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
     if (!isNullable_)
     {
 
-        for (int32_t i = 0; i < insertedDataSize; i++)
+        for (int64_t i = 0; i < insertedDataSize; i++)
         {
             updateBlockStatistics(data_[i + oldDataSize], false);
         }
@@ -326,15 +369,13 @@ void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
         sum_ = 0;
         size_t count = 0;
         countOfNotNullValues_ = 0;
-        isFullOfNullValue_ = true;
-        for (int i = 0; i < size_; i++)
+        for (int64_t i = 0; i < size_; i++)
         {
             nullmask_t isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
 
-                isFullOfNullValue_ = false;
                 min_ = std::min(min_, data_[i]);
                 max_ = std::max(max_, data_[i]);
                 sum_ += data_[i];
@@ -346,6 +387,11 @@ void BlockBase<int64_t>::setBlockStatistics(int32_t insertedDataSize, int32_t ol
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
@@ -356,7 +402,7 @@ void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldD
 
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < insertedDataSize; i++)
+        for (int64_t i = 0; i < insertedDataSize; i++)
         {
             updateBlockStatistics(data_[i + oldDataSize], false);
         }
@@ -371,15 +417,13 @@ void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldD
         sum_ = 0;
         size_t count = 0;
         countOfNotNullValues_ = 0;
-        isFullOfNullValue_ = true;
-        for (int i = 0; i < size_; i++)
+        for (int64_t i = 0; i < size_; i++)
         {
             nullmask_t isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
 
-                isFullOfNullValue_ = false;
                 min_ = std::min(min_, data_[i]);
                 max_ = std::max(max_, data_[i]);
                 sum_ += data_[i];
@@ -391,6 +435,11 @@ void BlockBase<float>::setBlockStatistics(int32_t insertedDataSize, int32_t oldD
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
@@ -400,7 +449,7 @@ void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t old
     }
     if (!isNullable_)
     {
-        for (int32_t i = 0; i < insertedDataSize; i++)
+        for (int64_t i = 0; i < insertedDataSize; i++)
         {
             updateBlockStatistics(data_[i + oldDataSize], false);
         }
@@ -415,15 +464,13 @@ void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t old
         sum_ = 0;
         size_t count = 0;
         countOfNotNullValues_ = 0;
-        isFullOfNullValue_ = true;
-        for (int i = 0; i < size_; i++)
+        for (int64_t i = 0; i < size_; i++)
         {
             nullmask_t isNull = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i);
             if (!isNull)
             {
                 countOfNotNullValues_++;
 
-                isFullOfNullValue_ = false;
                 min_ = std::min(min_, data_[i]);
                 max_ = std::max(max_, data_[i]);
                 sum_ += data_[i];
@@ -435,33 +482,53 @@ void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t old
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < insertedDataSize; i++)
+    for (int64_t i = 0; i < insertedDataSize; i++)
     {
         updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < insertedDataSize; i++)
+    for (int64_t i = 0; i < insertedDataSize; i++)
     {
         updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<std::string>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
-    for (int32_t i = 0; i < insertedDataSize; i++)
+    for (int64_t i = 0; i < insertedDataSize; i++)
     {
         updateBlockStatistics(data_[i + oldDataSize], false);
     }
 }
 
+/// <summary>
+/// Set Block Statistics
+/// </summary>
+/// <param name="insertedDataSize">represents size of data which are inserted</param>
+/// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
 void BlockBase<int8_t>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
@@ -470,7 +537,7 @@ void BlockBase<int8_t>::setBlockStatistics(int32_t insertedDataSize, int32_t old
         return;
     }
 
-    for (int32_t i = 0; i < insertedDataSize; i++)
+    for (int64_t i = 0; i < insertedDataSize; i++)
     {
         updateBlockStatistics(data_[i + oldDataSize], false);
     }

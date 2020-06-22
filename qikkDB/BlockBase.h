@@ -20,30 +20,31 @@ template <class T>
 class BlockBase
 {
 private:
+    // statistical variable counting for each block - used by where evaluating
     T min_ = std::numeric_limits<T>::lowest();
     T max_ = std::numeric_limits<T>::max();
     float avg_ = 0.0;
     T sum_ = T{};
-    bool isFullOfNullValue_ = false;
+
     int32_t groupId_ = -1; // index for group of blocks - binary index
 
-    // these methods handle currentSize_ of block
+    // these methods handle size_ and countOfNotNullValues_ of block
     // void setBlockStatistics(const std::vector<T>& data);
     void setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize);
     void updateBlockStatistics(const T& data, bool isNullValue);
 
     ColumnBase<T>& column_;
     size_t size_; // current number of not empty rows in a block, size_ is updated in BlockBase.cpp in updateBlockStatistics methods
-    size_t countOfNotNullValues_;
+    size_t countOfNotNullValues_; // current number of not null rows in a block, used and updated in BlockBase.cpp in setBlockStatistics and updateBlockStatistics methods
     size_t compressedSize_;
     size_t capacity_;
     std::unique_ptr<T[]> data_;
     std::unique_ptr<nullmask_t[]> bitMask_;
     bool isCompressed_;
-    bool isNullable_;
+    bool isNullable_;   // flag indicating whether the block is able to contain null values
     bool wasRegistered_;
     bool isNullMaskRegistered_;
-    bool saveNecessary_;
+    bool saveNecessary_;    // flag indicating whether the block is modified (or new) and therefore it is necessary to persist
 
 public:
     /// <summary>
@@ -51,6 +52,11 @@ public:
     /// </summary>
     /// <param name="data">Data which will fill up the block.</param>
     /// <param name="column">Column that will hold this new block.</param>
+    /// <param name="isCompressed">Flag indicating whether the block is compressed.</param>
+    /// <param name="isNullable">Flag indicating whether the block is able to contain null values.</param>
+    /// <param name="countBlockStatistics">Flag indicating whether statistics need to be ratified 
+    /// (if false, use setBlockStatistics with concrete values, eg when loading from disk after persisting data even with already counted statistics).</param>
+    /// <exception cref="std::length_error">Attempted to insert data larger than block size.</exception>
     BlockBase(const std::vector<T>& data,
               ColumnBase<T>& column,
               bool isCompressed = false,
@@ -84,7 +90,19 @@ public:
             setBlockStatistics(data.size(), 0);
         }
     }
-
+    /// <summary>
+    /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class filled with data.
+    /// </summary>
+    /// <param name="data">Data which will fill up the block.</param>
+    /// <param name="dataSize">Compressed data size.</param>
+    /// <param name="allocationSize">Allocated size.</param>
+    /// <param name="column">Column that will hold this new block.</param>
+    /// <param name="isCompressed">Flag indicating whether the block is compressed.</param>
+    /// <param name="isNullable">Flag indicating whether the block is able to contain null values.</param>
+    /// <param name="countBlockStatistics">Flag indicating whether statistics need to be ratified
+    /// (if false, use setBlockStatistics with concrete values, eg when loading from disk after persisting data even with already counted statistics).</param>
+    /// <exception cref="std::length_error">Attempted to load data with size not equal to column size.</exception>
+    /// <exception cref="std::length_error">Attempted to insert data larger than block size.</exception>
     BlockBase(std::unique_ptr<T[]>&& data,
               int32_t dataSize,
               int32_t allocationSize,
@@ -126,7 +144,7 @@ public:
             setBlockStatistics(dataSize, 0);
         }
     }
-
+    
     /// <summary>
     /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class without data.
     /// </summary>
@@ -157,6 +175,7 @@ public:
         sum_ = sum;
 
         size_ += dataSize;
+        saveNecessary_ = true;
     }
 
     T GetMax()
@@ -179,11 +198,6 @@ public:
         return sum_;
     }
 
-    bool GetIsFullOfNullValue()
-    {
-        return isFullOfNullValue_;
-    }
-
     int32_t GetGroupId()
     {
         return groupId_;
@@ -199,6 +213,10 @@ public:
         return isNullable_;
     }
 
+    /// <summary>
+    /// Set isNullable_ flag with required value. If this value is TRUE, we need to allocate nullmasks for block. If FALSE, these nullmasks can be deleted.
+    /// </summary>
+    /// <param name="isNullable">Required isNullable_ value.</param>
     void SetIsNullable(const bool isNullable)
     {
         if (isNullable_ == isNullable)
@@ -227,6 +245,7 @@ public:
             bitMask_.reset();
             isNullable_ = isNullable;
         }
+        saveNecessary_ = true;
     }
 
     nullmask_t* GetNullBitmask()
@@ -311,7 +330,9 @@ public:
     /// <summary>
     /// Insert data into the current block.
     /// </summary>
-    /// <param name="data">Data to be inserted.</param>
+    /// <param name="newData">Data, which contain part that is gonna be inserted into the block.</param>
+    /// <param name="offset">Offset, which define beginning of inderted part of data.</param>
+    /// <param name="length">Lenght of data, define by offset, that are gonna be inserted.</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
     void InsertDataInterval(const T* newData, size_t offset, size_t length)
     {
@@ -322,8 +343,7 @@ public:
         }
 
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
-
-        size_ += length;
+        setBlockStatistics(length, size_);
         saveNecessary_ = true;
     }
 
@@ -332,7 +352,10 @@ public:
         if (isNullable_)
         {
             std::copy(nullMask.begin(), nullMask.end(), bitMask_.get());
+
+            // count statistics from whole block - setting nullmasks can change them
             setBlockStatistics(0, 0);
+            saveNecessary_ = true;
         }
     }
 
@@ -352,7 +375,9 @@ public:
 				GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
                 isNullMaskRegistered_ = true;
             }
+            // count statistics from whole block - setting nullmasks can change them
             setBlockStatistics(0, 0);
+            saveNecessary_ = true;
         }
     }
 
@@ -387,6 +412,7 @@ public:
             std::copy(dataCompressed.begin(), dataCompressed.end(), data_.get());
 
             isCompressed_ = true;
+            saveNecessary_ = true;
         }
     }
 
@@ -414,6 +440,7 @@ public:
             std::copy(dataDecompressed.begin(), dataDecompressed.end(), data_.get());
 
             isCompressed_ = false;
+            saveNecessary_ = true;
         }
     }
 
@@ -423,6 +450,7 @@ public:
     /// <param name="index">index in block where data will be inserted</param>
     /// <param name="data">value to insert<param>
     /// <param name="isNullValue">whether data is null value flag<param>
+    /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
     void InsertDataOnSpecificPosition(int32_t index, const T& data, nullmask_t isNullValue = false)
     {
         if (EmptyBlockSpace() == 0)
