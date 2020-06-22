@@ -1783,6 +1783,69 @@ TEST(TableTests, InsertInto_IsUnique_AddConstraintOnExistingColumn_DuplicityInDa
     ASSERT_THROW(castedColumnIntB->SetIsUnique(true), constraint_violation_error);
 }
 
+TEST(TableTests, Not_Null_Constraint)
+{
+    GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE NotNullDat 50;");
+    auto resultPtr = parserCreateDatabase.Parse();
+    auto database = Database::GetDatabaseByName("NotNullDat");
+
+    GpuSqlCustomParser parserCreateTable(database,
+                                         "CREATE TABLE TableA (ColumnIntA INT, ColumnIntB "
+                                         "INT, NOT NULL n_IntA (ColumnIntA));");
+    resultPtr = parserCreateTable.Parse();
+    auto& table = database->GetTables().at("TableA");
+
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsUnique());
+
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntB")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
+
+    GpuSqlCustomParser parserInsertNullValues(database,
+                                              "INSERT INTO TableA (ColumnIntA, ColumnIntB) "
+                                              "VALUES (NULL, NULL);");
+    ASSERT_THROW(parserInsertNullValues.Parse(), constraint_violation_error);
+
+    GpuSqlCustomParser parserInsert(database, "INSERT INTO TableA (ColumnIntA, ColumnIntB) "
+                                              "VALUES (5, NULL);");
+    for (int i = 0; i < 5; i++)
+    {
+        parserInsert.Parse();
+    }
+    GpuSqlCustomParser select(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
+    resultPtr = select.Parse();
+    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b11111);
+
+    GpuSqlCustomParser dropConstraintParser(database, "ALTER TABLE TableA DROP NOT NULL n_IntA;");
+    dropConstraintParser.Parse();
+
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntA")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntA")->GetIsUnique());
+
+    ASSERT_TRUE(table.GetColumns().at("ColumnIntB")->GetIsNullable());
+    ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
+
+    resultPtr = select.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntA").nullmask()[0], 0);
+    ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b11111);
+
+    for (int i = 0; i < 5; i++)
+    {
+        parserInsertNullValues.Parse();
+    }
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    resultPtr = select.Parse();
+    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+
+    ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntA").nullmask()[0], 0b1111100000);
+    ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b1111111111);
+}
+
 TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
 {
     GpuSqlCustomParser parserCreateDatabase(nullptr, "CREATE DATABASE UniqueDatabase 50;");
