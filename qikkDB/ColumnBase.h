@@ -262,7 +262,7 @@ public:
     /// set isUnique_ flag, checking is there is duplicity value or null value in column which dont allow to set TRUE flag
     /// </summary>
     /// <param name="isUnique">required isUnique_ value</param>
-    virtual void SetIsUnique(bool isUnique) override
+    virtual void SetIsUnique(const bool isUnique) override
     {
         if (isUnique_ == isUnique)
         {
@@ -311,6 +311,7 @@ public:
             }
             else
             {
+                uniqueHashmap_.clear();
                 throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                                                  "Could not add UNIQUE constraint on column: " + name_ +
                                                      ", column contains duplicate value: " +
