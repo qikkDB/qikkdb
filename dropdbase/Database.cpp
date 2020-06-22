@@ -515,7 +515,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
             std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
 
@@ -645,7 +646,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -663,14 +665,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colPoint.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
                         // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -729,7 +731,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
             std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
 
@@ -810,7 +813,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         block->SetIndex(colStr.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                         uint32_t value = block->GetIndex();
                         colAddressFile.write(reinterpret_cast<char*>(&value), sizeof(uint32_t));
-					}
+                    }
 
                     WriteBlockStringType(table, column, *block, blockPosition, strPolDataPos, name_);
                 }
@@ -858,7 +861,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -876,14 +880,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colInt.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
                         // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -932,7 +936,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -950,14 +955,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colInt.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
-                        // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:                        
+						colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -1006,7 +1011,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -1024,14 +1030,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colLong.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
                         // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -1080,7 +1086,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -1098,14 +1105,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colFloat.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
                         // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -1154,7 +1161,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::app | std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
+                                                             std::ios::app | std::ios::binary);
             std::ifstream colDataFile(fileDataPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
@@ -1172,14 +1180,14 @@ void Database::PersistOnlyModified(const std::string tableName)
                         // add blockPosition (new value) at the end of an COLUMN_ADDRESS_EXTENSION file:
                         colAddressFile.seekp(0, colAddressFile.end); // seekp() - seek put position
                         colDataFile.seekg(0, colDataFile.end);
-                        blockPosition = colDataFile.tellg();
+                        blockPosition = static_cast<uint64_t>(colDataFile.tellg());
                         colAddressFile.write(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                         block->SetIndex(colDouble.GetNumberOfPersistedBlocks()); // because we are indexing from zero
                     }
                     else
                     {
                         // read the position of a block which has been persisted before and so the disk space is allocated already:
-                        colAddressFile.seekg(blockIndex * sizeof(int64_t)); // seekg() - seek get position
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -3806,7 +3814,8 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
                        tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
     }
 
-    std::ofstream colDataFile(fileDataPath, std::ios::binary);
+    std::fstream colDataFile(fileDataPath, std::ios::binary);
+    colDataFile.seekp(blockPosition, colDataFile.beg);
 
     if (colDataFile.is_open())
     {
@@ -3820,8 +3829,6 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
             dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
 
         // persist block data into disk:
-        colDataFile.seekp(blockPosition);
-
         BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Point data with index = " << index;
 
         auto data = block.GetData();
@@ -3831,7 +3838,6 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
 
         colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
         colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-
         if (isNullable)
         {
             uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
@@ -3840,7 +3846,6 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
             colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
                               nullBitMaskLength); // write nullBitMask
         }
-
         colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
                           sizeof(uint64_t)); // write block length (number of entries)
         colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
@@ -3863,8 +3868,6 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
             colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write latitude
             colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
         }
-
-        const uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(blockCurrentSize);
 
         /* check if we did not get UINT32_MAX value in index - this value is reserved
         to identify new block, which are just in memory and have never been persisted

@@ -9,6 +9,7 @@
 #include <fstream>
 #include <limits>
 #include <boost/log/trivial.hpp>
+#include <boost/filesystem.hpp>
 
 #include "DataType.h"
 #include "ConstraintType.h"
@@ -94,8 +95,7 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
-        colDataFile.seekp(0, colDataFile.beg);
+        std::fstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -326,8 +326,7 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
-        colDataFile.seekp(0, colDataFile.beg);
+        std::fstream colDataFile(fileDataPath, std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -526,11 +525,11 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::ofstream colDataFile(fileDataPath, std::ios::app | std::ios::binary);
-        colDataFile.seekp(0, colDataFile.beg);
-
+        std::fstream colDataFile(fileDataPath, std::ios::binary);
+        
         if (colDataFile.is_open())
         {
+            colDataFile.seekp(blockPosition, colDataFile.beg);
             const int32_t type = column.second->GetColumnType();
             const bool isNullable = column.second->GetIsNullable();
             const bool isUnique = column.second->GetIsUnique();
@@ -541,9 +540,7 @@ private:
             const ColumnBase<T>& colInt = dynamic_cast<const ColumnBase<T>&>(*(column.second));
 
             // persist block data into disk:
-            colDataFile.seekp(blockPosition);
-
-            BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Int8 data with index = " << index;
+            BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of numeric data with index = " << index;
 
             auto data = block.GetData();
             size_t blockCurrentSize = block.GetSize();
@@ -578,8 +575,6 @@ private:
                               blockCurrentSize * sizeof(T)); // write block of data
             colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                               (blockSize - blockCurrentSize) * sizeof(T)); // write empty entries as well
-
-            const uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
 
             /* check if we did not get UINT32_MAX value in index - this value is reserved
             to identify new block, which are just in memory and have never been persisted

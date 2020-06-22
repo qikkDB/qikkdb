@@ -1099,12 +1099,15 @@ public:
     {
         uint32_t ret = 0;
 
-        for (auto& block : blocks_)
+        for (auto& map : blocks_)
         {
-			// if the index is equal to UINT32_MAX, that means, this block has never been persisted (reserved value):
-            if (block.second.front()->GetIndex() != UINT32_MAX)
+            for (auto& block : map.second)
             {
-                ret++;
+                // if the index is equal to UINT32_MAX, that means, this block has never been persisted (reserved value):
+                if (block->GetIndex() != UINT32_MAX)
+                {
+                    ret++;
+                }
             }
         }
 
