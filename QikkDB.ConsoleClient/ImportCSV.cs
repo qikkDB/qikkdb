@@ -45,11 +45,11 @@ namespace ColmnarDB.ConsoleClient
         /// <param name="blockSize">Block size of table, if not specified default value of database server configuration will be used</param>
         /// <param name="hasHeader">Specifies whether input csv has header, if not specified default value is true</param>
         /// <param name="columnSeparator">Char representing column separator, if not specified default value will be guessed</param>
-        /// <param name="batchSize">Number of lines processed in one batch, if not specified default value is 100000</param>
+        /// <param name="batchSize">Number of lines processed in one batch, if not specified default value is 65536</param>
         /// <param name="threadsCount">Number of threads for processing csv, if not specified number of cores of the client CPU will be used</param>
         /// <param name="encoding">Encoding of csv, if not specified it will be guessed</param>
         public void Import(string path, string databaseName,
-            string tableName = "", int blockSize = 0, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 100000, int threadsCount = 0, Encoding encoding = null)
+            string tableName = "", int blockSize = 0, bool hasHeader = true, char columnSeparator = '\0', int batchSize = 65536, int threadsCount = 0, Encoding encoding = null)
         {
             this.databaseName = databaseName;
 

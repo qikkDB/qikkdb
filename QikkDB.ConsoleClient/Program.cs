@@ -328,7 +328,7 @@ namespace ColmnarDB.ConsoleClient
             public int BlockSize { get; set; } = 0;
             public bool HasHeader { get; set; } = true;
             public char ColumnSeparator { get; set; } = '\0';
-            public int BatchSize { get; set; } = 100000;
+            public int BatchSize { get; set; } = 65536;
             public int ThreadsCount { get; set; } = 1;
         }
 
