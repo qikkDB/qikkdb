@@ -991,7 +991,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
             database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize, loadSize_, loadOffset_);
         if (!std::get<2>(cacheEntry))
         {
-            GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), std::get<0>(blockNullMask), blockNullMaskSize);
+            GPUMemory::copyHostToDevice(std::get<0>(cacheEntry), (blockNullMask), blockNullMaskSize);
         }
         AddCachedRegister(colName + NULL_SUFFIX, std::get<0>(cacheEntry), blockNullMaskSize);
 

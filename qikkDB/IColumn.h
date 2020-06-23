@@ -15,11 +15,10 @@ public:
     virtual size_t GetBlockSize(int32_t blockIndex) const = 0;
     virtual int64_t GetSize() const = 0;
     virtual void UpdateSize() = 0;
-    virtual int64_t GetBlockSizeForIndex(int32_t blockIdx) const = 0;
     virtual void InsertNullData(int length) = 0;
     virtual float GetInitAvg() const = 0;
     virtual bool GetInitAvgIsSet() const = 0;
-    virtual std::pair<nullmask_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) = 0;
+    virtual nullmask_t* GetNullBitMaskForBlock(size_t blockIndex) = 0;
     virtual bool GetIsNullable() const = 0;
     virtual void SetIsNullable(bool isNullable) = 0;
     virtual bool GetIsUnique() const = 0;

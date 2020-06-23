@@ -15105,8 +15105,8 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
     }
 
     ASSERT_EQ(table.GetColumns().at("colP").get()->GetBlockCount(), 2);
-    ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(0).first[0], 0);
-    ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(1).first[0], 1);
+    ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(0)[0], 0);
+    ASSERT_EQ(table.GetColumns().at("colP").get()->GetNullBitMaskForBlock(1)[0], 1);
 
     GpuSqlCustomParser parserDropDb(database, "DROP DATABASE TestDatabaseAlterStringToBool;");
     resultPtr = parserDropDb.Parse();

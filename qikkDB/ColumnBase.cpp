@@ -715,6 +715,7 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
         }
         else
         {
+            uniqueHashmap_.clear();
             throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                                              "Could not add UNIQUE constraint on column: " + name_ +
                                                  ", column contains duplicate value: " + duplicateData);
@@ -777,6 +778,7 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
         }
         else
         {
+            uniqueHashmap_.clear();
             throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                                              "Could not add UNIQUE constraint on column: " + name_ +
                                                  ", column contains duplicate value: " +
@@ -840,6 +842,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
         }
         else
         {
+            uniqueHashmap_.clear();
             throw constraint_violation_error(ConstraintViolationErrorType::UNIQUE_CONSTRAINT_INSERT_DUPLICATE_VALUE,
                                              "Could not add UNIQUE constraint on column: " + name_ +
                                                  ", column contains duplicate value: " +

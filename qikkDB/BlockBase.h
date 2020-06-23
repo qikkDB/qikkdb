@@ -20,7 +20,7 @@ template <class T>
 class BlockBase
 {
 private:
-    // statistical variable counting for each block - used by where evaluating
+    // statistical variable defined for each block - used by where evaluating
     T min_ = std::numeric_limits<T>::lowest();
     T max_ = std::numeric_limits<T>::max();
     float avg_ = 0.0;

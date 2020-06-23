@@ -920,7 +920,7 @@ size_t GpuSqlDispatcher::GetBlockSize(int32_t blockIndex)
     else
     {
         dataElementCount =
-            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSizeForIndex(blockIndex);
+            database_->GetTables().at(loadedTableName_).GetColumns().begin()->second->GetBlockSize(blockIndex);
     }
 
     return dataElementCount;

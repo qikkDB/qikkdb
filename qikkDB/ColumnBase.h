@@ -93,19 +93,20 @@ class ColumnBase : public IColumn
 {
 private:
     std::string name_;
-    int64_t size_; // current number of not empty rows in a column, sumerized all blocks currentSize_
+    int64_t size_;  // current number of not empty rows in a column, sumerized all blocks size_
     int32_t blockSize_;
-    std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
-    std::unordered_set<T> uniqueHashmap_;
+    std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;  // map<groupID, vector of blocks for current groupID> groupID refers to group in binary index
+    std::unordered_set<T> uniqueHashmap_;   // hashMap for handling unique constraint
 
+    // statistical variable defined for column
     void setColumnStatistics();
-
     T min_ = std::numeric_limits<T>::lowest();
     T max_ = std::numeric_limits<T>::max();
     float avg_ = 0.0;
     T sum_ = T{};
     float initAvg_ = 0.0; // initial average is needed, because avg_ is constantly changing and we need unchable value for comparing in binary index
-    bool initAvgIsSet_ = false;
+
+    bool initAvgIsSet_;
     bool isNullable_;
     bool isUnique_;
     bool saveNecessary_;
@@ -113,7 +114,7 @@ private:
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
     : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false),
-      saveNecessary_(true)
+      saveNecessary_(true), initAvgIsSet_(false)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
         SetIsNullable(isNullable);
@@ -121,25 +122,38 @@ public:
     }
 
     /// <summary>
-    /// Try to insert new value into set, if it is possible (set does not contains this value)
-    /// function returns true if it is not possible, function returns false
+    /// Insert vector of values into hashmap of unique values. Used when inserting new values into column with unique constraint.
     /// </summary>
-    /// <param name="value"> Value to be inserted </param>
+    /// <param name="value">Vector of values to be inserted.</param>
     void InsertIntoHashmap(std::vector<T> values)
     {
         uniqueHashmap_.insert(values.begin(), values.end());
     }
 
+    /// <summary>
+    /// Insert new value into hashmap of unique values. Used when inserting new value into column with unique constraint.
+    /// </summary>
+    /// <param name="value">New value to be inserted.</param>
     void InsertIntoHashmap(T value)
     {
         uniqueHashmap_.insert(value);
     }
 
+    /// <summary>
+    /// Checking duplicity in temp_hashmap and value. Used when more than one value is inserted through insert into command and
+    /// we need temporary hashmap of unique values due atomicity of this operation.
+    /// </summary>
+    /// <param name="temp_hashmap">Hashmap of unique values.</param>
+    /// <param name="value">The value of which we find duplication.</ param>
     bool IsDuplicate(std::unordered_set<T>& temp_hashmap, T value)
     {
         return temp_hashmap.find(value) != temp_hashmap.end();
     }
-
+    
+    /// <summary>
+    /// Checking duplicity in uniqueHashmap_ and value.
+    /// </summary>
+    /// <param name="value">The value of which we find duplication.</ param>
     bool IsDuplicate(T value)
     {
         return uniqueHashmap_.find(value) != uniqueHashmap_.end();
@@ -154,6 +168,11 @@ public:
     {
         return blockSize_;
     };
+
+    virtual size_t GetBlockSize(int32_t blockIndex) const override
+    {
+        return (GetBlocksList()[blockIndex])->GetSize();
+    }
 
     virtual const std::string& GetName() const override
     {
@@ -170,10 +189,14 @@ public:
         return initAvgIsSet_;
     }
 
-    virtual std::pair<nullmask_t*, size_t> GetNullBitMaskForBlock(size_t blockIndex) override
+    /// <summary>
+    /// Getting nullmask of concerete block.
+    /// </summary>
+    /// <param name="blockIndex">The index of the block whose nullmask we want.</ param>
+    virtual nullmask_t* GetNullBitMaskForBlock(size_t blockIndex) override
     {
         auto block = GetBlocksList()[blockIndex];
-        return std::make_pair(block->GetNullBitmask(), block->GetSize());
+        return block->GetNullBitmask();
     }
 
     virtual bool GetIsNullable() const override
@@ -181,6 +204,10 @@ public:
         return isNullable_;
     }
 
+    /// <summary>
+    /// Setting isNullable flag for every block in column.
+    /// </summary>
+    /// <param name="isNullable">Required value of isNullable_ flag.</ param>
     virtual void SetIsNullableInBlocks(const bool isNullable)
     {
         for (auto const& mapBlock : blocks_)
@@ -193,9 +220,9 @@ public:
     }
 
     /// <summary>
-    /// set isNullable_ flag, checking is there null value in column which doesnt allow to set FALSE flag
+    /// Setting isNullable_ flag in column, checking is there null value (or other condition) in column which doesnt allow to set FALSE flag.
     /// </summary>
-    /// <param name="isNullable">required isNullable_ value</param>
+    /// <param name="isNullable">Required isNullable_ value.</param>
     virtual void SetIsNullable(bool isNullable) override
     {
         if (isNullable_ == isNullable)
@@ -259,9 +286,9 @@ public:
     }
 
     /// <summary>
-    /// set isUnique_ flag, checking is there is duplicity value or null value in column which dont allow to set TRUE flag
+    /// Setting isUnique_ flag, checking is there is duplicity value or null value in column which dont allow to set TRUE flag.
     /// </summary>
-    /// <param name="isUnique">required isUnique_ value</param>
+    /// <param name="isUnique">Required isUnique_ value.</param>
     virtual void SetIsUnique(const bool isUnique) override
     {
         if (isUnique_ == isUnique)
@@ -548,11 +575,6 @@ public:
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
-    virtual size_t GetBlockSize(int32_t blockIndex) const override
-    {
-        return (GetBlocksList()[blockIndex])->GetSize();
-    }
-
     virtual int64_t GetSize() const override
     {
         return size_;
@@ -637,10 +659,10 @@ public:
     }
 
     /// <summary>
-    /// Splits block
+    /// Splits block.
     /// </summary>
-    /// <param name="blockPtr">block that should be splitted</param>
-    /// <param name="groupId">id of binary index group<param>
+    /// <param name="blockPtr">Block that should be splitted.</param>
+    /// <param name="groupId">ID of binary index group.<param>
     void BlockSplit(std::unique_ptr<BlockBase<T>>& blockPtr, int32_t groupId = -1)
     {
         BlockBase<T>& block = *(blockPtr.get());
@@ -701,6 +723,8 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
+    /// <param name="groupId">ID of binary index group.<param>
+    /// <param name="compress">Compress flag</param>
     void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
     {
         Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
@@ -748,6 +772,9 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
+    /// <param name="nullMask">Nullmask od inserted data</param>
+    /// <param name="groupId">ID of binary index group.<param>
+    /// <param name="compress">Compress flag</param>
     void InsertData(const std::vector<T>& columnData,
                     const std::vector<nullmask_t>& nullMask,
                     int32_t groupId = -1,
@@ -852,6 +879,10 @@ public:
         InsertData(NullArray(length), nullMask);
     }
 
+    /// <summary>
+    /// Copy data from current column into the other column defined in argument of function. Data will be casted to type of destination column.
+    /// </summary>
+    /// <param name="destinationColumn">Colum to which we want to copy data.</param>
     void CopyDataToColumn(IColumn* destinationColumn)
     {
         auto toType = destinationColumn->GetColumnType();
@@ -1073,11 +1104,6 @@ public:
         }
 
         return ret;
-    }
-
-    virtual int64_t GetBlockSizeForIndex(int32_t blockIdx) const override
-    {
-        return GetBlocksList()[blockIdx]->GetSize();
     }
 };
 
