@@ -64,11 +64,11 @@ GPUMemory::GPUString StringFactory::PrepareGPUString(const std::string* strings,
     }
     else
     {
-        gpuString.stringIndices = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int64_t>(
+        gpuString.stringIndices = std::get<0>(Context::getInstance().getCacheForCurrentDevice().GetColumn<int64_t>(
             databaseName, columnName + "_stringIndices", blockIndex, stringIndices.size(), loadSize, loadOffset));
         GPUMemory::copyHostToDevice(gpuString.stringIndices, stringIndices.data(), stringIndices.size());
 
-        gpuString.allChars = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<char>(
+        gpuString.allChars = std::get<0>(Context::getInstance().getCacheForCurrentDevice().GetColumn<char>(
             databaseName, columnName + "_allChars", blockIndex, concat.size(), loadSize, loadOffset));
         GPUMemory::copyHostToDevice(gpuString.allChars, concat.data(), prefixSum);
     }

@@ -120,15 +120,15 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
     }
     GPUMemory::GPUPolygon retPointers;
 
-    retPointers.pointIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(
+    retPointers.pointIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().GetColumn<int32_t>(
         databaseName, columnName + "_pointIdx", blockIndex, pointIdx.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.pointIdx, pointIdx.data(), pointIdx.size());
 
-    retPointers.polyIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<int32_t>(
+    retPointers.polyIdx = std::get<0>(Context::getInstance().getCacheForCurrentDevice().GetColumn<int32_t>(
         databaseName, columnName + "_polyIdx", blockIndex, polyIdx.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.polyIdx, polyIdx.data(), polyIdx.size());
 
-    retPointers.polyPoints = std::get<0>(Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
+    retPointers.polyPoints = std::get<0>(Context::getInstance().getCacheForCurrentDevice().GetColumn<NativeGeoPoint>(
         databaseName, columnName + "_polyPoints", blockIndex, polyPoints.size(), loadSize, loadOffset));
     GPUMemory::copyHostToDevice(retPointers.polyPoints, polyPoints.data(), polyPoints.size());
 

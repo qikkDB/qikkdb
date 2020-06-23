@@ -233,7 +233,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
             {
                 size_t uncompressedSize = Compression::GetUncompressedDataElementsCount(block->GetData());
                 size_t compressedSize = block->GetSize();
-                cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+                cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<T>(
                     database_->GetName(), colName, blockIndex_, uncompressedSize, loadSize_, loadOffset_);
                 if (!std::get<2>(cacheEntry))
                 {
@@ -256,7 +256,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
             {
                 realSize = loadSize_;
 
-                cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+                cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<T>(
                     database_->GetName(), colName, blockIndex_, loadSize_, loadSize_, loadOffset_);
                 if (!std::get<2>(cacheEntry))
                 {
@@ -270,7 +270,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(realSize);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), colName + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -320,7 +320,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 joinCacheId += "_" + joinTable.first;
             }
 
-            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<T>(
+            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<T>(
                 database_->GetName(), joinCacheId, blockIndex_, loadSize, loadSize_, loadOffset_);
             nullmask_t* nullMaskPtr = nullptr;
 
@@ -338,7 +338,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol(std::string& colNa
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);

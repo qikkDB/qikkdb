@@ -5,7 +5,7 @@
 
 bool GPUMemory::EvictWithLockList()
 {
-    return Context::getInstance().getCacheForCurrentDevice().evict();
+    return Context::getInstance().getCacheForCurrentDevice().Evict();
 }
 
 void GPUMemory::clear()

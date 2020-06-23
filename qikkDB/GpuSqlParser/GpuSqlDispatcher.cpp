@@ -115,9 +115,9 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
     try
     {
         Context& context = Context::getInstance();
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        context.getCacheForCurrentDevice().SetCurrentBlockIndex(blockIndex_);
         context.bindDeviceToContext(dispatcherThreadId_);
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        context.getCacheForCurrentDevice().SetCurrentBlockIndex(blockIndex_);
 
         LoadColHelper& loadColHelper = LoadColHelper::getInstance();
 
@@ -345,13 +345,13 @@ void GpuSqlDispatcher::ClearCachedBlocks(const std::string& tableName, const std
     {
         Context::getInstance()
             .getCacheForDevice(i % Context::getInstance().getDeviceCount())
-            .clearCachedBlock(database_->GetName(), tableName + "." + columnName, i);
+            .ClearCachedBlock(database_->GetName(), tableName + "." + columnName, i);
 
         if (database_->GetTables().at(tableName).GetColumns().at(columnName).get()->GetIsNullable())
         {
             Context::getInstance()
                 .getCacheForDevice(i % Context::getInstance().getDeviceCount())
-                .clearCachedBlock(database_->GetName(), tableName + "." + columnName + NULL_SUFFIX, i);
+                .ClearCachedBlock(database_->GetName(), tableName + "." + columnName + NULL_SUFFIX, i);
         }
     }
 }
@@ -987,7 +987,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
             database_->GetTables().at(table).GetColumns().at(column)->GetNullBitMaskForBlock(blockIndex_);
         size_t blockNullMaskSize = NullValues::GetNullBitMaskSize(loadSize_);
 
-        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+        auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
             database_->GetName(), colName + NULL_SUFFIX, blockIndex_, blockNullMaskSize, loadSize_, loadOffset_);
         if (!std::get<2>(cacheEntry))
         {
@@ -1158,14 +1158,14 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::Jmp()
     {
         groupByHashTableFull_ = false;
         ResetBlocksProcessing();
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        context.getCacheForCurrentDevice().SetCurrentBlockIndex(blockIndex_);
         return InstructionStatus::CONTINUE;
     }
 
     if (!isLastBlockOfDevice_)
     {
         blockIndex_ += context.getDeviceCount();
-        context.getCacheForCurrentDevice().setCurrentBlockIndex(blockIndex_);
+        context.getCacheForCurrentDevice().SetCurrentBlockIndex(blockIndex_);
         instructionPointer_ = 0;
         CleanUpGpuPointers();
         return InstructionStatus::CONTINUE;

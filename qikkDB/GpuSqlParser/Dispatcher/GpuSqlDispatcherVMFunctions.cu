@@ -154,7 +154,7 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -230,7 +230,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                 return NativeGeoPoint{point.geopoint().latitude(), point.geopoint().longitude()};
             });
 
-            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
+            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<NativeGeoPoint>(
                 database_->GetName(), colName, blockIndex_, nativePoints.size(), loadSize_, loadOffset_);
             if (!std::get<2>(cacheEntry))
             {
@@ -245,7 +245,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize_);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), colName + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -304,7 +304,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                 return NativeGeoPoint{point.geopoint().latitude(), point.geopoint().longitude()};
             });
 
-            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().getColumn<NativeGeoPoint>(
+            auto cacheEntry = Context::getInstance().getCacheForCurrentDevice().GetColumn<NativeGeoPoint>(
                 database_->GetName(), joinCacheId, blockIndex_, loadSize, loadSize_, loadOffset_);
             if (!std::get<2>(cacheEntry))
             {
@@ -319,7 +319,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -449,7 +449,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
                 {
                     int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(loadSize);
                     auto cacheMaskEntry =
-                        Context::getInstance().getCacheForCurrentDevice().getColumn<nullmask_t>(
+                        Context::getInstance().getCacheForCurrentDevice().GetColumn<nullmask_t>(
                             database_->GetName(), joinCacheId + NULL_SUFFIX, blockIndex_,
                             bitMaskCapacity, loadSize_, loadOffset_);
                     nullMaskPtr = std::get<0>(cacheMaskEntry);
@@ -1080,22 +1080,22 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
 {
     if (useCache)
     {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyPoints",
+        if (Context::getInstance().getCacheForCurrentDevice().ContainsColumn(databaseName, colName + "_polyPoints",
                                                                              blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_pointIdx",
+            Context::getInstance().getCacheForCurrentDevice().ContainsColumn(databaseName, colName + "_pointIdx",
                                                                              blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_polyIdx",
+            Context::getInstance().getCacheForCurrentDevice().ContainsColumn(databaseName, colName + "_polyIdx",
                                                                              blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUPolygon polygon;
             polygon.polyPoints =
-                std::get<0>(cache.getColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints",
+                std::get<0>(cache.GetColumn<NativeGeoPoint>(databaseName, colName + "_polyPoints",
                                                             blockIndex_, size, loadSize_, loadOffset_));
             polygon.pointIdx =
-                std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_pointIdx",
+                std::get<0>(cache.GetColumn<int32_t>(databaseName, colName + "_pointIdx",
                                                      blockIndex_, size, loadSize_, loadOffset_));
-            polygon.polyIdx = std::get<0>(cache.getColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
+            polygon.polyIdx = std::get<0>(cache.GetColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
                                                                    size, loadSize_, loadOffset_));
 
             FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
@@ -1131,18 +1131,18 @@ GPUMemory::GPUString GpuSqlDispatcher::InsertString(const std::string& databaseN
 {
     if (useCache)
     {
-        if (Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_stringIndices",
+        if (Context::getInstance().getCacheForCurrentDevice().ContainsColumn(databaseName, colName + "_stringIndices",
                                                                              blockIndex_, loadSize_, loadOffset_) &&
-            Context::getInstance().getCacheForCurrentDevice().containsColumn(databaseName, colName + "_allChars",
+            Context::getInstance().getCacheForCurrentDevice().ContainsColumn(databaseName, colName + "_allChars",
                                                                              blockIndex_, loadSize_, loadOffset_))
         {
             GPUMemoryCache& cache = Context::getInstance().getCacheForCurrentDevice();
             GPUMemory::GPUString gpuString;
             gpuString.stringIndices =
-                std::get<0>(cache.getColumn<int64_t>(databaseName, colName + "_stringIndices",
+                std::get<0>(cache.GetColumn<int64_t>(databaseName, colName + "_stringIndices",
                                                      blockIndex_, stringCount, loadSize_, loadOffset_));
             gpuString.allChars =
-                std::get<0>(cache.getColumn<char>(databaseName, colName + "_allChars", blockIndex_,
+                std::get<0>(cache.GetColumn<char>(databaseName, colName + "_allChars", blockIndex_,
                                                   stringCount, loadSize_, loadOffset_));
             FillCompositeDataTypeRegister<std::string>(gpuString, colName, stringCount, useCache, nullMaskPtr);
             return gpuString;
