@@ -30,7 +30,7 @@ private:
     bool usingGPU_ = true;
     bool usingMultipleGPUs_ = true;
     bool usingCompression_ = false;
-    bool usingWhereEvaluationSpeedup_ = true;
+    bool usingWhereEvaluationSpeedup_ = false;
     std::string databaseDir_ = "../databases/";
     int32_t blockSize_ = 262144;
     int32_t groupByBuckets_ = 262144;
