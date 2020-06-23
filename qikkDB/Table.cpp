@@ -1055,8 +1055,8 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
 /// <returns>block index and index in block where row should be inserted</returns>
 std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskOfRow)
 {
-    int index;
-    CompareResult compareResult;
+    int index = 0;
+    CompareResult compareResult = CompareResult::Equal;
 
     int left = 0;
     int right = GetDataRangeInSortingColumn();
