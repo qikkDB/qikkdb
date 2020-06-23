@@ -232,7 +232,7 @@ int8_t* CudaMemAllocator::Allocate(std::ptrdiff_t numBytes)
 }
 
 /// Check if we really can allocate a new block of size numBytes
-bool CudaMemAllocator::TryAllocate(const std::ptrdiff_t numBytes)
+bool CudaMemAllocator::CanAllocate(const std::ptrdiff_t numBytes)
 {
     // std::unique_lock<std::mutex> lock{allocator_mutex_}; // TODO consider using
     if (numBytes <= 0)

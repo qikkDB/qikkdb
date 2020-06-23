@@ -54,7 +54,7 @@ public:
     CudaMemAllocator(CudaMemAllocator&& other) = delete;
     CudaMemAllocator& operator=(const CudaMemAllocator&) = delete;
     int8_t* Allocate(std::ptrdiff_t numBytes);
-    bool TryAllocate(std::ptrdiff_t numBytes);
+    bool CanAllocate(std::ptrdiff_t numBytes);
     void Deallocate(int8_t* ptr);
     void Clear();
 };

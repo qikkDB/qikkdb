@@ -65,7 +65,7 @@ private:
     /// </summary>
     /// <param name="sizeToInsert">Number of bytes to check</param>
     /// <returns>true if there is enough free space in cache, otherwise false</returns>
-    bool tryInsert(size_t sizeToInsert) const
+    bool HasFreeSpace(size_t sizeToInsert) const
     {
         return usedSize + sizeToInsert <= maxSize_;
     }
@@ -122,7 +122,7 @@ public:
             throw std::length_error("Tried to cache block larger than maximum cache size");
         }
 
-        while (!tryInsert(sizeToInsert) || !GetAllocator().TryAllocate(sizeToInsert))
+        while (!HasFreeSpace(sizeToInsert) || !GetAllocator().CanAllocate(sizeToInsert))
         {
             if (!evict())
             {
