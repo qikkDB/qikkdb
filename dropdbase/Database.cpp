@@ -515,21 +515,30 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
-            std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileFragmentPath))
+            {
+                std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+                colFragDataFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPolygon.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    uint64_t strPolDataPos = 0;
+                    colDataFile.seekg(0, colDataFile.end);
+                    uint64_t strPolDataPos = colDataFile.tellg();
+                    colDataFile.seekg(0, colDataFile.beg);
 
                     uint32_t blockIndex = block->GetIndex();
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
+                    colFragDataFile.seekg(0, colFragDataFile.end);
                     uint64_t blockPosition = colFragDataFile.tellg();
 
                     if (blockIndex != UINT32_MAX)
@@ -646,9 +655,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colPoint.GetBlocksList())
@@ -731,21 +739,30 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
-            std::ifstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
+            // if the file does not exists, create it, because ifstream needs file to exists before opening it:
+            if (!boost::filesystem::exists(fileFragmentPath))
+            {
+                std::ofstream colFragDataFile(fileFragmentPath, std::ios::binary);
+                colFragDataFile.close();
+            }
+
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
+            std::ifstream colFragDataFile(fileFragmentPath, std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colStr.GetBlocksList())
             {
                 if (block->GetSaveNecessary())
                 {
-                    uint64_t strPolDataPos = 0;
+                    colDataFile.seekg(0, colDataFile.end);
+                    uint64_t strPolDataPos = colDataFile.tellg();
+                    colDataFile.seekg(0, colDataFile.beg);
 
                     uint32_t blockIndex = block->GetIndex();
 
                     // we will persist new block at the end of FRAGMENT_DATA_EXTENSION file:
+                    colFragDataFile.seekg(0, colFragDataFile.end);
                     uint64_t blockPosition = colFragDataFile.tellg();
 
                     if (blockIndex != UINT32_MAX)
@@ -861,9 +878,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
@@ -936,9 +952,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colInt.GetBlocksList())
@@ -961,8 +976,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                     }
                     else
                     {
-                        // read the position of a block which has been persisted before and so the disk space is allocated already:                        
-						colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
+                        // read the position of a block which has been persisted before and so the disk space is allocated already:
+                        colAddressFile.seekg(blockIndex * sizeof(uint64_t)); // seekg() - seek get position
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
@@ -1011,9 +1026,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colLong.GetBlocksList())
@@ -1086,9 +1100,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colFloat.GetBlocksList())
@@ -1161,9 +1174,8 @@ void Database::PersistOnlyModified(const std::string tableName)
                 colDataFile.close();
             }
 
-            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in |
-                                                             std::ios::app | std::ios::binary);
-            std::ifstream colDataFile(fileDataPath, std::ios::binary);
+            std::fstream colAddressFile(fileAddressPath, std::ios::out | std::ios::in | std::ios::binary);
+            std::ifstream colDataFile(fileDataPath, std::ios::in | std::ios::binary);
 
             // for each block of the column, check if it needs to be persisted and if so, persist it into disk:
             for (const auto& block : colDouble.GetBlocksList())
@@ -3814,7 +3826,7 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
                        tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
     }
 
-    std::fstream colDataFile(fileDataPath, std::ios::binary);
+    std::fstream colDataFile(fileDataPath, std::ios::in | std::ios::out | std::ios::binary);
     colDataFile.seekp(blockPosition, colDataFile.beg);
 
     if (colDataFile.is_open())

@@ -95,7 +95,7 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::fstream colDataFile(fileDataPath, std::ios::binary);
+        std::fstream colDataFile(fileDataPath, std::ios::in | std::ios::out | std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -118,8 +118,7 @@ private:
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            std::ofstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
-            colFragDataFile.seekp(0, colFragDataFile.beg);
+            std::fstream colFragDataFile(fileFragmentPath, std::ios::in | std::ios::out | std::ios::binary);
 
             // persist block data into disk:
             colFragDataFile.seekp(fragmentPosition);
@@ -266,6 +265,7 @@ private:
                        "already persisted data on disk.";
             }
 
+			colDataFile.close();
             colFragDataFile.close();
         }
         else
@@ -326,7 +326,7 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::fstream colDataFile(fileDataPath, std::ios::binary);
+        std::fstream colDataFile(fileDataPath, std::ios::in | std::ios::out | std::ios::binary);
 
         if (colDataFile.is_open())
         {
@@ -349,11 +349,10 @@ private:
                                    FRAGMENT_DATA_EXTENSION;
             }
 
-            std::ofstream colFragDataFile(fileFragmentPath, std::ios::app | std::ios::binary);
-            colFragDataFile.seekp(0, colFragDataFile.beg);
+            std::fstream colFragDataFile(fileFragmentPath, std::ios::in | std::ios::out | std::ios::binary);
 
             // persist block data into disk:
-            colFragDataFile.seekp(0, fragmentPosition);
+            colFragDataFile.seekp(fragmentPosition);
 
             BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of String data with index = " << index;
 
@@ -493,6 +492,7 @@ private:
                        "already persisted data on disk.";
             }
 
+			colDataFile.close();
             colFragDataFile.close();
         }
     }
@@ -525,7 +525,7 @@ private:
                            tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION;
         }
 
-        std::fstream colDataFile(fileDataPath, std::ios::binary);
+        std::fstream colDataFile(fileDataPath, std::ios::in | std::ios::out | std::ios::binary);
         
         if (colDataFile.is_open())
         {
@@ -533,8 +533,6 @@ private:
             const int32_t type = column.second->GetColumnType();
             const bool isNullable = column.second->GetIsNullable();
             const bool isUnique = column.second->GetIsUnique();
-
-
             uint32_t index = block.GetIndex();
 
             const ColumnBase<T>& colInt = dynamic_cast<const ColumnBase<T>&>(*(column.second));
