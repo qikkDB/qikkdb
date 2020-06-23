@@ -603,7 +603,7 @@ public:
                                       const int32_t indexInBlock,
                                       const T& columnData,
                                       int32_t groupId = -1,
-                                      nullmask_t isNullValue = false)
+                                      nullmask_t isNullValue = static_cast<nullmask_t>(0U))
     {
         Context::getInstance().CheckRowsLimit(size_);
 

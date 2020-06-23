@@ -31,7 +31,7 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
         auto currentColumn = (columns.find(columnName)->second.get());
         if (data.find(columnName) != data.end())
         {
-            nullmask_t isNullValue = false;
+            nullmask_t isNullValue = static_cast<nullmask_t>(0U);
             if (nullMasks.find(columnName) != nullMasks.end())
             {
                 isNullValue = NullValues::GetConcreteBitFromBitmask(nullMasks.at(columnName).data(), iterator);

@@ -451,7 +451,9 @@ public:
     /// <param name="data">value to insert<param>
     /// <param name="isNullValue">whether data is null value flag<param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
-    void InsertDataOnSpecificPosition(int32_t index, const T& data, nullmask_t isNullValue = false)
+    void InsertDataOnSpecificPosition(int32_t index,
+                                      const T& data,
+                                      nullmask_t isNullValue = static_cast<nullmask_t>(0U))
     {
         if (EmptyBlockSpace() == 0)
         {
