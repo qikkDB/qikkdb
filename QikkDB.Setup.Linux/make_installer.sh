@@ -28,14 +28,18 @@ mkdir -p "${SCRIPTPATH}/out"
 rm -rf "${SCRIPTPATH}"/out/*
 mkdir -p "${SCRIPTPATH}/tmp/bin"
 mkdir -p "${SCRIPTPATH}/tmp/databases"
+mkdir -p "${SCRIPTPATH}/tmp/sampleData"
 mkdir -p "${SCRIPTPATH}/tmp/logs"
 cp build/qikkDB/qikkDB "${SCRIPTPATH}/tmp/bin/qikkDB"
 cp -r publish/console "${SCRIPTPATH}/tmp/"
 strip --strip-all "${SCRIPTPATH}/tmp/bin/qikkDB"
 cp -r configuration "${SCRIPTPATH}/tmp/"
+cp -r sampleData/csv/. "${SCRIPTPATH}/tmp/sampleData"
+cp -r sampleData/db/. "${SCRIPTPATH}/tmp/databases"
 chmod 750 "${SCRIPTPATH}/tmp/bin/qikkDB"
 chmod 750 "${SCRIPTPATH}/tmp/bin"
 chmod 750 "${SCRIPTPATH}/tmp/databases"
+chmod 750 "${SCRIPTPATH}/tmp/sampleData"
 chmod 750 "${SCRIPTPATH}/tmp/logs"
 cd $SCRIPTPATH/tmp
 tar -czvf "${SCRIPTPATH}/out/qikkDB.tar.gz" *
