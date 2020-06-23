@@ -29,7 +29,6 @@ private:
     // Configuration values (if even default config does not exist)
     bool usingGPU_ = true;
     bool usingMultipleGPUs_ = true;
-    bool usingCompression_ = false;
     bool usingWhereEvaluationSpeedup_ = false;
     std::string databaseDir_ = "../databases/";
     std::string testDatabaseDir_ = "../test_databases/";
@@ -89,11 +88,6 @@ public:
     bool IsUsingMultipleGPUs() const
     {
         return usingMultipleGPUs_;
-    }
-
-    bool IsUsingCompression() const
-    {
-        return usingCompression_;
     }
 
     bool IsUsingWhereEvaluationSpeedup() const

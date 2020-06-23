@@ -502,7 +502,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
 
         try
         {
-            table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression(), nullMap);
+            table.InsertData(columnData, false, nullMap);
         }
         catch (constraint_violation_error& e)
         {
@@ -519,7 +519,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     {
         try
         {
-            table.InsertData(columnData, Configuration::GetInstance().IsUsingCompression());
+            table.InsertData(columnData, false);
         }
         catch (constraint_violation_error& e)
         {

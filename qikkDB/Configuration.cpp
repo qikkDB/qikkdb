@@ -38,7 +38,6 @@ void Configuration::LoadConfigurationFile()
     // setting particular YAML entries into configuration values
     this->SetupConfigurationValue("UsingGPU", this->usingGPU_);
     this->SetupConfigurationValue("UsingMultipleGPUs", this->usingMultipleGPUs_);
-    this->SetupConfigurationValue("UsingCompression", this->usingCompression_);
     this->SetupConfigurationValue("UsingWhereEvaluationSpeedup", this->usingWhereEvaluationSpeedup_);
     this->SetupConfigurationValue("DatabaseFilesDir", this->databaseDir_);
     this->SetupConfigurationValue("TestDatabaseFilesDir", this->testDatabaseDir_);

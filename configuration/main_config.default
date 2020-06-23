@@ -3,8 +3,6 @@
 UsingGPU: true
 # Use multiple GPUs if there are more than just one GPU available:
 UsingMultipleGPUs: true
-# Use compression of database files
-UsingCompression: false
 # Use clustered index when evaluating WHERE clause (skip filtered blocks)
 UsingWhereEvaluationSpeedup: false
 

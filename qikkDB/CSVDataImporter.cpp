@@ -299,7 +299,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
         {
 
             insertMutex_.lock();
-            table.InsertData(data, Configuration::GetInstance().IsUsingCompression());
+            table.InsertData(data, false);
             insertMutex_.unlock();
 
             // clears parsed data so far
@@ -342,7 +342,7 @@ void CSVDataImporter::ParseAndImport(int threadId,
 
     // inserts remaing rows into table
     insertMutex_.lock();
-    table.InsertData(data, Configuration::GetInstance().IsUsingCompression());
+    table.InsertData(data, false);
     insertMutex_.unlock();
 }
 
