@@ -13,7 +13,6 @@ class DatabaseTests : public ::testing::Test
 protected:
     const std::string path = Configuration::GetInstance().GetTestDatabaseDir();
     const std::string dbName = "TestDatabase";
-    int32_t blockNum = 2; // number of blocks
     const int32_t blockSize = 4; // length of a block
 
     std::shared_ptr<Database> database;
@@ -59,6 +58,8 @@ protected:
 ///  - DropDatabase()
 TEST_F(DatabaseTests, IntegrationTest)
 {
+    int32_t blockNum = 2; // number of blocks
+
     Database::AddToInMemoryDatabaseList(database);
 
     // create first table with initialized columns:
@@ -538,8 +539,6 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     Database::LoadDatabasesFromDisk();
 
-    blockNum++;
-
     auto& loadedTables2 = Database::GetDatabaseByName(dbName)->GetTables();
     auto& firstTableColumns2 = loadedTables2.at("TestTable1").GetColumns();
     auto& secondTableColumns2 = loadedTables2.at("TestTable2").GetColumns();
@@ -550,9 +549,9 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ(secondTableColumns2.size(), 8);
 
     // first table block counts:
-    ASSERT_EQ((firstTableColumns2.at("colInteger").get())->GetBlockCount(), blockNum - 1);
-    ASSERT_EQ((firstTableColumns2.at("colDouble").get())->GetBlockCount(), blockNum - 1);
-    ASSERT_EQ((firstTableColumns2.at("colString").get())->GetBlockCount(), blockNum - 1);
+    ASSERT_EQ((firstTableColumns2.at("colInteger").get())->GetBlockCount(), blockNum);
+    ASSERT_EQ((firstTableColumns2.at("colDouble").get())->GetBlockCount(), blockNum);
+    ASSERT_EQ((firstTableColumns2.at("colString").get())->GetBlockCount(), blockNum);
     ASSERT_EQ((firstTableColumns2.at("colIntegerEmpty").get())->GetBlockCount(), 0);
     ASSERT_EQ((firstTableColumns2.at("colStringEmpty").get())->GetBlockCount(), 0);
 
@@ -613,7 +612,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_TRUE((firstTableColumns2.at("colStringEmpty").get())->GetIsNullable());
 
     // first table colInteger:
-    for (int i = 0; i < blockNum - 1; i++)
+    for (int i = 0; i < blockNum; i++)
     {
         auto data = dynamic_cast<ColumnBase<int32_t>*>(firstTableColumns2.at("colInteger").get())
                         ->GetBlocksList()
@@ -637,7 +636,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     }
 
     // first table colDouble:
-    for (int i = 0; i < blockNum - 1; i++)
+    for (int i = 0; i < blockNum; i++)
     {
         auto data = dynamic_cast<ColumnBase<double>*>(firstTableColumns2.at("colDouble").get())
                         ->GetBlocksList()
@@ -661,7 +660,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     }
 
     // first table colString:
-    for (int i = 0; i < blockNum - 1; i++)
+    for (int i = 0; i < blockNum; i++)
     {
         auto data = dynamic_cast<ColumnBase<std::string>*>(firstTableColumns2.at("colString").get())
                         ->GetBlocksList()
@@ -683,6 +682,8 @@ TEST_F(DatabaseTests, IntegrationTest)
         ASSERT_TRUE(block->GetSum() == "");
         ASSERT_FLOAT_EQ(block->GetAvg(), 0.0f);
     }
+
+	blockNum++;
 
     // second table block count:
     ASSERT_EQ((secondTableColumns2.at("colInteger").get())->GetBlockCount(), blockNum);
@@ -1068,6 +1069,8 @@ TEST_F(DatabaseTests, IntegrationTest)
 
 TEST_F(DatabaseTests, ChangeTableBlockSize)
 {
+    const int32_t blockNum = 2; // number of blocks
+
     // create first table with initialized columns:
     std::unordered_map<std::string, DataType> columnsTable1;
     columnsTable1.insert({"colInteger", COLUMN_INT});
