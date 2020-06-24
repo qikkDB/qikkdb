@@ -1162,11 +1162,6 @@ public:
 
         return ret;
     }
-
-    virtual int64_t GetBlockSizeForIndex(int32_t blockIdx) const override
-    {
-        return GetBlocksList()[blockIdx]->GetSize();
-    }
 };
 
 template <>

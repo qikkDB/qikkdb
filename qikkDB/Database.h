@@ -135,13 +135,17 @@ private:
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write block index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
 
+			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+            colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
-                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
-                colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
-                                  nullBitMaskLength); // write nullBitMask
+                                  nullBitMaskLength); // write nullBitMask if exists
+            }
+            else
+            {
+                colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block.GetSize())),
+                                  nullBitMaskLength); // write empty nullBitMask from not nullable column
             }
 
             colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(uint64_t)); // write number of entries
@@ -265,7 +269,7 @@ private:
                        "already persisted data on disk.";
             }
 
-			colDataFile.close();
+            colDataFile.close();
             colFragDataFile.close();
         }
         else
@@ -365,13 +369,17 @@ private:
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
 
+			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+            colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
-                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
-                colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
-                                  nullBitMaskLength); // write nullBitMask
+                                  nullBitMaskLength); // write nullBitMask if exists
+            }
+            else
+            {
+                colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block.GetSize())),
+                                  nullBitMaskLength); // write empty nullBitMask from not nullable column
             }
 
             colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -492,7 +500,7 @@ private:
                        "already persisted data on disk.";
             }
 
-			colDataFile.close();
+            colDataFile.close();
             colFragDataFile.close();
         }
     }
@@ -526,7 +534,7 @@ private:
         }
 
         std::fstream colDataFile(fileDataPath, std::ios::in | std::ios::out | std::ios::binary);
-        
+
         if (colDataFile.is_open())
         {
             colDataFile.seekp(blockPosition, colDataFile.beg);
@@ -554,14 +562,20 @@ private:
 
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
+            
+			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+            colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
-                uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
-                colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength),
-                                  sizeof(uint32_t)); // write nullBitMask length
                 colDataFile.write(reinterpret_cast<char*>(block.GetNullBitmask()),
-                                  nullBitMaskLength); // write nullBitMask
+                                  nullBitMaskLength); // write nullBitMask if exists
             }
+            else
+            {
+                colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block.GetSize())),
+                                  nullBitMaskLength); // write empty nullBitMask from not nullable column
+            }
+
             colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
                               sizeof(uint64_t)); // write block length (number of entries)
             colDataFile.write(reinterpret_cast<char*>(&isCompressed), sizeof(bool)); // write whether compressed
@@ -806,6 +820,8 @@ public:
     /// </summary>
     /// <param name="databaseName">Name of database to be removed.</param>
     static void RemoveFromInMemoryDatabaseList(const char* databaseName);
+
+    static nullmask_t* GetEmptyNullmask(const int64_t blockSize);
 };
 
 template <>
