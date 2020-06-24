@@ -744,9 +744,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                     ->GetBlocksList()
                     .at(1)
                     ->GetIsNullable());
+    ASSERT_EQ(data[0], 1893);
+    ASSERT_EQ(data[1], -654);
+    ASSERT_EQ(data[2], 196);
     ASSERT_EQ(data[3], 1893);
-    ASSERT_EQ(data[0], -654);
-    ASSERT_EQ(data[1], 196);
 
     data = dynamic_cast<ColumnBase<int32_t>*>(secondTableColumns2.at("colInteger").get())
                ->GetBlocksList()
@@ -756,9 +757,8 @@ TEST_F(DatabaseTests, IntegrationTest)
                     ->GetBlocksList()
                     .at(2)
                     ->GetIsNullable());
-    ASSERT_EQ(data[2], 1893);
-    ASSERT_EQ(data[3], -654);
-    ASSERT_EQ(data[0], 196);
+    ASSERT_EQ(data[0], -654);
+    ASSERT_EQ(data[1], 196);
 
     // second table colDouble:
     auto data2 = dynamic_cast<ColumnBase<double>*>(secondTableColumns2.at("colDouble").get())
@@ -781,9 +781,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(1)
                      ->GetIsNullable());
+    ASSERT_DOUBLE_EQ(data2[0], 65.77924);
+    ASSERT_DOUBLE_EQ(data2[1], 9789.685);
+    ASSERT_DOUBLE_EQ(data2[2], 9.797965);
     ASSERT_DOUBLE_EQ(data2[3], 65.77924);
-    ASSERT_DOUBLE_EQ(data2[0], 9789.685);
-    ASSERT_DOUBLE_EQ(data2[1], 9.797965);
 
     data2 = dynamic_cast<ColumnBase<double>*>(secondTableColumns2.at("colDouble").get())
                 ->GetBlocksList()
@@ -793,9 +794,8 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(2)
                      ->GetIsNullable());
-    ASSERT_DOUBLE_EQ(data2[2], 65.77924);
-    ASSERT_DOUBLE_EQ(data2[3], 9789.685);
-    ASSERT_DOUBLE_EQ(data2[0], 9.797965);
+    ASSERT_DOUBLE_EQ(data2[0], 9789.685);
+    ASSERT_DOUBLE_EQ(data2[1], 9.797965);
 
     // second table colString:
     auto data3 = dynamic_cast<ColumnBase<std::string>*>(secondTableColumns2.at("colString").get())
@@ -818,9 +818,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(1)
                      ->GetIsNullable());
+    ASSERT_EQ(data3[0], "Drop database_");
+    ASSERT_EQ(data3[1], "Is this the fastest DB?");
+    ASSERT_EQ(data3[2], "Speed of electron");
     ASSERT_EQ(data3[3], "Drop database_");
-    ASSERT_EQ(data3[0], "Is this the fastest DB?");
-    ASSERT_EQ(data3[1], "Speed of electron");
 
     data3 = dynamic_cast<ColumnBase<std::string>*>(secondTableColumns2.at("colString").get())
                 ->GetBlocksList()
@@ -830,9 +831,8 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(2)
                      ->GetIsNullable());
-    ASSERT_EQ(data3[2], "Drop database_");
-    ASSERT_EQ(data3[3], "Is this the fastest DB?");
-    ASSERT_EQ(data3[0], "Speed of electron");
+    ASSERT_EQ(data3[0], "Is this the fastest DB?");
+    ASSERT_EQ(data3[1], "Speed of electron");
 
     // second table colFloat:
     auto data4 = dynamic_cast<ColumnBase<float>*>(secondTableColumns2.at("colFloat").get())
@@ -855,9 +855,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(1)
                      ->GetIsNullable());
+    ASSERT_FLOAT_EQ(data4[0], 456.2);
+    ASSERT_FLOAT_EQ(data4[1], 12.45);
+    ASSERT_FLOAT_EQ(data4[2], 8.965);
     ASSERT_FLOAT_EQ(data4[3], 456.2);
-    ASSERT_FLOAT_EQ(data4[0], 12.45);
-    ASSERT_FLOAT_EQ(data4[1], 8.965);
 
     data4 = dynamic_cast<ColumnBase<float>*>(secondTableColumns2.at("colFloat").get())
                 ->GetBlocksList()
@@ -867,9 +868,8 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(2)
                      ->GetIsNullable());
-    ASSERT_FLOAT_EQ(data4[2], 456.2);
-    ASSERT_FLOAT_EQ(data4[3], 12.45);
-    ASSERT_FLOAT_EQ(data4[0], 8.965);
+    ASSERT_FLOAT_EQ(data4[0], 12.45);
+    ASSERT_FLOAT_EQ(data4[1], 8.965);
 
     // second table colPolygon:
     auto data5 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
@@ -902,15 +902,18 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(1)
                      ->GetIsNullable());
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[0]),
+              "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "80.11, 90 89.15, 112.12 110, 61 80.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[1]),
+              "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
+              "87.11, 90 89.15, 112.12 110, 61 87.11))");
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[2]),
+              "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
+              "80.11, 90 89.15, 112.12 110, 64 80.11))");
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[3]),
               "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
               "80.11, 90 89.15, 112.12 110, 61 80.11))");
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[0]),
-              "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
-              "87.11, 90 89.15, 112.12 110, 61 87.11))");
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[1]),
-              "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
-              "80.11, 90 89.15, 112.12 110, 64 80.11))");
 
     data5 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
                 secondTableColumns2.at("colPolygon").get())
@@ -922,13 +925,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(2)
                      ->GetIsNullable());
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[2]),
-              "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
-              "80.11, 90 89.15, 112.12 110, 61 80.11))");
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[3]),
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[0]),
               "POLYGON((15 11, 11.11 12.13, 15 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
               "87.11, 90 89.15, 112.12 110, 61 87.11))");
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[0]),
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(data5[1]),
               "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
               "80.11, 90 89.15, 112.12 110, 64 80.11))");
 
@@ -956,9 +956,10 @@ TEST_F(DatabaseTests, IntegrationTest)
             ->GetBlocksList()
             .at(1)
             ->GetIsNullable());
+    ASSERT_EQ(PointFactory::WktFromPoint(data6[0]), "POINT(10.11 11.1)");
+    ASSERT_EQ(PointFactory::WktFromPoint(data6[1]), "POINT(12 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(data6[2]), "POINT(9 8)");
     ASSERT_EQ(PointFactory::WktFromPoint(data6[3]), "POINT(10.11 11.1)");
-    ASSERT_EQ(PointFactory::WktFromPoint(data6[0]), "POINT(12 11.15)");
-    ASSERT_EQ(PointFactory::WktFromPoint(data6[1]), "POINT(9 8)");
 
     data6 = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
                 ->GetBlocksList()
@@ -969,9 +970,8 @@ TEST_F(DatabaseTests, IntegrationTest)
             ->GetBlocksList()
             .at(2)
             ->GetIsNullable());
-    ASSERT_EQ(PointFactory::WktFromPoint(data6[2]), "POINT(10.11 11.1)");
-    ASSERT_EQ(PointFactory::WktFromPoint(data6[3]), "POINT(12 11.15)");
-    ASSERT_EQ(PointFactory::WktFromPoint(data6[0]), "POINT(9 8)");
+    ASSERT_EQ(PointFactory::WktFromPoint(data6[0]), "POINT(12 11.15)");
+    ASSERT_EQ(PointFactory::WktFromPoint(data6[1]), "POINT(9 8)");
 
     // second table colBool:
     auto data7 = dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns2.at("colBool").get())
@@ -994,9 +994,10 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(1)
                      ->GetIsNullable());
+    ASSERT_EQ(data7[0], -1);
+    ASSERT_EQ(data7[1], 0);
+    ASSERT_EQ(data7[2], 1);
     ASSERT_EQ(data7[3], -1);
-    ASSERT_EQ(data7[0], 0);
-    ASSERT_EQ(data7[1], 1);
 
     data7 = dynamic_cast<ColumnBase<int8_t>*>(secondTableColumns2.at("colBool").get())
                 ->GetBlocksList()
@@ -1006,9 +1007,8 @@ TEST_F(DatabaseTests, IntegrationTest)
                      ->GetBlocksList()
                      .at(2)
                      ->GetIsNullable());
-    ASSERT_EQ(data7[2], -1);
-    ASSERT_EQ(data7[3], 0);
-    ASSERT_EQ(data7[0], 1);
+    ASSERT_EQ(data7[0], 0);
+    ASSERT_EQ(data7[1], 1);
 
     Database::SaveAllToDisk();
 
