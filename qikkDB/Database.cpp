@@ -160,6 +160,9 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
         dstColumn.ResizeColumn(&column);
         break;
     }
+    default:
+        throw std::runtime_error("Unsupported column type.");
+        break;
     }
 
     BOOST_LOG_TRIVIAL(debug) << "Database: Copying data (column name: " << columnName
@@ -808,19 +811,18 @@ void Database::PersistOnlyModified(const std::string tableName)
 
                             int32_t readGroupId;
                             colDataFile.read(reinterpret_cast<char*>(&readGroupId), sizeof(int32_t));
-                            if (column.second->GetIsNullable())
-                            {
-                                uint32_t nullBitMaskLength;
-                                std::unique_ptr<int8_t[]> nullBitMask = nullptr;
-                                const uint32_t nullBitMaskAllocationSize =
-                                    NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
 
-                                colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
-                                                 sizeof(uint32_t)); // read nullBitMask length
-                                nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
-                                colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
-                                                 nullBitMaskLength); // read nullBitMask
-                            }
+                            uint32_t nullBitMaskLength;
+                            std::unique_ptr<int8_t[]> nullBitMask = nullptr;
+                            const uint32_t nullBitMaskAllocationSize =
+                                NullValues::GetNullBitMaskSizeInBytes(table.GetBlockSize());
+
+                            colDataFile.read(reinterpret_cast<char*>(&nullBitMaskLength),
+                                             sizeof(uint32_t)); // read nullBitMask length
+                            nullBitMask = std::unique_ptr<int8_t[]>(new int8_t[nullBitMaskAllocationSize]);
+                            colDataFile.read(reinterpret_cast<char*>(nullBitMask.get()),
+                                             nullBitMaskLength); // read nullBitMask
+
                             uint64_t readEntriesCount;
                             colDataFile.read(reinterpret_cast<char*>(&readEntriesCount), sizeof(uint64_t));
                         }
@@ -2858,7 +2860,8 @@ void Database::RemoveFromInMemoryDatabaseList(const char* databaseName)
 }
 
 /// <summary>
-/// Write column into disk.
+/// Deletes old persisted files and writes column into disk creating new files. There is no modification
+/// of already persisted files. Previous files are replaced. This is operation needs more RAM memory than saving only modified blocks of data.
 /// </summary>
 /// <param name="column">Column to be written.</param>
 /// <param name="dbName">Name of the database.</param>
@@ -2942,12 +2945,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if nullMask exists
+                                          nullBitMaskLength); // write nullBitMask if nullMask exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize), sizeof(uint64_t)); // write number of entries
@@ -3114,12 +3117,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if nullMask exists
+                                          nullBitMaskLength); // write nullBitMask if nullMask exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3209,12 +3212,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if nullMask exists
+                                          nullBitMaskLength); // write nullBitMask if nullMask exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3387,12 +3390,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if exists
+                                          nullBitMaskLength); // write nullBitMask if exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3465,12 +3468,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if exists
+                                          nullBitMaskLength); // write nullBitMask if exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3544,12 +3547,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if exists
+                                          nullBitMaskLength); // write nullBitMask if exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3621,12 +3624,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if exists
+                                          nullBitMaskLength); // write nullBitMask if exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3700,12 +3703,12 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     if (isNullable)
                     {
                         colDataFile.write(reinterpret_cast<char*>(block->GetNullBitmask()),
-                                      nullBitMaskLength); // write nullBitMask if exists
+                                          nullBitMaskLength); // write nullBitMask if exists
                     }
                     else
                     {
                         colDataFile.write(reinterpret_cast<char*>(GetEmptyNullmask(block->GetSize())),
-                                      nullBitMaskLength); // write empty nullBitMask from not nullable column
+                                          nullBitMaskLength); // write empty nullBitMask from not nullable column
                     }
 
                     colDataFile.write(reinterpret_cast<char*>(&blockCurrentSize),
@@ -3821,6 +3824,22 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
 
         uint32_t index = block.GetIndex();
 
+        /* check if we did not get UINT32_MAX value in index - this value is reserved
+        to identify new block, which are just in memory and have never been persisted
+        into disk. If index reached this value, it means, the blockSize had been chosen
+        to too small value and we have reached our maximum number of blocks. No new
+        blocks will be persisted in order to at least save the current data.*/
+        if (index == UINT32_MAX)
+        {
+            BOOST_LOG_TRIVIAL(error)
+                << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                << " tha maximum number of block has been reached. For that "
+                   "reason, this block of data and data of other blocks whose have "
+                   "not "
+                   "been persisted yet, will not be persisted in order to protect "
+                   "already persisted data on disk.";
+        }
+
         const ColumnBase<ColmnarDB::Types::Point>& colPoint =
             dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
 
@@ -3834,8 +3853,8 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
 
         colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
         colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-        
-		uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+
+        uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
         colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
         if (isNullable)
         {
@@ -3871,22 +3890,6 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
             colDataFile.write(reinterpret_cast<char*>(&value), sizeof(float)); // write longitude
         }
 
-        /* check if we did not get UINT32_MAX value in index - this value is reserved
-        to identify new block, which are just in memory and have never been persisted
-        into disk. If index reached this value, it means, the blockSize had been chosen
-        to too small value and we have reached our maximum number of blocks. No new
-        blocks will be persisted in order to at least save the current data.*/
-        if (index == UINT32_MAX)
-        {
-            BOOST_LOG_TRIVIAL(error)
-                << "ERROR: Database: When saving block of data into file: " << fileDataPath
-                << " tha maximum number of block has been reached. For that "
-                   "reason, this block of data and data of other blocks whose have "
-                   "not "
-                   "been persisted yet, will not be persisted in order to protect "
-                   "already persisted data on disk.";
-        }
-
         colDataFile.close();
     }
     else
@@ -3903,7 +3906,7 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
     }
 }
 
-nullmask_t* Database::GetEmptyNullmask(const int64_t blockSize)
+nullmask_t* Database::GetEmptyNullmask(const size_t blockSize)
 {
     int32_t emptyBitMaskCapacity = NullValues::GetNullBitMaskSize(blockSize);
     std::unique_ptr<nullmask_t[]> emptyNullMask =

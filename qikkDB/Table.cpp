@@ -1570,10 +1570,10 @@ std::unordered_set<ConstraintType> Table::GetConstraintsForColumn(const std::str
 
 int32_t Table::GetSaveInterval() const
 {
-    return uint32_t();
+    return saveInterval_;
 }
 
-void Table::SetSaveInterval(int32_t newSaveInterval)
+void Table::SetSaveInterval(const int32_t newSaveInterval)
 {
     saveInterval_ = newSaveInterval;
 }

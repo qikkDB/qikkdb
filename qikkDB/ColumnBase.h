@@ -131,7 +131,7 @@ public:
         return defaultValue_;
     }
 
-    void SetDefaultValue(T newDefaultValue)
+    void SetDefaultValue(const T newDefaultValue)
     {
         defaultValue_ = newDefaultValue;
     }
@@ -239,22 +239,22 @@ public:
         return encoding_;
     }
 
-    virtual void SetFileAddressPath(std::string newFilePath) override
+    virtual void SetFileAddressPath(const std::string newFilePath) override
     {
         fileAddressPath_ = newFilePath;
     }
 
-    virtual void SetFileDataPath(std::string newFilePath) override
+    virtual void SetFileDataPath(const std::string newFilePath) override
     {
         fileDataPath_ = newFilePath;
     }
 
-    virtual void SetFileFragmentPath(std::string newFilePath) override
+    virtual void SetFileFragmentPath(const std::string newFilePath) override
     {
         fileFragmentPath_ = newFilePath;
     }
 
-    virtual void SetEncoding(std::string newFilePath) override
+    virtual void SetEncoding(const std::string newFilePath) override
     {
         encoding_ = newFilePath;
     }
@@ -511,7 +511,7 @@ public:
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
                 if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex >
-                    static_cast<uint64_t>(blockSize_ - dstRowIndex))
+                    static_cast<int64_t>(blockSize_ - dstRowIndex))
                 {
                     // srcBlock[i].size_ > dstBlock
                     size_ += blockSize_ - dstRowIndex;

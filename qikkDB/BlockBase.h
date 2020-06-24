@@ -289,7 +289,7 @@ public:
         return index_;
     }
 
-    void SetIndex(uint32_t newIndexVal)
+    void SetIndex(const uint32_t newIndexVal)
     {
         index_ = newIndexVal;
     }
@@ -299,7 +299,7 @@ public:
         saveNecessary_ = false;
     }
 
-    void SetIsCompressed(bool isCompressed)
+    void SetIsCompressed(const bool isCompressed)
     {
         isCompressed_ = isCompressed;
     }

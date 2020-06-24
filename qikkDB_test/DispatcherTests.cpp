@@ -4,7 +4,6 @@
 #include <fstream>
 #include <gtest/gtest.h>
 
-#include "gtest/gtest.h"
 #include "../qikkDB/DatabaseGenerator.h"
 #include "../qikkDB/ColumnBase.h"
 #include "../qikkDB/BlockBase.h"

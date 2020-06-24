@@ -84,7 +84,7 @@ public:
     GetConstraints() const;
     std::unordered_set<ConstraintType> GetConstraintsForColumn(const std::string& columnName);
     int32_t GetSaveInterval() const;
-    void SetSaveInterval(int32_t newSaveInterval);
+    void SetSaveInterval(const int32_t newSaveInterval);
 
     /// <summary>
     /// Removes column from columns (in memory).

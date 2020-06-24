@@ -41,6 +41,7 @@ void Configuration::LoadConfigurationFile()
     this->SetupConfigurationValue("UsingCompression", this->usingCompression_);
     this->SetupConfigurationValue("UsingWhereEvaluationSpeedup", this->usingWhereEvaluationSpeedup_);
     this->SetupConfigurationValue("DatabaseFilesDir", this->databaseDir_);
+    this->SetupConfigurationValue("TestDatabaseFilesDir", this->testDatabaseDir_);
     this->SetupConfigurationValue("BlockSize", this->blockSize_);
     this->SetupConfigurationValue("GroupByBuckets", this->groupByBuckets_);
     this->SetupConfigurationValue("ListenIP", this->listenIP_);

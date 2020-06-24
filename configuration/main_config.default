@@ -11,6 +11,9 @@ UsingWhereEvaluationSpeedup: false
 # Path to database files
 DatabaseFilesDir: ../databases/
 
+# Path to database files for automatized tests
+TestDatabaseFilesDir: ../test_databases/
+
 # Number of rows in one block
 BlockSize: 262144
 # Default maximum number of keys in GROUP BY, should be power of 2

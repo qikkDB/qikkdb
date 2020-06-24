@@ -11,7 +11,7 @@
 class DatabaseTests : public ::testing::Test
 {
 protected:
-    const std::string path = Configuration::GetInstance().GetDatabaseDir();
+    const std::string path = Configuration::GetInstance().GetTestDatabaseDir();
     const std::string dbName = "TestDatabase";
     int32_t blockNum = 2; // number of blocks
     const int32_t blockSize = 4; // length of a block

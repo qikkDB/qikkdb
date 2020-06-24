@@ -105,6 +105,22 @@ private:
 
             uint32_t index = block.GetIndex();
 
+            /* check if we did not get UINT32_MAX value in index - this value is reserved
+			to identify new block, which are just in memory and have never been persisted
+			into disk. If index reached this value, it means, the blockSize had been chosen
+			to too small value and we have reached our maximum number of blocks. No new
+			blocks will be persisted in order to at least save the current data.*/
+            if (block.GetIndex() == UINT32_MAX)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                    << " tha maximum number of block has been reached. For that "
+                       "reason, this block of data and data of other blocks whose have "
+                       "not "
+                       "been persisted yet, will not be persisted in order to protect "
+                       "already persisted data on disk.";
+            }
+
             const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
                 dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
 
@@ -135,7 +151,7 @@ private:
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write block index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
 
-			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+            uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
             colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
@@ -283,22 +299,6 @@ private:
                 << " file was not successful. Check if the process "
                    "have write access into the folder or file.";
         }
-
-        /* check if we did not get UINT32_MAX value in index - this value is reserved
-        to identify new block, which are just in memory and have never been persisted
-        into disk. If index reached this value, it means, the blockSize had been chosen
-        to too small value and we have reached our maximum number of blocks. No new
-        blocks will be persisted in order to at least save the current data.*/
-        if (block.GetIndex() == UINT32_MAX)
-        {
-            BOOST_LOG_TRIVIAL(error)
-                << "ERROR: Database: When saving block of data into file: " << fileDataPath
-                << " tha maximum number of block has been reached. For that "
-                   "reason, this block of data and data of other blocks whose have "
-                   "not "
-                   "been persisted yet, will not be persisted in order to protect "
-                   "already persisted data on disk.";
-        }
     }
 
     /// <summary>
@@ -340,6 +340,22 @@ private:
 
             uint32_t index = block.GetIndex();
 
+            /* check if we did not get UINT32_MAX value in index - this value is reserved
+            to identify new block, which are just in memory and have never been persisted
+            into disk. If index reached this value, it means, the blockSize had been chosen
+            to too small value and we have reached our maximum number of blocks. No new
+            blocks will be persisted in order to at least save the current data.*/
+            if (block.GetIndex() == UINT32_MAX)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                    << " tha maximum number of block has been reached. For that "
+                       "reason, this block of data and data of other blocks whose have "
+                       "not "
+                       "been persisted yet, will not be persisted in order to protect "
+                       "already persisted data on disk.";
+            }
+
             const ColumnBase<std::string>& colStr =
                 dynamic_cast<const ColumnBase<std::string>&>(*(column.second));
 
@@ -369,7 +385,7 @@ private:
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
 
-			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+            uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
             colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
@@ -484,22 +500,6 @@ private:
                        "have write access into the folder or file.";
             }
 
-            /* check if we did not get UINT32_MAX value in index - this value is reserved
-            to identify new block, which are just in memory and have never been persisted
-            into disk. If index reached this value, it means, the blockSize had been chosen
-            to too small value and we have reached our maximum number of blocks. No new
-            blocks will be persisted in order to at least save the current data.*/
-            if (block.GetIndex() == UINT32_MAX)
-            {
-                BOOST_LOG_TRIVIAL(error)
-                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
-                    << " tha maximum number of block has been reached. For that "
-                       "reason, this block of data and data of other blocks whose have "
-                       "not "
-                       "been persisted yet, will not be persisted in order to protect "
-                       "already persisted data on disk.";
-            }
-
             colDataFile.close();
             colFragDataFile.close();
         }
@@ -543,6 +543,22 @@ private:
             const bool isUnique = column.second->GetIsUnique();
             uint32_t index = block.GetIndex();
 
+            /* check if we did not get UINT32_MAX value in index - this value is reserved
+            to identify new block, which are just in memory and have never been persisted
+            into disk. If index reached this value, it means, the blockSize had been chosen
+            to too small value and we have reached our maximum number of blocks. No new
+            blocks will be persisted in order to at least save the current data.*/
+            if (index == UINT32_MAX)
+            {
+                BOOST_LOG_TRIVIAL(error)
+                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
+                    << " tha maximum number of block has been reached. For that "
+                       "reason, this block of data and data of other blocks whose have "
+                       "not "
+                       "been persisted yet, will not be persisted in order to protect "
+                       "already persisted data on disk.";
+            }
+
             const ColumnBase<T>& colInt = dynamic_cast<const ColumnBase<T>&>(*(column.second));
 
             // persist block data into disk:
@@ -562,8 +578,8 @@ private:
 
             colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
             colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
-            
-			uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
+
+            uint32_t nullBitMaskLength = NullValues::GetNullBitMaskSizeInBytes(block.GetSize());
             colDataFile.write(reinterpret_cast<char*>(&nullBitMaskLength), sizeof(uint32_t)); // write nullBitMask length
             if (isNullable)
             {
@@ -588,22 +604,6 @@ private:
             colDataFile.write(reinterpret_cast<const char*>(emptyData.get()),
                               (blockSize - blockCurrentSize) * sizeof(T)); // write empty entries as well
 
-            /* check if we did not get UINT32_MAX value in index - this value is reserved
-            to identify new block, which are just in memory and have never been persisted
-            into disk. If index reached this value, it means, the blockSize had been chosen
-            to too small value and we have reached our maximum number of blocks. No new
-            blocks will be persisted in order to at least save the current data.*/
-            if (index == UINT32_MAX)
-            {
-                BOOST_LOG_TRIVIAL(error)
-                    << "ERROR: Database: When saving block of data into file: " << fileDataPath
-                    << " tha maximum number of block has been reached. For that "
-                       "reason, this block of data and data of other blocks whose have "
-                       "not "
-                       "been persisted yet, will not be persisted in order to protect "
-                       "already persisted data on disk.";
-            }
-
             colDataFile.close();
         }
         else
@@ -619,8 +619,10 @@ private:
         }
     }
 
-    /// <summary>
-    /// Write column into disk (all it's blocks).
+	/// <summary>
+    /// Deletes old persisted files and writes column into disk creating new files. There is no
+    /// modification of already persisted files. Previous files are replaced. This is operation
+    /// needs more RAM memory than saving only modified blocks of data.
     /// </summary>
     /// <param name="column">Column to be written.</param>
     /// <param name="dbName">Name of the database.</param>
@@ -821,7 +823,7 @@ public:
     /// <param name="databaseName">Name of database to be removed.</param>
     static void RemoveFromInMemoryDatabaseList(const char* databaseName);
 
-    static nullmask_t* GetEmptyNullmask(const int64_t blockSize);
+    static nullmask_t* GetEmptyNullmask(const size_t blockSize);
 };
 
 template <>
