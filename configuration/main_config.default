@@ -19,13 +19,13 @@ GroupByBuckets: 262144
 GPUMemoryUsagePercent: 100
 # Percentage of allocated GPU memory used for caching columns
 GPUCachePercent: 75
-# How often to save database files
-DBSaveInterval: 1000
-
+# How often to save database files (ms)
+DBSaveInterval: 300000
 
 # == NETWORK SETTINGS ==
 ListenIP: 127.0.0.1
 ListenPort: 12345
+# Network client will disconnect if hearbeat not received in this time (ms):
 Timeout: 3600000
 
 # To edit configuration values, copy this file to "main_config"

@@ -41,10 +41,15 @@ private:
     std::unique_ptr<T[]> data_;
     std::unique_ptr<nullmask_t[]> bitMask_;
     bool isCompressed_;
-    bool isNullable_;   // flag indicating whether the block is able to contain null values
+    bool isNullable_; // flag indicating whether the block is able to contain null values
     bool wasRegistered_;
     bool isNullMaskRegistered_;
-    bool saveNecessary_;    // flag indicating whether the block is modified (or new) and therefore it is necessary to persist
+    bool saveNecessary_; // flag indicating whether the block is modified (or new) and therefore it is necessary to persist
+
+    /* This is ID of the block, which has to be unique and it is used mainly when indexing
+    the COLUMN_ADDRESS_EXTENSION file. If this index is equal to UINT32_MAX value, that means,
+    this block has never been persisted before into disk and we need to alocate a disk space for it. */
+    uint32_t index_ = UINT32_MAX;
 
 public:
     /// <summary>
@@ -54,17 +59,19 @@ public:
     /// <param name="column">Column that will hold this new block.</param>
     /// <param name="isCompressed">Flag indicating whether the block is compressed.</param>
     /// <param name="isNullable">Flag indicating whether the block is able to contain null values.</param>
-    /// <param name="countBlockStatistics">Flag indicating whether statistics need to be ratified 
+    /// <param name="countBlockStatistics">Flag indicating whether statistics need to be ratified
     /// (if false, use setBlockStatistics with concrete values, eg when loading from disk after persisting data even with already counted statistics).</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than block size.</exception>
     BlockBase(const std::vector<T>& data,
               ColumnBase<T>& column,
               bool isCompressed = false,
               bool isNullable = false,
-              bool countBlockStatistics = true)
-    : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(true)
+              bool countBlockStatistics = true,
+              bool saveNecessary = true,
+              uint32_t index = UINT32_MAX)
+    : column_(column), index_(index), size_(0), countOfNotNullValues_(0),
+      isCompressed_(isCompressed), isNullable_(isNullable), bitMask_(nullptr),
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         capacity_ = (isCompressed) ? data.size() : column.GetBlockSize();
         data_ = std::unique_ptr<T[]>(new T[capacity_]);
@@ -109,10 +116,12 @@ public:
               ColumnBase<T>& column,
               bool isCompressed = false,
               bool isNullable = false,
-              bool countBlockStatistics = true)
-    : column_(column), size_(0), countOfNotNullValues_(0), isCompressed_(isCompressed),
-      isNullable_(isNullable), bitMask_(nullptr), wasRegistered_(false),
-      isNullMaskRegistered_(false), saveNecessary_(true)
+              bool countBlockStatistics = true,
+              bool saveNecessary = true,
+              uint32_t index = UINT32_MAX)
+    : column_(column), size_(0), countOfNotNullValues_(0), index_(index),
+      isCompressed_(isCompressed), isNullable_(isNullable), bitMask_(nullptr),
+      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(saveNecessary)
     {
         if (allocationSize != column_.GetBlockSize())
         {
@@ -144,15 +153,16 @@ public:
             setBlockStatistics(dataSize, 0);
         }
     }
-    
+
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class without data.
+    /// Initializes a new instance of the <see cref="T:ColmnarDB.BlockBase"/> class without data.
     /// </summary>
     /// <param name="column">Column that will hold this new empty block.</param>
-    explicit BlockBase(ColumnBase<T>& column)
-    : column_(column), size_(0), countOfNotNullValues_(0), capacity_(column_.GetBlockSize()),
-      data_(new T[capacity_]), bitMask_(nullptr), isNullable_(column_.GetIsNullable()),
-      wasRegistered_(false), isNullMaskRegistered_(false), saveNecessary_(true)
+    explicit BlockBase(ColumnBase<T>& column, bool saveNecessary = true, uint32_t index = UINT32_MAX)
+    : column_(column), size_(0), index_(index), countOfNotNullValues_(0),
+      capacity_(column_.GetBlockSize()), data_(new T[capacity_]), bitMask_(nullptr),
+      isNullable_(column_.GetIsNullable()), wasRegistered_(false), isNullMaskRegistered_(false),
+      saveNecessary_(saveNecessary)
     {
         GPUMemory::hostPin(data_.get(), capacity_);
         wasRegistered_ = true;
@@ -214,7 +224,8 @@ public:
     }
 
     /// <summary>
-    /// Set isNullable_ flag with required value. If this value is TRUE, we need to allocate nullmasks for block. If FALSE, these nullmasks can be deleted.
+    /// Set isNullable_ flag with required value. If this value is TRUE, we need to allocate
+    /// nullmasks for block. If FALSE, these nullmasks can be deleted.
     /// </summary>
     /// <param name="isNullable">Required isNullable_ value.</param>
     void SetIsNullable(const bool isNullable)
@@ -273,9 +284,29 @@ public:
         return saveNecessary_;
     }
 
+    const uint32_t GetIndex() const
+    {
+        return index_;
+    }
+
+    void SetIndex(uint32_t newIndexVal)
+    {
+        index_ = newIndexVal;
+    }
+
     void SetSaveNecessaryToFalse()
     {
         saveNecessary_ = false;
+    }
+
+    void SetIsCompressed(bool isCompressed)
+    {
+        isCompressed_ = isCompressed;
+    }
+
+    bool GetIsCompressed() const
+    {
+        return isCompressed_;
     }
 
     /// <summary>
@@ -315,7 +346,7 @@ public:
     /// </summary>
     /// <param name="data">Data to be inserted.</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
-    void InsertData(const std::vector<T>& data)
+    void InsertData(const std::vector<T>& data, bool saveNecessary = true)
     {
         if (EmptyBlockSpace() < data.size())
         {
@@ -324,7 +355,7 @@ public:
         }
         std::copy(data.begin(), data.end(), data_.get() + size_);
         setBlockStatistics(data.size(), size_);
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     /// <summary>
@@ -334,7 +365,7 @@ public:
     /// <param name="offset">Offset, which define beginning of inderted part of data.</param>
     /// <param name="length">Lenght of data, define by offset, that are gonna be inserted.</param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
-    void InsertDataInterval(const T* newData, size_t offset, size_t length)
+    void InsertDataInterval(const T* newData, size_t offset, size_t length, bool saveNecessary = true)
     {
         if (EmptyBlockSpace() < length)
         {
@@ -344,7 +375,7 @@ public:
 
         std::copy(newData + offset, newData + offset + length, data_.get() + size_);
         setBlockStatistics(length, size_);
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     void SetNullBitmask(const std::vector<nullmask_t>& nullMask)
@@ -372,7 +403,7 @@ public:
             if (bitMask_)
             {
                 int32_t bitMaskCapacity = NullValues::GetNullBitMaskSize(capacity_);
-				GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
+                GPUMemory::hostPin(bitMask_.get(), bitMaskCapacity);
                 isNullMaskRegistered_ = true;
             }
             // count statistics from whole block - setting nullmasks can change them
@@ -447,13 +478,16 @@ public:
     /// <summary>
     /// Inserts data on proper position in block
     /// </summary>
-    /// <param name="index">index in block where data will be inserted</param>
-    /// <param name="data">value to insert<param>
-    /// <param name="isNullValue">whether data is null value flag<param>
+    /// <param name="index">Index in block where data will be inserted</param>
+    /// <param name="data">Value to insert<param>
+    /// <param name="isNullValue">Whether data is null value flag<param>
+    /// <param name="saveNecessary">Flag if the data were modified, and so if the block needs to be persisted into disk<param>
     /// <exception cref="std::length_error">Attempted to insert data larger than remaining block size.</exception>
     void InsertDataOnSpecificPosition(int32_t index,
                                       const T& data,
-                                      nullmask_t isNullValue = static_cast<nullmask_t>(0U))
+                                      nullmask_t isNullValue = static_cast<nullmask_t>(0U),
+                                      bool saveNecessary = true)
+
     {
         if (EmptyBlockSpace() == 0)
         {
@@ -487,7 +521,7 @@ public:
                 for (size_t i = bitMaskIdx; i < bitMaskCapacity; i++)
                 {
                     nullmask_t tmp = NullValues::GetConcreteBitFromBitmask(bitMask_.get(), i,
-                                                                       (sizeof(nullmask_t) * 8 - 1));
+                                                                           (sizeof(nullmask_t) * 8 - 1));
                     bitMask_[i] <<= static_cast<nullmask_t>(1U);
                     NullValues::SetBitInBitMask(bitMask_.get(), i, 0, last);
                     last = tmp;
@@ -500,7 +534,7 @@ public:
         }
         data_[index] = data;
         updateBlockStatistics(data, isNullValue);
-        saveNecessary_ = true;
+        saveNecessary_ = saveNecessary;
     }
 
     ~BlockBase()

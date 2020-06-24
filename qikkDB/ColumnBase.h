@@ -93,13 +93,19 @@ class ColumnBase : public IColumn
 {
 private:
     std::string name_;
-    int64_t size_;  // current number of not empty rows in a column, sumerized all blocks size_
+    int64_t size_; // current number of not empty rows in a column, sumerized all blocks size_
     int32_t blockSize_;
-    std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;  // map<groupID, vector of blocks for current groupID> groupID refers to group in binary index
-    std::unordered_set<T> uniqueHashmap_;   // hashMap for handling unique constraint
+    std::string fileAddressPath_;
+    std::string fileDataPath_;
+    std::string fileFragmentPath_; // used just in COLUMN_STRING and COLUMN_POLYGON
+    std::string encoding_; // used just in COLUMN_STRING and COLUMN_POLYGON, it is encoding of persisted string data
+    std::map<int32_t, std::vector<std::unique_ptr<BlockBase<T>>>> blocks_;
+    std::unordered_set<T> uniqueHashmap_;
 
     // statistical variable defined for column
     void setColumnStatistics();
+
+    T defaultValue_ = T{};
     T min_ = std::numeric_limits<T>::lowest();
     T max_ = std::numeric_limits<T>::max();
     float avg_ = 0.0;
@@ -109,16 +115,25 @@ private:
     bool initAvgIsSet_;
     bool isNullable_;
     bool isUnique_;
-    bool saveNecessary_;
 
 public:
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
     : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false),
-      saveNecessary_(true), initAvgIsSet_(false)
+      initAvgIsSet_(false)
     {
         blocks_.emplace(-1, std::vector<std::unique_ptr<BlockBase<T>>>());
         SetIsNullable(isNullable);
         SetIsUnique(isUnique);
+    }
+
+    T GetDefaultValue() const
+    {
+        return defaultValue_;
+    }
+
+    void SetDefaultValue(T newDefaultValue)
+    {
+        defaultValue_ = newDefaultValue;
     }
 
     /// <summary>
@@ -149,7 +164,7 @@ public:
     {
         return temp_hashmap.find(value) != temp_hashmap.end();
     }
-    
+
     /// <summary>
     /// Checking duplicity in uniqueHashmap_ and value.
     /// </summary>
@@ -202,6 +217,46 @@ public:
     virtual bool GetIsNullable() const override
     {
         return isNullable_;
+    }
+
+    virtual const std::string& GetFileAddressPath() const override
+    {
+        return fileAddressPath_;
+    }
+
+    virtual const std::string& GetFileDataPath() const override
+    {
+        return fileDataPath_;
+    }
+
+    virtual const std::string& GetFileFragmentPath() const override
+    {
+        return fileFragmentPath_;
+    }
+
+    virtual const std::string& GetEncoding() const override
+    {
+        return encoding_;
+    }
+
+    virtual void SetFileAddressPath(std::string newFilePath) override
+    {
+        fileAddressPath_ = newFilePath;
+    }
+
+    virtual void SetFileDataPath(std::string newFilePath) override
+    {
+        fileDataPath_ = newFilePath;
+    }
+
+    virtual void SetFileFragmentPath(std::string newFilePath) override
+    {
+        fileFragmentPath_ = newFilePath;
+    }
+
+    virtual void SetEncoding(std::string newFilePath) override
+    {
+        encoding_ = newFilePath;
     }
 
     /// <summary>
@@ -353,23 +408,6 @@ public:
         }
     }
 
-    virtual bool GetSaveNecessary() const override
-    {
-        return saveNecessary_;
-    }
-
-    virtual void SetSaveNecessaryToFalse() override
-    {
-        saveNecessary_ = false;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to FALSE for column named: " << name_ << ".";
-    }
-
-    virtual void SetSaveNecessaryToTrue() override
-    {
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
-    }
-
     virtual void SetColumnName(std::string newName) override
     {
         name_ = newName;
@@ -472,7 +510,8 @@ public:
         {
             while (srcBlockIndex < srcColumn->GetBlockCount())
             {
-                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex > static_cast<int64_t>(blockSize_ - dstRowIndex))
+                if (srcBlocks[srcBlockIndex]->GetSize() - srcRowIndex >
+                    static_cast<uint64_t>(blockSize_ - dstRowIndex))
                 {
                     // srcBlock[i].size_ > dstBlock
                     size_ += blockSize_ - dstRowIndex;
@@ -515,7 +554,7 @@ public:
     /// Add new empty block in column
     /// </summary>
     /// <returns>Last block of column</returns>
-    BlockBase<T>& AddBlock(int32_t groupId = -1)
+    BlockBase<T>& AddBlock(int32_t groupId = -1, bool saveNecessary = true, const uint32_t index = UINT32_MAX)
     {
         if (blocks_.find(groupId) == blocks_.end())
         {
@@ -523,9 +562,7 @@ public:
             blocks_.emplace(groupId, std::vector<std::unique_ptr<BlockBase<T>>>());
         }
 
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this));
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(*this, saveNecessary, index));
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
 
@@ -538,17 +575,17 @@ public:
                            int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
-                           bool countBlockStatistics = true)
+                           bool countBlockStatistics = true,
+                           bool saveNecessary = true,
+                           const uint32_t index = UINT32_MAX)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed,
-                                                                  isNullable_, countBlockStatistics));
+        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(data, *this, isCompressed, isNullable_,
+                                                                  countBlockStatistics, saveNecessary, index));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         size_ += data.size();
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -559,18 +596,18 @@ public:
                            int32_t groupId = -1,
                            bool compress = false,
                            bool isCompressed = false,
-                           bool countBlockStatistics = true)
+                           bool countBlockStatistics = true,
+                           bool saveNecessary = true,
+                           const uint32_t index = UINT32_MAX)
     {
-        blocks_[groupId].push_back(std::make_unique<BlockBase<T>>(std::move(data), dataSize,
-                                                                  allocationSize, *this, isCompressed,
-                                                                  isNullable_, countBlockStatistics));
+        blocks_[groupId].push_back(
+            std::make_unique<BlockBase<T>>(std::move(data), dataSize, allocationSize, *this, isCompressed,
+                                           isNullable_, countBlockStatistics, saveNecessary, index));
         auto& lastBlock = blocks_[groupId].back();
         if (lastBlock->IsFull() && !isCompressed && compress)
         {
             lastBlock->CompressData();
         }
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         size_ += dataSize;
         return *(dynamic_cast<BlockBase<T>*>(blocks_[groupId].back().get()));
     }
@@ -621,8 +658,6 @@ public:
             BlockSplit(blocks_[groupId][indexBlock]);
         }
 
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         // setColumnStatistics();
     }
 
@@ -653,9 +688,6 @@ public:
 
         size_ += 1;
         block.InsertDataOnSpecificPosition(indexInBlock, columnData, isNullValue);
-
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
     }
 
     /// <summary>
@@ -723,16 +755,19 @@ public:
     /// Insert data into column considering empty space of last block and maximum size of blocks
     /// </summary>
     /// <param name="columnData">Data to be inserted</param>
-    /// <param name="groupId">ID of binary index group.<param>
+    /// <param name="groupId">ID of binary index group<param>
     /// <param name="compress">Compress flag</param>
-    void InsertData(const std::vector<T>& columnData, int32_t groupId = -1, bool compress = false)
+    /// <param name="saveNecessary">Flag if the data were modified and so persisting it into disk is
+    /// needed<param> <param name="index">Block index</param>
+    void InsertData(const std::vector<T>& columnData,
+                    int32_t groupId = -1,
+                    bool compress = false,
+                    bool saveNecessary = true,
+                    const uint32_t index = UINT32_MAX)
     {
         Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
 
         int32_t startIdx = 0;
-
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
 
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
         {
@@ -762,7 +797,7 @@ public:
         {
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             AddBlock(std::vector<T>(columnData.cbegin() + startIdx, columnData.cbegin() + startIdx + toCopy),
-                     groupId, compress, false);
+                     groupId, compress, false, saveNecessary, index);
             startIdx += toCopy;
         }
         // setColumnStatistics();
@@ -778,12 +813,11 @@ public:
     void InsertData(const std::vector<T>& columnData,
                     const std::vector<nullmask_t>& nullMask,
                     int32_t groupId = -1,
-                    bool compress = false)
+                    bool compress = false,
+                    bool saveNecessary = true,
+                    const uint32_t index = UINT32_MAX)
     {
         Context::getInstance().CheckRowsLimit(size_ + columnData.size() - 1);
-
-        saveNecessary_ = true;
-        BOOST_LOG_TRIVIAL(debug) << "Flag saveNecessary_ was set to TRUE for column named: " << name_ << ".";
         int32_t startIdx = 0;
         int32_t maskIdx = 0;
         if (blocks_[groupId].size() > 0 && !blocks_[groupId].back()->IsFull())
@@ -836,7 +870,7 @@ public:
             int32_t toCopy = columnData.size() - startIdx < blockSize_ ? columnData.size() - startIdx : blockSize_;
             auto& block = AddBlock(std::vector<T>(columnData.cbegin() + startIdx,
                                                   columnData.cbegin() + startIdx + toCopy),
-                                   groupId, compress, false);
+                                   groupId, compress, false, saveNecessary, index);
             auto maskPtr = block.GetNullBitmask();
             for (int32_t i = 0; i < toCopy; i++)
             {
@@ -1094,9 +1128,9 @@ public:
         return ::GetColumnType<T>();
     };
 
-    virtual int32_t GetBlockCount() const override
+    virtual const uint32_t GetBlockCount() const override
     {
-        int32_t ret = 0;
+        uint32_t ret = 0;
 
         for (auto& block : blocks_)
         {
@@ -1104,6 +1138,34 @@ public:
         }
 
         return ret;
+    }
+
+    /// <summary>
+    /// Calculate number of already persisted blocks into disk.
+    /// </summary>
+    /// <returns>Number of already persisted blocks.</returns>
+    virtual const uint32_t GetNumberOfPersistedBlocks() const override
+    {
+        uint32_t ret = 0;
+
+        for (auto& map : blocks_)
+        {
+            for (auto& block : map.second)
+            {
+                // if the index is equal to UINT32_MAX, that means, this block has never been persisted (reserved value):
+                if (block->GetIndex() != UINT32_MAX)
+                {
+                    ret++;
+                }
+            }
+        }
+
+        return ret;
+    }
+
+    virtual int64_t GetBlockSizeForIndex(int32_t blockIdx) const override
+    {
+        return GetBlocksList()[blockIdx]->GetSize();
     }
 };
 

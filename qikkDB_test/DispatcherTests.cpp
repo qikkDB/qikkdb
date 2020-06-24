@@ -2,6 +2,7 @@
 #include <functional>
 #include <iostream>
 #include <fstream>
+#include <gtest/gtest.h>
 
 #include "gtest/gtest.h"
 #include "../qikkDB/DatabaseGenerator.h"
@@ -3158,47 +3159,58 @@ TEST(DispatcherTests, IntEqConstColumn)
     }
 }
 
-// Test values from integer column to be equal with the values from another integer column
+/// <summary>
+/// Test values from integer column to be equal with the values from another integer column
+/// </summary>
 TEST(DispatcherTests, IntEqColumnColumn)
 {
     Context::getInstance();
 
-    std::string tableName = "TableA";
-    std::string columnName1 = "colInteger1";
-    std::string columnName2 = "colInteger2";
+    const std::string tableName = "TableA";
+    const std::string columnName1 = "colInteger1";
+    const std::string columnName2 = "colInteger2";
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
                                   columnName2 + " = " + columnName1 + ";");
-    auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    const auto resultPtr = parser.Parse(); // Execute query
+    const auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
-    auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
-    auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
-    auto& colInteger = tables.at(tableName).GetColumns().at(columnName1);
-    auto blocksNum = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
+    const auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
+    const auto& colInteger2 = tables.at(tableName).GetColumns().at(columnName2);
+    const auto& colInteger1 = tables.at(tableName).GetColumns().at(columnName1);
+    const auto blocks1 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
+    const auto blocks2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList();
+
+	// Check, if columns have the same number of blocks:
+	ASSERT_EQ(blocks1.size(), blocks2.size());
 
     // Filter data from database on CPU manually, so we have expected results
     std::vector<int32_t> expectedResult;
-    for (int32_t j = 0; j < blocksNum.size(); j++)
+    for (int32_t j = 0; j < blocks1.size(); j++)
     {
-        auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
-        auto data = dynamic_cast<ColumnBase<int32_t>*>(colInteger.get())->GetBlocksList().at(j)->GetData();
+        const auto data1 = dynamic_cast<ColumnBase<int32_t>*>(colInteger1.get())->GetBlocksList().at(j)->GetData();
+        const auto data2 = dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->GetData();
 
-        auto dataLength =
+        const auto dataLength1 =
+            dynamic_cast<ColumnBase<int32_t>*>(colInteger1.get())->GetBlocksList().at(j)->BlockCapacity();
+		const auto dataLength2 =
             dynamic_cast<ColumnBase<int32_t>*>(colInteger2.get())->GetBlocksList().at(j)->BlockCapacity();
 
-        for (int32_t i = 0; i < dataLength; i++)
+		// Check, if columns have the same block capacity:
+        ASSERT_EQ(dataLength1, dataLength2);
+
+        for (int32_t i = 0; i < dataLength1; i++)
         {
-            if (data2[i] == data[i])
+            if (data2[i] == data1[i])
             {
                 expectedResult.push_back(data2[i]);
             }
         }
     }
 
-    auto& payloads = result->payloads().at(tableName + "." + columnName2);
+    const auto& payloads = result->payloads().at(tableName + "." + columnName2);
 
     // Check, if the query result have the expected number of returned values (results)
     ASSERT_EQ(payloads.intpayload().intdata_size(), expectedResult.size());

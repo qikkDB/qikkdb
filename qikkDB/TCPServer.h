@@ -70,10 +70,10 @@ private:
             if (autoSaveDeadline_.expiry() <= boost::asio::steady_timer::clock_type::now())
             {
                 // The deadline has passed. Save databases.
-                BOOST_LOG_TRIVIAL(info) << "Autosaving databases...";
-                Database::SaveModifiedToDisk();
+                BOOST_LOG_TRIVIAL(info) << "TCPServer: Autosaving modified blocks of data in all databases has been triggered.";
+                Database::SaveModifiedToDisk(); //TODO change this to be in Table.h !!!!!!!!!!!!!!!!!!!!
                 autoSaveDeadline_.expires_after(
-                    std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
+                    std::chrono::milliseconds(Configuration::GetInstance().GetDBSaveInterval()));
                 AutoSaveDB();
             }
             else
@@ -104,7 +104,7 @@ public:
         if (saveDBAutomatically_ && Configuration::GetInstance().GetDBSaveInterval() > 0)
         {
             autoSaveDeadline_.expires_after(
-                std::chrono::seconds(Configuration::GetInstance().GetDBSaveInterval()));
+                std::chrono::milliseconds(Configuration::GetInstance().GetDBSaveInterval()));
             AutoSaveDB();
         }
         ioContext_.run();

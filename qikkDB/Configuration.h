@@ -39,7 +39,7 @@ private:
     int32_t timeout_ = 3600000;
     int32_t GPUMemoryUsagePercent_ = 100;
     int32_t GPUCachePercent_ = 75;
-    int32_t DBSaveInterval_ = 1000;
+    int32_t DBSaveInterval_ = 3600000;
 
     void LoadConfigurationFile();
 
