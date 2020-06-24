@@ -121,9 +121,9 @@ add_library(${PROJECT_NAME}_common_lib OBJECT ${SOURCE_FILES} ${CUDA_FILES})
 add_library(${PROJECT_NAME}_community_lib OBJECT ${CUDA_VERSION_FILES})
 add_library(${PROJECT_NAME}_full_lib OBJECT ${CUDA_VERSION_FILES})
 
-add_dependencies(${PROJECT_NAME}_common_lib protobuf-external yaml-cpp-external antlr4_static)
-add_dependencies(${PROJECT_NAME}_community_lib protobuf-external yaml-cpp-external antlr4_static)
-add_dependencies(${PROJECT_NAME}_full_lib protobuf-external yaml-cpp-external antlr4_static)
+add_dependencies(${PROJECT_NAME}_common_lib protobuf-external yaml-cpp-external antlr4_static jsoncpp-external)
+add_dependencies(${PROJECT_NAME}_community_lib protobuf-external yaml-cpp-external antlr4_static jsoncpp-external)
+add_dependencies(${PROJECT_NAME}_full_lib protobuf-external yaml-cpp-external antlr4_static jsoncpp-external)
 
 target_compile_definitions(${PROJECT_NAME}_community_lib PUBLIC COMMUNITY)
 
@@ -181,9 +181,11 @@ IF(NOT WIN32)
     target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${prefix}yaml-cpp${suffix})
 ENDIF(NOT WIN32)
 
-
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC ${Boost_LIBRARIES})
 target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC ${Boost_LIBRARIES})
+
+target_link_libraries(${PROJECT_NAME}_obj PUBLIC jsoncpp${suffix})
+target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC jsoncpp${suffix})
 
 target_link_libraries(${PROJECT_NAME}_obj PUBLIC antlr4_static)
 target_link_libraries(${PROJECT_NAME}_community_obj PUBLIC antlr4_static)

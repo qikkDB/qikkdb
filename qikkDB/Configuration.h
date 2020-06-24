@@ -32,6 +32,7 @@ private:
     bool usingCompression_ = false;
     bool usingWhereEvaluationSpeedup_ = false;
     std::string databaseDir_ = "../databases/";
+    std::string testDatabaseDir_ = "../test_databases/";
     int32_t blockSize_ = 262144;
     int32_t groupByBuckets_ = 262144;
     std::string listenIP_ = "127.0.0.1";
@@ -39,7 +40,7 @@ private:
     int32_t timeout_ = 3600000;
     int32_t GPUMemoryUsagePercent_ = 100;
     int32_t GPUCachePercent_ = 75;
-    int32_t DBSaveInterval_ = 1000;
+    int32_t DBSaveInterval_ = 3600000;
 
     void LoadConfigurationFile();
 
@@ -103,6 +104,11 @@ public:
     const std::string& GetDatabaseDir() const
     {
         return databaseDir_;
+    }
+
+	const std::string& GetTestDatabaseDir() const
+    {
+        return testDatabaseDir_;
     }
 
     int32_t GetBlockSize() const

@@ -721,9 +721,10 @@ int main(int argc, char** argv)
     }
     else // TCP server
     {
-        BOOST_LOG_TRIVIAL(info) << "Loading databases...";
+        BOOST_LOG_TRIVIAL(info) << "Loading databases from: " << Configuration::GetInstance().GetDatabaseDir();
         Database::LoadDatabasesFromDisk();
-        BOOST_LOG_TRIVIAL(info) << "All databases loaded.";
+        BOOST_LOG_TRIVIAL(info) << "All databases from "
+                                << Configuration::GetInstance().GetDatabaseDir() << " have been loaded.";
 
         TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(
             Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());

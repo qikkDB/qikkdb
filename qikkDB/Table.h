@@ -2,6 +2,8 @@
 #include "IColumn.h"
 #include "DataType.h"
 #include "ConstraintType.h"
+#include "Configuration.h"
+
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -33,7 +35,8 @@ private:
     std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints_;
     std::vector<std::string> sortingColumns;
     std::unique_ptr<std::mutex> columnsMutex_;
-    bool saveNecesarry_;
+    // save interval in milliseconds, default value is from configuration file, but can be overriden via .db file:
+    int32_t saveInterval_ = Configuration::GetInstance().GetDBSaveInterval();
 
 #ifndef __CUDACC__
     void InsertValuesOnSpecificPosition(const std::unordered_map<std::string, std::any>& data,
@@ -59,7 +62,7 @@ private:
     bool GetHasNotNullConstraints();
 
 public:
-    const std::shared_ptr<Database>& GetDatabase();
+    const std::shared_ptr<Database>& GetDatabase() const;
     const std::string& GetName() const;
     void SetTableName(const std::string& newTableName);
     int32_t GetBlockSize() const;
@@ -71,8 +74,6 @@ public:
     void SetSortingColumns(std::vector<std::string> columns);
     void AddSortingColumn(const std::string& sortingColumn);
     void RemoveSortingColumn(const std::string& sortingColumn);
-    bool GetSaveNecessary() const;
-    void SetSaveNecessaryToFalse();
     void RenameColumn(std::string oldColumnName, std::string newColumnName);
     void InsertNullDataIntoNewColumn(std::string newColumnName);
     void AddConstraint(const std::string& constraintName,
@@ -82,6 +83,8 @@ public:
     const std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>>&
     GetConstraints() const;
     std::unordered_set<ConstraintType> GetConstraintsForColumn(const std::string& columnName);
+    int32_t GetSaveInterval() const;
+    void SetSaveInterval(const int32_t newSaveInterval);
 
     /// <summary>
     /// Removes column from columns (in memory).
