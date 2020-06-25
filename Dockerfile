@@ -1,13 +1,14 @@
 # Build
 FROM nvidia/cuda:10.2-devel AS builder
 
-WORKDIR /build/dropdbase_instarea
+WORKDIR /build/qikkDB
 
 COPY . ./
 
 WORKDIR /build
 
 RUN mkdir /databases
+RUN mkdir /test_databases
 
 # Install needed packages in non-interactive mode
 ENV DEBIAN_FRONTEND noninteractive
@@ -37,21 +38,21 @@ RUN mkdir -p ./boost/src \
 	
 WORKDIR /build
 
-# Run CMake DropDBase
-RUN	mkdir build_dropdbase \
-	&& cd build_dropdbase \
-	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../dropdbase_instarea
+# Run CMake QikkDB
+RUN	mkdir build_qikkDB \
+	&& cd build_qikkDB \
+	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../qikkDB
 
-RUN cd build_dropdbase && ninja
+RUN cd build_qikkDB && ninja
 
 # Build client console
 FROM microsoft/dotnet:2.2-sdk AS console-build
 WORKDIR /src
-COPY ./ColmnarDB.ConsoleClient ColmnarDB.ConsoleClient/
-COPY ./ColmnarDB.NetworkClient ColmnarDB.NetworkClient/
-RUN dotnet restore ColmnarDB.ConsoleClient/ColmnarDB.ConsoleClient.csproj
-WORKDIR /src/ColmnarDB.ConsoleClient
-RUN dotnet publish -c Release -r linux-x64 --self-contained true ColmnarDB.ConsoleClient.csproj -o /app
+COPY ./QikkDB.ConsoleClient QikkDB.ConsoleClient/
+COPY ./QikkDB.NetworkClient QikkDB.NetworkClient/
+RUN dotnet restore QikkDB.ConsoleClient/QikkDB.ConsoleClient.csproj
+WORKDIR /src/QikkDB.ConsoleClient
+RUN dotnet publish -c Release -r linux-x64 --self-contained true QikkDB.ConsoleClient.csproj -o /app
 
 # Application
 FROM nvidia/cuda:10.2-runtime
@@ -59,7 +60,7 @@ FROM nvidia/cuda:10.2-runtime
 WORKDIR /app
 
 # Copy .exe file from build into app
-COPY --from=builder /build/build_dropdbase/dropdbase/dropdbase_instarea .
+COPY --from=builder /build/build_qikkDB/qikkDB/qikkDB .
 
 # Copy Boost built libraries
 COPY --from=builder /opt/boost_1.69 /opt/boost_1.69
@@ -69,9 +70,10 @@ RUN ldconfig /opt/boost_1.69/lib
 COPY configuration /configuration
 
 RUN mkdir /databases
+RUN mkdir /test_databases
 
 # Copy client console from console-build into app (without dotnet dependencies)
 RUN mkdir /client
 COPY --from=console-build /app ./client
 
-ENTRYPOINT ["./dropdbase_instarea"]
+ENTRYPOINT ["./qikkDB"]
