@@ -2,7 +2,7 @@ version: '3.4'
 
 services:
   qikkdb:
-    container_name: qikkdb1
+    container_name: qikkdb_1
     image: qikkdb
     user: 0:0
     build:
