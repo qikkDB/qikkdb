@@ -6,8 +6,8 @@ services:
     image: qikkdb
     user: 0:0
     build:
-      context: ${HOME}/GPU-DB/
-      dockerfile: ${HOME}/GPU-DB/Dockerfile
+      context: ./
+      dockerfile: ./Dockerfile
     ports:
       - 12345:12345
     volumes:
