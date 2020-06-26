@@ -70,6 +70,11 @@ RUN ldconfig /opt/boost_1.69/lib
 COPY configuration /configuration
 
 RUN mkdir /databases
+COPY sampleData/db/. /databases
+
+RUN mkdir /sampleData
+COPY sampleData/csv/. /sampleData
+
 RUN mkdir /test_databases
 
 # Copy client console from console-build into app (without dotnet dependencies)
