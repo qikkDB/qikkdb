@@ -97,7 +97,11 @@ namespace QikkDB.ConsoleClient
                         continue;
                     }
 
+                    wholeCommand = wholeCommand[wholeCommand.Length - 1] == ';' ? wholeCommand.Substring(0, wholeCommand.Length - 1).Trim() : wholeCommand.Trim();
+
                     string[] splitCommand = wholeCommand.Split(" ");
+
+                    splitCommand = splitCommand.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
                     string command = splitCommand[0].ToLower();
                     string parameters = "";
@@ -133,7 +137,6 @@ namespace QikkDB.ConsoleClient
                                 Console.WriteLine("USE: Missing argument - database name");
                                 break;
                             }
-                            parameters = parameters[parameters.Length - 1] == ';' ? parameters.Substring(0, parameters.Length - 1) : parameters;
                             use.Use(parameters, client);
 
                             break;
@@ -173,6 +176,9 @@ namespace QikkDB.ConsoleClient
                                         continue;
                                     }
 
+                                    queryString = queryString[queryString.Length - 1] == ';' ? queryString.Substring(0, queryString.Length - 1).Trim() : queryString.Trim();
+
+
                                     Console.WriteLine("SCRIPT: Executing query/command on line " + scriptFileLine + " from a script file: " + parameters);
 
                                     try
@@ -181,7 +187,8 @@ namespace QikkDB.ConsoleClient
                                         {
                                             string[] splitCommand2 = queryString.Split(" ");
 
-                                            splitCommand2[1] = splitCommand2[1][splitCommand2[1].Length - 1] == ';' ? splitCommand2[1].Substring(0, splitCommand2[1].Length - 1) : splitCommand2[1];
+                                            splitCommand2 = splitCommand2.Where(x => !string.IsNullOrEmpty(x)).ToArray();
+
                                             use.Use(splitCommand2[1], client);
                                         }
                                         else
@@ -189,6 +196,7 @@ namespace QikkDB.ConsoleClient
                                             if (queryString.ToLower().StartsWith("i ") || queryString.ToLower().StartsWith("import "))
                                             {
                                                 string[] splitCommand2 = queryString.Split(" ");
+                                                splitCommand2 = splitCommand2.Where(x => !string.IsNullOrEmpty(x)).ToArray();
                                                 string command2 = splitCommand2[0];
                                                 string parameters2 = queryString.Substring(command2.Length + 1);
                                                 string[] splitParameters2 = Regex.Matches(parameters2, @"[\""].+?[\""]|[^ ]+").Cast<Match>().Select(m => m.Value).ToArray();
@@ -200,7 +208,6 @@ namespace QikkDB.ConsoleClient
                                                 }
 
                                                 string database2 = splitParameters2[0];
-                                                splitParameters2[1] = splitParameters2[1][splitParameters2[1].Length - 1] == ';' ? splitParameters2[1].Substring(0, splitParameters2[1].Length - 1) : splitParameters2[1];
                                                 string filePath2 = splitParameters2[1];
                                                 if (filePath2.Length > 0 && filePath2.ElementAt(0) == '\"')
                                                 {
@@ -244,6 +251,7 @@ namespace QikkDB.ConsoleClient
                                 break;
                             }
 
+                            parameters = parameters[parameters.Length - 1] != ';' ? parameters + ';' : parameters;
                             query.RunTestQuery(parameters, Console.WindowWidth, client);
 
                             break;
@@ -357,6 +365,7 @@ namespace QikkDB.ConsoleClient
             if (splitParameters.Length > 2)
             {
                 Dictionary<string, string> parametersLookup = new Dictionary<string, string>();
+
                 for (int i = 2; i < splitParameters.Length; i++)
                 {
                     string[] splitParameterPair = splitParameters[i].Split("=");
