@@ -75,7 +75,7 @@ class DummyClientHandler : public IClientHandler
     HandleBulkImport(ITCPWorker& worker,
                      const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
-                     const char* nullMask) override
+                     const uint8_t* nullMask) override
     {
         std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
             std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();

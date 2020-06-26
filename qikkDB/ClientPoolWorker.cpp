@@ -180,7 +180,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                         [this, self, bulkImportMessage](char* resultBuffer, int32_t elementCount) {
                             std::unique_ptr<google::protobuf::Message> importResultMessage =
                                 clientHandler_->HandleBulkImport(*this, bulkImportMessage,
-                                                                 dataBuffer_.get(), resultBuffer);
+                                                                 dataBuffer_.get(), reinterpret_cast<const uint8_t*>(resultBuffer));
                             if (importResultMessage != nullptr)
                             {
                                 networkMessage_.WriteToNetwork(*importResultMessage, socket_,
@@ -194,7 +194,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                 {
                     std::unique_ptr<google::protobuf::Message> importResultMessage =
                         clientHandler_->HandleBulkImport(*this, bulkImportMessage,
-                                                         dataBuffer_.get(), nullBuffer_.get());
+                                                         dataBuffer_.get(), reinterpret_cast<const uint8_t*>(nullBuffer_.get()));
                     if (importResultMessage != nullptr)
                     {
                         networkMessage_.WriteToNetwork(*importResultMessage, socket_,

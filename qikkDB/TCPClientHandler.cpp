@@ -345,7 +345,7 @@ std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
                                    const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                                    const char* dataBuffer,
-                                   const char* nullMask)
+                                   const uint8_t* nullMask)
 {
     auto resultMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
     std::string tableName = bulkImportMessage.tablename();

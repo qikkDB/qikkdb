@@ -45,6 +45,6 @@ public:
     HandleBulkImport(ITCPWorker& worker,
                      const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
-                     const char* nullMask = nullptr) override;
+                     const uint8_t* nullMask = nullptr) override;
     virtual void Abort() override;
 };

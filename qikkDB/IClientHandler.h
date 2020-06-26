@@ -51,7 +51,7 @@ public:
     HandleBulkImport(ITCPWorker& worker,
                      const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
-                     const char* nullMask = nullptr) = 0;
+                     const uint8_t* nullMask = nullptr) = 0;
     /// <summary>
     /// Set working database
     /// </summary>
