@@ -1034,7 +1034,7 @@ namespace QikkDB.NetworkClient
                     for (i = 0; i < size; i += fragmentSize)
                     {
                         int elemCount = 0;
-                        if (columnType == DataType.ColumnString || columnType == DataType.ColumnPolygon)
+                        if (columnType == DataType.ColumnString || columnType == DataType.ColumnPolygon || columnType == DataType.ColumnPoint)
                         {
                             fragmentSize = 0;
                             while (fragmentSize < BULK_IMPORT_FRAGMENT_SIZE && i + fragmentSize < size)
