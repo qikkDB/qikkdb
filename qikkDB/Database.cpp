@@ -14,6 +14,7 @@
 
 std::mutex Database::dbAccessMutex_;
 std::mutex Database::dbFilesMutex_;
+std::mutex Database::staticDbMutex_;
 
 /// <summary>
 /// Initializes a new instance of the Database class.

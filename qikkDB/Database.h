@@ -641,6 +641,7 @@ public:
     static constexpr const int32_t FRAGMENT_SIZE_BYTES = 1048576;
     static constexpr const char* POLYGON_DEFAULT_VALUE = "POLYGON((0 0, 1 1, 2 2, 0 0))";
     std::mutex dbMutex_;
+    static std::mutex staticDbMutex_;
     /// <summary>
     /// Initializes a new instance of the class.
     /// </summary>

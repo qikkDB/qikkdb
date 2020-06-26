@@ -198,14 +198,16 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
                            const QikkDB::NetworkClient::Message::QueryMessage& queryMessage,
                            std::function<void(std::unique_ptr<google::protobuf::Message>)> handler)
 {
-    std::unique_lock<std::mutex> dbLock{database.lock()->dbMutex_};
+    std::unique_lock<std::mutex> dbLock{database.lock() != nullptr ? database.lock()->dbMutex_ :
+                                                                     Database::staticDbMutex_};
     try
     {
         auto start = std::chrono::high_resolution_clock::now();
         parser_ = std::make_unique<GpuSqlCustomParser>(database.lock(), queryMessage.query());
         auto ret = parser_->Parse();
         auto end = std::chrono::high_resolution_clock::now();
-        BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
+        BOOST_LOG_TRIVIAL(info)
+            << "TCPClientHandler: Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
         std::unique_ptr<google::protobuf::Message> notifyMessage = nullptr;
         if (auto response = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
         {
@@ -242,8 +244,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
 }
 
 std::unique_ptr<google::protobuf::Message>
-TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
-                                    const QikkDB::NetworkClient::Message::InfoMessage& infoMessage)
+TCPClientHandler::HandleInfoMessage(ITCPWorker& worker, const QikkDB::NetworkClient::Message::InfoMessage& infoMessage)
 {
     if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::CONN_END)
     {
@@ -262,7 +263,8 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
     }
     else
     {
-        BOOST_LOG_TRIVIAL(warning) << "TCPClientHandler: Invalid InfoMessage received, Code = " << infoMessage.code();
+        BOOST_LOG_TRIVIAL(warning)
+            << "TCPClientHandler: Invalid InfoMessage received, Code = " << infoMessage.code();
     }
     return nullptr;
 }
@@ -538,7 +540,8 @@ void TCPClientHandler::Abort()
 {
     if (parser_)
     {
-        BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Got request from client to abort parser (cancel query execution).";
+        BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Got request from client to abort parser "
+                                   "(cancel query execution).";
         parser_->InterruptQueryExecution();
     }
 }
