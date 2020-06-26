@@ -202,8 +202,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
     try
     {
         auto start = std::chrono::high_resolution_clock::now();
-        auto sharedDb = database.lock();
-        parser_ = std::make_unique<GpuSqlCustomParser>(sharedDb, queryMessage.query());
+        parser_ = std::make_unique<GpuSqlCustomParser>(database.lock(), queryMessage.query());
         auto ret = parser_->Parse();
         auto end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
