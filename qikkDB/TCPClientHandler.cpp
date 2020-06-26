@@ -11,7 +11,6 @@
 #include <boost/log/trivial.hpp>
 #include <boost/asio.hpp>
 
-std::mutex TCPClientHandler::queryMutex_;
 std::mutex TCPClientHandler::importMutex_;
 
 std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult()
@@ -199,8 +198,7 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
                            const QikkDB::NetworkClient::Message::QueryMessage& queryMessage,
                            std::function<void(std::unique_ptr<google::protobuf::Message>)> handler)
 {
-    std::unique_lock<std::mutex> dbLock{Database::dbMutex_};
-    std::lock_guard<std::mutex> queryLock(queryMutex_);
+    std::unique_lock<std::mutex> dbLock{database.lock()->dbMutex_};
     try
     {
         auto start = std::chrono::high_resolution_clock::now();

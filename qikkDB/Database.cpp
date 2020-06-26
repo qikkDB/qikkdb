@@ -12,7 +12,6 @@
 #include "Configuration.h"
 #include "Database.h"
 
-std::mutex Database::dbMutex_;
 std::mutex Database::dbAccessMutex_;
 std::mutex Database::dbFilesMutex_;
 

@@ -15,7 +15,6 @@ private:
     const int FRAGMENT_SIZE = 1024; // Must be a multiple of sizeof(nullmask_t)*8
     int sentRecords_;
     int lastResultLen_;
-    static std::mutex queryMutex_;
     static std::mutex importMutex_;
     std::unique_ptr<google::protobuf::Message> GetNextQueryResult();
     std::future<std::unique_ptr<google::protobuf::Message>> lastQueryResult_;
