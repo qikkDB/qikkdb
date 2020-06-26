@@ -276,17 +276,19 @@ namespace ColmnarDB.ConsoleClient
                         case "h":
                         case "help":
                             //formated console output
-                            const string format = "{0,-30} {1,-30}";
+                            const string format = "{0,-48} {1,-48}";
 
                             Console.WriteLine();
-                            Console.WriteLine(String.Format(format, "h, help", "Show information about commands"));
-                            Console.WriteLine(String.Format(format, "docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
-                            Console.WriteLine(String.Format(format, "u [database], use [database]", "Set current working database"));
-                            Console.WriteLine(String.Format(format, "i [path], import [path]", "Import CSV file with comma separated columns."));
-                            Console.WriteLine(String.Format(format, "[query]", "Run given query"));
-                            Console.WriteLine(String.Format(format, "s [file], script [file]", "Run SQL queries from a file path (also supports console client command USE)."));
-                            Console.WriteLine(String.Format(format, "t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
-                            Console.WriteLine(String.Format(format, "q, quit, exit", "Exit the console"));
+                            Console.WriteLine("List of supported console commands:");
+                            Console.WriteLine("______________________________________________________________________________________________________________________________");
+                            Console.WriteLine(String.Format(format, "1.) h, help", "Show information about commands"));
+                            Console.WriteLine(String.Format(format, "2.) docs, man", "Prints 'Documentation is available at https://docs.qikk.ly/'"));
+                            Console.WriteLine(String.Format(format, "3.) u [db_name], use [db_name]", "Set current working database"));
+                            Console.WriteLine(String.Format(format, "4.) i [db_name] [path], import [db_name] [path]", "Import CSV file with comma separated columns."));
+                            Console.WriteLine(String.Format(format, "5.) [query]", "Run given query"));
+                            Console.WriteLine(String.Format(format, "6.) s [file], script [file]", "Run SQL queries from a file path (also supports console client command USE)."));
+                            Console.WriteLine(String.Format(format, "7.) t [query], timing [query]", "Run a query " + Query.numberOfQueryExec + 1 + " times and print the first and average cached execution time."));
+                            Console.WriteLine(String.Format(format, "8.) q, quit, exit", "Exit the console"));
 
                             Console.WriteLine();
                             break;
