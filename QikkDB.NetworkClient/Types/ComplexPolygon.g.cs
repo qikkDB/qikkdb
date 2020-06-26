@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.Types {
+namespace QikkDB.Types {
 
   /// <summary>Holder for reflection information generated from Types/ComplexPolygon.proto</summary>
   public static partial class ComplexPolygonReflection {
@@ -24,17 +24,17 @@ namespace ColmnarDB.Types {
     static ComplexPolygonReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChpUeXBlcy9Db21wbGV4UG9seWdvbi5wcm90bxIPQ29sbW5hckRCLlR5cGVz",
-            "IjwKDkNvbXBsZXhQb2x5Z29uEioKCHBvbHlnb25zGAEgAygLMhguQ29sbW5h",
-            "ckRCLlR5cGVzLlBvbHlnb24iNwoHUG9seWdvbhIsCglnZW9Qb2ludHMYASAD",
-            "KAsyGS5Db2xtbmFyREIuVHlwZXMuR2VvUG9pbnQiLwoIR2VvUG9pbnQSEAoI",
-            "bGF0aXR1ZGUYASABKAISEQoJbG9uZ2l0dWRlGAIgASgCYgZwcm90bzM="));
+            "ChpUeXBlcy9Db21wbGV4UG9seWdvbi5wcm90bxIMUWlra0RCLlR5cGVzIjkK",
+            "DkNvbXBsZXhQb2x5Z29uEicKCHBvbHlnb25zGAEgAygLMhUuUWlra0RCLlR5",
+            "cGVzLlBvbHlnb24iNAoHUG9seWdvbhIpCglnZW9Qb2ludHMYASADKAsyFi5R",
+            "aWtrREIuVHlwZXMuR2VvUG9pbnQiLwoIR2VvUG9pbnQSEAoIbGF0aXR1ZGUY",
+            "ASABKAISEQoJbG9uZ2l0dWRlGAIgASgCYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.Types.ComplexPolygon), global::ColmnarDB.Types.ComplexPolygon.Parser, new[]{ "Polygons" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.Types.Polygon), global::ColmnarDB.Types.Polygon.Parser, new[]{ "GeoPoints" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.Types.GeoPoint), global::ColmnarDB.Types.GeoPoint.Parser, new[]{ "Latitude", "Longitude" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.Types.ComplexPolygon), global::QikkDB.Types.ComplexPolygon.Parser, new[]{ "Polygons" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.Types.Polygon), global::QikkDB.Types.Polygon.Parser, new[]{ "GeoPoints" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.Types.GeoPoint), global::QikkDB.Types.GeoPoint.Parser, new[]{ "Latitude", "Longitude" }, null, null, null, null)
           }));
     }
     #endregion
@@ -49,7 +49,7 @@ namespace ColmnarDB.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -77,11 +77,11 @@ namespace ColmnarDB.Types {
 
     /// <summary>Field number for the "polygons" field.</summary>
     public const int PolygonsFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::ColmnarDB.Types.Polygon> _repeated_polygons_codec
-        = pb::FieldCodec.ForMessage(10, global::ColmnarDB.Types.Polygon.Parser);
-    private readonly pbc::RepeatedField<global::ColmnarDB.Types.Polygon> polygons_ = new pbc::RepeatedField<global::ColmnarDB.Types.Polygon>();
+    private static readonly pb::FieldCodec<global::QikkDB.Types.Polygon> _repeated_polygons_codec
+        = pb::FieldCodec.ForMessage(10, global::QikkDB.Types.Polygon.Parser);
+    private readonly pbc::RepeatedField<global::QikkDB.Types.Polygon> polygons_ = new pbc::RepeatedField<global::QikkDB.Types.Polygon>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::ColmnarDB.Types.Polygon> Polygons {
+    public pbc::RepeatedField<global::QikkDB.Types.Polygon> Polygons {
       get { return polygons_; }
     }
 
@@ -170,7 +170,7 @@ namespace ColmnarDB.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[1]; }
+      get { return global::QikkDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -198,11 +198,11 @@ namespace ColmnarDB.Types {
 
     /// <summary>Field number for the "geoPoints" field.</summary>
     public const int GeoPointsFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::ColmnarDB.Types.GeoPoint> _repeated_geoPoints_codec
-        = pb::FieldCodec.ForMessage(10, global::ColmnarDB.Types.GeoPoint.Parser);
-    private readonly pbc::RepeatedField<global::ColmnarDB.Types.GeoPoint> geoPoints_ = new pbc::RepeatedField<global::ColmnarDB.Types.GeoPoint>();
+    private static readonly pb::FieldCodec<global::QikkDB.Types.GeoPoint> _repeated_geoPoints_codec
+        = pb::FieldCodec.ForMessage(10, global::QikkDB.Types.GeoPoint.Parser);
+    private readonly pbc::RepeatedField<global::QikkDB.Types.GeoPoint> geoPoints_ = new pbc::RepeatedField<global::QikkDB.Types.GeoPoint>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::ColmnarDB.Types.GeoPoint> GeoPoints {
+    public pbc::RepeatedField<global::QikkDB.Types.GeoPoint> GeoPoints {
       get { return geoPoints_; }
     }
 
@@ -291,7 +291,7 @@ namespace ColmnarDB.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[2]; }
+      get { return global::QikkDB.Types.ComplexPolygonReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

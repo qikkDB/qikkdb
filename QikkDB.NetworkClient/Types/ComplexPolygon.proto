@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ColmnarDB.Types;
+package QikkDB.Types;
 
 message ComplexPolygon {
     repeated Polygon polygons = 1;

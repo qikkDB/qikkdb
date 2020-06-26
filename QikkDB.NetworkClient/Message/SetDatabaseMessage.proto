@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ColmnarDB.NetworkClient.Message;
+package QikkDB.NetworkClient.Message;
 
 message SetDatabaseMessage {
     string DatabaseName = 1;

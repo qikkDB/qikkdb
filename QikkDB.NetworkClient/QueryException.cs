@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ColmnarDB.NetworkClient
+namespace QikkDB.NetworkClient
 {
     /// <summary>
     /// Represents an error, that occured during query execution or during data import

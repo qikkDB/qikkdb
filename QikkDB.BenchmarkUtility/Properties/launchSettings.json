@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "ColmnarDB.BenchmarkUtility": {
+    "QikkDB.BenchmarkUtility": {
       "commandName": "Project",
       "commandLineArgs": "-t"
     }

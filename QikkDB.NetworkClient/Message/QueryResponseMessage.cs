@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.NetworkClient.Message {
+namespace QikkDB.NetworkClient.Message {
 
   /// <summary>Holder for reflection information generated from Message/QueryResponseMessage.proto</summary>
   public static partial class QueryResponseMessageReflection {
@@ -24,63 +24,62 @@ namespace ColmnarDB.NetworkClient.Message {
     static QueryResponseMessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CiJNZXNzYWdlL1F1ZXJ5UmVzcG9uc2VNZXNzYWdlLnByb3RvEh9Db2xtbmFy",
-            "REIuTmV0d29ya0NsaWVudC5NZXNzYWdlGhpUeXBlcy9Db21wbGV4UG9seWdv",
-            "bi5wcm90bxoRVHlwZXMvUG9pbnQucHJvdG8iKgoXUXVlcnlSZXNwb25zZUlu",
-            "dFBheWxvYWQSDwoHaW50RGF0YRgBIAMoBSIuChlRdWVyeVJlc3BvbnNlSW50",
-            "NjRQYXlsb2FkEhEKCWludDY0RGF0YRgBIAMoAyI0ChxRdWVyeVJlc3BvbnNl",
-            "RGF0ZVRpbWVQYXlsb2FkEhQKDGRhdGVUaW1lRGF0YRgBIAMoAyIuChlRdWVy",
-            "eVJlc3BvbnNlRmxvYXRQYXlsb2FkEhEKCWZsb2F0RGF0YRgBIAMoAiIwChpR",
-            "dWVyeVJlc3BvbnNlRG91YmxlUGF5bG9hZBISCgpkb3VibGVEYXRhGAEgAygB",
-            "IlMKG1F1ZXJ5UmVzcG9uc2VQb2x5Z29uUGF5bG9hZBI0Cgtwb2x5Z29uRGF0",
-            "YRgBIAMoCzIfLkNvbG1uYXJEQi5UeXBlcy5Db21wbGV4UG9seWdvbiJGChlR",
-            "dWVyeVJlc3BvbnNlUG9pbnRQYXlsb2FkEikKCXBvaW50RGF0YRgBIAMoCzIW",
-            "LkNvbG1uYXJEQi5UeXBlcy5Qb2ludCIwChpRdWVyeVJlc3BvbnNlU3RyaW5n",
-            "UGF5bG9hZBISCgpzdHJpbmdEYXRhGAEgAygJIigKFFF1ZXJ5TnVsbG1hc2tQ",
-            "YXlsb2FkEhAKCG51bGxNYXNrGAEgAygEIssFChRRdWVyeVJlc3BvbnNlUGF5",
-            "bG9hZBJOCgppbnRQYXlsb2FkGAIgASgLMjguQ29sbW5hckRCLk5ldHdvcmtD",
-            "bGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlSW50UGF5bG9hZEgAElIKDGZs",
-            "b2F0UGF5bG9hZBgDIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1l",
-            "c3NhZ2UuUXVlcnlSZXNwb25zZUZsb2F0UGF5bG9hZEgAElIKDGludDY0UGF5",
-            "bG9hZBgEIAEoCzI6LkNvbG1uYXJEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2Uu",
-            "UXVlcnlSZXNwb25zZUludDY0UGF5bG9hZEgAElQKDWRvdWJsZVBheWxvYWQY",
-            "BSABKAsyOy5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5",
-            "UmVzcG9uc2VEb3VibGVQYXlsb2FkSAASUgoMcG9pbnRQYXlsb2FkGAYgASgL",
-            "MjouQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3Bv",
-            "bnNlUG9pbnRQYXlsb2FkSAASVgoOcG9seWdvblBheWxvYWQYByABKAsyPC5D",
-            "b2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VQ",
-            "b2x5Z29uUGF5bG9hZEgAElQKDXN0cmluZ1BheWxvYWQYCCABKAsyOy5Db2xt",
-            "bmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VTdHJp",
-            "bmdQYXlsb2FkSAASWAoPZGF0ZVRpbWVQYXlsb2FkGAkgASgLMj0uQ29sbW5h",
-            "ckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlRGF0ZVRp",
-            "bWVQYXlsb2FkSABCCQoHcGF5bG9hZCK3BAoUUXVlcnlSZXNwb25zZU1lc3Nh",
-            "Z2USVQoIcGF5bG9hZHMYASADKAsyQy5Db2xtbmFyREIuTmV0d29ya0NsaWVu",
-            "dC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxvYWRzRW50cnkS",
-            "XQoMbnVsbEJpdE1hc2tzGAMgAygLMkcuQ29sbW5hckRCLk5ldHdvcmtDbGll",
-            "bnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlTWVzc2FnZS5OdWxsQml0TWFza3NF",
-            "bnRyeRJRCgZ0aW1pbmcYAiADKAsyQS5Db2xtbmFyREIuTmV0d29ya0NsaWVu",
-            "dC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlRpbWluZ0VudHJ5EhMK",
-            "C2NvbHVtbk9yZGVyGAQgAygJGmYKDVBheWxvYWRzRW50cnkSCwoDa2V5GAEg",
-            "ASgJEkQKBXZhbHVlGAIgASgLMjUuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQu",
-            "TWVzc2FnZS5RdWVyeVJlc3BvbnNlUGF5bG9hZDoCOAEaagoRTnVsbEJpdE1h",
-            "c2tzRW50cnkSCwoDa2V5GAEgASgJEkQKBXZhbHVlGAIgASgLMjUuQ29sbW5h",
-            "ckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeU51bGxtYXNrUGF5bG9h",
-            "ZDoCOAEaLQoLVGltaW5nRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIg",
-            "ASgCOgI4AWIGcHJvdG8z"));
+            "CiJNZXNzYWdlL1F1ZXJ5UmVzcG9uc2VNZXNzYWdlLnByb3RvEhxRaWtrREIu",
+            "TmV0d29ya0NsaWVudC5NZXNzYWdlGhpUeXBlcy9Db21wbGV4UG9seWdvbi5w",
+            "cm90bxoRVHlwZXMvUG9pbnQucHJvdG8iKgoXUXVlcnlSZXNwb25zZUludFBh",
+            "eWxvYWQSDwoHaW50RGF0YRgBIAMoBSIuChlRdWVyeVJlc3BvbnNlSW50NjRQ",
+            "YXlsb2FkEhEKCWludDY0RGF0YRgBIAMoAyI0ChxRdWVyeVJlc3BvbnNlRGF0",
+            "ZVRpbWVQYXlsb2FkEhQKDGRhdGVUaW1lRGF0YRgBIAMoAyIuChlRdWVyeVJl",
+            "c3BvbnNlRmxvYXRQYXlsb2FkEhEKCWZsb2F0RGF0YRgBIAMoAiIwChpRdWVy",
+            "eVJlc3BvbnNlRG91YmxlUGF5bG9hZBISCgpkb3VibGVEYXRhGAEgAygBIlAK",
+            "G1F1ZXJ5UmVzcG9uc2VQb2x5Z29uUGF5bG9hZBIxCgtwb2x5Z29uRGF0YRgB",
+            "IAMoCzIcLlFpa2tEQi5UeXBlcy5Db21wbGV4UG9seWdvbiJDChlRdWVyeVJl",
+            "c3BvbnNlUG9pbnRQYXlsb2FkEiYKCXBvaW50RGF0YRgBIAMoCzITLlFpa2tE",
+            "Qi5UeXBlcy5Qb2ludCIwChpRdWVyeVJlc3BvbnNlU3RyaW5nUGF5bG9hZBIS",
+            "CgpzdHJpbmdEYXRhGAEgAygJIigKFFF1ZXJ5TnVsbG1hc2tQYXlsb2FkEhAK",
+            "CG51bGxNYXNrGAEgAygEIrMFChRRdWVyeVJlc3BvbnNlUGF5bG9hZBJLCgpp",
+            "bnRQYXlsb2FkGAIgASgLMjUuUWlra0RCLk5ldHdvcmtDbGllbnQuTWVzc2Fn",
+            "ZS5RdWVyeVJlc3BvbnNlSW50UGF5bG9hZEgAEk8KDGZsb2F0UGF5bG9hZBgD",
+            "IAEoCzI3LlFpa2tEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2UuUXVlcnlSZXNw",
+            "b25zZUZsb2F0UGF5bG9hZEgAEk8KDGludDY0UGF5bG9hZBgEIAEoCzI3LlFp",
+            "a2tEQi5OZXR3b3JrQ2xpZW50Lk1lc3NhZ2UuUXVlcnlSZXNwb25zZUludDY0",
+            "UGF5bG9hZEgAElEKDWRvdWJsZVBheWxvYWQYBSABKAsyOC5RaWtrREIuTmV0",
+            "d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VEb3VibGVQYXlsb2Fk",
+            "SAASTwoMcG9pbnRQYXlsb2FkGAYgASgLMjcuUWlra0RCLk5ldHdvcmtDbGll",
+            "bnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlUG9pbnRQYXlsb2FkSAASUwoOcG9s",
+            "eWdvblBheWxvYWQYByABKAsyOS5RaWtrREIuTmV0d29ya0NsaWVudC5NZXNz",
+            "YWdlLlF1ZXJ5UmVzcG9uc2VQb2x5Z29uUGF5bG9hZEgAElEKDXN0cmluZ1Bh",
+            "eWxvYWQYCCABKAsyOC5RaWtrREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLlF1",
+            "ZXJ5UmVzcG9uc2VTdHJpbmdQYXlsb2FkSAASVQoPZGF0ZVRpbWVQYXlsb2Fk",
+            "GAkgASgLMjouUWlra0RCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeVJl",
+            "c3BvbnNlRGF0ZVRpbWVQYXlsb2FkSABCCQoHcGF5bG9hZCKoBAoUUXVlcnlS",
+            "ZXNwb25zZU1lc3NhZ2USUgoIcGF5bG9hZHMYASADKAsyQC5RaWtrREIuTmV0",
+            "d29ya0NsaWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlBheWxv",
+            "YWRzRW50cnkSWgoMbnVsbEJpdE1hc2tzGAMgAygLMkQuUWlra0RCLk5ldHdv",
+            "cmtDbGllbnQuTWVzc2FnZS5RdWVyeVJlc3BvbnNlTWVzc2FnZS5OdWxsQml0",
+            "TWFza3NFbnRyeRJOCgZ0aW1pbmcYAiADKAsyPi5RaWtrREIuTmV0d29ya0Ns",
+            "aWVudC5NZXNzYWdlLlF1ZXJ5UmVzcG9uc2VNZXNzYWdlLlRpbWluZ0VudHJ5",
+            "EhMKC2NvbHVtbk9yZGVyGAQgAygJGmMKDVBheWxvYWRzRW50cnkSCwoDa2V5",
+            "GAEgASgJEkEKBXZhbHVlGAIgASgLMjIuUWlra0RCLk5ldHdvcmtDbGllbnQu",
+            "TWVzc2FnZS5RdWVyeVJlc3BvbnNlUGF5bG9hZDoCOAEaZwoRTnVsbEJpdE1h",
+            "c2tzRW50cnkSCwoDa2V5GAEgASgJEkEKBXZhbHVlGAIgASgLMjIuUWlra0RC",
+            "Lk5ldHdvcmtDbGllbnQuTWVzc2FnZS5RdWVyeU51bGxtYXNrUGF5bG9hZDoC",
+            "OAEaLQoLVGltaW5nRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgC",
+            "OgI4AWIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor, global::ColmnarDB.Types.PointReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::QikkDB.Types.ComplexPolygonReflection.Descriptor, global::QikkDB.Types.PointReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload.Parser, new[]{ "IntData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload), global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload.Parser, new[]{ "Int64Data" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload.Parser, new[]{ "DateTimeData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload.Parser, new[]{ "FloatData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload), global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload.Parser, new[]{ "DoubleData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload.Parser, new[]{ "PolygonData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload), global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload), global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.Parser, new[]{ "NullMask" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponsePayload), global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload", "DateTimePayload" }, new[]{ "Payload" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.QueryResponseMessage), global::ColmnarDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing", "ColumnOrder" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseIntPayload), global::QikkDB.NetworkClient.Message.QueryResponseIntPayload.Parser, new[]{ "IntData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload), global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload.Parser, new[]{ "Int64Data" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload), global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload.Parser, new[]{ "DateTimeData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload), global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload.Parser, new[]{ "FloatData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload), global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload.Parser, new[]{ "DoubleData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload), global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload.Parser, new[]{ "PolygonData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponsePointPayload), global::QikkDB.NetworkClient.Message.QueryResponsePointPayload.Parser, new[]{ "PointData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseStringPayload), global::QikkDB.NetworkClient.Message.QueryResponseStringPayload.Parser, new[]{ "StringData" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryNullmaskPayload), global::QikkDB.NetworkClient.Message.QueryNullmaskPayload.Parser, new[]{ "NullMask" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponsePayload), global::QikkDB.NetworkClient.Message.QueryResponsePayload.Parser, new[]{ "IntPayload", "FloatPayload", "Int64Payload", "DoublePayload", "PointPayload", "PolygonPayload", "StringPayload", "DateTimePayload" }, new[]{ "Payload" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.QueryResponseMessage), global::QikkDB.NetworkClient.Message.QueryResponseMessage.Parser, new[]{ "Payloads", "NullBitMasks", "Timing", "ColumnOrder" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, null, })
           }));
     }
     #endregion
@@ -95,7 +94,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -217,7 +216,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[1]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[1]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -339,7 +338,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[2]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[2]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -461,7 +460,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[3]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[3]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -583,7 +582,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[4]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[4]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -705,7 +704,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[5]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[5]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -733,11 +732,11 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "polygonData" field.</summary>
     public const int PolygonDataFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::ColmnarDB.Types.ComplexPolygon> _repeated_polygonData_codec
-        = pb::FieldCodec.ForMessage(10, global::ColmnarDB.Types.ComplexPolygon.Parser);
-    private readonly pbc::RepeatedField<global::ColmnarDB.Types.ComplexPolygon> polygonData_ = new pbc::RepeatedField<global::ColmnarDB.Types.ComplexPolygon>();
+    private static readonly pb::FieldCodec<global::QikkDB.Types.ComplexPolygon> _repeated_polygonData_codec
+        = pb::FieldCodec.ForMessage(10, global::QikkDB.Types.ComplexPolygon.Parser);
+    private readonly pbc::RepeatedField<global::QikkDB.Types.ComplexPolygon> polygonData_ = new pbc::RepeatedField<global::QikkDB.Types.ComplexPolygon>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::ColmnarDB.Types.ComplexPolygon> PolygonData {
+    public pbc::RepeatedField<global::QikkDB.Types.ComplexPolygon> PolygonData {
       get { return polygonData_; }
     }
 
@@ -826,7 +825,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[6]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[6]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -854,11 +853,11 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "pointData" field.</summary>
     public const int PointDataFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::ColmnarDB.Types.Point> _repeated_pointData_codec
-        = pb::FieldCodec.ForMessage(10, global::ColmnarDB.Types.Point.Parser);
-    private readonly pbc::RepeatedField<global::ColmnarDB.Types.Point> pointData_ = new pbc::RepeatedField<global::ColmnarDB.Types.Point>();
+    private static readonly pb::FieldCodec<global::QikkDB.Types.Point> _repeated_pointData_codec
+        = pb::FieldCodec.ForMessage(10, global::QikkDB.Types.Point.Parser);
+    private readonly pbc::RepeatedField<global::QikkDB.Types.Point> pointData_ = new pbc::RepeatedField<global::QikkDB.Types.Point>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::ColmnarDB.Types.Point> PointData {
+    public pbc::RepeatedField<global::QikkDB.Types.Point> PointData {
       get { return pointData_; }
     }
 
@@ -947,7 +946,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[7]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[7]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1068,7 +1067,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[8]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[8]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1190,7 +1189,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[9]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[9]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1245,8 +1244,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "intPayload" field.</summary>
     public const int IntPayloadFieldNumber = 2;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload IntPayload {
-      get { return payloadCase_ == PayloadOneofCase.IntPayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseIntPayload IntPayload {
+      get { return payloadCase_ == PayloadOneofCase.IntPayload ? (global::QikkDB.NetworkClient.Message.QueryResponseIntPayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.IntPayload;
@@ -1256,8 +1255,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "floatPayload" field.</summary>
     public const int FloatPayloadFieldNumber = 3;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload FloatPayload {
-      get { return payloadCase_ == PayloadOneofCase.FloatPayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload FloatPayload {
+      get { return payloadCase_ == PayloadOneofCase.FloatPayload ? (global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.FloatPayload;
@@ -1267,8 +1266,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "int64Payload" field.</summary>
     public const int Int64PayloadFieldNumber = 4;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload Int64Payload {
-      get { return payloadCase_ == PayloadOneofCase.Int64Payload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload Int64Payload {
+      get { return payloadCase_ == PayloadOneofCase.Int64Payload ? (global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.Int64Payload;
@@ -1278,8 +1277,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "doublePayload" field.</summary>
     public const int DoublePayloadFieldNumber = 5;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload DoublePayload {
-      get { return payloadCase_ == PayloadOneofCase.DoublePayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload DoublePayload {
+      get { return payloadCase_ == PayloadOneofCase.DoublePayload ? (global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.DoublePayload;
@@ -1289,8 +1288,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "pointPayload" field.</summary>
     public const int PointPayloadFieldNumber = 6;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload PointPayload {
-      get { return payloadCase_ == PayloadOneofCase.PointPayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponsePointPayload PointPayload {
+      get { return payloadCase_ == PayloadOneofCase.PointPayload ? (global::QikkDB.NetworkClient.Message.QueryResponsePointPayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.PointPayload;
@@ -1300,8 +1299,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "polygonPayload" field.</summary>
     public const int PolygonPayloadFieldNumber = 7;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload PolygonPayload {
-      get { return payloadCase_ == PayloadOneofCase.PolygonPayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload PolygonPayload {
+      get { return payloadCase_ == PayloadOneofCase.PolygonPayload ? (global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.PolygonPayload;
@@ -1311,8 +1310,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "stringPayload" field.</summary>
     public const int StringPayloadFieldNumber = 8;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload StringPayload {
-      get { return payloadCase_ == PayloadOneofCase.StringPayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseStringPayload StringPayload {
+      get { return payloadCase_ == PayloadOneofCase.StringPayload ? (global::QikkDB.NetworkClient.Message.QueryResponseStringPayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.StringPayload;
@@ -1322,8 +1321,8 @@ namespace ColmnarDB.NetworkClient.Message {
     /// <summary>Field number for the "dateTimePayload" field.</summary>
     public const int DateTimePayloadFieldNumber = 9;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload DateTimePayload {
-      get { return payloadCase_ == PayloadOneofCase.DateTimePayload ? (global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload) payload_ : null; }
+    public global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload DateTimePayload {
+      get { return payloadCase_ == PayloadOneofCase.DateTimePayload ? (global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload) payload_ : null; }
       set {
         payload_ = value;
         payloadCase_ = value == null ? PayloadOneofCase.None : PayloadOneofCase.DateTimePayload;
@@ -1483,49 +1482,49 @@ namespace ColmnarDB.NetworkClient.Message {
       switch (other.PayloadCase) {
         case PayloadOneofCase.IntPayload:
           if (IntPayload == null) {
-            IntPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload();
+            IntPayload = new global::QikkDB.NetworkClient.Message.QueryResponseIntPayload();
           }
           IntPayload.MergeFrom(other.IntPayload);
           break;
         case PayloadOneofCase.FloatPayload:
           if (FloatPayload == null) {
-            FloatPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload();
+            FloatPayload = new global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload();
           }
           FloatPayload.MergeFrom(other.FloatPayload);
           break;
         case PayloadOneofCase.Int64Payload:
           if (Int64Payload == null) {
-            Int64Payload = new global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload();
+            Int64Payload = new global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload();
           }
           Int64Payload.MergeFrom(other.Int64Payload);
           break;
         case PayloadOneofCase.DoublePayload:
           if (DoublePayload == null) {
-            DoublePayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload();
+            DoublePayload = new global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload();
           }
           DoublePayload.MergeFrom(other.DoublePayload);
           break;
         case PayloadOneofCase.PointPayload:
           if (PointPayload == null) {
-            PointPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload();
+            PointPayload = new global::QikkDB.NetworkClient.Message.QueryResponsePointPayload();
           }
           PointPayload.MergeFrom(other.PointPayload);
           break;
         case PayloadOneofCase.PolygonPayload:
           if (PolygonPayload == null) {
-            PolygonPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload();
+            PolygonPayload = new global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload();
           }
           PolygonPayload.MergeFrom(other.PolygonPayload);
           break;
         case PayloadOneofCase.StringPayload:
           if (StringPayload == null) {
-            StringPayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload();
+            StringPayload = new global::QikkDB.NetworkClient.Message.QueryResponseStringPayload();
           }
           StringPayload.MergeFrom(other.StringPayload);
           break;
         case PayloadOneofCase.DateTimePayload:
           if (DateTimePayload == null) {
-            DateTimePayload = new global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload();
+            DateTimePayload = new global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload();
           }
           DateTimePayload.MergeFrom(other.DateTimePayload);
           break;
@@ -1543,7 +1542,7 @@ namespace ColmnarDB.NetworkClient.Message {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 18: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseIntPayload();
+            global::QikkDB.NetworkClient.Message.QueryResponseIntPayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseIntPayload();
             if (payloadCase_ == PayloadOneofCase.IntPayload) {
               subBuilder.MergeFrom(IntPayload);
             }
@@ -1552,7 +1551,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 26: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload();
+            global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseFloatPayload();
             if (payloadCase_ == PayloadOneofCase.FloatPayload) {
               subBuilder.MergeFrom(FloatPayload);
             }
@@ -1561,7 +1560,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 34: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload();
+            global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseInt64Payload();
             if (payloadCase_ == PayloadOneofCase.Int64Payload) {
               subBuilder.MergeFrom(Int64Payload);
             }
@@ -1570,7 +1569,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 42: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload();
+            global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseDoublePayload();
             if (payloadCase_ == PayloadOneofCase.DoublePayload) {
               subBuilder.MergeFrom(DoublePayload);
             }
@@ -1579,7 +1578,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 50: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponsePointPayload();
+            global::QikkDB.NetworkClient.Message.QueryResponsePointPayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponsePointPayload();
             if (payloadCase_ == PayloadOneofCase.PointPayload) {
               subBuilder.MergeFrom(PointPayload);
             }
@@ -1588,7 +1587,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 58: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload();
+            global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponsePolygonPayload();
             if (payloadCase_ == PayloadOneofCase.PolygonPayload) {
               subBuilder.MergeFrom(PolygonPayload);
             }
@@ -1597,7 +1596,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 66: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseStringPayload();
+            global::QikkDB.NetworkClient.Message.QueryResponseStringPayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseStringPayload();
             if (payloadCase_ == PayloadOneofCase.StringPayload) {
               subBuilder.MergeFrom(StringPayload);
             }
@@ -1606,7 +1605,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 74: {
-            global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload subBuilder = new global::ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload();
+            global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload subBuilder = new global::QikkDB.NetworkClient.Message.QueryResponseDateTimePayload();
             if (payloadCase_ == PayloadOneofCase.DateTimePayload) {
               subBuilder.MergeFrom(DateTimePayload);
             }
@@ -1628,7 +1627,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[10]; }
+      get { return global::QikkDB.NetworkClient.Message.QueryResponseMessageReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -1659,21 +1658,21 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "payloads" field.</summary>
     public const int PayloadsFieldNumber = 1;
-    private static readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>.Codec _map_payloads_codec
-        = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForMessage(18, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload.Parser), 10);
-    private readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads_ = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload>();
+    private static readonly pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryResponsePayload>.Codec _map_payloads_codec
+        = new pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryResponsePayload>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForMessage(18, global::QikkDB.NetworkClient.Message.QueryResponsePayload.Parser), 10);
+    private readonly pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryResponsePayload> payloads_ = new pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryResponsePayload>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryResponsePayload> Payloads {
+    public pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryResponsePayload> Payloads {
       get { return payloads_; }
     }
 
     /// <summary>Field number for the "nullBitMasks" field.</summary>
     public const int NullBitMasksFieldNumber = 3;
-    private static readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload>.Codec _map_nullBitMasks_codec
-        = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForMessage(18, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload.Parser), 26);
-    private readonly pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks_ = new pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload>();
+    private static readonly pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload>.Codec _map_nullBitMasks_codec
+        = new pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForMessage(18, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload.Parser), 26);
+    private readonly pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks_ = new pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::MapField<string, global::ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> NullBitMasks {
+    public pbc::MapField<string, global::QikkDB.NetworkClient.Message.QueryNullmaskPayload> NullBitMasks {
       get { return nullBitMasks_; }
     }
 

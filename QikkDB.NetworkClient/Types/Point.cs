@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace ColmnarDB.Types
+namespace QikkDB.Types
 {
     /// <summary>
     /// The wrapper class for struct geo point.

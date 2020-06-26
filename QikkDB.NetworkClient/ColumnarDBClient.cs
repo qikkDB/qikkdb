@@ -12,12 +12,12 @@ using Google.Protobuf.Collections;
 using Google.Protobuf.WellKnownTypes;
 using System.Collections;
 using System.Data;
-using ColmnarDB.NetworkClient.Message;
-using ColmnarDB.Types;
+using QikkDB.NetworkClient.Message;
+using QikkDB.Types;
 
 using nullmask_t = System.UInt64;
 
-namespace ColmnarDB.NetworkClient
+namespace QikkDB.NetworkClient
 {
     public class ColumnarDataTable
     {

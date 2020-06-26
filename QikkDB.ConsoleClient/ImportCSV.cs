@@ -4,10 +4,10 @@ using System.IO;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ColmnarDB.NetworkClient;
-using ColmnarDB.Types;
+using QikkDB.NetworkClient;
+using QikkDB.Types;
 
-namespace ColmnarDB.ConsoleClient
+namespace QikkDB.ConsoleClient
 {
     /// <summary>
     /// Class to import CSV file

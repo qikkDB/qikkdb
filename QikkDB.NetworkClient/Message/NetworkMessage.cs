@@ -6,7 +6,7 @@ using System.IO;
 using System.Net.Sockets;
 using System.Text;
 
-namespace ColmnarDB.NetworkClient.Message
+namespace QikkDB.NetworkClient.Message
 {
     public class NetworkMessage
     {

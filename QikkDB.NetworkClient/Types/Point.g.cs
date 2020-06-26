@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.Types {
+namespace QikkDB.Types {
 
   /// <summary>Holder for reflection information generated from Types/Point.proto</summary>
   public static partial class PointReflection {
@@ -24,13 +24,13 @@ namespace ColmnarDB.Types {
     static PointReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChFUeXBlcy9Qb2ludC5wcm90bxIPQ29sbW5hckRCLlR5cGVzGhpUeXBlcy9D",
-            "b21wbGV4UG9seWdvbi5wcm90byI0CgVQb2ludBIrCghnZW9Qb2ludBgBIAEo",
-            "CzIZLkNvbG1uYXJEQi5UeXBlcy5HZW9Qb2ludGIGcHJvdG8z"));
+            "ChFUeXBlcy9Qb2ludC5wcm90bxIMUWlra0RCLlR5cGVzGhpUeXBlcy9Db21w",
+            "bGV4UG9seWdvbi5wcm90byIxCgVQb2ludBIoCghnZW9Qb2ludBgBIAEoCzIW",
+            "LlFpa2tEQi5UeXBlcy5HZW9Qb2ludGIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::ColmnarDB.Types.ComplexPolygonReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::QikkDB.Types.ComplexPolygonReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.Types.Point), global::ColmnarDB.Types.Point.Parser, new[]{ "GeoPoint" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.Types.Point), global::QikkDB.Types.Point.Parser, new[]{ "GeoPoint" }, null, null, null, null)
           }));
     }
     #endregion
@@ -45,7 +45,7 @@ namespace ColmnarDB.Types {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.Types.PointReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.Types.PointReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -73,9 +73,9 @@ namespace ColmnarDB.Types {
 
     /// <summary>Field number for the "geoPoint" field.</summary>
     public const int GeoPointFieldNumber = 1;
-    private global::ColmnarDB.Types.GeoPoint geoPoint_;
+    private global::QikkDB.Types.GeoPoint geoPoint_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.Types.GeoPoint GeoPoint {
+    public global::QikkDB.Types.GeoPoint GeoPoint {
       get { return geoPoint_; }
       set {
         geoPoint_ = value;
@@ -144,7 +144,7 @@ namespace ColmnarDB.Types {
       }
       if (other.geoPoint_ != null) {
         if (geoPoint_ == null) {
-          GeoPoint = new global::ColmnarDB.Types.GeoPoint();
+          GeoPoint = new global::QikkDB.Types.GeoPoint();
         }
         GeoPoint.MergeFrom(other.GeoPoint);
       }
@@ -161,7 +161,7 @@ namespace ColmnarDB.Types {
             break;
           case 10: {
             if (geoPoint_ == null) {
-              GeoPoint = new global::ColmnarDB.Types.GeoPoint();
+              GeoPoint = new global::QikkDB.Types.GeoPoint();
             }
             input.ReadMessage(GeoPoint);
             break;

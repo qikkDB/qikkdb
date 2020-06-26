@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace ColmnarDB
+namespace QikkDB
 {
     /// <summary>
     /// Struct holding coordinates of a geo point

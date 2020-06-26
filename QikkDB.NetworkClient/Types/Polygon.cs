@@ -2,7 +2,7 @@ using System;
 using System.Linq;
 using Google.Protobuf.Collections;
 
-namespace ColmnarDB.Types
+namespace QikkDB.Types
 {
     /// <summary>
     /// Class representing a simple polygon that consists of geo points.

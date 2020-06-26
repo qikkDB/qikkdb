@@ -5,11 +5,11 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
-using ColmnarDB.NetworkClient;
-using ColmnarDB.NetworkClient.Message;
+using QikkDB.NetworkClient;
+using QikkDB.NetworkClient.Message;
 using Google.Protobuf.Collections;
 
-namespace ColmnarDB.ConsoleClient
+namespace QikkDB.ConsoleClient
 {
     /// <summary>
     /// Class to run entered query

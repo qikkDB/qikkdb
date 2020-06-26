@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.NetworkClient.Message {
+namespace QikkDB.NetworkClient.Message {
 
   /// <summary>Holder for reflection information generated from Message/SetDatabaseMessage.proto</summary>
   public static partial class SetDatabaseMessageReflection {
@@ -24,13 +24,13 @@ namespace ColmnarDB.NetworkClient.Message {
     static SetDatabaseMessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "CiBNZXNzYWdlL1NldERhdGFiYXNlTWVzc2FnZS5wcm90bxIfQ29sbW5hckRC",
-            "Lk5ldHdvcmtDbGllbnQuTWVzc2FnZSIqChJTZXREYXRhYmFzZU1lc3NhZ2US",
-            "FAoMRGF0YWJhc2VOYW1lGAEgASgJYgZwcm90bzM="));
+            "CiBNZXNzYWdlL1NldERhdGFiYXNlTWVzc2FnZS5wcm90bxIcUWlra0RCLk5l",
+            "dHdvcmtDbGllbnQuTWVzc2FnZSIqChJTZXREYXRhYmFzZU1lc3NhZ2USFAoM",
+            "RGF0YWJhc2VOYW1lGAEgASgJYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage), global::ColmnarDB.NetworkClient.Message.SetDatabaseMessage.Parser, new[]{ "DatabaseName" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.SetDatabaseMessage), global::QikkDB.NetworkClient.Message.SetDatabaseMessage.Parser, new[]{ "DatabaseName" }, null, null, null, null)
           }));
     }
     #endregion
@@ -45,7 +45,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.SetDatabaseMessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.NetworkClient.Message.SetDatabaseMessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

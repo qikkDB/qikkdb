@@ -1,4 +1,4 @@
-﻿using ColmnarDB.Types;
+﻿using QikkDB.Types;
 using CsvHelper;
 using System;
 using System.Collections.Generic;
@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 
-namespace ColmnarDB.ConsoleClient
+namespace QikkDB.ConsoleClient
 {
     public class ParserCSV
     {

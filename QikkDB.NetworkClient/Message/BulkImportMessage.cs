@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.NetworkClient.Message {
+namespace QikkDB.NetworkClient.Message {
 
   /// <summary>Holder for reflection information generated from Message/BulkImportMessage.proto</summary>
   public static partial class BulkImportMessageReflection {
@@ -24,17 +24,17 @@ namespace ColmnarDB.NetworkClient.Message {
     static BulkImportMessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Ch9NZXNzYWdlL0J1bGtJbXBvcnRNZXNzYWdlLnByb3RvEh9Db2xtbmFyREIu",
-            "TmV0d29ya0NsaWVudC5NZXNzYWdlGh5NZXNzYWdlL0NTVkltcG9ydE1lc3Nh",
-            "Z2UucHJvdG8itQEKEUJ1bGtJbXBvcnRNZXNzYWdlEhEKCVRhYmxlTmFtZRgB",
-            "IAEoCRISCgpDb2x1bW5OYW1lGAIgASgJEj0KCkNvbHVtblR5cGUYAyABKA4y",
-            "KS5Db2xtbmFyREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLkRhdGFUeXBlEhEK",
-            "CUVsZW1Db3VudBgEIAEoBRITCgtudWxsTWFza0xlbhgFIAEoBRISCgpkYXRh",
-            "TGVuZ3RoGAYgASgFYgZwcm90bzM="));
+            "Ch9NZXNzYWdlL0J1bGtJbXBvcnRNZXNzYWdlLnByb3RvEhxRaWtrREIuTmV0",
+            "d29ya0NsaWVudC5NZXNzYWdlGh5NZXNzYWdlL0NTVkltcG9ydE1lc3NhZ2Uu",
+            "cHJvdG8isgEKEUJ1bGtJbXBvcnRNZXNzYWdlEhEKCVRhYmxlTmFtZRgBIAEo",
+            "CRISCgpDb2x1bW5OYW1lGAIgASgJEjoKCkNvbHVtblR5cGUYAyABKA4yJi5R",
+            "aWtrREIuTmV0d29ya0NsaWVudC5NZXNzYWdlLkRhdGFUeXBlEhEKCUVsZW1D",
+            "b3VudBgEIAEoBRITCgtudWxsTWFza0xlbhgFIAEoBRISCgpkYXRhTGVuZ3Ro",
+            "GAYgASgFYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
-          new pbr::FileDescriptor[] { global::ColmnarDB.NetworkClient.Message.CSVImportMessageReflection.Descriptor, },
+          new pbr::FileDescriptor[] { global::QikkDB.NetworkClient.Message.CSVImportMessageReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.BulkImportMessage), global::ColmnarDB.NetworkClient.Message.BulkImportMessage.Parser, new[]{ "TableName", "ColumnName", "ColumnType", "ElemCount", "NullMaskLen", "DataLength" }, null, null, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.BulkImportMessage), global::QikkDB.NetworkClient.Message.BulkImportMessage.Parser, new[]{ "TableName", "ColumnName", "ColumnType", "ElemCount", "NullMaskLen", "DataLength" }, null, null, null, null)
           }));
     }
     #endregion
@@ -49,7 +49,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.BulkImportMessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.NetworkClient.Message.BulkImportMessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -104,9 +104,9 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "ColumnType" field.</summary>
     public const int ColumnTypeFieldNumber = 3;
-    private global::ColmnarDB.NetworkClient.Message.DataType columnType_ = global::ColmnarDB.NetworkClient.Message.DataType.ConstInt;
+    private global::QikkDB.NetworkClient.Message.DataType columnType_ = global::QikkDB.NetworkClient.Message.DataType.ConstInt;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.DataType ColumnType {
+    public global::QikkDB.NetworkClient.Message.DataType ColumnType {
       get { return columnType_; }
       set {
         columnType_ = value;
@@ -173,7 +173,7 @@ namespace ColmnarDB.NetworkClient.Message {
       int hash = 1;
       if (TableName.Length != 0) hash ^= TableName.GetHashCode();
       if (ColumnName.Length != 0) hash ^= ColumnName.GetHashCode();
-      if (ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) hash ^= ColumnType.GetHashCode();
+      if (ColumnType != global::QikkDB.NetworkClient.Message.DataType.ConstInt) hash ^= ColumnType.GetHashCode();
       if (ElemCount != 0) hash ^= ElemCount.GetHashCode();
       if (NullMaskLen != 0) hash ^= NullMaskLen.GetHashCode();
       if (DataLength != 0) hash ^= DataLength.GetHashCode();
@@ -198,7 +198,7 @@ namespace ColmnarDB.NetworkClient.Message {
         output.WriteRawTag(18);
         output.WriteString(ColumnName);
       }
-      if (ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) {
+      if (ColumnType != global::QikkDB.NetworkClient.Message.DataType.ConstInt) {
         output.WriteRawTag(24);
         output.WriteEnum((int) ColumnType);
       }
@@ -228,7 +228,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (ColumnName.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(ColumnName);
       }
-      if (ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) {
+      if (ColumnType != global::QikkDB.NetworkClient.Message.DataType.ConstInt) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) ColumnType);
       }
       if (ElemCount != 0) {
@@ -257,7 +257,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (other.ColumnName.Length != 0) {
         ColumnName = other.ColumnName;
       }
-      if (other.ColumnType != global::ColmnarDB.NetworkClient.Message.DataType.ConstInt) {
+      if (other.ColumnType != global::QikkDB.NetworkClient.Message.DataType.ConstInt) {
         ColumnType = other.ColumnType;
       }
       if (other.ElemCount != 0) {
@@ -289,7 +289,7 @@ namespace ColmnarDB.NetworkClient.Message {
             break;
           }
           case 24: {
-            ColumnType = (global::ColmnarDB.NetworkClient.Message.DataType) input.ReadEnum();
+            ColumnType = (global::QikkDB.NetworkClient.Message.DataType) input.ReadEnum();
             break;
           }
           case 32: {

@@ -1,13 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using ColmnarDB.NetworkClient;
-using ColmnarDB.ConsoleClient;
+using QikkDB.NetworkClient;
+using QikkDB.ConsoleClient;
 using System.Linq;
 using System.IO;
 using System.Collections;
 using System.Globalization;
 
-namespace ColmnarDB.BenchmarkUtility
+namespace QikkDB.BenchmarkUtility
 {
     public class Program
     {
@@ -18,17 +18,17 @@ namespace ColmnarDB.BenchmarkUtility
         public static readonly int numberOfQueryExec = 200;
 
         public static readonly string telcoDbName = "TargetLocator";
-        public static readonly string telcoQueriesPath = "../../../ColmnarDB.BenchmarkUtility/telco_queries.sql";
+        public static readonly string telcoQueriesPath = "../../../QikkDB.BenchmarkUtility/telco_queries.sql";
 
         public static readonly string geoDbName = "GeoTest";
-        public static readonly string geoQueriesPath = "../../../ColmnarDB.BenchmarkUtility/geo_queries.sql";
+        public static readonly string geoQueriesPath = "../../../QikkDB.BenchmarkUtility/geo_queries.sql";
 
         public static readonly string taxiDbName = "TaxiRides";
-        public static readonly string ciQueriesPath = "../../../ColmnarDB.BenchmarkUtility/ci_queries.sql";
-        public static readonly string taxiQueriesPath = "../../../ColmnarDB.BenchmarkUtility/taxi_queries.sql";
+        public static readonly string ciQueriesPath = "../../../QikkDB.BenchmarkUtility/ci_queries.sql";
+        public static readonly string taxiQueriesPath = "../../../QikkDB.BenchmarkUtility/taxi_queries.sql";
 
         public static readonly string stcsDbName = "stcs";
-        public static readonly string stcsQueriesPath = "../../../ColmnarDB.BenchmarkUtility/stcs_queries.sql";
+        public static readonly string stcsQueriesPath = "../../../QikkDB.BenchmarkUtility/stcs_queries.sql";
 
         /// <summary>
         /// Load benchmark queries from a file, execute them one by one and save results.
@@ -314,7 +314,7 @@ namespace ColmnarDB.BenchmarkUtility
                         ColumnarDataTable result = null;
 
                         // read file where the results of a particular query are saved:
-                        var queryExpectedResultFile = new StreamReader($"../../../ColmnarDB.BenchmarkUtility/{taxiDbName}_testQuery_{queryIndex}.txt");
+                        var queryExpectedResultFile = new StreamReader($"../../../QikkDB.BenchmarkUtility/{taxiDbName}_testQuery_{queryIndex}.txt");
                         queryIndex++;
 
                         // read the file header

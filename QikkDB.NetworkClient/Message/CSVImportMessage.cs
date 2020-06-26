@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.NetworkClient.Message {
+namespace QikkDB.NetworkClient.Message {
 
   /// <summary>Holder for reflection information generated from Message/CSVImportMessage.proto</summary>
   public static partial class CSVImportMessageReflection {
@@ -24,23 +24,23 @@ namespace ColmnarDB.NetworkClient.Message {
     static CSVImportMessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "Ch5NZXNzYWdlL0NTVkltcG9ydE1lc3NhZ2UucHJvdG8SH0NvbG1uYXJEQi5O",
-            "ZXR3b3JrQ2xpZW50Lk1lc3NhZ2UiigEKEENTVkltcG9ydE1lc3NhZ2USFAoM",
-            "RGF0YWJhc2VOYW1lGAEgASgJEg8KB0NTVk5hbWUYAiABKAkSDwoHUGF5bG9h",
-            "ZBgDIAEoCRI+CgtDb2x1bW5UeXBlcxgEIAMoDjIpLkNvbG1uYXJEQi5OZXR3",
-            "b3JrQ2xpZW50Lk1lc3NhZ2UuRGF0YVR5cGUq1AIKCERhdGFUeXBlEg0KCUNP",
-            "TlNUX0lOVBAAEhgKC0NPTlNUX0VSUk9SEP///////////wESDgoKQ09OU1Rf",
-            "TE9ORxABEg8KC0NPTlNUX0ZMT0FUEAISEAoMQ09OU1RfRE9VQkxFEAMSDwoL",
-            "Q09OU1RfUE9JTlQQBBIRCg1DT05TVF9QT0xZR09OEAUSEAoMQ09OU1RfU1RS",
-            "SU5HEAYSEAoMQ09OU1RfSU5UOF9UEAcSDgoKQ09MVU1OX0lOVBAIEg8KC0NP",
-            "TFVNTl9MT05HEAkSEAoMQ09MVU1OX0ZMT0FUEAoSEQoNQ09MVU1OX0RPVUJM",
-            "RRALEhAKDENPTFVNTl9QT0lOVBAMEhIKDkNPTFVNTl9QT0xZR09OEA0SEQoN",
-            "Q09MVU1OX1NUUklORxAOEhEKDUNPTFVNTl9JTlQ4X1QQDxISCg5EQVRBX1RZ",
-            "UEVfU0laRRAQYgZwcm90bzM="));
+            "Ch5NZXNzYWdlL0NTVkltcG9ydE1lc3NhZ2UucHJvdG8SHFFpa2tEQi5OZXR3",
+            "b3JrQ2xpZW50Lk1lc3NhZ2UihwEKEENTVkltcG9ydE1lc3NhZ2USFAoMRGF0",
+            "YWJhc2VOYW1lGAEgASgJEg8KB0NTVk5hbWUYAiABKAkSDwoHUGF5bG9hZBgD",
+            "IAEoCRI7CgtDb2x1bW5UeXBlcxgEIAMoDjImLlFpa2tEQi5OZXR3b3JrQ2xp",
+            "ZW50Lk1lc3NhZ2UuRGF0YVR5cGUq1AIKCERhdGFUeXBlEg0KCUNPTlNUX0lO",
+            "VBAAEhgKC0NPTlNUX0VSUk9SEP///////////wESDgoKQ09OU1RfTE9ORxAB",
+            "Eg8KC0NPTlNUX0ZMT0FUEAISEAoMQ09OU1RfRE9VQkxFEAMSDwoLQ09OU1Rf",
+            "UE9JTlQQBBIRCg1DT05TVF9QT0xZR09OEAUSEAoMQ09OU1RfU1RSSU5HEAYS",
+            "EAoMQ09OU1RfSU5UOF9UEAcSDgoKQ09MVU1OX0lOVBAIEg8KC0NPTFVNTl9M",
+            "T05HEAkSEAoMQ09MVU1OX0ZMT0FUEAoSEQoNQ09MVU1OX0RPVUJMRRALEhAK",
+            "DENPTFVNTl9QT0lOVBAMEhIKDkNPTFVNTl9QT0xZR09OEA0SEQoNQ09MVU1O",
+            "X1NUUklORxAOEhEKDUNPTFVNTl9JTlQ4X1QQDxISCg5EQVRBX1RZUEVfU0la",
+            "RRAQYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::ColmnarDB.NetworkClient.Message.DataType), }, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.CSVImportMessage), global::ColmnarDB.NetworkClient.Message.CSVImportMessage.Parser, new[]{ "DatabaseName", "CSVName", "Payload", "ColumnTypes" }, null, null, null, null)
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::QikkDB.NetworkClient.Message.DataType), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.CSVImportMessage), global::QikkDB.NetworkClient.Message.CSVImportMessage.Parser, new[]{ "DatabaseName", "CSVName", "Payload", "ColumnTypes" }, null, null, null, null)
           }));
     }
     #endregion
@@ -79,7 +79,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.CSVImportMessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.NetworkClient.Message.CSVImportMessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -143,11 +143,11 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "ColumnTypes" field.</summary>
     public const int ColumnTypesFieldNumber = 4;
-    private static readonly pb::FieldCodec<global::ColmnarDB.NetworkClient.Message.DataType> _repeated_columnTypes_codec
-        = pb::FieldCodec.ForEnum(34, x => (int) x, x => (global::ColmnarDB.NetworkClient.Message.DataType) x);
-    private readonly pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataType> columnTypes_ = new pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataType>();
+    private static readonly pb::FieldCodec<global::QikkDB.NetworkClient.Message.DataType> _repeated_columnTypes_codec
+        = pb::FieldCodec.ForEnum(34, x => (int) x, x => (global::QikkDB.NetworkClient.Message.DataType) x);
+    private readonly pbc::RepeatedField<global::QikkDB.NetworkClient.Message.DataType> columnTypes_ = new pbc::RepeatedField<global::QikkDB.NetworkClient.Message.DataType>();
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public pbc::RepeatedField<global::ColmnarDB.NetworkClient.Message.DataType> ColumnTypes {
+    public pbc::RepeatedField<global::QikkDB.NetworkClient.Message.DataType> ColumnTypes {
       get { return columnTypes_; }
     }
 

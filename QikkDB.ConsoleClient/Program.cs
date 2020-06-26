@@ -7,11 +7,11 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Timers;
-using ColmnarDB.NetworkClient;
+using QikkDB.NetworkClient;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace ColmnarDB.ConsoleClient
+namespace QikkDB.ConsoleClient
 {
     public class Program
     {

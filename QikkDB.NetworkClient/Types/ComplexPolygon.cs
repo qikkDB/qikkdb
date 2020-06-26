@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Google.Protobuf.Collections;
 
-namespace ColmnarDB.Types
+namespace QikkDB.Types
 {
     /// <summary>
     /// The class representing complex polygon object which consists of one or more polygons.

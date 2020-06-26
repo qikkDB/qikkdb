@@ -1,8 +1,8 @@
 using System;
 using System.IO;
-using ColmnarDB.NetworkClient;
+using QikkDB.NetworkClient;
 
-namespace ColmnarDB.ConsoleClient
+namespace QikkDB.ConsoleClient
 {
     public class UseDatabase
     {

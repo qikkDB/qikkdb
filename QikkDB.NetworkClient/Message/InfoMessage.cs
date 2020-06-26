@@ -9,7 +9,7 @@ using pb = global::Google.Protobuf;
 using pbc = global::Google.Protobuf.Collections;
 using pbr = global::Google.Protobuf.Reflection;
 using scg = global::System.Collections.Generic;
-namespace ColmnarDB.NetworkClient.Message {
+namespace QikkDB.NetworkClient.Message {
 
   /// <summary>Holder for reflection information generated from Message/InfoMessage.proto</summary>
   public static partial class InfoMessageReflection {
@@ -24,17 +24,17 @@ namespace ColmnarDB.NetworkClient.Message {
     static InfoMessageReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChlNZXNzYWdlL0luZm9NZXNzYWdlLnByb3RvEh9Db2xtbmFyREIuTmV0d29y",
-            "a0NsaWVudC5NZXNzYWdlIu8BCgtJbmZvTWVzc2FnZRJFCgRDb2RlGAEgASgO",
-            "MjcuQ29sbW5hckRCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5JbmZvTWVzc2Fn",
-            "ZS5TdGF0dXNDb2RlEg8KB01lc3NhZ2UYAiABKAkihwEKClN0YXR1c0NvZGUS",
-            "BgoCT0sQABIICgRXQUlUEAESEwoPR0VUX05FWFRfUkVTVUxUEAYSDwoLUVVF",
-            "UllfRVJST1IQAhIQCgxJTVBPUlRfRVJST1IQAxISCg5DT05OX0VTVEFCTElT",
-            "SBAEEgwKCENPTk5fRU5EEAUSDQoJSEVBUlRCRUFUEAdiBnByb3RvMw=="));
+            "ChlNZXNzYWdlL0luZm9NZXNzYWdlLnByb3RvEhxRaWtrREIuTmV0d29ya0Ns",
+            "aWVudC5NZXNzYWdlIuwBCgtJbmZvTWVzc2FnZRJCCgRDb2RlGAEgASgOMjQu",
+            "UWlra0RCLk5ldHdvcmtDbGllbnQuTWVzc2FnZS5JbmZvTWVzc2FnZS5TdGF0",
+            "dXNDb2RlEg8KB01lc3NhZ2UYAiABKAkihwEKClN0YXR1c0NvZGUSBgoCT0sQ",
+            "ABIICgRXQUlUEAESEwoPR0VUX05FWFRfUkVTVUxUEAYSDwoLUVVFUllfRVJS",
+            "T1IQAhIQCgxJTVBPUlRfRVJST1IQAxISCg5DT05OX0VTVEFCTElTSBAEEgwK",
+            "CENPTk5fRU5EEAUSDQoJSEVBUlRCRUFUEAdiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::ColmnarDB.NetworkClient.Message.InfoMessage), global::ColmnarDB.NetworkClient.Message.InfoMessage.Parser, new[]{ "Code", "Message" }, null, new[]{ typeof(global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode) }, null, null)
+            new pbr::GeneratedClrTypeInfo(typeof(global::QikkDB.NetworkClient.Message.InfoMessage), global::QikkDB.NetworkClient.Message.InfoMessage.Parser, new[]{ "Code", "Message" }, null, new[]{ typeof(global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode) }, null, null)
           }));
     }
     #endregion
@@ -49,7 +49,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::ColmnarDB.NetworkClient.Message.InfoMessageReflection.Descriptor.MessageTypes[0]; }
+      get { return global::QikkDB.NetworkClient.Message.InfoMessageReflection.Descriptor.MessageTypes[0]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -78,9 +78,9 @@ namespace ColmnarDB.NetworkClient.Message {
 
     /// <summary>Field number for the "Code" field.</summary>
     public const int CodeFieldNumber = 1;
-    private global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode code_ = global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok;
+    private global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode code_ = global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    public global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode Code {
+    public global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode Code {
       get { return code_; }
       set {
         code_ = value;
@@ -119,7 +119,7 @@ namespace ColmnarDB.NetworkClient.Message {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public override int GetHashCode() {
       int hash = 1;
-      if (Code != global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) hash ^= Code.GetHashCode();
+      if (Code != global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) hash ^= Code.GetHashCode();
       if (Message.Length != 0) hash ^= Message.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -134,7 +134,7 @@ namespace ColmnarDB.NetworkClient.Message {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public void WriteTo(pb::CodedOutputStream output) {
-      if (Code != global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
+      if (Code != global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
         output.WriteRawTag(8);
         output.WriteEnum((int) Code);
       }
@@ -150,7 +150,7 @@ namespace ColmnarDB.NetworkClient.Message {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     public int CalculateSize() {
       int size = 0;
-      if (Code != global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
+      if (Code != global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Code);
       }
       if (Message.Length != 0) {
@@ -167,7 +167,7 @@ namespace ColmnarDB.NetworkClient.Message {
       if (other == null) {
         return;
       }
-      if (other.Code != global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
+      if (other.Code != global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode.Ok) {
         Code = other.Code;
       }
       if (other.Message.Length != 0) {
@@ -185,7 +185,7 @@ namespace ColmnarDB.NetworkClient.Message {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 8: {
-            Code = (global::ColmnarDB.NetworkClient.Message.InfoMessage.Types.StatusCode) input.ReadEnum();
+            Code = (global::QikkDB.NetworkClient.Message.InfoMessage.Types.StatusCode) input.ReadEnum();
             break;
           }
           case 18: {
