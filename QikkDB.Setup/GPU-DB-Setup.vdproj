@@ -16,49 +16,97 @@
     {
         "Entry"
         {
+        "MsmKey" = "8:_0037ED5B311B4FE796468A858F713EBA"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_0151D7350FCD4ACEB0D67EAFC1A9B0E3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
         "MsmKey" = "8:_0F4E9D22DC5742FBA5623A9A39902893"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_0FCDCEC53C374F76A38FA3D46EBA0E72"
+        "MsmKey" = "8:_1750C4016FAD4FE3B6525C76C4F08E88"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_24464ECB8D0F49AA941924F7BD77FC75"
+        "MsmKey" = "8:_190B63080BA94347A607D2484626AF2D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_27B69495B1ED47F384A7482C1363E173"
+        "MsmKey" = "8:_252AB00708544A929DC34899AB451BA4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_2C163CD3EE2642BEB56093A4F6B39816"
+        "MsmKey" = "8:_3050A4D42CD8440D8B9D174BFDFD4262"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_2C283155EE2A4FA5A8C5C10B05EE0219"
+        "MsmKey" = "8:_3429B858D273416580D56D9A1CC1393F"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_44B217A8BE71443C8E168BB3D6C26E7F"
+        "MsmKey" = "8:_3544CF4616044F21BDEE016B156191B2"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_500144653D77489A87F86C93CEA82CC8"
+        "MsmKey" = "8:_3885EEBF4EC14BC08E15025A950EE33D"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_3AC9F45B68244C4489D35C28F9F8FB0F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4280D941001841639E40005AFCDAED40"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_455F6DD3369441D6AC5A4F0EC670D594"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_4D241B06C0EB4765AEEBF68BE718B770"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_52D0ED509C9A4662A08A01C4934578CD"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_5404C2AA655743CFB687834A29304784"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -70,37 +118,103 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_55E0E3E8D2B44DDD969C9B67459ACA7B"
+        "MsmKey" = "8:_578CDA5E11C2411CBF6E5CE5B9FE88F0"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_5A6F4719F82A46D8A5609466E632054C"
+        "MsmKey" = "8:_58E53D1FD8A04AF0916358DA33714885"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_71BE32A6D48E454290CB97FE6CF90A35"
+        "MsmKey" = "8:_59300800BA584260ACA5AACE80BAF325"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_76F633DA569E4D6EA87C07E57CEF815D"
+        "MsmKey" = "8:_59E7444391614DA390EABA3CFDC93B83"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_8AB8908C614B43689CB52EBD70E78C00"
+        "MsmKey" = "8:_6052E26021864A7F8A2AE5199AEE551B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_8E40BC763DC34A798EAE32FEAE1E9C38"
+        "MsmKey" = "8:_6389802BC3A7456D978FF7CD6F24A51F"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_63D4FFC3D1FD455D91A1379C00F442E6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_6B1CB5F971924B908AB78B4BBEE6DC7C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_73282A889383486A941D73AB42B365E6"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_74F423B7976243F5A144407F46CBF7C1"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_77A4B00A72094A7EB91067993CF8F00A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_77DE39126BFC46CC96EF383F8F437B64"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_853CA1B1B40047FE9453860917E4F723"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_860B4001B4FF47F1B735361053C68F45"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_86A3B0AC3F244585B6E77DCCD4BD948C"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_88DEBE5870734CD4B6AF1B685FAAF854"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_91DD4322EB96475CADF9E21D2252983B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -112,37 +226,37 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_97984F40B850494595F3383BE50C187C"
+        "MsmKey" = "8:_96EC055204904E6CAECC9B6454246002"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_AD09ECF8D9E94B279822906334255225"
+        "MsmKey" = "8:_A838F0C790C747CE9D84E5F198968115"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_B6CB8752BF2A474099900CF1BC4D9785"
+        "MsmKey" = "8:_ADDAAE3361854BCEB363BE12E0AC05F9"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_BD1FF6C9E0714E82B134A926DFD5700D"
+        "MsmKey" = "8:_B3BB8FBE1B7D40A5A44F0BD6333CF501"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_C94B2630E4D74923BB43EA2B84F9CD2B"
+        "MsmKey" = "8:_BD023199C66E47F3B4705F4416C3213D"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_CAE4E2439ADE42C6A58E251CD5495152"
+        "MsmKey" = "8:_CA4C94A8C9AA43FF8763CF59FAE6F07B"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -154,7 +268,7 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_D6B418FCF665454ABCDCE851E93ED473"
+        "MsmKey" = "8:_D439BDEAF77148CB957D0B0A246F21C4"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -178,13 +292,43 @@
         }
         "Entry"
         {
-        "MsmKey" = "8:_F93826ACA1B144C4A95120909E3205C8"
+        "MsmKey" = "8:_E90B890935CF4DD69EB3D98A3EA036A5"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
         "Entry"
         {
-        "MsmKey" = "8:_FF0DDE45449348E9930845616A4159DA"
+        "MsmKey" = "8:_EBF709EBA3A1496A984D6205892A5DD3"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_EFE896B98B5E429B88857F1FF4C88BF9"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F074BC6B2406408CAA1EC7FAAA0B5F8A"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F48256178B3A4FCFA6C25B84C12188F5"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F4CD80002DFB4ACF8B9FA31F0D297020"
+        "OwnerKey" = "8:_UNDEFINED"
+        "MsmSig" = "8:_UNDEFINED"
+        }
+        "Entry"
+        {
+        "MsmKey" = "8:_F780D58EED774CF8B576A365FEF517FC"
         "OwnerKey" = "8:_UNDEFINED"
         "MsmSig" = "8:_UNDEFINED"
         }
@@ -285,10 +429,60 @@
                 "AllowLaterVersions" = "11:FALSE"
                 "InstallUrl" = "8:http://go.microsoft.com/fwlink/?LinkId=671728"
                 }
+                "{A06ECF26-33A3-4562-8140-9B0E340D4F24}:_2D9094D261104F1FA15E6A3E17FE6035"
+                {
+                "Name" = "8:.NET Core"
+                "Message" = "8:[VSDNETCOREMSG]"
+                "AllowLaterVersions" = "11:FALSE"
+                "InstallUrl" = "8:https://dotnet.microsoft.com/download/dotnet-core/[NetCoreVerMajorDotMinor]"
+                "IsNETCore" = "11:TRUE"
+                "Architecture" = "2:0"
+                "Runtime" = "2:0"
+                }
             }
         }
         "File"
         {
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0037ED5B311B4FE796468A858F713EBA"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@payment_type.data"
+            "TargetName" = "8:trips@trips_sample@payment_type.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0151D7350FCD4ACEB0D67EAFC1A9B0E3"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tolls_amount.adrs"
+            "TargetName" = "8:trips@trips_sample@tolls_amount.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
             "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0F4E9D22DC5742FBA5623A9A39902893"
             {
             "SourcePath" = "8:..\\build\\x64-Release\\qikkDB\\qikkDB_community.exe"
@@ -309,10 +503,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_0FCDCEC53C374F76A38FA3D46EBA0E72"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_1750C4016FAD4FE3B6525C76C4F08E88"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@store_and_fwd_flag.col"
-            "TargetName" = "8:trips@trips_sample@store_and_fwd_flag.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@cab_type.adrs"
+            "TargetName" = "8:trips@trips_sample@cab_type.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -329,10 +523,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_24464ECB8D0F49AA941924F7BD77FC75"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_190B63080BA94347A607D2484626AF2D"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_coord.col"
-            "TargetName" = "8:trips@trips_sample@pickup_coord.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@trip_distance.adrs"
+            "TargetName" = "8:trips@trips_sample@trip_distance.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -349,10 +543,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_27B69495B1ED47F384A7482C1363E173"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_252AB00708544A929DC34899AB451BA4"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_datetime.col"
-            "TargetName" = "8:trips@trips_sample@dropoff_datetime.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@rate_code.data"
+            "TargetName" = "8:trips@trips_sample@rate_code.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -369,10 +563,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2C163CD3EE2642BEB56093A4F6B39816"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3050A4D42CD8440D8B9D174BFDFD4262"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@cab_type.col"
-            "TargetName" = "8:trips@trips_sample@cab_type.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@cab_type.data"
+            "TargetName" = "8:trips@trips_sample@cab_type.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -389,10 +583,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_2C283155EE2A4FA5A8C5C10B05EE0219"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3429B858D273416580D56D9A1CC1393F"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@rate_code.col"
-            "TargetName" = "8:trips@trips_sample@rate_code.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_longitude.adrs"
+            "TargetName" = "8:trips@trips_sample@pickup_longitude.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -409,10 +603,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_44B217A8BE71443C8E168BB3D6C26E7F"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3544CF4616044F21BDEE016B156191B2"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_latitude.col"
-            "TargetName" = "8:trips@trips_sample@pickup_latitude.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_coord.data"
+            "TargetName" = "8:trips@trips_sample@dropoff_coord.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -429,10 +623,130 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_500144653D77489A87F86C93CEA82CC8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3885EEBF4EC14BC08E15025A950EE33D"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@payment_type.col"
-            "TargetName" = "8:trips@trips_sample@payment_type.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@mta_tax.data"
+            "TargetName" = "8:trips@trips_sample@mta_tax.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_3AC9F45B68244C4489D35C28F9F8FB0F"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@vendor_id.fragdata"
+            "TargetName" = "8:trips@trips_sample@vendor_id.fragdata"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4280D941001841639E40005AFCDAED40"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_datetime.adrs"
+            "TargetName" = "8:trips@trips_sample@dropoff_datetime.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_455F6DD3369441D6AC5A4F0EC670D594"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@payment_type.adrs"
+            "TargetName" = "8:trips@trips_sample@payment_type.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_4D241B06C0EB4765AEEBF68BE718B770"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@vendor_id.adrs"
+            "TargetName" = "8:trips@trips_sample@vendor_id.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_52D0ED509C9A4662A08A01C4934578CD"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@surcharge.adrs"
+            "TargetName" = "8:trips@trips_sample@surcharge.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5404C2AA655743CFB687834A29304784"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tolls_amount.data"
+            "TargetName" = "8:trips@trips_sample@tolls_amount.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -469,10 +783,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_55E0E3E8D2B44DDD969C9B67459ACA7B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_578CDA5E11C2411CBF6E5CE5B9FE88F0"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@trip_distance.col"
-            "TargetName" = "8:trips@trips_sample@trip_distance.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@surcharge.data"
+            "TargetName" = "8:trips@trips_sample@surcharge.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -489,10 +803,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_5A6F4719F82A46D8A5609466E632054C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_58E53D1FD8A04AF0916358DA33714885"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_latitude.col"
-            "TargetName" = "8:trips@trips_sample@dropoff_latitude.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@total_amount.data"
+            "TargetName" = "8:trips@trips_sample@total_amount.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -509,10 +823,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_71BE32A6D48E454290CB97FE6CF90A35"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_59300800BA584260ACA5AACE80BAF325"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_coord.col"
-            "TargetName" = "8:trips@trips_sample@dropoff_coord.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_coord.adrs"
+            "TargetName" = "8:trips@trips_sample@pickup_coord.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -529,10 +843,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_76F633DA569E4D6EA87C07E57CEF815D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_59E7444391614DA390EABA3CFDC93B83"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@total_amount.col"
-            "TargetName" = "8:trips@trips_sample@total_amount.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_longitude.data"
+            "TargetName" = "8:trips@trips_sample@pickup_longitude.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -549,10 +863,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8AB8908C614B43689CB52EBD70E78C00"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6052E26021864A7F8A2AE5199AEE551B"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_longitude.col"
-            "TargetName" = "8:trips@trips_sample@pickup_longitude.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips.db"
+            "TargetName" = "8:trips.db"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -569,10 +883,230 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_8E40BC763DC34A798EAE32FEAE1E9C38"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6389802BC3A7456D978FF7CD6F24A51F"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tolls_amount.col"
-            "TargetName" = "8:trips@trips_sample@tolls_amount.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_coord.data"
+            "TargetName" = "8:trips@trips_sample@pickup_coord.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_63D4FFC3D1FD455D91A1379C00F442E6"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@mta_tax.adrs"
+            "TargetName" = "8:trips@trips_sample@mta_tax.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_6B1CB5F971924B908AB78B4BBEE6DC7C"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@store_and_fwd_flag.fragdata"
+            "TargetName" = "8:trips@trips_sample@store_and_fwd_flag.fragdata"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_73282A889383486A941D73AB42B365E6"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@rate_code.adrs"
+            "TargetName" = "8:trips@trips_sample@rate_code.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_74F423B7976243F5A144407F46CBF7C1"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_latitude.adrs"
+            "TargetName" = "8:trips@trips_sample@pickup_latitude.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_77A4B00A72094A7EB91067993CF8F00A"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@passenger_count.adrs"
+            "TargetName" = "8:trips@trips_sample@passenger_count.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_77DE39126BFC46CC96EF383F8F437B64"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@total_amount.adrs"
+            "TargetName" = "8:trips@trips_sample@total_amount.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_853CA1B1B40047FE9453860917E4F723"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_longitude.adrs"
+            "TargetName" = "8:trips@trips_sample@dropoff_longitude.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_860B4001B4FF47F1B735361053C68F45"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_datetime.adrs"
+            "TargetName" = "8:trips@trips_sample@pickup_datetime.adrs"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_86A3B0AC3F244585B6E77DCCD4BD948C"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@store_and_fwd_flag.data"
+            "TargetName" = "8:trips@trips_sample@store_and_fwd_flag.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_88DEBE5870734CD4B6AF1B685FAAF854"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_latitude.data"
+            "TargetName" = "8:trips@trips_sample@dropoff_latitude.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_91DD4322EB96475CADF9E21D2252983B"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_longitude.data"
+            "TargetName" = "8:trips@trips_sample@dropoff_longitude.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -609,10 +1143,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_97984F40B850494595F3383BE50C187C"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_96EC055204904E6CAECC9B6454246002"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@fare_amount.col"
-            "TargetName" = "8:trips@trips_sample@fare_amount.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_latitude.adrs"
+            "TargetName" = "8:trips@trips_sample@dropoff_latitude.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -629,10 +1163,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_AD09ECF8D9E94B279822906334255225"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_A838F0C790C747CE9D84E5F198968115"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@vendor_id.col"
-            "TargetName" = "8:trips@trips_sample@vendor_id.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_coord.adrs"
+            "TargetName" = "8:trips@trips_sample@dropoff_coord.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -649,10 +1183,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B6CB8752BF2A474099900CF1BC4D9785"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_ADDAAE3361854BCEB363BE12E0AC05F9"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@mta_tax.col"
-            "TargetName" = "8:trips@trips_sample@mta_tax.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_datetime.data"
+            "TargetName" = "8:trips@trips_sample@pickup_datetime.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -669,10 +1203,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD1FF6C9E0714E82B134A926DFD5700D"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_B3BB8FBE1B7D40A5A44F0BD6333CF501"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_longitude.col"
-            "TargetName" = "8:trips@trips_sample@dropoff_longitude.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@fare_amount.adrs"
+            "TargetName" = "8:trips@trips_sample@fare_amount.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -689,10 +1223,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_C94B2630E4D74923BB43EA2B84F9CD2B"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_BD023199C66E47F3B4705F4416C3213D"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips.db"
-            "TargetName" = "8:trips.db"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@payment_type.fragdata"
+            "TargetName" = "8:trips@trips_sample@payment_type.fragdata"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -709,10 +1243,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CAE4E2439ADE42C6A58E251CD5495152"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_CA4C94A8C9AA43FF8763CF59FAE6F07B"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_datetime.col"
-            "TargetName" = "8:trips@trips_sample@pickup_datetime.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@store_and_fwd_flag.adrs"
+            "TargetName" = "8:trips@trips_sample@store_and_fwd_flag.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -749,10 +1283,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D6B418FCF665454ABCDCE851E93ED473"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_D439BDEAF77148CB957D0B0A246F21C4"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@passenger_count.col"
-            "TargetName" = "8:trips@trips_sample@passenger_count.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@fare_amount.data"
+            "TargetName" = "8:trips@trips_sample@fare_amount.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -829,10 +1363,10 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F93826ACA1B144C4A95120909E3205C8"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_E90B890935CF4DD69EB3D98A3EA036A5"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@surcharge.col"
-            "TargetName" = "8:trips@trips_sample@surcharge.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@pickup_latitude.data"
+            "TargetName" = "8:trips@trips_sample@pickup_latitude.data"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -849,10 +1383,110 @@
             "IsDependency" = "11:FALSE"
             "IsolateTo" = "8:"
             }
-            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_FF0DDE45449348E9930845616A4159DA"
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EBF709EBA3A1496A984D6205892A5DD3"
             {
-            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tip_amount.col"
-            "TargetName" = "8:trips@trips_sample@tip_amount.col"
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tip_amount.data"
+            "TargetName" = "8:trips@trips_sample@tip_amount.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_EFE896B98B5E429B88857F1FF4C88BF9"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@trip_distance.data"
+            "TargetName" = "8:trips@trips_sample@trip_distance.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F074BC6B2406408CAA1EC7FAAA0B5F8A"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@passenger_count.data"
+            "TargetName" = "8:trips@trips_sample@passenger_count.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F48256178B3A4FCFA6C25B84C12188F5"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@dropoff_datetime.data"
+            "TargetName" = "8:trips@trips_sample@dropoff_datetime.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F4CD80002DFB4ACF8B9FA31F0D297020"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@vendor_id.data"
+            "TargetName" = "8:trips@trips_sample@vendor_id.data"
+            "Tag" = "8:"
+            "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
+            "Condition" = "8:"
+            "Transitive" = "11:FALSE"
+            "Vital" = "11:TRUE"
+            "ReadOnly" = "11:FALSE"
+            "Hidden" = "11:FALSE"
+            "System" = "11:FALSE"
+            "Permanent" = "11:FALSE"
+            "SharedLegacy" = "11:FALSE"
+            "PackageAs" = "3:1"
+            "Register" = "3:1"
+            "Exclude" = "11:FALSE"
+            "IsDependency" = "11:FALSE"
+            "IsolateTo" = "8:"
+            }
+            "{1FB2D0AE-D3B9-43D4-B9DD-F88EC61E35DE}:_F780D58EED774CF8B576A365FEF517FC"
+            {
+            "SourcePath" = "8:..\\sampleData\\db\\trips@trips_sample@tip_amount.adrs"
+            "TargetName" = "8:trips@trips_sample@tip_amount.adrs"
             "Tag" = "8:"
             "Folder" = "8:_16665884CDB64AE78A73A21982E0BE7B"
             "Condition" = "8:"
@@ -1607,7 +2241,7 @@
         {
             "{5259A561-127C-4D43-A0A1-72F10C7B3BF8}:_6DDAFC4D4207429F820DBC983D59D9EA"
             {
-            "SourcePath" = "8:"
+            "SourcePath" = "8:..\\QikkDB.ConsoleClient\\obj\\x64\\Release\\QikkDB.ConsoleClient.exe"
             "TargetName" = "8:"
             "Tag" = "8:"
             "Folder" = "8:_BF4B8C7ACA9D4A6EB7BF53650D73FA8B"
