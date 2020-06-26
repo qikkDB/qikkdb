@@ -55,7 +55,7 @@ struct TableStruct_messages_2fInfoMessage_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fInfoMessage_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class InfoMessage;
@@ -63,11 +63,11 @@ class InfoMessageDefaultTypeInternal;
 extern InfoMessageDefaultTypeInternal _InfoMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::NetworkClient::Message::InfoMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::InfoMessage>(Arena*);
+template<> ::QikkDB::NetworkClient::Message::InfoMessage* Arena::CreateMaybeMessage<::QikkDB::NetworkClient::Message::InfoMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
@@ -105,7 +105,7 @@ inline bool InfoMessage_StatusCode_Parse(
 // ===================================================================
 
 class InfoMessage :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.InfoMessage) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.NetworkClient.Message.InfoMessage) */ {
  public:
   InfoMessage();
   virtual ~InfoMessage();
@@ -185,7 +185,7 @@ class InfoMessage :
   void InternalSwap(InfoMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.NetworkClient.Message.InfoMessage";
+    return "QikkDB.NetworkClient.Message.InfoMessage";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -271,16 +271,16 @@ class InfoMessage :
   std::string* _internal_mutable_message();
   public:
 
-  // .ColmnarDB.NetworkClient.Message.InfoMessage.StatusCode Code = 1;
+  // .QikkDB.NetworkClient.Message.InfoMessage.StatusCode Code = 1;
   void clear_code();
-  ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode code() const;
-  void set_code(::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode value);
+  ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode code() const;
+  void set_code(::QikkDB::NetworkClient::Message::InfoMessage_StatusCode value);
   private:
-  ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode _internal_code() const;
-  void _internal_set_code(::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode value);
+  ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode _internal_code() const;
+  void _internal_set_code(::QikkDB::NetworkClient::Message::InfoMessage_StatusCode value);
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.InfoMessage)
+  // @@protoc_insertion_point(class_scope:QikkDB.NetworkClient.Message.InfoMessage)
  private:
   class _Internal;
 
@@ -301,24 +301,24 @@ class InfoMessage :
 #endif  // __GNUC__
 // InfoMessage
 
-// .ColmnarDB.NetworkClient.Message.InfoMessage.StatusCode Code = 1;
+// .QikkDB.NetworkClient.Message.InfoMessage.StatusCode Code = 1;
 inline void InfoMessage::clear_code() {
   code_ = 0;
 }
-inline ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode InfoMessage::_internal_code() const {
-  return static_cast< ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode >(code_);
+inline ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode InfoMessage::_internal_code() const {
+  return static_cast< ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode >(code_);
 }
-inline ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode InfoMessage::code() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.InfoMessage.Code)
+inline ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode InfoMessage::code() const {
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.InfoMessage.Code)
   return _internal_code();
 }
-inline void InfoMessage::_internal_set_code(::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode value) {
+inline void InfoMessage::_internal_set_code(::QikkDB::NetworkClient::Message::InfoMessage_StatusCode value) {
   
   code_ = value;
 }
-inline void InfoMessage::set_code(::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode value) {
+inline void InfoMessage::set_code(::QikkDB::NetworkClient::Message::InfoMessage_StatusCode value) {
   _internal_set_code(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.InfoMessage.Code)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.InfoMessage.Code)
 }
 
 // string Message = 2;
@@ -326,15 +326,15 @@ inline void InfoMessage::clear_message() {
   message_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& InfoMessage::message() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.InfoMessage.Message)
   return _internal_message();
 }
 inline void InfoMessage::set_message(const std::string& value) {
   _internal_set_message(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.InfoMessage.Message)
 }
 inline std::string* InfoMessage::mutable_message() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.InfoMessage.Message)
   return _internal_mutable_message();
 }
 inline const std::string& InfoMessage::_internal_message() const {
@@ -348,26 +348,26 @@ inline void InfoMessage::set_message(std::string&& value) {
   
   message_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.InfoMessage.Message)
 }
 inline void InfoMessage::set_message(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   message_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.InfoMessage.Message)
 }
 inline void InfoMessage::set_message(const char* value, size_t size) {
   
   message_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.InfoMessage.Message)
 }
 inline std::string* InfoMessage::_internal_mutable_message() {
   
   return message_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* InfoMessage::release_message() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.InfoMessage.Message)
   
   return message_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -378,7 +378,7 @@ inline void InfoMessage::set_allocated_message(std::string* message) {
     
   }
   message_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), message);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.InfoMessage.Message)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.InfoMessage.Message)
 }
 
 #ifdef __GNUC__
@@ -389,14 +389,14 @@ inline void InfoMessage::set_allocated_message(std::string* message) {
 
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 PROTOBUF_NAMESPACE_OPEN
 
-template <> struct is_proto_enum< ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode> : ::std::true_type {};
+template <> struct is_proto_enum< ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode>() {
-  return ::ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode>() {
+  return ::QikkDB::NetworkClient::Message::InfoMessage_StatusCode_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

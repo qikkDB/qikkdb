@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ColmnarDB.Types;
+package QikkDB.Types;
 
 import "Types/ComplexPolygon.proto";
 

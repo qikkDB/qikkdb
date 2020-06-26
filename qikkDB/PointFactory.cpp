@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <stdexcept>
 
-ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
+QikkDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
 {
     size_t openBracePos = wktPoint.find('(');
     size_t closeBracePos = wktPoint.find(')');
@@ -18,7 +18,7 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
     closeBracePos = wktPoint.find(')');
     wktPoint.erase(wktPoint.begin() + closeBracePos, wktPoint.end());
     std::istringstream wktInput(wktPoint);
-    ColmnarDB::Types::Point ret;
+    QikkDB::Types::Point ret;
     float latitude, longitude;
     wktInput >> latitude >> longitude;
     if (wktInput.fail())
@@ -30,23 +30,23 @@ ColmnarDB::Types::Point PointFactory::FromWkt(std::string wktPoint)
     return ret;
 }
 
-ColmnarDB::Types::Point PointFactory::FromLatLon(float latitude, float longitude)
+QikkDB::Types::Point PointFactory::FromLatLon(float latitude, float longitude)
 {
-    auto ret = ColmnarDB::Types::Point();
+    auto ret = QikkDB::Types::Point();
     ret.mutable_geopoint()->set_longitude(longitude);
     ret.mutable_geopoint()->set_latitude(latitude);
     return ret;
 }
 
-ColmnarDB::Types::Point PointFactory::FromGPUPoint(const NativeGeoPoint& point)
+QikkDB::Types::Point PointFactory::FromGPUPoint(const NativeGeoPoint& point)
 {
-    auto ret = ColmnarDB::Types::Point();
+    auto ret = QikkDB::Types::Point();
     ret.mutable_geopoint()->set_longitude(point.longitude);
     ret.mutable_geopoint()->set_latitude(point.latitude);
     return ret;
 }
 
-std::string PointFactory::WktFromPoint(const ColmnarDB::Types::Point& point, bool fixedPrecision)
+std::string PointFactory::WktFromPoint(const QikkDB::Types::Point& point, bool fixedPrecision)
 {
     std::ostringstream wktStream;
     if (fixedPrecision)

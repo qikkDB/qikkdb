@@ -161,7 +161,7 @@ TEST_F(DatabaseTests, IntegrationTest)
         dataLong2.push_back(256854586987);
         dynamic_cast<ColumnBase<int64_t>*>(colLong2.get())->AddBlock(dataLong2);
 
-        std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon2;
+        std::vector<QikkDB::Types::ComplexPolygon> dataPolygon2;
         dataPolygon2.push_back(ComplexPolygonFactory::FromWkt(
             "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 "
             "80.11,90 89.15,112.12 110, 61 80.11))"));
@@ -171,13 +171,13 @@ TEST_F(DatabaseTests, IntegrationTest)
         dataPolygon2.push_back(ComplexPolygonFactory::FromWkt(
             "POLYGON((15 18, 11.11 12.13, 15 18),(21 38,35.55 36, 30.11 20.26,21 38), (64 80.11,90 "
             "89.15,112.12 110, 64 80.11))"));
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(colPolygon2.get())->AddBlock(dataPolygon2);
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(colPolygon2.get())->AddBlock(dataPolygon2);
 
-        std::vector<ColmnarDB::Types::Point> dataPoint2;
+        std::vector<QikkDB::Types::Point> dataPoint2;
         dataPoint2.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
         dataPoint2.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
         dataPoint2.push_back(PointFactory::FromWkt("POINT(9 8)"));
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(colPoint2.get())->AddBlock(dataPoint2);
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(colPoint2.get())->AddBlock(dataPoint2);
 
         std::vector<int8_t> dataBool2;
         dataBool2.push_back(-1);
@@ -359,11 +359,11 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(secondTableColumns.at("colFloat").get())->GetDefaultValue(),
                     0.000000);
     ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(secondTableColumns.at("colLong").get())->GetDefaultValue(), 0);
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                                                         secondTableColumns.at("colPolygon").get())
                                                         ->GetDefaultValue()),
               "POLYGON((0 0, 1 1, 2 2, 0 0))");
-    ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+    ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
                                              secondTableColumns.at("colPoint").get())
                                              ->GetDefaultValue()),
               "POINT(0 0)");
@@ -446,12 +446,12 @@ TEST_F(DatabaseTests, IntegrationTest)
     // second table colPolygon:
     for (int i = 0; i < blockNum; i++)
     {
-        auto data = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        auto data = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                         secondTableColumns.at("colPolygon").get())
                         ->GetBlocksList()
                         .at(i)
                         ->GetData();
-        ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        ASSERT_FALSE(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                          secondTableColumns.at("colPolygon").get())
                          ->GetBlocksList()
                          .at(i)
@@ -471,12 +471,12 @@ TEST_F(DatabaseTests, IntegrationTest)
     for (int i = 0; i < blockNum; i++)
     {
         auto data =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns.at("colPoint").get())
+            dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns.at("colPoint").get())
                 ->GetBlocksList()
                 .at(i)
                 ->GetData();
         ASSERT_FALSE(
-            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns.at("colPoint").get())
+            dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns.at("colPoint").get())
                 ->GetBlocksList()
                 .at(i)
                 ->GetIsNullable());
@@ -509,7 +509,7 @@ TEST_F(DatabaseTests, IntegrationTest)
     std::vector<std::string> dataString({"Drop database_", "Is this the fastest DB?", "Speed of electron"});
     std::vector<float> dataFloat({456.2, 12.45, 8.965});
     std::vector<int64_t> dataLong({489889498840, 165648654445, 256854586987});
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon(
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon(
         {ComplexPolygonFactory::FromWkt(
              "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 "
              "80.11,90 89.15,112.12 110, 61 80.11))"),
@@ -519,7 +519,7 @@ TEST_F(DatabaseTests, IntegrationTest)
          ComplexPolygonFactory::FromWkt("POLYGON((15 18, 11.11 12.13, 15 18),(21 38,35.55 36, "
                                         "30.11 20.26,21 38), (64 80.11,90 "
                                         "89.15,112.12 110, 64 80.11))")});
-    std::vector<ColmnarDB::Types::Point> dataPoint({PointFactory::FromWkt("POINT(10.11 11.1)"),
+    std::vector<QikkDB::Types::Point> dataPoint({PointFactory::FromWkt("POINT(10.11 11.1)"),
                                                     PointFactory::FromWkt("POINT(12 11.15)"),
                                                     PointFactory::FromWkt("POINT(9 8)")});
     std::vector<int8_t> dataBool({-1, 0, 1});
@@ -704,11 +704,11 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<float>*>(secondTableColumns2.at("colFloat").get())->GetDefaultValue(),
                     0.000000);
     ASSERT_EQ(dynamic_cast<ColumnBase<int64_t>*>(secondTableColumns2.at("colLong").get())->GetDefaultValue(), 0);
-    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                                                         secondTableColumns2.at("colPolygon").get())
                                                         ->GetDefaultValue()),
               "POLYGON((0 0, 1 1, 2 2, 0 0))");
-    ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+    ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
                                              secondTableColumns2.at("colPoint").get())
                                              ->GetDefaultValue()),
               "POINT(0 0)");
@@ -873,12 +873,12 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_FLOAT_EQ(data4[1], 8.965);
 
     // second table colPolygon:
-    auto data5 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    auto data5 = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                      secondTableColumns2.at("colPolygon").get())
                      ->GetBlocksList()
                      .at(0)
                      ->GetData();
-    ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    ASSERT_FALSE(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                      secondTableColumns2.at("colPolygon").get())
                      ->GetBlocksList()
                      .at(0)
@@ -893,12 +893,12 @@ TEST_F(DatabaseTests, IntegrationTest)
               "POLYGON((15 18, 11.11 12.13, 15 18), (21 38, 35.55 36, 30.11 20.26, 21 38), (64 "
               "80.11, 90 89.15, 112.12 110, 64 80.11))");
 
-    data5 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    data5 = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                 secondTableColumns2.at("colPolygon").get())
                 ->GetBlocksList()
                 .at(1)
                 ->GetData();
-    ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    ASSERT_FALSE(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                      secondTableColumns2.at("colPolygon").get())
                      ->GetBlocksList()
                      .at(1)
@@ -916,12 +916,12 @@ TEST_F(DatabaseTests, IntegrationTest)
               "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
               "80.11, 90 89.15, 112.12 110, 61 80.11))");
 
-    data5 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    data5 = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                 secondTableColumns2.at("colPolygon").get())
                 ->GetBlocksList()
                 .at(2)
                 ->GetData();
-    ASSERT_FALSE(dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    ASSERT_FALSE(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                      secondTableColumns2.at("colPolygon").get())
                      ->GetBlocksList()
                      .at(2)
@@ -935,12 +935,12 @@ TEST_F(DatabaseTests, IntegrationTest)
 
     // second table colPoint:
     auto data6 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
             ->GetBlocksList()
             .at(0)
             ->GetData();
     ASSERT_FALSE(
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
             ->GetBlocksList()
             .at(0)
             ->GetIsNullable());
@@ -948,12 +948,12 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ(PointFactory::WktFromPoint(data6[1]), "POINT(12 11.15)");
     ASSERT_EQ(PointFactory::WktFromPoint(data6[2]), "POINT(9 8)");
 
-    data6 = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+    data6 = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
                 ->GetBlocksList()
                 .at(1)
                 ->GetData();
     ASSERT_FALSE(
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
             ->GetBlocksList()
             .at(1)
             ->GetIsNullable());
@@ -962,12 +962,12 @@ TEST_F(DatabaseTests, IntegrationTest)
     ASSERT_EQ(PointFactory::WktFromPoint(data6[2]), "POINT(9 8)");
     ASSERT_EQ(PointFactory::WktFromPoint(data6[3]), "POINT(10.11 11.1)");
 
-    data6 = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+    data6 = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
                 ->GetBlocksList()
                 .at(2)
                 ->GetData();
     ASSERT_FALSE(
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(secondTableColumns2.at("colPoint").get())
             ->GetBlocksList()
             .at(2)
             ->GetIsNullable());

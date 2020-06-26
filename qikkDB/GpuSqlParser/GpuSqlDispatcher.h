@@ -77,7 +77,7 @@ private:
 
     template <typename T>
     using AllocatedDataType =
-        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::Point>::value,
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, QikkDB::Types::Point>::value,
                                   typename std::conditional<std::is_pointer<T>::value, NativeGeoPoint*, NativeGeoPoint>::type,
                                   T>::type;
 
@@ -86,7 +86,7 @@ private:
     using CompositeDataType = typename std::conditional<
         std::is_same<typename std::remove_pointer<T>::type, std::string>::value,
         GPUMemory::GPUString,
-        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value, GPUMemory::GPUPolygon, void>::type>::type;
+        typename std::conditional<std::is_same<typename std::remove_pointer<T>::type, QikkDB::Types::ComplexPolygon>::value, GPUMemory::GPUPolygon, void>::type>::type;
 
 
     template <typename T>
@@ -111,7 +111,7 @@ private:
     template <typename T>
     static constexpr bool isCompositeDataType =
         std::is_same<typename std::remove_pointer<T>::type, std::string>::value ||
-        std::is_same<typename std::remove_pointer<T>::type, ColmnarDB::Types::ComplexPolygon>::value;
+        std::is_same<typename std::remove_pointer<T>::type, QikkDB::Types::ComplexPolygon>::value;
 
     template <typename T>
     struct InstructionArgument
@@ -149,7 +149,7 @@ private:
     std::unordered_map<std::string, PointerAllocation> allocatedPointers_;
     std::unordered_map<std::string, std::vector<std::vector<int32_t>>>* joinIndices_;
 
-    ColmnarDB::NetworkClient::Message::QueryResponseMessage responseMessage_;
+    QikkDB::NetworkClient::Message::QueryResponseMessage responseMessage_;
     std::uintptr_t filter_;
     bool insideAggregation_;
     bool insideGroupBy_;
@@ -323,31 +323,31 @@ private:
 
     static std::atomic_bool thrownException_;
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int8_t[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int32_t[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<int64_t[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<float[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<double[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
 
-    void InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+    void InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                            std::unique_ptr<std::string[]>& data,
                            const int32_t dataSize,
                            const PayloadType payloadType);
@@ -436,10 +436,10 @@ public:
 
     static void MergePayload(const std::string& key,
                              const std::string& trimmedRealName,
-                             ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                             ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload);
+                             QikkDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+                             QikkDB::NetworkClient::Message::QueryResponsePayload& payload);
     static void MergePayloadBitmask(const std::string& key,
-                                    ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+                                    QikkDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                                     std::vector<nullmask_t> nullMask,
                                     int64_t payloadSize);
 
@@ -480,7 +480,7 @@ public:
 
     void Abort();
 
-    const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
+    const QikkDB::NetworkClient::Message::QueryResponseMessage& GetQueryResponseMessage();
 
     void AddGreaterFunction(DataType left, DataType right);
 
@@ -1036,12 +1036,12 @@ public:
     // TODO FreeColumnIfRegister<std::string> laso point and polygon
     void MergePayloadToSelfResponse(const std::string& key,
                                     const std::string& realName,
-                                    ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                    QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                     std::vector<nullmask_t> nullMask = {});
 
     GPUMemory::GPUPolygon InsertComplexPolygon(const std::string& databaseName,
                                                const std::string& colName,
-                                               const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
+                                               const std::vector<QikkDB::Types::ComplexPolygon>& polygons,
                                                int32_t size,
                                                bool useCache = false,
                                                nullmask_t* nullMaskPtr = nullptr);
@@ -1290,19 +1290,19 @@ private:
 };
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<QikkDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<QikkDB::Types::Point>();
 
 template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<QikkDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<QikkDB::Types::Point>();
 
 template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>();
@@ -1311,17 +1311,17 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::GroupByCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<QikkDB::Types::ComplexPolygon>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<QikkDB::Types::Point>();
 
 template <>
 GpuSqlDispatcher::InstructionStatus
-GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName);
+GpuSqlDispatcher::LoadCol<QikkDB::Types::ComplexPolygon>(std::string& colName);
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName);
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<QikkDB::Types::Point>(std::string& colName);
 
 template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::string& colName);
@@ -1330,19 +1330,19 @@ template <>
 GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std::string>();
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>();
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<QikkDB::Types::Point>();
 
 template <>
 GpuSqlDispatcher::InstructionStatus
-GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>();
+GpuSqlDispatcher::OrderByReconstructCol<QikkDB::Types::ComplexPolygon>();
 
 template <>
 GpuSqlDispatcher::CompositeDataTypeAllocation<std::string>
 GpuSqlDispatcher::FindCompositeDataTypeAllocation<std::string>(const std::string& colName);
 
 template <>
-GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
-GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName);
+GpuSqlDispatcher::CompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>(const std::string& colName);
 
 template <>
 void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatcher::CompositeDataType<std::string> column,
@@ -1352,8 +1352,8 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
                                                                   nullmask_t* nullMaskPtr);
 
 template <>
-void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
-    GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon> column,
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<QikkDB::Types::ComplexPolygon>(
+    GpuSqlDispatcher::CompositeDataType<QikkDB::Types::ComplexPolygon> column,
     const std::string& reg,
     int32_t size,
     bool useCache,
@@ -1364,6 +1364,6 @@ GpuSqlDispatcher::CompositeDataType<std::string>
 GpuSqlDispatcher::InsertConstCompositeDataType<std::string>(const std::string& str, size_t size);
 
 template <>
-GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon>
-GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(const std::string& str,
+GpuSqlDispatcher::CompositeDataType<QikkDB::Types::ComplexPolygon>
+GpuSqlDispatcher::InsertConstCompositeDataType<QikkDB::Types::ComplexPolygon>(const std::string& str,
                                                                                  size_t size);

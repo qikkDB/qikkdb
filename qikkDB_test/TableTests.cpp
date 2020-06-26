@@ -61,8 +61,8 @@ TEST(TableTests, InsertDataVector)
     std::vector<int64_t> dataLong({1000000000000000000});
     std::vector<float> dataFloat({0.1111f});
     std::vector<double> dataDouble({0.1111111});
-    std::vector<ColmnarDB::Types::Point> dataPoint({PointFactory::FromWkt("POINT(10.11 11.1)")});
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon({ComplexPolygonFactory::FromWkt(
+    std::vector<QikkDB::Types::Point> dataPoint({PointFactory::FromWkt("POINT(10.11 11.1)")});
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon({ComplexPolygonFactory::FromWkt(
         "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30),(61 80.11,90 "
         "89.15,112.12 110, 61 80.11))")});
     std::vector<std::string> dataString({"randomString"});
@@ -95,11 +95,11 @@ TEST(TableTests, InsertDataVector)
     ASSERT_EQ(blockDouble.front()->GetData()[0], 0.1111111);
 
     auto& blockPoint =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
             ->GetBlocksList();
     ASSERT_EQ(PointFactory::WktFromPoint(blockPoint.front()->GetData()[0]), "POINT(10.11 11.1)");
 
-    auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    auto& blockPolygon = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                              table.GetColumns().at("ColumnPolygon").get())
                              ->GetBlocksList();
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blockPolygon.front()->GetData()[0]),
@@ -847,9 +847,9 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     auto castedColumnLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get());
     auto castedColumnDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get());
     auto castedColumnFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get());
-    auto castedColumnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get());
+    auto castedColumnPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get());
     auto castedColumnPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get());
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get());
     auto castedColumnString = dynamic_cast<ColumnBase<std::string>*>(columnString.get());
     auto castedColumnBool = dynamic_cast<ColumnBase<int8_t>*>(columnBool.get());
 
@@ -885,12 +885,12 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     std::vector<double> dataDouble({48.988949, 48.978949, 28.288944});
     std::vector<float> dataFloat({4.8, 2.3, 2.8});
 
-    std::vector<ColmnarDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::Point> dataPoint;
     dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
     dataPoint.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
     dataPoint.push_back(PointFactory::FromWkt("POINT(9 8)"));
 
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
         "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11,90 "
         "89.15,112.12 110, 61 80.11))"));
@@ -931,9 +931,9 @@ TEST(TableTests, InsertIntoIsUnique_AllTypes_InsertNullValuesIntoUniqueColumn)
     auto blockFloat =
         dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList();
     auto blockPoint =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
             ->GetBlocksList();
-    auto blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    auto blockPolygon = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                             table.GetColumns().at("ColumnPolygon").get())
                             ->GetBlocksList();
     auto blockString =
@@ -1094,9 +1094,9 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     auto castedColumnLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get());
     auto castedColumnDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get());
     auto castedColumnFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get());
-    auto castedColumnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get());
+    auto castedColumnPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get());
     auto castedColumnPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get());
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get());
     auto castedColumnString = dynamic_cast<ColumnBase<std::string>*>(columnString.get());
     auto castedColumnBool = dynamic_cast<ColumnBase<int8_t>*>(columnBool.get());
 
@@ -1132,12 +1132,12 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     std::vector<double> dataDouble({48.988949, 48.978949, 28.288944});
     std::vector<float> dataFloat({4.8, 2.3, 2.8});
 
-    std::vector<ColmnarDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::Point> dataPoint;
     dataPoint.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
     dataPoint.push_back(PointFactory::FromWkt("POINT(12 11.15)"));
     dataPoint.push_back(PointFactory::FromWkt("POINT(9 8)"));
 
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     dataPolygon.push_back(ComplexPolygonFactory::FromWkt(
         "POLYGON((10 11, 11.11 12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 30), (61 80.11,90 "
         "89.15,112.12 110, 61 80.11))"));
@@ -1190,9 +1190,9 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     auto blockFloat1 =
         dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList();
     auto blockPoint1 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
             ->GetBlocksList();
-    auto blockPolygon1 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    auto blockPolygon1 = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                              table.GetColumns().at("ColumnPolygon").get())
                              ->GetBlocksList();
     auto blockString1 =
@@ -1266,9 +1266,9 @@ TEST(TableTests, InsertInto_IsUnique_AllTypes_InsertDuplicateValuesIntoUniqueCol
     auto blockFloat2 =
         dynamic_cast<ColumnBase<float>*>(table.GetColumns().at("ColumnFloat").get())->GetBlocksList();
     auto blockPoint2 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnPoint").get())
             ->GetBlocksList();
-    auto blockPolygon2 = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+    auto blockPolygon2 = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                              table.GetColumns().at("ColumnPolygon").get())
                              ->GetBlocksList();
     auto blockString2 =
@@ -1705,7 +1705,7 @@ TEST(TableTests, Not_Null_Constraint)
     }
     GpuSqlCustomParser select(database, "SELECT ColumnIntA, ColumnIntB FROM TableA;");
     resultPtr = select.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b11111);
 
@@ -1719,7 +1719,7 @@ TEST(TableTests, Not_Null_Constraint)
     ASSERT_FALSE(table.GetColumns().at("ColumnIntB")->GetIsUnique());
 
     resultPtr = select.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntA").nullmask()[0], 0);
     ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b11111);
@@ -1728,10 +1728,10 @@ TEST(TableTests, Not_Null_Constraint)
     {
         parserInsertNullValues.Parse();
     }
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     resultPtr = select.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntA").nullmask()[0], 0b1111100000);
     ASSERT_EQ(result->nullbitmasks().at("TableA.ColumnIntB").nullmask()[0], 0b1111111111);
@@ -1776,7 +1776,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                               "ColumnIntD FROM TableA;");
     resultPtr = parserSelect.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 2);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 2);
@@ -1800,7 +1800,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect2(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
     resultPtr = parserSelect2.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
@@ -1828,7 +1828,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect3(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
     resultPtr = parserSelect3.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
@@ -1855,7 +1855,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect4(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
     resultPtr = parserSelect4.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
@@ -1882,7 +1882,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect5(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
     resultPtr = parserSelect5.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 3);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 3);
@@ -1909,7 +1909,7 @@ TEST(TableTests, InsertInto_IsUnique_Int_ThroughConsole)
     GpuSqlCustomParser parserSelect6(database, "SELECT ColumnIntA, ColumnIntB, ColumnIntC, "
                                                "ColumnIntD FROM TableA;");
     resultPtr = parserSelect6.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntA").intpayload().intdata_size(), 4);
     ASSERT_EQ(result->payloads().at("TableA.ColumnIntB").intpayload().intdata_size(), 4);
@@ -2973,8 +2973,8 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     auto& columnA = table.GetColumns().at("ColumnA");
     auto& columnB = table.GetColumns().at("ColumnB");
 
-    auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnA.get());
-    auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnB.get());
+    auto castedColumnA = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnB.get());
 
     ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
@@ -2983,11 +2983,11 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_FALSE(castedColumnA->GetIsNullable());
 
     std::unordered_map<std::string, std::any> data;
-    std::vector<ColmnarDB::Types::Point> dataA;
+    std::vector<QikkDB::Types::Point> dataA;
     dataA.push_back(PointFactory::FromWkt("POINT(10.11 11.1)"));
     dataA.push_back(PointFactory::FromWkt("POINT(12.11 11.1)"));
     dataA.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
-    std::vector<ColmnarDB::Types::Point> dataB;
+    std::vector<QikkDB::Types::Point> dataB;
     dataB.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
     dataB.push_back(PointFactory::FromWkt("POINT(15.11 12.1)"));
     dataB.push_back(PointFactory::FromWkt("POINT(16.11 11.1)"));
@@ -2998,9 +2998,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     table.InsertData(data);
 
     auto blockA =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA[0]->GetSize(), 3);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3014,11 +3014,11 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // trying to insert unique values into isUnique column and non unique values into non unique column
     std::unordered_map<std::string, std::any> data2;
-    std::vector<ColmnarDB::Types::Point> dataA2;
+    std::vector<QikkDB::Types::Point> dataA2;
     dataA2.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
     dataA2.push_back(PointFactory::FromWkt("POINT(1.11 11.15)"));
     dataA2.push_back(PointFactory::FromWkt("POINT(131.11 11.1)"));
-    std::vector<ColmnarDB::Types::Point> dataB2;
+    std::vector<QikkDB::Types::Point> dataB2;
     dataB2.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
     dataB2.push_back(PointFactory::FromWkt("POINT(14.11 11.1)"));
     dataB2.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
@@ -3029,9 +3029,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     table.InsertData(data2);
 
     auto blockA2 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB2 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA2[0]->GetSize(), 6);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA2[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3051,9 +3051,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // trying to insert non unique values into isUnique column and unique values into non unique column
     std::unordered_map<std::string, std::any> data3;
-    std::vector<ColmnarDB::Types::Point> dataA3;
+    std::vector<QikkDB::Types::Point> dataA3;
     dataA3.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
-    std::vector<ColmnarDB::Types::Point> dataB3;
+    std::vector<QikkDB::Types::Point> dataB3;
     dataB3.push_back(PointFactory::FromWkt("POINT(149.11 11.1)"));
 
     data3.insert({"ColumnA", dataA3});
@@ -3062,9 +3062,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB3 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA3[0]->GetSize(), 6);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA3[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3084,9 +3084,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // trying to insert non unique values into isUnique column and non unique values into non unique column
     std::unordered_map<std::string, std::any> data4;
-    std::vector<ColmnarDB::Types::Point> dataA4;
+    std::vector<QikkDB::Types::Point> dataA4;
     dataA4.push_back(PointFactory::FromWkt("POINT(11.11 11.12)"));
-    std::vector<ColmnarDB::Types::Point> dataB4;
+    std::vector<QikkDB::Types::Point> dataB4;
     dataB4.push_back(PointFactory::FromWkt("POINT(13.11 11.1)"));
 
     data4.insert({"ColumnA", dataA4});
@@ -3095,9 +3095,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB4 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA4[0]->GetSize(), 6);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA4[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3117,11 +3117,11 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // trynig to insert non unique values - these duplicity values is within one insert
     std::unordered_map<std::string, std::any> data5;
-    std::vector<ColmnarDB::Types::Point> dataA5;
+    std::vector<QikkDB::Types::Point> dataA5;
     dataA5.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
     dataA5.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
     dataA5.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
-    std::vector<ColmnarDB::Types::Point> dataB5;
+    std::vector<QikkDB::Types::Point> dataB5;
     dataB5.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
     dataB5.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
     dataB5.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
@@ -3132,9 +3132,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB5 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA5[0]->GetSize(), 6);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA5[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3154,10 +3154,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // insert only to non unique column - null value should be inserted in isUnique column but this is forbidden
     std::unordered_map<std::string, std::any> data6;
-    std::vector<ColmnarDB::Types::Point> dataA6;
+    std::vector<QikkDB::Types::Point> dataA6;
     dataA6.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
     dataA6.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
-    std::vector<ColmnarDB::Types::Point> dataB6;
+    std::vector<QikkDB::Types::Point> dataB6;
     dataB6.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
     dataB6.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
 
@@ -3176,9 +3176,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB6 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA6[0]->GetSize(), 6);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA6[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3200,10 +3200,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
 
     // insert only to unique column - null value should be inserted in non unique column
     std::unordered_map<std::string, std::any> data7;
-    std::vector<ColmnarDB::Types::Point> dataA7;
+    std::vector<QikkDB::Types::Point> dataA7;
     dataA7.push_back(PointFactory::FromWkt("POINT(919.11 11.12)"));
     dataA7.push_back(PointFactory::FromWkt("POINT(7.11 11.12)"));
-    std::vector<ColmnarDB::Types::Point> dataB7;
+    std::vector<QikkDB::Types::Point> dataB7;
     dataB7.push_back(PointFactory::FromWkt("POINT(719.11 11.12)"));
     dataB7.push_back(PointFactory::FromWkt("POINT(6.11 11.12)"));
     data7.insert({"ColumnA", dataA7});
@@ -3221,9 +3221,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Point)
     table.InsertData(data7, false, nullMask1);
 
     auto blockA7 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnA").get())->GetBlocksList();
     auto blockB7 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("ColumnB").get())->GetBlocksList();
 
     ASSERT_EQ(blockA7[0]->GetSize(), 8);
     ASSERT_EQ(PointFactory::WktFromPoint(blockA7[0]->GetData()[0]), "POINT(10.11 11.1)");
@@ -3263,8 +3263,8 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     auto& columnA = table.GetColumns().at("ColumnA");
     auto& columnB = table.GetColumns().at("ColumnB");
 
-    auto castedColumnA = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnA.get());
-    auto castedColumnB = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnB.get());
+    auto castedColumnA = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnA.get());
+    auto castedColumnB = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnB.get());
 
     ASSERT_THROW(castedColumnA->SetIsUnique(true), constraint_violation_error);
 
@@ -3281,11 +3281,11 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
 
     std::unordered_map<std::string, std::any> data;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA;
     dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[0]));
     dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[1]));
     dataA.push_back(ComplexPolygonFactory::FromWkt(resultA[2]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB;
     dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[0]));
     dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[1]));
     dataB.push_back(ComplexPolygonFactory::FromWkt(resultB[2]));
@@ -3296,10 +3296,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     table.InsertData(data);
 
     auto blockA =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA[0]->GetSize(), 3);
@@ -3322,11 +3322,11 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     resultB.push_back("POLYGON((21 33, 35.55 36, 37.11 20.26, 21 33))");
 
     std::unordered_map<std::string, std::any> data2;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA2;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA2;
     dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[3]));
     dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[4]));
     dataA2.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB2;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB2;
     dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[3]));
     dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[4]));
     dataB2.push_back(ComplexPolygonFactory::FromWkt(resultB[5]));
@@ -3337,10 +3337,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     table.InsertData(data2);
 
     auto blockA2 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB2 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA2[0]->GetSize(), 6);
@@ -3361,9 +3361,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
 
     // trying to insert non unique values into isUnique column and unique values into non unique column
     std::unordered_map<std::string, std::any> data3;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA3;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA3;
     dataA3.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB3;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB3;
     dataB3.push_back(
         ComplexPolygonFactory::FromWkt("POLYGON((29 39, 12.51 36.5, 14.11 20.26, 29 39))"));
 
@@ -3373,10 +3373,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_THROW(table.InsertData(data3), constraint_violation_error);
 
     auto blockA3 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB3 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA3[0]->GetSize(), 6);
@@ -3397,9 +3397,9 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
 
     // trying to insert non unique values into isUnique column and non unique values into non unique column
     std::unordered_map<std::string, std::any> data4;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA4;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA4;
     dataA4.push_back(ComplexPolygonFactory::FromWkt(resultA[5]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB4;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB4;
     dataB4.push_back(ComplexPolygonFactory::FromWkt(resultB[5]));
 
     data4.insert({"ColumnA", dataA4});
@@ -3408,10 +3408,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_THROW(table.InsertData(data4), constraint_violation_error);
 
     auto blockA4 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB4 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA4[0]->GetSize(), 6);
@@ -3432,14 +3432,14 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
 
     // trynig to insert non unique values - these duplicity values is within one insert
     std::unordered_map<std::string, std::any> data5;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA5;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA5;
     dataA5.push_back(
         ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 120.11 20.26, 240 30))"));
     dataA5.push_back(
         ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 12000.11 20.26, 240 30))"));
     dataA5.push_back(
         ComplexPolygonFactory::FromWkt("POLYGON((240 30, 35 37, 120.11 20.26, 240 30))"));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB5;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB5;
     dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((1 30, 35 37, 1 20.26, 1 30))"));
     dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((2 30, 35 37, 1 20.26, 2 30))"));
     dataB5.push_back(ComplexPolygonFactory::FromWkt("POLYGON((3 30, 35 37, 1 20.26, 3 30))"));
@@ -3450,10 +3450,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_THROW(table.InsertData(data5), constraint_violation_error);
 
     auto blockA5 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB5 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA5[0]->GetSize(), 6);
@@ -3480,10 +3480,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     resultB.push_back("POLYGON((5 30, 35 37, 1 20.26, 5 30))");
 
     std::unordered_map<std::string, std::any> data6;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA6;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA6;
     dataA6.push_back(ComplexPolygonFactory::FromWkt(resultA[6]));
     dataA6.push_back(ComplexPolygonFactory::FromWkt(resultA[7]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB6;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB6;
     dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[6]));
     dataB6.push_back(ComplexPolygonFactory::FromWkt(resultB[7]));
     data6.insert({"ColumnA", dataA6});
@@ -3501,10 +3501,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     ASSERT_THROW(table.InsertData(data6, false, nullMask), constraint_violation_error);
 
     auto blockA6 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB6 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA6[0]->GetSize(), 6);
@@ -3527,10 +3527,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
 
     // insert only to unique column - null value should be inserted in non unique column
     std::unordered_map<std::string, std::any> data7;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataA7;
+    std::vector<QikkDB::Types::ComplexPolygon> dataA7;
     dataA7.push_back(ComplexPolygonFactory::FromWkt(resultA[6]));
     dataA7.push_back(ComplexPolygonFactory::FromWkt(resultA[7]));
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataB7;
+    std::vector<QikkDB::Types::ComplexPolygon> dataB7;
     dataB7.push_back(ComplexPolygonFactory::FromWkt(resultB[6]));
     dataB7.push_back(ComplexPolygonFactory::FromWkt(resultB[7]));
     data7.insert({"ColumnA", dataA7});
@@ -3548,10 +3548,10 @@ TEST(TableTests, InsertInto_IsUnique_CreateColumnWithConstraint_Polygon)
     table.InsertData(data7, false, nullMask1);
 
     auto blockA7 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnA").get())
             ->GetBlocksList();
     auto blockB7 =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("ColumnB").get())
             ->GetBlocksList();
 
     ASSERT_EQ(blockA7[0]->GetSize(), 8);
@@ -3600,7 +3600,7 @@ TEST(TableTests, SetIsNullable)
 
     GpuSqlCustomParser parserSelect(database, "SELECT ColumnA, ColumnB, ColumnC FROM TableA;");
     resultPtr = parserSelect.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().at("TableA.ColumnA").intpayload().intdata_size(), 1);
     ASSERT_EQ(result->payloads().at("TableA.ColumnB").intpayload().intdata_size(), 1);

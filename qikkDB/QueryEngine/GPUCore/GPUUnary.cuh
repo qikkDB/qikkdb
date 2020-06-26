@@ -223,7 +223,7 @@ class GPUUnary<OP,
                IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
                                        std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<IN>::type, ColmnarDB::Types::Point>::value>::type>
+                                       std::is_same<typename std::remove_pointer<IN>::type, QikkDB::Types::Point>::value>::type>
 {
 public:
     static void
@@ -243,7 +243,7 @@ class GPUUnary<OP,
                IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toString>::value &&
                                        std::is_same<typename std::remove_pointer<OUT>::type, std::string>::value &&
-                                       std::is_same<typename std::remove_pointer<IN>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+                                       std::is_same<typename std::remove_pointer<IN>::type, QikkDB::Types::ComplexPolygon>::value>::type>
 {
 public:
     static void
@@ -278,12 +278,12 @@ class GPUUnary<OP,
                IN,
                typename std::enable_if<std::is_same<OP, CastOperations::toNumeric<OUT>>::value &&
                                        (std::is_arithmetic<typename std::remove_pointer<OUT>::type>::value ||
-                                        std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value) &&
+                                        std::is_same<typename std::remove_pointer<OUT>::type, QikkDB::Types::Point>::value) &&
                                        std::is_same<typename std::remove_pointer<IN>::type, std::string>::value>::type>
 {
 public:
     static void
-    Unary(typename std::conditional<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value, NativeGeoPoint*, OUT*>::type outCol,
+    Unary(typename std::conditional<std::is_same<typename std::remove_pointer<OUT>::type, QikkDB::Types::Point>::value, NativeGeoPoint*, OUT*>::type outCol,
           GPUMemory::GPUString inCol,
           int32_t dataElementCount,
           nullmask_t* nullBitMask)

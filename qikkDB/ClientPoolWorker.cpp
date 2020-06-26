@@ -48,7 +48,7 @@ void ClientPoolWorker::HandleClient()
     networkMessage_.ReadFromNetwork(
         socket_,
         [this, self](google::protobuf::Any recvMsg) {
-            ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
+            QikkDB::NetworkClient::Message::InfoMessage outInfo;
             if (!recvMsg.UnpackTo(&outInfo))
             {
                 BOOST_LOG_TRIVIAL(error) << "Invalid message received from client "
@@ -57,7 +57,7 @@ void ClientPoolWorker::HandleClient()
             }
             BOOST_LOG_TRIVIAL(debug) << "Hello from " << socket_.remote_endpoint().address().to_string();
             outInfo.set_message("");
-            outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+            outInfo.set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
             networkMessage_.WriteToNetwork(outInfo, socket_,
                                            [this, self]() {
                                                BOOST_LOG_TRIVIAL(debug)
@@ -85,11 +85,11 @@ void ClientPoolWorker::ClientLoop()
 
 void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::protobuf::Any& recvMsg)
 {
-    ColmnarDB::NetworkClient::Message::InfoMessage outInfo;
+    QikkDB::NetworkClient::Message::InfoMessage outInfo;
     BOOST_LOG_TRIVIAL(debug) << "Got message from " << socket_.remote_endpoint().address().to_string();
-    if (recvMsg.Is<ColmnarDB::NetworkClient::Message::InfoMessage>())
+    if (recvMsg.Is<QikkDB::NetworkClient::Message::InfoMessage>())
     {
-        ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+        QikkDB::NetworkClient::Message::InfoMessage infoMessage;
         recvMsg.UnpackTo(&infoMessage);
         BOOST_LOG_TRIVIAL(debug) << "Info message from " << socket_.remote_endpoint().address().to_string();
         std::unique_ptr<google::protobuf::Message> resultMessage =
@@ -101,9 +101,9 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                            [this, self]() { Abort(); });
         }
     }
-    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::QueryMessage>())
+    else if (recvMsg.Is<QikkDB::NetworkClient::Message::QueryMessage>())
     {
-        ColmnarDB::NetworkClient::Message::QueryMessage queryMessage;
+        QikkDB::NetworkClient::Message::QueryMessage queryMessage;
         recvMsg.UnpackTo(&queryMessage);
         BOOST_LOG_TRIVIAL(debug) << "Query message from " << socket_.remote_endpoint().address().to_string();
         std::unique_ptr<google::protobuf::Message> waitMessage = clientHandler_->HandleQuery(
@@ -120,9 +120,9 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                            [this, self]() { Abort(); });
         }
     }
-    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::CSVImportMessage>())
+    else if (recvMsg.Is<QikkDB::NetworkClient::Message::CSVImportMessage>())
     {
-        ColmnarDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
+        QikkDB::NetworkClient::Message::CSVImportMessage csvImportMessage;
         recvMsg.UnpackTo(&csvImportMessage);
         BOOST_LOG_TRIVIAL(debug) << "CSV message from " << socket_.remote_endpoint().address().to_string();
         std::unique_ptr<google::protobuf::Message> importResultMessage =
@@ -134,9 +134,9 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                            [this, self]() { Abort(); });
         }
     }
-    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::SetDatabaseMessage>())
+    else if (recvMsg.Is<QikkDB::NetworkClient::Message::SetDatabaseMessage>())
     {
-        ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
+        QikkDB::NetworkClient::Message::SetDatabaseMessage setDatabaseMessage;
         recvMsg.UnpackTo(&setDatabaseMessage);
         BOOST_LOG_TRIVIAL(debug)
             << "Set database message from " << socket_.remote_endpoint().address().to_string();
@@ -149,9 +149,9 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
                                            [this, self]() { Abort(); });
         }
     }
-    else if (recvMsg.Is<ColmnarDB::NetworkClient::Message::BulkImportMessage>())
+    else if (recvMsg.Is<QikkDB::NetworkClient::Message::BulkImportMessage>())
     {
-        ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+        QikkDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
         recvMsg.UnpackTo(&bulkImportMessage);
         BOOST_LOG_TRIVIAL(debug)
             << "BulkImport message from " << socket_.remote_endpoint().address().to_string();
@@ -162,7 +162,7 @@ void ClientPoolWorker::HandleMessage(std::shared_ptr<ITCPWorker> self, google::p
         if (bulkImportMessage.datalength() > MAXIMUM_BULK_FRAGMENT_SIZE)
         {
             outInfo.set_message("Data fragment larger than allowed");
-            outInfo.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            outInfo.set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
             networkMessage_.WriteToNetwork(outInfo, socket_, [this, self]() { ClientLoop(); },
                                            [this, self]() { Abort(); });
             return;

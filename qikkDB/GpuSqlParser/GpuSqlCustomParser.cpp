@@ -244,7 +244,7 @@ std::unique_ptr<google::protobuf::Message> GpuSqlCustomParser::Parse()
     for (auto& column : gpuSqlListener.ColumnOrder)
     {
         std::string colName = column.second.front() == '$' ? column.second.substr(1) : column.second;
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(colName);
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(ret.get())->add_columnorder(colName);
     }
 
     return ret;
@@ -412,39 +412,39 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Limit: " << resultLimit << '\n';
     CudaLogBoost::getInstance(CudaLogBoost::info) << "Offset: " << resultOffset << '\n';
 
-    std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
-        std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+    std::unique_ptr<QikkDB::NetworkClient::Message::QueryResponseMessage> responseMessage =
+        std::make_unique<QikkDB::NetworkClient::Message::QueryResponseMessage>();
     for (auto& partialResult : dispatcherResults)
     {
-        ColmnarDB::NetworkClient::Message::QueryResponseMessage* partialMessage =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
+        QikkDB::NetworkClient::Message::QueryResponseMessage* partialMessage =
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(partialResult.get());
         for (auto& partialPayload : partialMessage->payloads())
         {
             std::string key = partialPayload.first;
-            ColmnarDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
+            QikkDB::NetworkClient::Message::QueryResponsePayload payload = partialPayload.second;
 
             int64_t payloadSize;
             switch (payload.payload_case())
             {
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
                 payloadSize = payload.intpayload().intdata_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
                 payloadSize = payload.int64payload().int64data_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
                 payloadSize = payload.floatpayload().floatdata_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 payloadSize = payload.doublepayload().doubledata_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
                 payloadSize = payload.stringpayload().stringdata_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
                 payloadSize = payload.pointpayload().pointdata_size();
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
                 payloadSize = payload.polygonpayload().polygondata_size();
                 break;
             default:
@@ -476,16 +476,16 @@ GpuSqlCustomParser::MergeDispatcherResults(std::vector<std::unique_ptr<google::p
 void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset)
 {
     auto queryResponseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(responseMessage);
     for (auto& queryPayload : *queryResponseMessage->mutable_payloads())
     {
         std::string key = queryPayload.first;
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
+        QikkDB::NetworkClient::Message::QueryResponsePayload& payload = queryPayload.second;
         int64_t payloadSize = 0;
         TrimPayload(payload, limit, offset, payloadSize);
         if (queryResponseMessage->nullbitmasks().find(key) != queryResponseMessage->nullbitmasks().end())
         {
-            ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& nullMaskPayload =
+            QikkDB::NetworkClient::Message::QueryNullmaskPayload& nullMaskPayload =
                 queryResponseMessage->mutable_nullbitmasks()->at(key);
             TrimNullMaskPayload(nullMaskPayload, limit, offset, payloadSize);
         }
@@ -496,14 +496,14 @@ void GpuSqlCustomParser::TrimResponseMessage(google::protobuf::Message* response
 /// <param="payload">Payload to be trimmed</param>
 /// <param="limit">Row limit</param>
 /// <param="offset">Row offset</param>
-void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlCustomParser::TrimPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                      int64_t limit,
                                      int64_t offset,
                                      int64_t& payloadSize)
 {
     switch (payload.payload_case())
     {
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
     {
         payloadSize = payload.intpayload().intdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -518,7 +518,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
     }
     break;
 
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
     {
         payloadSize = payload.floatpayload().floatdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -532,7 +532,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_floatpayload()->mutable_floatdata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
     {
         payloadSize = payload.int64payload().int64data().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -546,7 +546,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_int64payload()->mutable_int64data()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
     {
         payloadSize = payload.datetimepayload().datetimedata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -560,7 +560,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_datetimepayload()->mutable_datetimedata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
     {
         payloadSize = payload.doublepayload().doubledata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -574,7 +574,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_doublepayload()->mutable_doubledata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
     {
         payloadSize = payload.pointpayload().pointdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -588,7 +588,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_pointpayload()->mutable_pointdata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
     {
         payloadSize = payload.polygonpayload().polygondata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -602,7 +602,7 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_polygonpayload()->mutable_polygondata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
     {
         payloadSize = payload.stringpayload().stringdata().size();
         int64_t clampedOffset = std::clamp<int64_t>(offset, 0, payloadSize);
@@ -616,12 +616,12 @@ void GpuSqlCustomParser::TrimPayload(ColmnarDB::NetworkClient::Message::QueryRes
         payload.mutable_stringpayload()->mutable_stringdata()->erase(begin + clampedLimit, end);
     }
     break;
-    case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
+    case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::PAYLOAD_NOT_SET:
         break;
     }
 }
 
-void GpuSqlCustomParser::TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& payload,
+void GpuSqlCustomParser::TrimNullMaskPayload(QikkDB::NetworkClient::Message::QueryNullmaskPayload& payload,
                                              const int64_t limit,
                                              const int64_t offset,
                                              const int64_t payloadSize)

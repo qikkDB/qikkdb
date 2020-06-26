@@ -55,7 +55,7 @@ struct TableStruct_messages_2fCSVImportMessage_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fCSVImportMessage_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class CSVImportMessage;
@@ -63,11 +63,11 @@ class CSVImportMessageDefaultTypeInternal;
 extern CSVImportMessageDefaultTypeInternal _CSVImportMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::NetworkClient::Message::CSVImportMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::CSVImportMessage>(Arena*);
+template<> ::QikkDB::NetworkClient::Message::CSVImportMessage* Arena::CreateMaybeMessage<::QikkDB::NetworkClient::Message::CSVImportMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
@@ -115,7 +115,7 @@ inline bool DataType_Parse(
 // ===================================================================
 
 class CSVImportMessage :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.CSVImportMessage) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.NetworkClient.Message.CSVImportMessage) */ {
  public:
   CSVImportMessage();
   virtual ~CSVImportMessage();
@@ -195,7 +195,7 @@ class CSVImportMessage :
   void InternalSwap(CSVImportMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.NetworkClient.Message.CSVImportMessage";
+    return "QikkDB.NetworkClient.Message.CSVImportMessage";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -225,20 +225,20 @@ class CSVImportMessage :
     kCSVNameFieldNumber = 2,
     kPayloadFieldNumber = 3,
   };
-  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  // repeated .QikkDB.NetworkClient.Message.DataType ColumnTypes = 4;
   int columntypes_size() const;
   private:
   int _internal_columntypes_size() const;
   public:
   void clear_columntypes();
   private:
-  ::ColmnarDB::NetworkClient::Message::DataType _internal_columntypes(int index) const;
-  void _internal_add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value);
+  ::QikkDB::NetworkClient::Message::DataType _internal_columntypes(int index) const;
+  void _internal_add_columntypes(::QikkDB::NetworkClient::Message::DataType value);
   ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* _internal_mutable_columntypes();
   public:
-  ::ColmnarDB::NetworkClient::Message::DataType columntypes(int index) const;
-  void set_columntypes(int index, ::ColmnarDB::NetworkClient::Message::DataType value);
-  void add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value);
+  ::QikkDB::NetworkClient::Message::DataType columntypes(int index) const;
+  void set_columntypes(int index, ::QikkDB::NetworkClient::Message::DataType value);
+  void add_columntypes(::QikkDB::NetworkClient::Message::DataType value);
   const ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>& columntypes() const;
   ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>* mutable_columntypes();
 
@@ -290,7 +290,7 @@ class CSVImportMessage :
   std::string* _internal_mutable_payload();
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(class_scope:QikkDB.NetworkClient.Message.CSVImportMessage)
  private:
   class _Internal;
 
@@ -319,15 +319,15 @@ inline void CSVImportMessage::clear_databasename() {
   databasename_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& CSVImportMessage::databasename() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
   return _internal_databasename();
 }
 inline void CSVImportMessage::set_databasename(const std::string& value) {
   _internal_set_databasename(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
 }
 inline std::string* CSVImportMessage::mutable_databasename() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
   return _internal_mutable_databasename();
 }
 inline const std::string& CSVImportMessage::_internal_databasename() const {
@@ -341,26 +341,26 @@ inline void CSVImportMessage::set_databasename(std::string&& value) {
   
   databasename_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
 }
 inline void CSVImportMessage::set_databasename(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   databasename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
 }
 inline void CSVImportMessage::set_databasename(const char* value, size_t size) {
   
   databasename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
 }
 inline std::string* CSVImportMessage::_internal_mutable_databasename() {
   
   return databasename_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* CSVImportMessage::release_databasename() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
   
   return databasename_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -371,7 +371,7 @@ inline void CSVImportMessage::set_allocated_databasename(std::string* databasena
     
   }
   databasename_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), databasename);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName)
 }
 
 // string CSVName = 2;
@@ -379,15 +379,15 @@ inline void CSVImportMessage::clear_csvname() {
   csvname_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& CSVImportMessage::csvname() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
   return _internal_csvname();
 }
 inline void CSVImportMessage::set_csvname(const std::string& value) {
   _internal_set_csvname(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
 }
 inline std::string* CSVImportMessage::mutable_csvname() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
   return _internal_mutable_csvname();
 }
 inline const std::string& CSVImportMessage::_internal_csvname() const {
@@ -401,26 +401,26 @@ inline void CSVImportMessage::set_csvname(std::string&& value) {
   
   csvname_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
 }
 inline void CSVImportMessage::set_csvname(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   csvname_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
 }
 inline void CSVImportMessage::set_csvname(const char* value, size_t size) {
   
   csvname_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
 }
 inline std::string* CSVImportMessage::_internal_mutable_csvname() {
   
   return csvname_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* CSVImportMessage::release_csvname() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
   
   return csvname_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -431,7 +431,7 @@ inline void CSVImportMessage::set_allocated_csvname(std::string* csvname) {
     
   }
   csvname_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), csvname);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.CSVImportMessage.CSVName)
 }
 
 // string Payload = 3;
@@ -439,15 +439,15 @@ inline void CSVImportMessage::clear_payload() {
   payload_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& CSVImportMessage::payload() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
   return _internal_payload();
 }
 inline void CSVImportMessage::set_payload(const std::string& value) {
   _internal_set_payload(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 inline std::string* CSVImportMessage::mutable_payload() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
   return _internal_mutable_payload();
 }
 inline const std::string& CSVImportMessage::_internal_payload() const {
@@ -461,26 +461,26 @@ inline void CSVImportMessage::set_payload(std::string&& value) {
   
   payload_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 inline void CSVImportMessage::set_payload(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   payload_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 inline void CSVImportMessage::set_payload(const char* value, size_t size) {
   
   payload_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 inline std::string* CSVImportMessage::_internal_mutable_payload() {
   
   return payload_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* CSVImportMessage::release_payload() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
   
   return payload_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -491,10 +491,10 @@ inline void CSVImportMessage::set_allocated_payload(std::string* payload) {
     
   }
   payload_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), payload);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.CSVImportMessage.Payload)
 }
 
-// repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+// repeated .QikkDB.NetworkClient.Message.DataType ColumnTypes = 4;
 inline int CSVImportMessage::_internal_columntypes_size() const {
   return columntypes_.size();
 }
@@ -504,27 +504,27 @@ inline int CSVImportMessage::columntypes_size() const {
 inline void CSVImportMessage::clear_columntypes() {
   columntypes_.Clear();
 }
-inline ::ColmnarDB::NetworkClient::Message::DataType CSVImportMessage::_internal_columntypes(int index) const {
-  return static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(columntypes_.Get(index));
+inline ::QikkDB::NetworkClient::Message::DataType CSVImportMessage::_internal_columntypes(int index) const {
+  return static_cast< ::QikkDB::NetworkClient::Message::DataType >(columntypes_.Get(index));
 }
-inline ::ColmnarDB::NetworkClient::Message::DataType CSVImportMessage::columntypes(int index) const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+inline ::QikkDB::NetworkClient::Message::DataType CSVImportMessage::columntypes(int index) const {
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
   return _internal_columntypes(index);
 }
-inline void CSVImportMessage::set_columntypes(int index, ::ColmnarDB::NetworkClient::Message::DataType value) {
+inline void CSVImportMessage::set_columntypes(int index, ::QikkDB::NetworkClient::Message::DataType value) {
   columntypes_.Set(index, value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
 }
-inline void CSVImportMessage::_internal_add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value) {
+inline void CSVImportMessage::_internal_add_columntypes(::QikkDB::NetworkClient::Message::DataType value) {
   columntypes_.Add(value);
 }
-inline void CSVImportMessage::add_columntypes(::ColmnarDB::NetworkClient::Message::DataType value) {
-  // @@protoc_insertion_point(field_add:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+inline void CSVImportMessage::add_columntypes(::QikkDB::NetworkClient::Message::DataType value) {
+  // @@protoc_insertion_point(field_add:QikkDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
   _internal_add_columntypes(value);
 }
 inline const ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>&
 CSVImportMessage::columntypes() const {
-  // @@protoc_insertion_point(field_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  // @@protoc_insertion_point(field_list:QikkDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
   return columntypes_;
 }
 inline ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>*
@@ -533,7 +533,7 @@ CSVImportMessage::_internal_mutable_columntypes() {
 }
 inline ::PROTOBUF_NAMESPACE_ID::RepeatedField<int>*
 CSVImportMessage::mutable_columntypes() {
-  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
+  // @@protoc_insertion_point(field_mutable_list:QikkDB.NetworkClient.Message.CSVImportMessage.ColumnTypes)
   return _internal_mutable_columntypes();
 }
 
@@ -545,14 +545,14 @@ CSVImportMessage::mutable_columntypes() {
 
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 PROTOBUF_NAMESPACE_OPEN
 
-template <> struct is_proto_enum< ::ColmnarDB::NetworkClient::Message::DataType> : ::std::true_type {};
+template <> struct is_proto_enum< ::QikkDB::NetworkClient::Message::DataType> : ::std::true_type {};
 template <>
-inline const EnumDescriptor* GetEnumDescriptor< ::ColmnarDB::NetworkClient::Message::DataType>() {
-  return ::ColmnarDB::NetworkClient::Message::DataType_descriptor();
+inline const EnumDescriptor* GetEnumDescriptor< ::QikkDB::NetworkClient::Message::DataType>() {
+  return ::QikkDB::NetworkClient::Message::DataType_descriptor();
 }
 
 PROTOBUF_NAMESPACE_CLOSE

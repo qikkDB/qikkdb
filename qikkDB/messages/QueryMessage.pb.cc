@@ -14,7 +14,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class QueryMessageDefaultTypeInternal {
@@ -23,16 +23,16 @@ class QueryMessageDefaultTypeInternal {
 } _QueryMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 static void InitDefaultsscc_info_QueryMessage_messages_2fQueryMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryMessage_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryMessage();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryMessage_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryMessage();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryMessage::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryMessage::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryMessage_messages_2fQueryMessage_2eproto =
@@ -44,24 +44,24 @@ static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_s
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryMessage_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryMessage, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryMessage, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryMessage, query_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryMessage, query_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryMessage)},
+  { 0, -1, sizeof(::QikkDB::NetworkClient::Message::QueryMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryMessage_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryMessage_default_instance_),
 };
 
 const char descriptor_table_protodef_messages_2fQueryMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\033messages/QueryMessage.proto\022\037ColmnarDB"
-  ".NetworkClient.Message\"\035\n\014QueryMessage\022\r"
-  "\n\005Query\030\001 \001(\tb\006proto3"
+  "\n\033messages/QueryMessage.proto\022\034QikkDB.Ne"
+  "tworkClient.Message\"\035\n\014QueryMessage\022\r\n\005Q"
+  "uery\030\001 \001(\tb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fQueryMessage_2eproto_deps[1] = {
 };
@@ -71,7 +71,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fQueryMessage_2eproto_once;
 static bool descriptor_table_messages_2fQueryMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryMessage_2eproto = {
-  &descriptor_table_messages_2fQueryMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryMessage_2eproto, "messages/QueryMessage.proto", 101,
+  &descriptor_table_messages_2fQueryMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryMessage_2eproto, "messages/QueryMessage.proto", 98,
   &descriptor_table_messages_2fQueryMessage_2eproto_once, descriptor_table_messages_2fQueryMessage_2eproto_sccs, descriptor_table_messages_2fQueryMessage_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_messages_2fQueryMessage_2eproto::offsets,
   file_level_metadata_messages_2fQueryMessage_2eproto, 1, file_level_enum_descriptors_messages_2fQueryMessage_2eproto, file_level_service_descriptors_messages_2fQueryMessage_2eproto,
@@ -79,7 +79,7 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messag
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_messages_2fQueryMessage_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_messages_2fQueryMessage_2eproto), true);
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
@@ -94,7 +94,7 @@ class QueryMessage::_Internal {
 QueryMessage::QueryMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryMessage)
 }
 QueryMessage::QueryMessage(const QueryMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
@@ -104,7 +104,7 @@ QueryMessage::QueryMessage(const QueryMessage& from)
   if (!from._internal_query().empty()) {
     query_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.query_);
   }
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryMessage)
 }
 
 void QueryMessage::SharedCtor() {
@@ -113,7 +113,7 @@ void QueryMessage::SharedCtor() {
 }
 
 QueryMessage::~QueryMessage() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryMessage)
   SharedDtor();
 }
 
@@ -131,7 +131,7 @@ const QueryMessage& QueryMessage::default_instance() {
 
 
 void QueryMessage::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -150,7 +150,7 @@ const char* QueryMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_I
       // string Query = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_query(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryMessage.Query");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_query(), ptr, ctx, "QikkDB.NetworkClient.Message.QueryMessage.Query");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
@@ -176,7 +176,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryMessage::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -185,7 +185,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_query().data(), static_cast<int>(this->_internal_query().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.QueryMessage.Query");
+      "QikkDB.NetworkClient.Message.QueryMessage.Query");
     target = stream->WriteStringMaybeAliased(
         1, this->_internal_query(), target);
   }
@@ -194,12 +194,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryMessage)
   return target;
 }
 
 size_t QueryMessage::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryMessage)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -223,22 +223,22 @@ size_t QueryMessage::ByteSizeLong() const {
 }
 
 void QueryMessage::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryMessage)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryMessage* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryMessage>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryMessage)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryMessage)
     MergeFrom(*source);
   }
 }
 
 void QueryMessage::MergeFrom(const QueryMessage& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryMessage)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -251,14 +251,14 @@ void QueryMessage::MergeFrom(const QueryMessage& from) {
 }
 
 void QueryMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryMessage::CopyFrom(const QueryMessage& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryMessage)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -283,10 +283,10 @@ void QueryMessage::InternalSwap(QueryMessage* other) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryMessage* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryMessage >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryMessage >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryMessage* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryMessage >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryMessage >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

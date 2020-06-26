@@ -21,7 +21,7 @@ class GpuSqlListener;
 
 class CpuWhereListener;
 
-namespace ColmnarDB
+namespace QikkDB
 {
 namespace NetworkClient
 {
@@ -30,7 +30,7 @@ namespace Message
 class QueryResponsePayload;
 }
 } // namespace NetworkClient
-} // namespace ColmnarDB
+} // namespace QikkDB
 
 namespace google
 {
@@ -46,8 +46,8 @@ class GpuSqlCustomParser
 private:
     const std::shared_ptr<Database>& database_;
     void TrimResponseMessage(google::protobuf::Message* responseMessage, int64_t limit, int64_t offset);
-    void TrimPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset, int64_t& payloadSize);
-    void TrimNullMaskPayload(ColmnarDB::NetworkClient::Message::QueryNullmaskPayload& payload,
+    void TrimPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload, int64_t limit, int64_t offset, int64_t& payloadSize);
+    void TrimNullMaskPayload(QikkDB::NetworkClient::Message::QueryNullmaskPayload& payload,
                              const int64_t limit,
                              const int64_t offset,
                              const int64_t payloadSize);

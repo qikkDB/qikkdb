@@ -16,7 +16,7 @@ namespace ConversionOperations
 {
 struct latLonToPoint
 {
-    typedef typename ColmnarDB::Types::Point RetType;
+    typedef typename QikkDB::Types::Point RetType;
 };
 } // namespace ConversionOperations
 

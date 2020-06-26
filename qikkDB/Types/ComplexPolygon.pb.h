@@ -54,7 +54,7 @@ struct TableStruct_Types_2fComplexPolygon_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Types_2fComplexPolygon_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace Types {
 class ComplexPolygon;
 class ComplexPolygonDefaultTypeInternal;
@@ -66,19 +66,19 @@ class Polygon;
 class PolygonDefaultTypeInternal;
 extern PolygonDefaultTypeInternal _Polygon_default_instance_;
 }  // namespace Types
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::Types::ComplexPolygon* Arena::CreateMaybeMessage<::ColmnarDB::Types::ComplexPolygon>(Arena*);
-template<> ::ColmnarDB::Types::GeoPoint* Arena::CreateMaybeMessage<::ColmnarDB::Types::GeoPoint>(Arena*);
-template<> ::ColmnarDB::Types::Polygon* Arena::CreateMaybeMessage<::ColmnarDB::Types::Polygon>(Arena*);
+template<> ::QikkDB::Types::ComplexPolygon* Arena::CreateMaybeMessage<::QikkDB::Types::ComplexPolygon>(Arena*);
+template<> ::QikkDB::Types::GeoPoint* Arena::CreateMaybeMessage<::QikkDB::Types::GeoPoint>(Arena*);
+template<> ::QikkDB::Types::Polygon* Arena::CreateMaybeMessage<::QikkDB::Types::Polygon>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace Types {
 
 // ===================================================================
 
 class ComplexPolygon :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.Types.ComplexPolygon) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.Types.ComplexPolygon) */ {
  public:
   ComplexPolygon();
   virtual ~ComplexPolygon();
@@ -158,7 +158,7 @@ class ComplexPolygon :
   void InternalSwap(ComplexPolygon* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.Types.ComplexPolygon";
+    return "QikkDB.Types.ComplexPolygon";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -185,37 +185,37 @@ class ComplexPolygon :
   enum : int {
     kPolygonsFieldNumber = 1,
   };
-  // repeated .ColmnarDB.Types.Polygon polygons = 1;
+  // repeated .QikkDB.Types.Polygon polygons = 1;
   int polygons_size() const;
   private:
   int _internal_polygons_size() const;
   public:
   void clear_polygons();
-  ::ColmnarDB::Types::Polygon* mutable_polygons(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::Polygon >*
+  ::QikkDB::Types::Polygon* mutable_polygons(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::Polygon >*
       mutable_polygons();
   private:
-  const ::ColmnarDB::Types::Polygon& _internal_polygons(int index) const;
-  ::ColmnarDB::Types::Polygon* _internal_add_polygons();
+  const ::QikkDB::Types::Polygon& _internal_polygons(int index) const;
+  ::QikkDB::Types::Polygon* _internal_add_polygons();
   public:
-  const ::ColmnarDB::Types::Polygon& polygons(int index) const;
-  ::ColmnarDB::Types::Polygon* add_polygons();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::Polygon >&
+  const ::QikkDB::Types::Polygon& polygons(int index) const;
+  ::QikkDB::Types::Polygon* add_polygons();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::Polygon >&
       polygons() const;
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.Types.ComplexPolygon)
+  // @@protoc_insertion_point(class_scope:QikkDB.Types.ComplexPolygon)
  private:
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::Polygon > polygons_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::Polygon > polygons_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Types_2fComplexPolygon_2eproto;
 };
 // -------------------------------------------------------------------
 
 class Polygon :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.Types.Polygon) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.Types.Polygon) */ {
  public:
   Polygon();
   virtual ~Polygon();
@@ -295,7 +295,7 @@ class Polygon :
   void InternalSwap(Polygon* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.Types.Polygon";
+    return "QikkDB.Types.Polygon";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -322,37 +322,37 @@ class Polygon :
   enum : int {
     kGeoPointsFieldNumber = 1,
   };
-  // repeated .ColmnarDB.Types.GeoPoint geoPoints = 1;
+  // repeated .QikkDB.Types.GeoPoint geoPoints = 1;
   int geopoints_size() const;
   private:
   int _internal_geopoints_size() const;
   public:
   void clear_geopoints();
-  ::ColmnarDB::Types::GeoPoint* mutable_geopoints(int index);
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::GeoPoint >*
+  ::QikkDB::Types::GeoPoint* mutable_geopoints(int index);
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::GeoPoint >*
       mutable_geopoints();
   private:
-  const ::ColmnarDB::Types::GeoPoint& _internal_geopoints(int index) const;
-  ::ColmnarDB::Types::GeoPoint* _internal_add_geopoints();
+  const ::QikkDB::Types::GeoPoint& _internal_geopoints(int index) const;
+  ::QikkDB::Types::GeoPoint* _internal_add_geopoints();
   public:
-  const ::ColmnarDB::Types::GeoPoint& geopoints(int index) const;
-  ::ColmnarDB::Types::GeoPoint* add_geopoints();
-  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::GeoPoint >&
+  const ::QikkDB::Types::GeoPoint& geopoints(int index) const;
+  ::QikkDB::Types::GeoPoint* add_geopoints();
+  const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::GeoPoint >&
       geopoints() const;
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.Types.Polygon)
+  // @@protoc_insertion_point(class_scope:QikkDB.Types.Polygon)
  private:
   class _Internal;
 
   ::PROTOBUF_NAMESPACE_ID::internal::InternalMetadataWithArena _internal_metadata_;
-  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::GeoPoint > geopoints_;
+  ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::GeoPoint > geopoints_;
   mutable ::PROTOBUF_NAMESPACE_ID::internal::CachedSize _cached_size_;
   friend struct ::TableStruct_Types_2fComplexPolygon_2eproto;
 };
 // -------------------------------------------------------------------
 
 class GeoPoint :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.Types.GeoPoint) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.Types.GeoPoint) */ {
  public:
   GeoPoint();
   virtual ~GeoPoint();
@@ -432,7 +432,7 @@ class GeoPoint :
   void InternalSwap(GeoPoint* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.Types.GeoPoint";
+    return "QikkDB.Types.GeoPoint";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -478,7 +478,7 @@ class GeoPoint :
   void _internal_set_longitude(float value);
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.Types.GeoPoint)
+  // @@protoc_insertion_point(class_scope:QikkDB.Types.GeoPoint)
  private:
   class _Internal;
 
@@ -499,7 +499,7 @@ class GeoPoint :
 #endif  // __GNUC__
 // ComplexPolygon
 
-// repeated .ColmnarDB.Types.Polygon polygons = 1;
+// repeated .QikkDB.Types.Polygon polygons = 1;
 inline int ComplexPolygon::_internal_polygons_size() const {
   return polygons_.size();
 }
@@ -509,32 +509,32 @@ inline int ComplexPolygon::polygons_size() const {
 inline void ComplexPolygon::clear_polygons() {
   polygons_.Clear();
 }
-inline ::ColmnarDB::Types::Polygon* ComplexPolygon::mutable_polygons(int index) {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.Types.ComplexPolygon.polygons)
+inline ::QikkDB::Types::Polygon* ComplexPolygon::mutable_polygons(int index) {
+  // @@protoc_insertion_point(field_mutable:QikkDB.Types.ComplexPolygon.polygons)
   return polygons_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::Polygon >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::Polygon >*
 ComplexPolygon::mutable_polygons() {
-  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.Types.ComplexPolygon.polygons)
+  // @@protoc_insertion_point(field_mutable_list:QikkDB.Types.ComplexPolygon.polygons)
   return &polygons_;
 }
-inline const ::ColmnarDB::Types::Polygon& ComplexPolygon::_internal_polygons(int index) const {
+inline const ::QikkDB::Types::Polygon& ComplexPolygon::_internal_polygons(int index) const {
   return polygons_.Get(index);
 }
-inline const ::ColmnarDB::Types::Polygon& ComplexPolygon::polygons(int index) const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.Types.ComplexPolygon.polygons)
+inline const ::QikkDB::Types::Polygon& ComplexPolygon::polygons(int index) const {
+  // @@protoc_insertion_point(field_get:QikkDB.Types.ComplexPolygon.polygons)
   return _internal_polygons(index);
 }
-inline ::ColmnarDB::Types::Polygon* ComplexPolygon::_internal_add_polygons() {
+inline ::QikkDB::Types::Polygon* ComplexPolygon::_internal_add_polygons() {
   return polygons_.Add();
 }
-inline ::ColmnarDB::Types::Polygon* ComplexPolygon::add_polygons() {
-  // @@protoc_insertion_point(field_add:ColmnarDB.Types.ComplexPolygon.polygons)
+inline ::QikkDB::Types::Polygon* ComplexPolygon::add_polygons() {
+  // @@protoc_insertion_point(field_add:QikkDB.Types.ComplexPolygon.polygons)
   return _internal_add_polygons();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::Polygon >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::Polygon >&
 ComplexPolygon::polygons() const {
-  // @@protoc_insertion_point(field_list:ColmnarDB.Types.ComplexPolygon.polygons)
+  // @@protoc_insertion_point(field_list:QikkDB.Types.ComplexPolygon.polygons)
   return polygons_;
 }
 
@@ -542,7 +542,7 @@ ComplexPolygon::polygons() const {
 
 // Polygon
 
-// repeated .ColmnarDB.Types.GeoPoint geoPoints = 1;
+// repeated .QikkDB.Types.GeoPoint geoPoints = 1;
 inline int Polygon::_internal_geopoints_size() const {
   return geopoints_.size();
 }
@@ -552,32 +552,32 @@ inline int Polygon::geopoints_size() const {
 inline void Polygon::clear_geopoints() {
   geopoints_.Clear();
 }
-inline ::ColmnarDB::Types::GeoPoint* Polygon::mutable_geopoints(int index) {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.Types.Polygon.geoPoints)
+inline ::QikkDB::Types::GeoPoint* Polygon::mutable_geopoints(int index) {
+  // @@protoc_insertion_point(field_mutable:QikkDB.Types.Polygon.geoPoints)
   return geopoints_.Mutable(index);
 }
-inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::GeoPoint >*
+inline ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::GeoPoint >*
 Polygon::mutable_geopoints() {
-  // @@protoc_insertion_point(field_mutable_list:ColmnarDB.Types.Polygon.geoPoints)
+  // @@protoc_insertion_point(field_mutable_list:QikkDB.Types.Polygon.geoPoints)
   return &geopoints_;
 }
-inline const ::ColmnarDB::Types::GeoPoint& Polygon::_internal_geopoints(int index) const {
+inline const ::QikkDB::Types::GeoPoint& Polygon::_internal_geopoints(int index) const {
   return geopoints_.Get(index);
 }
-inline const ::ColmnarDB::Types::GeoPoint& Polygon::geopoints(int index) const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.Types.Polygon.geoPoints)
+inline const ::QikkDB::Types::GeoPoint& Polygon::geopoints(int index) const {
+  // @@protoc_insertion_point(field_get:QikkDB.Types.Polygon.geoPoints)
   return _internal_geopoints(index);
 }
-inline ::ColmnarDB::Types::GeoPoint* Polygon::_internal_add_geopoints() {
+inline ::QikkDB::Types::GeoPoint* Polygon::_internal_add_geopoints() {
   return geopoints_.Add();
 }
-inline ::ColmnarDB::Types::GeoPoint* Polygon::add_geopoints() {
-  // @@protoc_insertion_point(field_add:ColmnarDB.Types.Polygon.geoPoints)
+inline ::QikkDB::Types::GeoPoint* Polygon::add_geopoints() {
+  // @@protoc_insertion_point(field_add:QikkDB.Types.Polygon.geoPoints)
   return _internal_add_geopoints();
 }
-inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::ColmnarDB::Types::GeoPoint >&
+inline const ::PROTOBUF_NAMESPACE_ID::RepeatedPtrField< ::QikkDB::Types::GeoPoint >&
 Polygon::geopoints() const {
-  // @@protoc_insertion_point(field_list:ColmnarDB.Types.Polygon.geoPoints)
+  // @@protoc_insertion_point(field_list:QikkDB.Types.Polygon.geoPoints)
   return geopoints_;
 }
 
@@ -593,7 +593,7 @@ inline float GeoPoint::_internal_latitude() const {
   return latitude_;
 }
 inline float GeoPoint::latitude() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.Types.GeoPoint.latitude)
+  // @@protoc_insertion_point(field_get:QikkDB.Types.GeoPoint.latitude)
   return _internal_latitude();
 }
 inline void GeoPoint::_internal_set_latitude(float value) {
@@ -602,7 +602,7 @@ inline void GeoPoint::_internal_set_latitude(float value) {
 }
 inline void GeoPoint::set_latitude(float value) {
   _internal_set_latitude(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.Types.GeoPoint.latitude)
+  // @@protoc_insertion_point(field_set:QikkDB.Types.GeoPoint.latitude)
 }
 
 // float longitude = 2;
@@ -613,7 +613,7 @@ inline float GeoPoint::_internal_longitude() const {
   return longitude_;
 }
 inline float GeoPoint::longitude() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.Types.GeoPoint.longitude)
+  // @@protoc_insertion_point(field_get:QikkDB.Types.GeoPoint.longitude)
   return _internal_longitude();
 }
 inline void GeoPoint::_internal_set_longitude(float value) {
@@ -622,7 +622,7 @@ inline void GeoPoint::_internal_set_longitude(float value) {
 }
 inline void GeoPoint::set_longitude(float value) {
   _internal_set_longitude(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.Types.GeoPoint.longitude)
+  // @@protoc_insertion_point(field_set:QikkDB.Types.GeoPoint.longitude)
 }
 
 #ifdef __GNUC__
@@ -636,7 +636,7 @@ inline void GeoPoint::set_longitude(float value) {
 // @@protoc_insertion_point(namespace_scope)
 
 }  // namespace Types
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 // @@protoc_insertion_point(global_scope)
 

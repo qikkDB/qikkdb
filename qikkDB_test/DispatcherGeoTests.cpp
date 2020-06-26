@@ -65,12 +65,12 @@ protected:
             ->InsertData(colID);
 
         // Create column with points
-        std::vector<ColmnarDB::Types::Point> colPoint;
+        std::vector<QikkDB::Types::Point> colPoint;
         for (auto point : points)
         {
             colPoint.push_back(PointFactory::FromLatLon(point.latitude, point.longitude));
         }
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::Point>*>(
             geoDatabase->GetTables().at("SimpleTable").GetColumns().at("colPoint").get())
             ->InsertData(colPoint);
 
@@ -79,7 +79,7 @@ protected:
                                                    " WHERE GEO_CONTAINS(" + polygon + ", colPoint);");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloads = result->payloads().at("SimpleTable.colID");
 
         ASSERT_EQ(expectedResult.size(), payloads.intpayload().intdata_size())
@@ -114,7 +114,7 @@ protected:
                                                    polygon + " , " + point + ");");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloads = result->payloads().at("SimpleTable.colID");
 
         ASSERT_EQ(expectedResult.size(), payloads.intpayload().intdata_size())
@@ -146,7 +146,7 @@ protected:
                                                    polygon + " , " + point + ");");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         ASSERT_EQ(result->payloads().size(), 0);
     }
 
@@ -168,12 +168,12 @@ protected:
             ->InsertData(colID);
 
         // Create column with polygons
-        std::vector<ColmnarDB::Types::ComplexPolygon> colPolygon;
+        std::vector<QikkDB::Types::ComplexPolygon> colPolygon;
         for (auto wkt : inputWkt)
         {
             colPolygon.push_back(ComplexPolygonFactory::FromWkt(wkt));
         }
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
             geoDatabase->GetTables().at("SimpleTable").GetColumns().at("colPolygon").get())
             ->InsertData(colPolygon);
 
@@ -182,7 +182,7 @@ protected:
                                                    " WHERE colID >= " + std::to_string(whereThreshold) + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
         if (expectedResult.size() > 0)
         {
@@ -214,21 +214,21 @@ protected:
         geoDatabase->CreateTable(columns, tableName.c_str());
 
         // Create column with polygons
-        std::vector<ColmnarDB::Types::ComplexPolygon> colPolygonA;
+        std::vector<QikkDB::Types::ComplexPolygon> colPolygonA;
         for (auto wkt : inputWktA)
         {
             colPolygonA.push_back(ComplexPolygonFactory::FromWkt(wkt));
         }
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
             geoDatabase->GetTables().at(tableName.c_str()).GetColumns().at("colPolygonA").get())
             ->InsertData(colPolygonA);
 
-        std::vector<ColmnarDB::Types::ComplexPolygon> colPolygonB;
+        std::vector<QikkDB::Types::ComplexPolygon> colPolygonB;
         for (auto wkt : inputWktB)
         {
             colPolygonB.push_back(ComplexPolygonFactory::FromWkt(wkt));
         }
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
             geoDatabase->GetTables().at(tableName.c_str()).GetColumns().at("colPolygonB").get())
             ->InsertData(colPolygonB);
 
@@ -252,7 +252,7 @@ protected:
             GpuSqlCustomParser parser(geoDatabase, query_string);
             auto resultPtr = parser.Parse();
             auto result =
-                dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+                dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
             if (expectedResult.size() > 0)
             {
@@ -285,7 +285,7 @@ protected:
             GpuSqlCustomParser parser(geoDatabase, query_string);
             auto resultPtr = parser.Parse();
             auto result =
-                dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+                dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
             if (expectedResult.size() > 0)
             {
@@ -323,18 +323,18 @@ protected:
 			GetColumns().at("colID").get())->InsertData(colID);
 
 		// Create column with polygons
-		std::vector<ColmnarDB::Types::ComplexPolygon> colPolygon;
+		std::vector<QikkDB::Types::ComplexPolygon> colPolygon;
 		for (auto wkt : inputWkt)
 		{
 			colPolygon.push_back(ComplexPolygonFactory::FromWkt(wkt));
 		}
-		reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at("SimpleTable").
+		reinterpret_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(geoDatabase->GetTables().at("SimpleTable").
 			GetColumns().at("colPolygon").get())->InsertData(colPolygon);
 
 		// Execute the query_
 		GpuSqlCustomParser parser(geoDatabase, "SELECT colPolygon FROM " + tableName + " ORDER BY colID DESC;");
 		auto resultPtr = parser.Parse();
-		auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+		auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 		if (expectedResult.size() > 0)
         {

@@ -7,8 +7,8 @@
 
 TEST(ProtocolMessageTests, ProtobufSerializeAndDeserialize)
 {
-	ColmnarDB::NetworkClient::Message::InfoMessage testMsg;
-	testMsg.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+	QikkDB::NetworkClient::Message::InfoMessage testMsg;
+	testMsg.set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
 	testMsg.set_message("Serialization test");
 	google::protobuf::Any packedMsg;
 	packedMsg.PackFrom(testMsg);
@@ -21,8 +21,8 @@ TEST(ProtocolMessageTests, ProtobufSerializeAndDeserialize)
 	{
 		throw std::invalid_argument("Failed to parse message from stream");
 	}
-	ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+	QikkDB::NetworkClient::Message::InfoMessage infoMessage;
 	ret.UnpackTo(&infoMessage);
-	ASSERT_EQ(infoMessage.code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+	ASSERT_EQ(infoMessage.code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
 	ASSERT_EQ(infoMessage.message(), "Serialization test");
 }

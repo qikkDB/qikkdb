@@ -58,7 +58,7 @@ TEST(OrderByMergeTests, OrderByMergeTest)
     GpuSqlCustomParser parser(database, 
                               "SELECT colInteger1, colInteger2 FROM OrderByTable ORDER BY colInteger1 ASC, colInteger2 DESC;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	//auto columnInt1 = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("OrderByTable").GetColumns().at("colInteger1").get());
 	//auto columnInt2 = dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("OrderByTable").GetColumns().at("colInteger2").get());

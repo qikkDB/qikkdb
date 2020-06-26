@@ -35,7 +35,7 @@ template <>
 NativeGeoPoint MemoryStream::Read()
 {
     std::string pointWkt = Read<std::string>();
-    ColmnarDB::Types::Point pointConst = PointFactory::FromWkt(pointWkt);
+    QikkDB::Types::Point pointConst = PointFactory::FromWkt(pointWkt);
     return {pointConst.geopoint().latitude(), pointConst.geopoint().longitude()};
 }
 

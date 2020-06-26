@@ -23,17 +23,17 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
     }
     if (lastResultMessage_ == nullptr)
     {
-        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        auto infoMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message("");
-        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        infoMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
         return infoMessage;
     }
     auto* resultMessage = lastResultMessage_.get();
-    if (dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage) == nullptr)
+    if (dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage) == nullptr)
     {
         return std::move(lastResultMessage_);
     }
-    auto* completeResult = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage);
+    auto* completeResult = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultMessage);
     BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: LastResultLen: " << lastResultLen_;
     if (lastResultLen_ == 0)
     {
@@ -41,29 +41,29 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         {
             switch (payload.second.payload_case())
             {
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
                 lastResultLen_ = std::max(payload.second.intpayload().intdata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
                 lastResultLen_ = std::max(payload.second.floatpayload().floatdata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
                 lastResultLen_ = std::max(payload.second.int64payload().int64data().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
                 lastResultLen_ =
                     std::max(payload.second.datetimepayload().datetimedata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
                 lastResultLen_ = std::max(payload.second.doublepayload().doubledata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
                 lastResultLen_ = std::max(payload.second.polygonpayload().polygondata().size(), lastResultLen_);
                 break;
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
                 lastResultLen_ = std::max(payload.second.stringpayload().stringdata().size(), lastResultLen_);
                 break;
             default:
@@ -77,8 +77,8 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             return std::move(lastResultMessage_);
         }
     }
-    std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> smallPayload =
-        std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
+    std::unique_ptr<QikkDB::NetworkClient::Message::QueryResponseMessage> smallPayload =
+        std::make_unique<QikkDB::NetworkClient::Message::QueryResponseMessage>();
     for (const auto& column : completeResult->columnorder())
     {
         smallPayload->add_columnorder(column);
@@ -97,58 +97,58 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
         int bufferSize =
             FRAGMENT_SIZE > (lastResultLen_ - sentRecords_) ? (lastResultLen_ - sentRecords_) : FRAGMENT_SIZE;
         BOOST_LOG_TRIVIAL(debug) << "TCPClientHandler: bufferSize: " << bufferSize;
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload finalPayload;
+        QikkDB::NetworkClient::Message::QueryResponsePayload finalPayload;
         switch (payload.second.payload_case())
         {
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_intpayload()->add_intdata(payload.second.intpayload().intdata()[i]);
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_floatpayload()->add_floatdata(
                     payload.second.floatpayload().floatdata()[i]);
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_int64payload()->add_int64data(
                     payload.second.int64payload().int64data()[i]);
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_datetimepayload()->add_datetimedata(
                     payload.second.datetimepayload().datetimedata()[i]);
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_doublepayload()->add_doubledata(
                     payload.second.doublepayload().doubledata()[i]);
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 *finalPayload.mutable_pointpayload()->add_pointdata() =
                     payload.second.pointpayload().pointdata()[i];
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 *finalPayload.mutable_polygonpayload()->add_polygondata() =
                     payload.second.polygonpayload().polygondata()[i];
             }
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
             for (int i = sentRecords_; i < sentRecords_ + bufferSize; i++)
             {
                 finalPayload.mutable_stringpayload()->add_stringdata(
@@ -169,7 +169,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
             }
             int start = NullValues::GetNullBitMaskSize(sentRecords_);
             int nullMaskBufferSize = NullValues::GetNullBitMaskSize(bufferSize);
-            ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
+            QikkDB::NetworkClient::Message::QueryNullmaskPayload nullMasks;
             std::vector<nullmask_t> nullMaskBuffer(
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start,
                 completeResult->nullbitmasks().at(payload.first).nullmask().begin() + start + nullMaskBufferSize);
@@ -196,7 +196,7 @@ std::unique_ptr<google::protobuf::Message> TCPClientHandler::GetNextQueryResult(
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
-                           const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                           const QikkDB::NetworkClient::Message::QueryMessage& queryMessage,
                            std::function<void(std::unique_ptr<google::protobuf::Message>)> handler)
 {
     std::unique_lock<std::mutex> dbLock{Database::dbMutex_};
@@ -210,21 +210,21 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
         auto end = std::chrono::high_resolution_clock::now();
         BOOST_LOG_TRIVIAL(info) << "TCPClientHandler: Elapsed: " << std::chrono::duration<float>(end - start).count() << " sec.";
         std::unique_ptr<google::protobuf::Message> notifyMessage = nullptr;
-        if (auto response = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
+        if (auto response = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(ret.get()))
         {
             response->mutable_timing()->insert(
                 {"Elapsed", std::chrono::duration<float>(end - start).count() * 1000});
-            notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
-            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
-                ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT);
+            notifyMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+            dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+            dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+                ->set_code(QikkDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT);
         }
         else
         {
-            notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
-            dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
-                ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            notifyMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+            dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+            dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+                ->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         }
         parser_ = nullptr;
         handler(std::move(notifyMessage));
@@ -232,35 +232,35 @@ TCPClientHandler::RunQuery(const std::weak_ptr<Database>& database,
     }
     catch (const std::exception& e)
     {
-        auto notifyMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
-        dynamic_cast<ColmnarDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
-            ->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        auto notifyMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+        dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())->set_message("");
+        dynamic_cast<QikkDB::NetworkClient::Message::InfoMessage*>(notifyMessage.get())
+            ->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         handler(std::move(notifyMessage));
-        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        auto infoMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message(e.what());
-        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        infoMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         return infoMessage;
     }
 }
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
-                                    const ColmnarDB::NetworkClient::Message::InfoMessage& infoMessage)
+                                    const QikkDB::NetworkClient::Message::InfoMessage& infoMessage)
 {
-    if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END)
+    if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::CONN_END)
     {
         worker.Abort();
     }
-    else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT)
+    else if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT)
     {
         return GetNextQueryResult();
     }
-    else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
+    else if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
     {
-        auto infoMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        auto infoMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
         infoMessage->set_message("");
-        infoMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        infoMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
         return infoMessage;
     }
     else
@@ -272,7 +272,7 @@ TCPClientHandler::HandleInfoMessage(ITCPWorker& worker,
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleQuery(ITCPWorker& worker,
-                              const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                              const QikkDB::NetworkClient::Message::QueryMessage& queryMessage,
                               std::function<void(std::unique_ptr<google::protobuf::Message> notifyMessage)> handler)
 {
     sentRecords_ = 0;
@@ -281,15 +281,15 @@ TCPClientHandler::HandleQuery(ITCPWorker& worker,
     lastQueryResult_ =
         std::async(std::launch::async, std::bind(&TCPClientHandler::RunQuery, this,
                                                  worker.currentDatabase_, queryMessage, handler));
-    auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-    resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
+    auto resultMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+    resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::WAIT);
     resultMessage->set_message("");
     return resultMessage;
 }
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
-                                  const ColmnarDB::NetworkClient::Message::CSVImportMessage& csvImportMessage)
+                                  const QikkDB::NetworkClient::Message::CSVImportMessage& csvImportMessage)
 {
     CSVDataImporter dataImporter(csvImportMessage.payload().c_str(), csvImportMessage.csvname().c_str());
     if (csvImportMessage.columntypes_size() > 0)
@@ -300,7 +300,7 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
                        [](int32_t x) -> DataType { return static_cast<DataType>(x); });
         dataImporter.SetTypes(types);
     }
-    auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+    auto resultMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
     try
     {
         std::lock_guard<std::mutex> importLock(importMutex_);
@@ -327,18 +327,18 @@ TCPClientHandler::HandleCSVImport(ITCPWorker& worker,
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleSetDatabase(ITCPWorker& worker,
-                                    const ColmnarDB::NetworkClient::Message::SetDatabaseMessage& setDatabaseMessage)
+                                    const QikkDB::NetworkClient::Message::SetDatabaseMessage& setDatabaseMessage)
 {
-    auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+    auto resultMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
     worker.currentDatabase_ = Database::GetDatabaseByName(setDatabaseMessage.databasename());
     if (!worker.currentDatabase_.expired())
     {
-        resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
         resultMessage->set_message("");
     }
     else
     {
-        resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         resultMessage->set_message("No such database");
     }
     return resultMessage;
@@ -346,11 +346,11 @@ TCPClientHandler::HandleSetDatabase(ITCPWorker& worker,
 
 std::unique_ptr<google::protobuf::Message>
 TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
-                                   const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
+                                   const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                                    const char* dataBuffer,
                                    const char* nullMask)
 {
-    auto resultMessage = std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+    auto resultMessage = std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
     std::string tableName = bulkImportMessage.tablename();
     std::string columnName = bulkImportMessage.columnname();
     DataType columnType = static_cast<DataType>(bulkImportMessage.columntype());
@@ -359,7 +359,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     auto sharedDb = worker.currentDatabase_.lock();
     if (sharedDb == nullptr)
     {
-        resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         resultMessage->set_message("Database was not found");
         return resultMessage;
     }
@@ -383,7 +383,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
 
     if (column->GetColumnType() != columnType)
     {
-        resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+        resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         resultMessage->set_message((std::string("Column type mismatch in column ") + columnName).c_str());
         return resultMessage;
     }
@@ -424,12 +424,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     else if (columnType == COLUMN_POINT)
     {
-        std::vector<ColmnarDB::Types::Point> dataVector;
+        std::vector<QikkDB::Types::Point> dataVector;
         int i = 0;
         int elemsRead = 0;
         while (elemsRead < elementCount)
         {
-            ColmnarDB::Types::Point point;
+            QikkDB::Types::Point point;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
             i += sizeof(int32_t);
             point.ParseFromArray(dataBuffer + i, size);
@@ -441,12 +441,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
     }
     else if (columnType == COLUMN_POLYGON)
     {
-        std::vector<ColmnarDB::Types::ComplexPolygon> dataVector;
+        std::vector<QikkDB::Types::ComplexPolygon> dataVector;
         int i = 0;
         int elemsRead = 0;
         while (elemsRead < elementCount)
         {
-            ColmnarDB::Types::ComplexPolygon polygon;
+            QikkDB::Types::ComplexPolygon polygon;
             int32_t size = *reinterpret_cast<const int32_t*>(dataBuffer + i);
             i += sizeof(int32_t);
             polygon.ParseFromArray(dataBuffer + i, size);
@@ -510,7 +510,7 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (const std::exception& e)
         {
-            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
             resultMessage->set_message(e.what());
             return resultMessage;
         }
@@ -527,12 +527,12 @@ TCPClientHandler::HandleBulkImport(ITCPWorker& worker,
         }
         catch (const std::exception& e)
         {
-            resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
             resultMessage->set_message(e.what());
             return resultMessage;
         }
     }
-    resultMessage->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    resultMessage->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
     resultMessage->set_message("");
     return resultMessage;
 }

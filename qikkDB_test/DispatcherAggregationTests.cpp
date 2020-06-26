@@ -46,7 +46,7 @@ protected:
                                   "SELECT " + aggregation + "(colA) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at(aggregation + "(colA)");
 
         ASSERT_EQ(expectedResult.size(), payload.intpayload().intdata_size())
@@ -71,7 +71,7 @@ protected:
         GpuSqlCustomParser parser(aggregationDatabase, "SELECT COUNT(colA) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at("COUNT(colA)");
 
         ASSERT_EQ(expectedResult.size(), payload.int64payload().int64data_size())
@@ -97,7 +97,7 @@ protected:
                                   "SELECT " + aggregation + "(colA) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at(aggregation + "(colA)");
 
         ASSERT_EQ(expectedResult.size(), payload.floatpayload().floatdata_size())
@@ -122,7 +122,7 @@ protected:
         GpuSqlCustomParser parser(aggregationDatabase, "SELECT COUNT(colA) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at("COUNT(colA)");
 
         ASSERT_EQ(expectedResult.size(), payload.int64payload().int64data_size())
@@ -147,7 +147,7 @@ protected:
         GpuSqlCustomParser parser(aggregationDatabase, "SELECT COUNT(colA), SUM(colA) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCount = result->payloads().at("COUNT(colA)");
         auto& payloadSum = result->payloads().at("SUM(colA)");
 

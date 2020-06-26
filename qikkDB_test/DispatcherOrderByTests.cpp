@@ -55,7 +55,7 @@ protected:
                                                        std::to_string(threshold) + " ORDER BY colA;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at(tableName + ".colA");
 
         ASSERT_EQ(expectedResult.size(), payload.intpayload().intdata_size())
@@ -95,7 +95,7 @@ protected:
                                                        std::to_string(threshold) + " ORDER BY colA;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payload = result->payloads().at(tableName + ".colC");
 
         ASSERT_EQ(expectedResult.size(), payload.stringpayload().stringdata_size())
@@ -147,7 +147,7 @@ protected:
         auto resultPtr = parser.Parse();
 
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadA = result->payloads().at(tableName + ".colA");
         auto& payloadANullBitMask = result->nullbitmasks().at(tableName + ".colA").nullmask();
         auto& payloadB = result->payloads().at(tableName + ".colB");
@@ -209,7 +209,7 @@ protected:
         auto resultPtr = parser.Parse();
 
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadA = result->payloads().at(tableName + ".colA");
         auto& payloadANullBitMask = result->nullbitmasks().at(tableName + ".colA").nullmask();
 
@@ -266,7 +266,7 @@ protected:
         auto resultPtr = parser.Parse();
 
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadA = result->payloads().at(tableName + ".colA");
         auto& payloadANullBitMask = result->nullbitmasks().at(tableName + ".colA").nullmask();
         auto& payloadB = result->payloads().at(tableName + ".colB");

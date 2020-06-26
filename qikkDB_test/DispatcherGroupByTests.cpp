@@ -54,7 +54,7 @@ protected:
                                                        tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -91,7 +91,7 @@ protected:
                                                        "(colIntegerV) FROM " + tableName + " GROUP BY 1;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -128,7 +128,7 @@ protected:
                                                        tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV-2)");
 
@@ -165,7 +165,7 @@ protected:
                                                        "(colIntegerV) FROM " + tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("colIntegerK+2");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -205,7 +205,7 @@ protected:
                                       " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -245,7 +245,7 @@ protected:
                                       " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -285,7 +285,7 @@ protected:
                                       std::to_string(threshold) + " GROUP BY [Dimension2];");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("Dimension2");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerV)");
 
@@ -317,7 +317,7 @@ protected:
                                                        tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("SimpleTable.colIntegerK");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colIntegerK-2)");
 
@@ -352,7 +352,7 @@ protected:
                                                        tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
         auto& payloadValues = result->payloads().at("COUNT(colIntegerV)");
 
@@ -388,7 +388,7 @@ protected:
                                                        tableName + " GROUP BY colIntegerK;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colIntegerK");
         auto& payloadValues = result->payloads().at("COUNT(*)");
 
@@ -426,7 +426,7 @@ protected:
                                                        tableName + " GROUP BY colString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
 
@@ -464,7 +464,7 @@ protected:
                                                        aggregationFunction + "(colInteger);");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
 
@@ -500,7 +500,7 @@ protected:
                                                        tableName + " GROUP BY colString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at("COUNT(colInteger)");
 
@@ -536,7 +536,7 @@ protected:
                                                        " WHERE colInteger > 5 GROUP BY colString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at("COUNT(colString)");
 
@@ -566,7 +566,7 @@ protected:
                                                        tableName + " GROUP BY colString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colString");
         auto& payloadValues = result->payloads().at("COUNT(colString)");
 
@@ -605,7 +605,7 @@ protected:
                                                        "(colInteger) FROM " + tableName + " GROUP BY colString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at("LEFT(colString,3)");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colInteger)");
 
@@ -648,7 +648,7 @@ protected:
                                                        " GROUP BY colInteger ORDER BY colInteger;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colID)");
 
@@ -696,7 +696,7 @@ protected:
                                                        aggregationFunction + "(colID) - 2;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colInteger");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colID)");
 
@@ -751,9 +751,9 @@ protected:
                                                        tableName + " GROUP BY " + multiCols + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        std::vector<QikkDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
 
         for (int32_t i = 0; i < keys.size(); i++)
         {
@@ -822,9 +822,9 @@ protected:
                                                        tableName + " GROUP BY " + multiCols + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        std::vector<QikkDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
 
         for (int32_t i = 0; i < keys.size(); i++)
         {
@@ -894,9 +894,9 @@ protected:
                                                        tableName + " GROUP BY " + multiCols + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        std::vector<QikkDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
 
         for (int32_t i = 0; i < keys.size(); i++)
         {
@@ -962,9 +962,9 @@ protected:
                                                        tableName + " GROUP BY " + multiCols + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
-        std::vector<ColmnarDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
+        std::vector<QikkDB::NetworkClient::Message::QueryResponsePayload> payloadKeys;
         payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyInt0"));
         payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyInt1"));
         payloadKeys.emplace_back(result->payloads().at(tableName + ".colKeyString0"));
@@ -1050,7 +1050,7 @@ protected:
                                                        std::to_string(threshold) + " GROUP BY colKey;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKey");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colValue)");
         auto& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey").nullmask();
@@ -1132,7 +1132,7 @@ protected:
                                                        std::to_string(threshold) + " GROUP BY colKey;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKey");
         auto& payloadValues = result->payloads().at(aggregationFunction + "(colValue)");
         auto& keysNullMaskResult = result->nullbitmasks().at(tableName + ".colKey").nullmask();
@@ -1174,7 +1174,7 @@ protected:
         GpuSqlCustomParser parser(groupByDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
         std::set<int32_t> expectedResult;
         for (auto value : inKeys)
@@ -1205,7 +1205,7 @@ protected:
         GpuSqlCustomParser parser(groupByDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
         std::set<std::string> expectedResult;
         for (auto value : inKeys)
@@ -1236,7 +1236,7 @@ protected:
         GpuSqlCustomParser parser(groupByDatabase, "SELECT * FROM " + tableName + " GROUP BY colKeys;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
         std::set<std::string> expectedResult;
         for (auto value : inKeys)
@@ -1280,7 +1280,7 @@ protected:
                                       " GROUP BY colKeysInt1, colKeysInt2, colKeysString;");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadKeysInt1 = result->payloads().at(tableName + ".colKeysInt1");
         auto& payloadKeysInt2 = result->payloads().at(tableName + ".colKeysInt2");
         auto& payloadKeysString = result->payloads().at(tableName + ".colKeysString");
@@ -1678,7 +1678,7 @@ TEST_F(DispatcherGroupByTests, UnlimitedNumberOfKeysNoAgg)
     // Execute the query_
     GpuSqlCustomParser parser(unlimitedDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
     std::set<int32_t> expectedResult;
     for (auto value : inKeys)
@@ -1726,7 +1726,7 @@ TEST_F(DispatcherGroupByTests, UnlimitedNumberOfKeysInOneThreadNoAgg)
     // Execute the query_
     GpuSqlCustomParser parser(unlimitedDatabase, "SELECT colKeys FROM " + tableName + " GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
     std::set<int32_t> expectedResult;
     for (auto value : inKeys)
@@ -1779,7 +1779,7 @@ TEST_F(DispatcherGroupByTests, UnlimitedNumberOfKeysAverage)
     GpuSqlCustomParser parser(unlimitedDatabase,
                               "SELECT colKeys, AVG(colValues) FROM " + tableName + " GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloadKeys = result->payloads().at(tableName + ".colKeys");
     auto& payloadValues = result->payloads().at("AVG(colValues)");
     std::unordered_map<int32_t, int32_t> expectedResult;

@@ -170,7 +170,7 @@ TEST(CSVDataImportTests, WktImport)
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header.csv", true, ';');
 	importer.ImportTables(database);
 
-	ASSERT_EQ(101, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
+	ASSERT_EQ(101, dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(database->GetTables().find("wkt_header")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
 	Database::RemoveFromInMemoryDatabaseList("testDatabase11");
 }
 
@@ -182,7 +182,7 @@ TEST(CSVDataImportTests, WktImportInvalidRow)
 	CSVDataImporter importer = CSVDataImporter("csv_tests/wkt_header_invalid_row.csv", true, ';');
 	importer.ImportTables(database);
 
-	ASSERT_EQ(100, dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
+	ASSERT_EQ(100, dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(database->GetTables().find("wkt_header_invalid_row")->second.GetColumns().at("p1").get())->GetBlocksList().front()->GetSize());
 	Database::RemoveFromInMemoryDatabaseList("testDatabase12");
 }
 

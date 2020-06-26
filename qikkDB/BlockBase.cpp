@@ -177,7 +177,7 @@ void BlockBase<double>::updateBlockStatistics(const double& data, bool isNullVal
 /// <param name="data">Data that are inserted into block.</param>
 /// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
-void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::Types::Point& data, bool isNullValue)
+void BlockBase<QikkDB::Types::Point>::updateBlockStatistics(const QikkDB::Types::Point& data, bool isNullValue)
 {
     if (size_ == 0)
     {
@@ -196,7 +196,7 @@ void BlockBase<ColmnarDB::Types::Point>::updateBlockStatistics(const ColmnarDB::
 /// <param name="data">Data that are inserted into block.</param>
 /// <param name="isNullValue">Flag indicating whether the inserted data is null value.</param>
 template <>
-void BlockBase<ColmnarDB::Types::ComplexPolygon>::updateBlockStatistics(const ColmnarDB::Types::ComplexPolygon& data,
+void BlockBase<QikkDB::Types::ComplexPolygon>::updateBlockStatistics(const QikkDB::Types::ComplexPolygon& data,
                                                                         bool isNullValue)
 {
     if (size_ == 0)
@@ -488,7 +488,7 @@ void BlockBase<double>::setBlockStatistics(int32_t insertedDataSize, int32_t old
 /// <param name="insertedDataSize">represents size of data which are inserted</param>
 /// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
-void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
+void BlockBase<QikkDB::Types::Point>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     for (int64_t i = 0; i < insertedDataSize; i++)
     {
@@ -502,7 +502,7 @@ void BlockBase<ColmnarDB::Types::Point>::setBlockStatistics(int32_t insertedData
 /// <param name="insertedDataSize">represents size of data which are inserted</param>
 /// <param name="oldDataSize">represents size of data which are already inserted in block</param>
 template <>
-void BlockBase<ColmnarDB::Types::ComplexPolygon>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
+void BlockBase<QikkDB::Types::ComplexPolygon>::setBlockStatistics(int32_t insertedDataSize, int32_t oldDataSize)
 {
     for (int64_t i = 0; i < insertedDataSize; i++)
     {

@@ -468,7 +468,7 @@ class GPUBinary<OP,
                 OUT,
                 L,
                 R,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::Point>::value &&
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, QikkDB::Types::Point>::value &&
                                         std::is_arithmetic<typename std::remove_pointer<L>::type>::value &&
                                         std::is_arithmetic<typename std::remove_pointer<R>::type>::value>::type>
 {
@@ -497,9 +497,9 @@ class GPUBinary<OP,
                 OUT,
                 L,
                 R,
-                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<L>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<R>::type, ColmnarDB::Types::ComplexPolygon>::value>::type>
+                typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, QikkDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<L>::type, QikkDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, QikkDB::Types::ComplexPolygon>::value>::type>
 {
 public:
     static void Binary(GPUMemory::GPUPolygon& polygonOut,
@@ -521,8 +521,8 @@ class GPUBinary<OP,
                 L,
                 R,
                 typename std::enable_if<std::is_same<typename std::remove_pointer<OUT>::type, int8_t>::value &&
-                                        std::is_same<typename std::remove_pointer<L>::type, ColmnarDB::Types::ComplexPolygon>::value &&
-                                        std::is_same<typename std::remove_pointer<R>::type, ColmnarDB::Types::Point>::value>::type>
+                                        std::is_same<typename std::remove_pointer<L>::type, QikkDB::Types::ComplexPolygon>::value &&
+                                        std::is_same<typename std::remove_pointer<R>::type, QikkDB::Types::Point>::value>::type>
 {
 public:
     static void

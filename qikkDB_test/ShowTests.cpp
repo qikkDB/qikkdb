@@ -34,7 +34,7 @@ protected:
         GpuSqlCustomParser parserShow(showDatabase, "SHOW CONSTRAINTS FROM " + tableName + ";");
         auto resultPtrShow = parserShow.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtrShow.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtrShow.get());
 
         std::vector<std::string> expectedConstraintsNames;
         expectedConstraintsNames.push_back("colA_NC");
@@ -85,7 +85,7 @@ protected:
                                       "SHOW QUERY COLUMN TYPES select colB, colC from " + tableName + ";");
         auto resultPtrShow = parserShow.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtrShow.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtrShow.get());
 
         auto& payloadsColumnNames = result->payloads().at("ColumnName");
         auto& payloadsColumnTypes = result->payloads().at("TypeName");
@@ -120,7 +120,7 @@ protected:
                                       tableName + " as t WHERE t.colInteger1 > 20;");
         resultPtr = parserShow.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
         std::vector<std::string> expectedResultsName = {"col1", tableName + ".colFloat1", "colInteger1"};
         std::vector<std::string> expectedResultsType;

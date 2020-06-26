@@ -27,8 +27,8 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 	std::vector<int64_t> dataInLongBlock;
 	std::vector<float> dataInFloatBlock;
 	std::vector<double> dataInDoubleBlock;
-	std::vector<ColmnarDB::Types::Point> dataInPointBlock;
-	std::vector<ColmnarDB::Types::ComplexPolygon> dataInPolygonBlock;
+	std::vector<QikkDB::Types::Point> dataInPointBlock;
+	std::vector<QikkDB::Types::ComplexPolygon> dataInPolygonBlock;
 	std::vector<std::string> dataInStringBlock;
 
 	for (auto &block : dynamic_cast<ColumnBase<int32_t>*>(table.GetColumns().at("colInteger1").get())->GetBlocksList())
@@ -55,7 +55,7 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 		}
 	}
 
-	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(table.GetColumns().at("colPoint1").get())->GetBlocksList())
+	for (auto &block : dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(table.GetColumns().at("colPoint1").get())->GetBlocksList())
 	{
 		for (int i = 0; i < block->GetSize(); i++)
 		{
@@ -63,7 +63,7 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 		}
 	}
 
-	for (auto &block : dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(table.GetColumns().at("colPolygon1").get())->GetBlocksList())
+	for (auto &block : dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(table.GetColumns().at("colPolygon1").get())->GetBlocksList())
 	{
 		for (int i = 0; i < block->GetSize(); i++)
 		{
@@ -71,8 +71,8 @@ TEST(InsertIntoTests, InsertIntoCorrect)
 		}
 	}
 
-	ColmnarDB::Types::Point addedPoint = PointFactory::FromWkt("POINT(2 5)");
-	ColmnarDB::Types::ComplexPolygon addedPolygon = ComplexPolygonFactory::FromWkt("POLYGON((20 15, 11 12, 20 15), (21 30, 35 36, 30 20, 21 30), (61 80, 90 89, 112 110, 61 80))");
+	QikkDB::Types::Point addedPoint = PointFactory::FromWkt("POINT(2 5)");
+	QikkDB::Types::ComplexPolygon addedPolygon = ComplexPolygonFactory::FromWkt("POLYGON((20 15, 11 12, 20 15), (21 30, 35 36, 30 20, 21 30), (61 80, 90 89, 112 110, 61 80))");
 
 	ASSERT_EQ(500, dataInIntBlock[blockSize]);
 	ASSERT_EQ(20000000, dataInLongBlock[blockSize]);

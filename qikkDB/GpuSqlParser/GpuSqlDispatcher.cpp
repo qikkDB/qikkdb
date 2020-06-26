@@ -162,7 +162,7 @@ void GpuSqlDispatcher::Execute(std::unique_ptr<google::protobuf::Message>& resul
                 break; // Stop execution
             }
         }
-        result = std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>(
+        result = std::make_unique<QikkDB::NetworkClient::Message::QueryResponseMessage>(
             std::move(responseMessage_));
     }
     catch (...)
@@ -180,7 +180,7 @@ void GpuSqlDispatcher::Abort()
     aborted_ = true;
 }
 
-const ColmnarDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
+const QikkDB::NetworkClient::Message::QueryResponseMessage& GpuSqlDispatcher::GetQueryResponseMessage()
 {
     return responseMessage_;
 }
@@ -1001,8 +1001,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadColNullMask(std::strin
 }
 
 template <>
-GpuSqlDispatcher::CompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>
-GpuSqlDispatcher::FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(const std::string& colName)
+GpuSqlDispatcher::CompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>
+GpuSqlDispatcher::FindCompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>(const std::string& colName)
 {
     GPUMemory::GPUPolygon polygon;
     int32_t size = allocatedPointers_.at(colName + "_polyPoints").ElementCount;
@@ -1200,7 +1200,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowDatabases()
         outData[i++] = database;
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     InsertIntoPayload(payload, outData, databases_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse("Databases", "Databases", payload);
 
@@ -1226,7 +1226,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowTables()
         outData[i++] = tableName.first;
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     InsertIntoPayload(payload, outData, tables_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse(db, db, payload);
 
@@ -1258,8 +1258,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowColumns()
         i++;
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadName;
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadType;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadName;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadType;
     InsertIntoPayload(payloadName, outDataName, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
     InsertIntoPayload(payloadType, outDataType, columns_map.size(), PayloadType::PAYLOAD_DEFAULT);
     MergePayloadToSelfResponse(tab + "_columns", tab + "_columns", payloadName);
@@ -1298,9 +1298,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowConstraints()
         i++;
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintName;
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintType;
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadConstraintColumns;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadConstraintName;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadConstraintType;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadConstraintColumns;
 
     InsertIntoPayload(payloadConstraintName, outDataConstraintName, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
     InsertIntoPayload(payloadConstraintType, outDataConstraintType, constraints.size(), PayloadType::PAYLOAD_DEFAULT);
@@ -1328,8 +1328,8 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::ShowQueryColumnTypes()
         outDataColumnType[i] = arguments_.Read<std::string>();
     }
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnName;
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payloadColumnType;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadColumnName;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payloadColumnType;
 
     InsertIntoPayload(payloadColumnName, outDataColumnName, columnSize, PayloadType::PAYLOAD_DEFAULT);
     InsertIntoPayload(payloadColumnType, outDataColumnType, columnSize, PayloadType::PAYLOAD_DEFAULT);
@@ -1499,13 +1499,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::AlterTable()
 
                 case COLUMN_POINT:
                 {
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(oldColumn)->CopyDataToColumn(newColumn);
                     break;
                 }
 
                 case COLUMN_POLYGON:
                 {
-                    dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
+                    dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(oldColumn)->CopyDataToColumn(newColumn);
                     break;
                 }
 
@@ -1686,7 +1686,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::CreateIndex()
     return InstructionStatus::FINISH;
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int8_t[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1697,7 +1697,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int32_t[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1708,7 +1708,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<int64_t[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1729,7 +1729,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<float[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1740,7 +1740,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<double[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1751,7 +1751,7 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
     }
 }
 
-void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+void GpuSqlDispatcher::InsertIntoPayload(QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                          std::unique_ptr<std::string[]>& data,
                                          const int32_t dataSize,
                                          const PayloadType payloadType)
@@ -1763,13 +1763,13 @@ void GpuSqlDispatcher::InsertIntoPayload(ColmnarDB::NetworkClient::Message::Quer
 }
 
 void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
-                                           ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+                                           QikkDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
                                            std::vector<nullmask_t> nullMask,
                                            int64_t payloadSize)
 {
     if (responseMessage->nullbitmasks().find(key) == responseMessage->nullbitmasks().end())
     {
-        ColmnarDB::NetworkClient::Message::QueryNullmaskPayload nullMaskMess;
+        QikkDB::NetworkClient::Message::QueryNullmaskPayload nullMaskMess;
 
         for (size_t i = 0; i < nullMask.size(); i++)
         {
@@ -1783,28 +1783,28 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
         size_t dataLength = 0;
         switch (responseMessage->payloads().at(key).payload_case())
         {
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             dataLength = responseMessage->payloads().at(key).intpayload().intdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             dataLength = responseMessage->payloads().at(key).int64payload().int64data_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
             dataLength = responseMessage->payloads().at(key).datetimepayload().datetimedata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             dataLength = responseMessage->payloads().at(key).floatpayload().floatdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
             dataLength = responseMessage->payloads().at(key).doublepayload().doubledata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
             dataLength = responseMessage->payloads().at(key).stringpayload().stringdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
             dataLength = responseMessage->payloads().at(key).pointpayload().pointdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
             dataLength = responseMessage->payloads().at(key).polygonpayload().polygondata_size();
             break;
         default:
@@ -1845,8 +1845,8 @@ void GpuSqlDispatcher::MergePayloadBitmask(const std::string& key,
 
 void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                                     const std::string& trimmedRealName,
-                                    ColmnarDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
-                                    ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload)
+                                    QikkDB::NetworkClient::Message::QueryResponseMessage* responseMessage,
+                                    QikkDB::NetworkClient::Message::QueryResponsePayload& payload)
 {
     // If there is payload with new key
     if (responseMessage->payloads().find(trimmedKey) == responseMessage->payloads().end())
@@ -1877,7 +1877,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
             // Switch according to data type of payload (=column)
             switch (payload.payload_case())
             {
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             {
                 std::pair<bool, int32_t> result = AggregateOnCPU<int32_t>(
                     operation, payload.intpayload().intdata()[0],
@@ -1892,7 +1892,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                 }
                 break;
             }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             {
                 std::pair<bool, int64_t> result = AggregateOnCPU<int64_t>(
                     operation, payload.int64payload().int64data()[0],
@@ -1907,7 +1907,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                 }
                 break;
             }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDateTimePayload:
             {
                 std::pair<bool, int64_t> result = AggregateOnCPU<int64_t>(
                     operation, payload.datetimepayload().datetimedata()[0],
@@ -1922,7 +1922,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                 }
                 break;
             }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             {
                 std::pair<bool, float> result = AggregateOnCPU<float>(
                     operation, payload.floatpayload().floatdata()[0],
@@ -1937,7 +1937,7 @@ void GpuSqlDispatcher::MergePayload(const std::string& trimmedKey,
                 }
                 break;
             }
-            case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+            case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
             {
                 std::pair<bool, double> result = AggregateOnCPU<double>(
                     operation, payload.doublepayload().doubledata()[0],
@@ -1986,7 +1986,7 @@ void GpuSqlDispatcher::FreeRegisterNullMask(const std::string& col)
 
 void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
                                                   const std::string& realName,
-                                                  ColmnarDB::NetworkClient::Message::QueryResponsePayload& payload,
+                                                  QikkDB::NetworkClient::Message::QueryResponsePayload& payload,
                                                   std::vector<nullmask_t> nullMask)
 {
     std::string trimmedKey = key;
@@ -2006,25 +2006,25 @@ void GpuSqlDispatcher::MergePayloadToSelfResponse(const std::string& key,
         int64_t payloadSize;
         switch (payload.payload_case())
         {
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kIntPayload:
             payloadSize = payload.intpayload().intdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kInt64Payload:
             payloadSize = payload.int64payload().int64data_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kFloatPayload:
             payloadSize = payload.floatpayload().floatdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kDoublePayload:
             payloadSize = payload.doublepayload().doubledata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kStringPayload:
             payloadSize = payload.stringpayload().stringdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPointPayload:
             payloadSize = payload.pointpayload().pointdata_size();
             break;
-        case ColmnarDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
+        case QikkDB::NetworkClient::Message::QueryResponsePayload::PayloadCase::kPolygonPayload:
             payloadSize = payload.polygonpayload().polygondata_size();
             break;
         default:

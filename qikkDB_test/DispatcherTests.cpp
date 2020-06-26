@@ -37,7 +37,7 @@ TEST(DispatcherTests, IntGtColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " > " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -87,7 +87,7 @@ TEST(DispatcherTests, IntGtConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " > " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -137,7 +137,7 @@ TEST(DispatcherTests, IntGtColumnColumn)
                               "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
                                   columnName2 + " > " + columnName1 + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -190,7 +190,7 @@ TEST(DispatcherTests, IntGtConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " > " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -240,7 +240,7 @@ TEST(DispatcherTests, IntGtConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " > " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -254,7 +254,7 @@ TEST(DispatcherTests, LongGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 > 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -296,7 +296,7 @@ TEST(DispatcherTests, LongGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 > colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -338,7 +338,7 @@ TEST(DispatcherTests, LongGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 > colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -382,7 +382,7 @@ TEST(DispatcherTests, LongGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -413,7 +413,7 @@ TEST(DispatcherTests, LongGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -426,7 +426,7 @@ TEST(DispatcherTests, FloatGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 > 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -461,7 +461,7 @@ TEST(DispatcherTests, FloatGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 > colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -503,7 +503,7 @@ TEST(DispatcherTests, FloatGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat2 FROM TableA WHERE colFloat2 > colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -538,7 +538,7 @@ TEST(DispatcherTests, FloatGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -568,7 +568,7 @@ TEST(DispatcherTests, FloatGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -581,7 +581,7 @@ TEST(DispatcherTests, DoubleGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 > 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -623,7 +623,7 @@ TEST(DispatcherTests, DoubleGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 > colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -665,7 +665,7 @@ TEST(DispatcherTests, DoubleGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble2 FROM TableA WHERE colDouble2 > colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -707,7 +707,7 @@ TEST(DispatcherTests, DoubleGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 > 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -737,7 +737,7 @@ TEST(DispatcherTests, DoubleGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 > 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -761,7 +761,7 @@ TEST(DispatcherTests, IntLtColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " < " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -811,7 +811,7 @@ TEST(DispatcherTests, IntLtConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " < " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -861,7 +861,7 @@ TEST(DispatcherTests, IntLtColumnColumn)
                               "SELECT " + columnName1 + " FROM " + tableName + " WHERE " +
                                   columnName1 + " < " + columnName2 + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -914,7 +914,7 @@ TEST(DispatcherTests, IntLtConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " < " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -964,7 +964,7 @@ TEST(DispatcherTests, IntLtConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " < " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -978,7 +978,7 @@ TEST(DispatcherTests, LongLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 < 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1020,7 +1020,7 @@ TEST(DispatcherTests, LongLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 < colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1062,7 +1062,7 @@ TEST(DispatcherTests, LongLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 < colLong2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1106,7 +1106,7 @@ TEST(DispatcherTests, LongLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1137,7 +1137,7 @@ TEST(DispatcherTests, LongLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -1150,7 +1150,7 @@ TEST(DispatcherTests, FloatLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 < 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -1192,7 +1192,7 @@ TEST(DispatcherTests, FloatLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 < colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -1234,7 +1234,7 @@ TEST(DispatcherTests, FloatLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 < colFloat2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -1277,7 +1277,7 @@ TEST(DispatcherTests, FloatLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -1307,7 +1307,7 @@ TEST(DispatcherTests, FloatLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -1320,7 +1320,7 @@ TEST(DispatcherTests, DoubleLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 < 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -1362,7 +1362,7 @@ TEST(DispatcherTests, DoubleLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 < colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -1404,7 +1404,7 @@ TEST(DispatcherTests, DoubleLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 < colDouble2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -1446,7 +1446,7 @@ TEST(DispatcherTests, DoubleLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 < 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -1476,7 +1476,7 @@ TEST(DispatcherTests, DoubleLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 < 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -1500,7 +1500,7 @@ TEST(DispatcherTests, IntEqGtColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " >= " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -1551,7 +1551,7 @@ TEST(DispatcherTests, IntEqGtConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " >= " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -1601,7 +1601,7 @@ TEST(DispatcherTests, IntEqGtColumnColumn)
                               "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
                                   columnName2 + " >= " + columnName1 + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -1654,7 +1654,7 @@ TEST(DispatcherTests, IntEqGtConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " >= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -1703,7 +1703,7 @@ TEST(DispatcherTests, IntEqGtConstConstTrue2)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " >= " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -1753,7 +1753,7 @@ TEST(DispatcherTests, IntEqGtConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " >= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -1767,7 +1767,7 @@ TEST(DispatcherTests, LongEqGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 >= 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1809,7 +1809,7 @@ TEST(DispatcherTests, LongEqGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 >= colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1851,7 +1851,7 @@ TEST(DispatcherTests, LongEqGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 >= colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1895,7 +1895,7 @@ TEST(DispatcherTests, LongEqGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 >= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -1926,7 +1926,7 @@ TEST(DispatcherTests, LongEqGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 >= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -1939,7 +1939,7 @@ TEST(DispatcherTests, FloatEqGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 >= 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -1981,7 +1981,7 @@ TEST(DispatcherTests, FloatEqGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 >= colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2023,7 +2023,7 @@ TEST(DispatcherTests, FloatEqGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat2 FROM TableA WHERE colFloat2 >= colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2066,7 +2066,7 @@ TEST(DispatcherTests, FloatEqGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 >= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2096,7 +2096,7 @@ TEST(DispatcherTests, FloatEqGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 >= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -2109,7 +2109,7 @@ TEST(DispatcherTests, DoubleEqGtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 >= 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2144,7 +2144,7 @@ TEST(DispatcherTests, DoubleEqGtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 >= colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2186,7 +2186,7 @@ TEST(DispatcherTests, DoubleEqGtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble2 FROM TableA WHERE colDouble2 >= colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2228,7 +2228,7 @@ TEST(DispatcherTests, DoubleEqGtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 >= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2258,7 +2258,7 @@ TEST(DispatcherTests, DoubleEqGtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 >= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -2282,7 +2282,7 @@ TEST(DispatcherTests, IntEqLtColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " <= " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -2332,7 +2332,7 @@ TEST(DispatcherTests, IntEqLtConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " <= " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -2382,7 +2382,7 @@ TEST(DispatcherTests, IntEqLtColumnColumn)
                               "SELECT " + columnName1 + " FROM " + tableName + " WHERE " +
                                   columnName1 + " <= " + columnName2 + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -2435,7 +2435,7 @@ TEST(DispatcherTests, IntEqLtConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " <= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -2484,7 +2484,7 @@ TEST(DispatcherTests, IntEqLtConstConstTrue2)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " <= " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -2534,7 +2534,7 @@ TEST(DispatcherTests, IntEqLtConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " <= " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -2548,7 +2548,7 @@ TEST(DispatcherTests, LongEqLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 <= 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -2591,7 +2591,7 @@ TEST(DispatcherTests, LongEqLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 <= colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -2633,7 +2633,7 @@ TEST(DispatcherTests, LongEqLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 <= colLong2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -2677,7 +2677,7 @@ TEST(DispatcherTests, LongEqLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 <= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -2708,7 +2708,7 @@ TEST(DispatcherTests, LongEqLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 <= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -2721,7 +2721,7 @@ TEST(DispatcherTests, FloatEqLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 <= 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2763,7 +2763,7 @@ TEST(DispatcherTests, FloatEqLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.5 <= colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2805,7 +2805,7 @@ TEST(DispatcherTests, FloatEqLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 <= colFloat2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2848,7 +2848,7 @@ TEST(DispatcherTests, FloatEqLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 <= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -2878,7 +2878,7 @@ TEST(DispatcherTests, FloatEqLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10 <= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -2891,7 +2891,7 @@ TEST(DispatcherTests, DoubleEqLtColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 <= 5.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2933,7 +2933,7 @@ TEST(DispatcherTests, DoubleEqLtConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.5 <= colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -2975,7 +2975,7 @@ TEST(DispatcherTests, DoubleEqLtColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 <= colDouble2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -3017,7 +3017,7 @@ TEST(DispatcherTests, DoubleEqLtConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 <= 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -3047,7 +3047,7 @@ TEST(DispatcherTests, DoubleEqLtConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10 <= 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3071,7 +3071,7 @@ TEST(DispatcherTests, IntEqColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " = " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3121,7 +3121,7 @@ TEST(DispatcherTests, IntEqConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " = " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3173,7 +3173,7 @@ TEST(DispatcherTests, IntEqColumnColumn)
                               "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
                                   columnName2 + " = " + columnName1 + ";");
     const auto resultPtr = parser.Parse(); // Execute query
-    const auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    const auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     const auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3234,7 +3234,7 @@ TEST(DispatcherTests, IntEqConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " = " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3284,7 +3284,7 @@ TEST(DispatcherTests, IntEqConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " = " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -3298,7 +3298,7 @@ TEST(DispatcherTests, LongEqColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 = 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3310,7 +3310,7 @@ TEST(DispatcherTests, LongEqConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 = colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3322,7 +3322,7 @@ TEST(DispatcherTests, LongEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 = colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -3366,7 +3366,7 @@ TEST(DispatcherTests, LongEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 = 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -3397,7 +3397,7 @@ TEST(DispatcherTests, LongEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 = 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3410,7 +3410,7 @@ TEST(DispatcherTests, FloatEqColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 = 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -3441,7 +3441,7 @@ TEST(DispatcherTests, FloatEqConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 = colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -3472,7 +3472,7 @@ TEST(DispatcherTests, FloatEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat2 FROM TableA WHERE colFloat2 = colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -3505,7 +3505,7 @@ TEST(DispatcherTests, FloatEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 = 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -3535,7 +3535,7 @@ TEST(DispatcherTests, FloatEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 = 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3554,7 +3554,7 @@ TEST(DispatcherTests, DoubleEqColumnConst) //FIXME test is good, but kernel uses
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " = " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3597,7 +3597,7 @@ TEST(DispatcherTests, DoubleEqConstColumn) //FIXME test is good, but kernel uses
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 = colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -3628,7 +3628,7 @@ TEST(DispatcherTests, DoubleEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble2 FROM TableA WHERE colDouble2 = colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -3661,7 +3661,7 @@ TEST(DispatcherTests, DoubleEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 = 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -3691,7 +3691,7 @@ TEST(DispatcherTests, DoubleEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 = 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -3715,7 +3715,7 @@ TEST(DispatcherTests, IntNotEqColumnConst)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   columnName + " != " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3765,7 +3765,7 @@ TEST(DispatcherTests, IntNotEqConstColumn)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " != " + columnName + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3815,7 +3815,7 @@ TEST(DispatcherTests, IntNotEqColumnColumn)
                               "SELECT " + columnName2 + " FROM " + tableName + " WHERE " +
                                   columnName2 + " != " + columnName1 + ";");
     auto resultPtr = parser.Parse(); // Execute query
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3868,7 +3868,7 @@ TEST(DispatcherTests, IntNotEqConstConstTrue)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue1) + " != " + std::to_string(filterValue2) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // Table has columns, column have blocks of data
     auto& tables = DispatcherObjs::GetInstance().database.get()->GetTables();
@@ -3917,7 +3917,7 @@ TEST(DispatcherTests, IntNotEqConstConstFalse)
                               "SELECT " + columnName + " FROM " + tableName + " WHERE " +
                                   std::to_string(filterValue) + " != " + std::to_string(filterValue) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     // There is FALSE statement in WHERE clause, so there should not be any results
     ASSERT_EQ(result->payloads().size(), 0);
@@ -3931,7 +3931,7 @@ TEST(DispatcherTests, LongNotEqColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 != 50000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -3973,7 +3973,7 @@ TEST(DispatcherTests, LongNotEqConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE -500000000 != colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4015,7 +4015,7 @@ TEST(DispatcherTests, LongNotEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong2 FROM TableA WHERE colLong2 != colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4059,7 +4059,7 @@ TEST(DispatcherTests, LongNotEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 != 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4090,7 +4090,7 @@ TEST(DispatcherTests, LongNotEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 != 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4103,7 +4103,7 @@ TEST(DispatcherTests, FloatNotEqColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 != 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4134,7 +4134,7 @@ TEST(DispatcherTests, FloatNotEqConstColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 != colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4165,7 +4165,7 @@ TEST(DispatcherTests, FloatNotEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat2 FROM TableA WHERE colFloat2 != colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4198,7 +4198,7 @@ TEST(DispatcherTests, FloatNotEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 != 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4228,7 +4228,7 @@ TEST(DispatcherTests, FloatNotEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5 != 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4241,7 +4241,7 @@ TEST(DispatcherTests, DoubleNotEqColumnConst) //FIXME test is good, but kernel u
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE colDouble1 != 5.1111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -4284,7 +4284,7 @@ TEST(DispatcherTests, DoubleNotEqConstColumn) //FIXME test is good, but kernel u
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT colDouble1 FROM TableA WHERE 5.1111111 != colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -4327,7 +4327,7 @@ TEST(DispatcherTests, DoubleNotEqColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble2 FROM TableA WHERE colDouble2 != colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -4360,7 +4360,7 @@ TEST(DispatcherTests, DoubleNotEqConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 != 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -4390,7 +4390,7 @@ TEST(DispatcherTests, DoubleNotEqConstConstFalse)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5 != 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4407,7 +4407,7 @@ TEST(DispatcherTests, IntAndColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 AND 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -4438,7 +4438,7 @@ TEST(DispatcherTests, IntAndColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4450,7 +4450,7 @@ TEST(DispatcherTests, IntAndConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 5 AND colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -4481,7 +4481,7 @@ TEST(DispatcherTests, IntAndConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 AND colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4493,7 +4493,7 @@ TEST(DispatcherTests, IntAndColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 AND colInteger2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -4526,7 +4526,7 @@ TEST(DispatcherTests, IntAndConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 10 AND 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -4555,7 +4555,7 @@ TEST(DispatcherTests, IntAndConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 5 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4567,7 +4567,7 @@ TEST(DispatcherTests, IntAndConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 AND 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4579,7 +4579,7 @@ TEST(DispatcherTests, IntAndConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4592,7 +4592,7 @@ TEST(DispatcherTests, LongAndColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 AND 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4634,7 +4634,7 @@ TEST(DispatcherTests, LongAndColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4645,7 +4645,7 @@ TEST(DispatcherTests, LongAndConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 AND colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4687,7 +4687,7 @@ TEST(DispatcherTests, LongAndConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 AND colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4699,7 +4699,7 @@ TEST(DispatcherTests, LongAndColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 AND colLong2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4743,7 +4743,7 @@ TEST(DispatcherTests, LongAndConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 AND 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -4774,7 +4774,7 @@ TEST(DispatcherTests, LongAndConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4786,7 +4786,7 @@ TEST(DispatcherTests, LongAndConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 AND 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4798,7 +4798,7 @@ TEST(DispatcherTests, LongAndConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4811,7 +4811,7 @@ TEST(DispatcherTests, FloatAndColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 AND 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4844,7 +4844,7 @@ TEST(DispatcherTests, FloatAndColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4856,7 +4856,7 @@ TEST(DispatcherTests, FloatAndConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 AND colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4889,7 +4889,7 @@ TEST(DispatcherTests, FloatAndConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 AND colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4901,7 +4901,7 @@ TEST(DispatcherTests, FloatAndColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat2 AND colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4934,7 +4934,7 @@ TEST(DispatcherTests, FloatAndConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10.1111 AND 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -4964,7 +4964,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4976,7 +4976,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 AND 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -4988,7 +4988,7 @@ TEST(DispatcherTests, FloatAndConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5001,7 +5001,7 @@ TEST(DispatcherTests, DoubleAndColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 AND 5.1111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -5034,7 +5034,7 @@ TEST(DispatcherTests, DoubleAndColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5046,7 +5046,7 @@ TEST(DispatcherTests, DoubleAndConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.1111111 AND colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -5079,7 +5079,7 @@ TEST(DispatcherTests, DoubleAndConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 AND colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5091,7 +5091,7 @@ TEST(DispatcherTests, DoubleAndColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble2 AND colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -5124,7 +5124,7 @@ TEST(DispatcherTests, DoubleAndConstConstTrue)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10.1111111 AND 5.1111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -5154,7 +5154,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.11111111 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5166,7 +5166,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 AND 5.11111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5178,7 +5178,7 @@ TEST(DispatcherTests, DoubleAndConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 AND 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5196,7 +5196,7 @@ TEST(DispatcherTests, IntOrColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 OR 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5225,7 +5225,7 @@ TEST(DispatcherTests, IntOrColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5258,7 +5258,7 @@ TEST(DispatcherTests, IntOrConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 5 OR colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5287,7 +5287,7 @@ TEST(DispatcherTests, IntOrConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 OR colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5320,7 +5320,7 @@ TEST(DispatcherTests, IntOrColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 OR colInteger2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5353,7 +5353,7 @@ TEST(DispatcherTests, IntOrConstConstNonZeroValues)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 10 OR 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5382,7 +5382,7 @@ TEST(DispatcherTests, IntOrConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 10 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5411,7 +5411,7 @@ TEST(DispatcherTests, IntOrConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 OR 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -5440,7 +5440,7 @@ TEST(DispatcherTests, IntOrConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE 0 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5453,7 +5453,7 @@ TEST(DispatcherTests, LongOrColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 OR 500000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5484,7 +5484,7 @@ TEST(DispatcherTests, LongOrColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5526,7 +5526,7 @@ TEST(DispatcherTests, LongOrConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 500000000 OR colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5557,7 +5557,7 @@ TEST(DispatcherTests, LongOrConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 OR colLong1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5599,7 +5599,7 @@ TEST(DispatcherTests, LongOrColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 OR colLong2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5643,7 +5643,7 @@ TEST(DispatcherTests, LongOrConstConstNonZeroValues)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 10 OR 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5674,7 +5674,7 @@ TEST(DispatcherTests, LongOrConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 5 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5705,7 +5705,7 @@ TEST(DispatcherTests, LongOrConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 OR 5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -5736,7 +5736,7 @@ TEST(DispatcherTests, LongOrConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE 0 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -5749,7 +5749,7 @@ TEST(DispatcherTests, FloatOrColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 OR 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5779,7 +5779,7 @@ TEST(DispatcherTests, FloatOrColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5812,7 +5812,7 @@ TEST(DispatcherTests, FloatOrConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 OR colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5842,7 +5842,7 @@ TEST(DispatcherTests, FloatOrConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 OR colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5875,7 +5875,7 @@ TEST(DispatcherTests, FloatOrColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat2 OR colFloat1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5908,7 +5908,7 @@ TEST(DispatcherTests, FloatOrConstConstNonZeroValues)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 10.1111 OR 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5938,7 +5938,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 5.1111 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5968,7 +5968,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 OR 5.1111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -5998,7 +5998,7 @@ TEST(DispatcherTests, FloatOrConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE 0 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -6011,7 +6011,7 @@ TEST(DispatcherTests, DoubleOrColumnConstNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 OR 5.1111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6041,7 +6041,7 @@ TEST(DispatcherTests, DoubleOrColumnConstZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6074,7 +6074,7 @@ TEST(DispatcherTests, DoubleOrConstColumnNonZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.1111111 OR colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6104,7 +6104,7 @@ TEST(DispatcherTests, DoubleOrConstColumnZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 OR colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6137,7 +6137,7 @@ TEST(DispatcherTests, DoubleOrColumnColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble2 OR colDouble1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6171,7 +6171,7 @@ TEST(DispatcherTests, DoubleOrConstConstNonZeroValues)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 10.1111111 OR 5.1111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6201,7 +6201,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseRightZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 5.11111111 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6231,7 +6231,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseLeftZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 OR 5.11111111;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6261,7 +6261,7 @@ TEST(DispatcherTests, DoubleOrConstConstFalseBothZero)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE 0 OR 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -6278,7 +6278,7 @@ TEST(DispatcherTests, IntNegation)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE !(colInteger1 > 5);");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
 
@@ -6321,7 +6321,7 @@ TEST(DispatcherTests, LongNegation)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE !(colLong1 > 500000000);");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
 
@@ -6364,7 +6364,7 @@ TEST(DispatcherTests, FloatNegation)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE !(colFloat1 > 6.5555);");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
 
@@ -6407,7 +6407,7 @@ TEST(DispatcherTests, DoubleNegation)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE !(colDouble1 > 9.66666666);");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
 
@@ -6451,7 +6451,7 @@ TEST(DispatcherTests, IntAddColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 + 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6486,7 +6486,7 @@ TEST(DispatcherTests, IntAddColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 + 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6527,7 +6527,7 @@ TEST(DispatcherTests, IntAddColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 + 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6568,7 +6568,7 @@ TEST(DispatcherTests, LongAddColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 + 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6598,7 +6598,7 @@ TEST(DispatcherTests, LongAddColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 + 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6639,7 +6639,7 @@ TEST(DispatcherTests, LongAddColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 + 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6680,7 +6680,7 @@ TEST(DispatcherTests, FloatAddColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 + 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6709,7 +6709,7 @@ TEST(DispatcherTests, FloatAddColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 + 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6750,7 +6750,7 @@ TEST(DispatcherTests, FloatAddColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 + 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6791,7 +6791,7 @@ TEST(DispatcherTests, DoubleAddColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 + 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6820,7 +6820,7 @@ TEST(DispatcherTests, DoubleAddColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 + 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6854,7 +6854,7 @@ TEST(DispatcherTests, DoubleAddColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 + 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6899,7 +6899,7 @@ TEST(DispatcherTests, IntSubColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 - 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6928,7 +6928,7 @@ TEST(DispatcherTests, IntSubColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 - 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -6969,7 +6969,7 @@ TEST(DispatcherTests, IntSubColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 - 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7010,7 +7010,7 @@ TEST(DispatcherTests, LongSubColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 - 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7040,7 +7040,7 @@ TEST(DispatcherTests, LongSubColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 - 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7081,7 +7081,7 @@ TEST(DispatcherTests, LongSubColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 - 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7122,7 +7122,7 @@ TEST(DispatcherTests, FloatSubColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 - 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7151,7 +7151,7 @@ TEST(DispatcherTests, FloatSubColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 - 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7192,7 +7192,7 @@ TEST(DispatcherTests, FloatSubColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 - 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7233,7 +7233,7 @@ TEST(DispatcherTests, DoubleSubColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 - 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7262,7 +7262,7 @@ TEST(DispatcherTests, DoubleSubColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7296,7 +7296,7 @@ TEST(DispatcherTests, DoubleSubColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 - 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7338,7 +7338,7 @@ TEST(DispatcherTests, IntMulColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 * 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7367,7 +7367,7 @@ TEST(DispatcherTests, IntMulColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 * 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7408,7 +7408,7 @@ TEST(DispatcherTests, IntMulColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 * 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7449,7 +7449,7 @@ TEST(DispatcherTests, LongMulColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 * 2 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7479,7 +7479,7 @@ TEST(DispatcherTests, LongMulColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 * 2 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7513,7 +7513,7 @@ TEST(DispatcherTests, LongMulColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 * 2 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7554,7 +7554,7 @@ TEST(DispatcherTests, FloatMulColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 * 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7583,7 +7583,7 @@ TEST(DispatcherTests, FloatMulColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 * 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7624,7 +7624,7 @@ TEST(DispatcherTests, FloatMulColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 * 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7665,7 +7665,7 @@ TEST(DispatcherTests, DoubleMulColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 * 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7694,7 +7694,7 @@ TEST(DispatcherTests, DoubleMulColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 * 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7735,7 +7735,7 @@ TEST(DispatcherTests, DoubleMulColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 * 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7777,7 +7777,7 @@ TEST(DispatcherTests, IntDivColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 / 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7806,7 +7806,7 @@ TEST(DispatcherTests, IntDivColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -7818,7 +7818,7 @@ TEST(DispatcherTests, IntDivColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7859,7 +7859,7 @@ TEST(DispatcherTests, LongDivColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 / 2 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7890,7 +7890,7 @@ TEST(DispatcherTests, LongDivColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 / 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7931,7 +7931,7 @@ TEST(DispatcherTests, LongDivColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 / 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -7972,7 +7972,7 @@ TEST(DispatcherTests, FloatDivColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 / 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8007,7 +8007,7 @@ TEST(DispatcherTests, FloatDivColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 / 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -8019,7 +8019,7 @@ TEST(DispatcherTests, FloatDivColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colFloat1 / 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8051,7 +8051,7 @@ TEST(DispatcherTests, DoubleDivColumnConst) // FIXME Dispatch je chybny, treba h
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 / 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8080,7 +8080,7 @@ TEST(DispatcherTests, DoubleDivColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 / 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -8092,7 +8092,7 @@ TEST(DispatcherTests, DoubleDivColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colDouble1 FROM TableA WHERE colDouble1 / 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<double> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8124,7 +8124,7 @@ TEST(DispatcherTests, IntDivColumnConstFloat) // FIXME chyba je v CUDA kerneli, 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 / 5.0 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8153,7 +8153,7 @@ TEST(DispatcherTests, IntDivColumnConstGtConstFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5.0 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -8165,7 +8165,7 @@ TEST(DispatcherTests, IntDivColumnConstLtConstFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 / 5.0 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8197,7 +8197,7 @@ TEST(DispatcherTests, LongDivColumnConstFloat) // FIXME test je dobry, kernel tr
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 / 2.0 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8227,7 +8227,7 @@ TEST(DispatcherTests, LongDivColumnConstGtConstFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 / 5.0 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8268,7 +8268,7 @@ TEST(DispatcherTests, LongDivColumnConstLtConstFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 / 5.0 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8311,7 +8311,7 @@ TEST(DispatcherTests, IntModColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 % 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8340,7 +8340,7 @@ TEST(DispatcherTests, IntModColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 % 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -8352,7 +8352,7 @@ TEST(DispatcherTests, IntModColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 % 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8393,7 +8393,7 @@ TEST(DispatcherTests, LongModColumnConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 % 2 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8424,7 +8424,7 @@ TEST(DispatcherTests, LongModColumnConstGtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 % 5 > 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -8436,7 +8436,7 @@ TEST(DispatcherTests, LongModColumnConstLtConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colLong1 FROM TableA WHERE colLong1 % 5 < 500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int64_t> expectedResult;
     for (int i = 0; i < 2; i++)
@@ -8476,7 +8476,7 @@ TEST(DispatcherTests, ShowDatabases)
 
     GpuSqlCustomParser parser(nullptr, "SHOW DATABASES;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedDatabaseNames;
 
@@ -8501,7 +8501,7 @@ TEST(DispatcherTests, ShowTables)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SHOW TABLES;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedTableNames;
 
@@ -8526,7 +8526,7 @@ TEST(DispatcherTests, ShowColumns)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SHOW COLUMNS FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedColumnNames;
     std::vector<std::string> expectedColumnTypes;
@@ -8562,7 +8562,7 @@ TEST(DispatcherTests, DateTimeNow)
                               "SELECT YEAR(NOW()), MONTH(NOW()), DAY(NOW()), HOUR(NOW()), "
                               "MINUTE(NOW()) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsYear;
     std::vector<int32_t> expectedResultsMonth;
@@ -8622,7 +8622,7 @@ TEST(DispatcherTests, DateTimeCol)
                               "SELECT YEAR(colLong3), MONTH(colLong3), DAY(colLong3), "
                               "HOUR(colLong3), MINUTE(colLong3), SECOND(colLong3) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsYear;
     std::vector<int32_t> expectedResultsMonth;
@@ -8697,7 +8697,7 @@ TEST(DispatcherTests, DayOfWeekConst)
                               "SELECT WEEKDAY('2020-05-12 02:00:00'), DAYOFWEEK('2020-05-12 "
                               "02:00:00') FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsWeekday;
     std::vector<int32_t> expectedResultsDayOfWeek;
@@ -8735,12 +8735,12 @@ TEST(DispatcherTests, RetPolygons)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPolygon1 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPolygons;
 
     auto column =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
                                                                         .database->GetTables()
                                                                         .at("TableA")
                                                                         .GetColumns()
@@ -8773,12 +8773,12 @@ TEST(DispatcherTests, RetPolygonsWhere)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPolygon1 FROM TableA WHERE colInteger1 < 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPolygons;
 
     auto column =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
                                                                         .database->GetTables()
                                                                         .at("TableA")
                                                                         .GetColumns()
@@ -8815,11 +8815,11 @@ TEST(DispatcherTests, RetPoints)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPoint1 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 
-    auto column = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance()
+    auto column = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(DispatcherObjs::GetInstance()
                                                                          .database->GetTables()
                                                                          .at("TableA")
                                                                          .GetColumns()
@@ -8852,11 +8852,11 @@ TEST(DispatcherTests, RetPointsWhere)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPoint1 FROM TableA WHERE colInteger1 < 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 
-    auto column = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance()
+    auto column = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(DispatcherObjs::GetInstance()
                                                                          .database->GetTables()
                                                                          .at("TableA")
                                                                          .GetColumns()
@@ -8902,7 +8902,7 @@ TEST(DispatcherTests, RetString)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colString1 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsStrings;
 
@@ -8939,7 +8939,7 @@ TEST(DispatcherTests, RetStringWhere)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colString1 FROM TableA WHERE colInteger1 < 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsStrings;
 
@@ -8989,7 +8989,7 @@ TEST(DispatcherTests, RetDate)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT DATE(colLong3) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsStrings;
 
@@ -9027,7 +9027,7 @@ TEST(DispatcherTests, RetDateWhere)
                               "SELECT DATE(colLong3) FROM TableA WHERE DATE(colLong3) = "
                               "\"2000-01-01 00:01:02\";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsStrings;
 
@@ -9067,7 +9067,7 @@ TEST(DispatcherTests, PointFromColCol)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT POINT(colInteger1, colFloat1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 
@@ -9116,7 +9116,7 @@ TEST(DispatcherTests, PointFromColConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT POINT(colInteger1, 4.5) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 
@@ -9158,7 +9158,7 @@ TEST(DispatcherTests, PointFromConstCol)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT POINT(7, colFloat1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 
@@ -9201,7 +9201,7 @@ TEST(DispatcherTests, AggregationMin)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT MIN(colInteger1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("MIN(colInteger1)");
 
     // Get the input column
@@ -9239,7 +9239,7 @@ TEST(DispatcherTests, AggregationMax)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT MAX(colInteger1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("MAX(colInteger1)");
 
     // Get the input column
@@ -9277,7 +9277,7 @@ TEST(DispatcherTests, AggregationSum)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT SUM(colInteger1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("SUM(colInteger1)");
 
     // Get the input column
@@ -9311,7 +9311,7 @@ TEST(DispatcherTests, AggregationAvg)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT AVG(colInteger1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("AVG(colInteger1)");
 
     // Get the input column
@@ -9348,7 +9348,7 @@ TEST(DispatcherTests, AggregationCount)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COUNT(colInteger1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("COUNT(colInteger1)");
     ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
     ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
@@ -9361,7 +9361,7 @@ TEST(DispatcherTests, AggregationCountString)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COUNT(colString1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("COUNT(colString1)");
     ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
     ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
@@ -9374,7 +9374,7 @@ TEST(DispatcherTests, AggregationCountPolygon)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COUNT(colPolygon1) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("COUNT(colPolygon1)");
     ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
     ASSERT_EQ(payloads.int64payload().int64data()[0], TEST_BLOCK_COUNT * TEST_BLOCK_SIZE);
@@ -9390,7 +9390,7 @@ TEST(DispatcherTests, Alias)
                               "colInteger1*2 AS colInteger1 FROM "
                               "TableA as t WHERE t.colInteger1 > 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
     std::vector<int32_t> expectedResultsIntMul;
@@ -9456,7 +9456,7 @@ TEST(DispatcherTests, LimitOffset)
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10 "
                               "OFFSET 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9503,7 +9503,7 @@ TEST(DispatcherTests, LimitNoClauses)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA LIMIT 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9546,7 +9546,7 @@ TEST(DispatcherTests, LimitOffsetNoClauses)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA LIMIT 10 OFFSET 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9590,7 +9590,7 @@ TEST(DispatcherTests, LimitOffsetNoClausesBlockEdge)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA LIMIT 20 OFFSET 2040;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9634,7 +9634,7 @@ TEST(DispatcherTests, LimitOffsetNoClausesOutOfBoundsOffset)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA LIMIT 20 OFFSET 20000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -9646,7 +9646,7 @@ TEST(DispatcherTests, LimitOffsetNoClausesOutOfBoundsLimit)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA LIMIT 20000 OFFSET 2040;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9689,7 +9689,7 @@ TEST(DispatcherTests, LimitOffsetAsteriskNoClauses)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT * FROM TableA LIMIT 10 OFFSET 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 }
 
 TEST(DispatcherTests, Limit)
@@ -9699,7 +9699,7 @@ TEST(DispatcherTests, Limit)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9745,7 +9745,7 @@ TEST(DispatcherTests, Offset)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 OFFSET 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9792,7 +9792,7 @@ TEST(DispatcherTests, LargeOffset)
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 OFFSET "
                               "10000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
     auto& payloadsInt = result->payloads().at("TableA.colInteger1");
@@ -9808,7 +9808,7 @@ TEST(DispatcherTests, LargeLimit)
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 > 20 LIMIT "
                               "10000000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9848,7 +9848,7 @@ TEST(DispatcherTests, BitwiseOrColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 | 20) > 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9888,7 +9888,7 @@ TEST(DispatcherTests, BitwiseAndColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 & 20) > 10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9928,7 +9928,7 @@ TEST(DispatcherTests, BitwiseXorColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ 20) > 100;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -9968,7 +9968,7 @@ TEST(DispatcherTests, BitwiseLeftShiftColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 << 2) > 100;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10008,7 +10008,7 @@ TEST(DispatcherTests, BitwiseRightShiftColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 >> 2) > 100;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10049,7 +10049,7 @@ TEST(DispatcherTests, BitwiseOrColColInt)
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 | colInteger2) > "
                               "500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10097,7 +10097,7 @@ TEST(DispatcherTests, BitwiseAndColColInt)
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 & colInteger2) > "
                               "10;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10145,7 +10145,7 @@ TEST(DispatcherTests, BitwiseXorColColInt)
                               "SELECT colInteger1 FROM TableA WHERE (colInteger1 ^ colInteger2) > "
                               "500;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10192,7 +10192,7 @@ TEST(DispatcherTests, NotEqualsAlternativeOperator)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE colInteger1 <> 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10232,7 +10232,7 @@ TEST(DispatcherTests, MinusColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE -colInteger1 = 3;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(), 0);
 }
@@ -10244,7 +10244,7 @@ TEST(DispatcherTests, AbsColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE ABS(colInteger1) = 3;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10284,7 +10284,7 @@ TEST(DispatcherTests, SinColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIN(colInteger1) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10324,7 +10324,7 @@ TEST(DispatcherTests, CosColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE COS(colInteger1) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10364,7 +10364,7 @@ TEST(DispatcherTests, TanColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE TAN(colInteger1) > 2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10404,7 +10404,7 @@ TEST(DispatcherTests, SinColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10451,7 +10451,7 @@ TEST(DispatcherTests, CosColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE COS(colFloat1) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10498,7 +10498,7 @@ TEST(DispatcherTests, TanColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE TAN(colFloat1) > 2;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10545,7 +10545,7 @@ TEST(DispatcherTests, SinPiColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIN(colFloat1 + PI()) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10593,7 +10593,7 @@ TEST(DispatcherTests, ArcSinColInt)
                               "SELECT colInteger1 FROM TableA WHERE ASIN(colInteger1 / 1024.0) > "
                               "0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10634,7 +10634,7 @@ TEST(DispatcherTests, ArcCosColInt)
                               "SELECT colInteger1 FROM TableA WHERE ACOS(colInteger1 / 1024.0) > "
                               "0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10674,7 +10674,7 @@ TEST(DispatcherTests, ArcTanColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE ATAN(colInteger1) > 0.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10714,7 +10714,7 @@ TEST(DispatcherTests, Logarithm10ColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE LOG10(colInteger1) > 1.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10754,7 +10754,7 @@ TEST(DispatcherTests, LogarithmNaturalColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1) > 1.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10794,7 +10794,7 @@ TEST(DispatcherTests, LogarithmColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE LOG(colInteger1, 3.0) > 1.5;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10834,7 +10834,7 @@ TEST(DispatcherTests, ExponentialColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE EXP(colInteger1) > 2000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10875,7 +10875,7 @@ TEST(DispatcherTests, PowerColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE POW(colInteger1, 2) > 2000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10916,7 +10916,7 @@ TEST(DispatcherTests, SqrtColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SQRT(colInteger1) > 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10957,7 +10957,7 @@ TEST(DispatcherTests, SquareColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SQUARE(colInteger1) > 2000;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -10998,7 +10998,7 @@ TEST(DispatcherTests, SignPositiveColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -11039,7 +11039,7 @@ TEST(DispatcherTests, SignNegativeColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = -1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -11080,7 +11080,7 @@ TEST(DispatcherTests, SignZeroColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE SIGN(colInteger1) = 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -11121,7 +11121,7 @@ TEST(DispatcherTests, RootColConstInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA WHERE ROOT(colInteger1, 2) > 0;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -11165,7 +11165,7 @@ TEST(DispatcherTests, RoundColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT ROUND(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11213,7 +11213,7 @@ TEST(DispatcherTests, FloorColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT FLOOR(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11261,7 +11261,7 @@ TEST(DispatcherTests, CeilColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT CEIL(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11309,7 +11309,7 @@ TEST(DispatcherTests, RoundColInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT ROUND(colInteger1) FROM TableA WHERE colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11350,7 +11350,7 @@ TEST(DispatcherTests, CotColFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COT(colFloat1) FROM TableA WHERE colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11399,7 +11399,7 @@ TEST(DispatcherTests, Atan2ColFloat)
                               "SELECT ATAN2(colFloat1, colFloat1 + 1) FROM TableA WHERE "
                               "colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11448,7 +11448,7 @@ TEST(DispatcherTests, RoundDecimalColFloat)
                               "SELECT ROUND(colFloat1, 2) FROM TableA WHERE "
                               "colInteger1 >= 20;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -11493,7 +11493,7 @@ TEST(DispatcherTests, RoundDecimalColFloat)
 
 //== STRING FUNCTIONS ==
 /// Assert equality of returned string column and expected values
-void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload payloads,
+void AssertEqStringCol(QikkDB::NetworkClient::Message::QueryResponsePayload payloads,
                        std::vector<std::string> expected)
 {
     ASSERT_EQ(payloads.stringpayload().stringdata_size(), expected.size());
@@ -11505,18 +11505,18 @@ void AssertEqStringCol(ColmnarDB::NetworkClient::Message::QueryResponsePayload p
 }
 
 /// Run query SELECT <col> <fromWhere>;
-ColmnarDB::NetworkClient::Message::QueryResponsePayload RunQuery(std::string col, std::string fromWhere)
+QikkDB::NetworkClient::Message::QueryResponsePayload RunQuery(std::string col, std::string fromWhere)
 {
     Context::getInstance();
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT " + col + " " + fromWhere + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     return result->payloads().at(col);
 }
 
 /// Run query SELECT function(column) FROM table; and return result payload
-ColmnarDB::NetworkClient::Message::QueryResponsePayload
+QikkDB::NetworkClient::Message::QueryResponsePayload
 RunFunctionQuery(std::string function, std::string column, std::string table)
 {
     std::string retFunCol = function + "(" + column + ")";
@@ -11524,7 +11524,7 @@ RunFunctionQuery(std::string function, std::string column, std::string table)
 }
 
 /// Run query SELECT function(column) FROM table; and return result payload
-ColmnarDB::NetworkClient::Message::QueryResponsePayload
+QikkDB::NetworkClient::Message::QueryResponsePayload
 RunFunctionColConstQuery(std::string function, std::string column, std::string cnst, std::string table)
 {
     std::string retFunCol = function + "(" + column + "," + cnst + ")";
@@ -12211,7 +12211,7 @@ TEST(DispatcherTests, PolygonClippingAndContains)
                               "SELECT colInteger1 FROM TableA WHERE "
                               "GEO_CONTAINS(GEO_INTERSECT(colPolygon1, colPolygon2), colPoint1);");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::string> expectedResultsPoints;
 }
@@ -12293,7 +12293,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
                                "SELECT colA, colB from tblA;");
     resultPtr = parser3.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsColA;
     std::vector<float> expectedResultsColB;
@@ -12333,7 +12333,7 @@ TEST(DispatcherTests, CreateAlterDropTable)
     GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database,
                                "SELECT colB, colC from tblA;");
     resultPtr = parser5.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloadsColB2 = result->payloads().at("tblA.colB");
     auto& payloadsColC = result->payloads().at("tblA.colC");
 
@@ -12384,7 +12384,7 @@ TEST(DispatcherTests, CreateAlterNotNullConstraintsDropTable)
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
                                "SELECT colA, colB from tblA;");
     resultPtr = parser3.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsColA;
     std::vector<float> expectedResultsColB;
@@ -12455,7 +12455,7 @@ TEST(DispatcherTests, CreateInsertTableEquivalentTypeNotation)
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
                                "SELECT colA, colB, colC, YEAR(colD), colE from tblA;");
     resultPtr = parser3.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsColA;
     std::vector<int32_t> expectedResultsColB;
@@ -12526,7 +12526,7 @@ TEST(DispatcherTests, IsNull)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NULL;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_EQ(result->payloads().size(), 0);
 }
 
@@ -12536,7 +12536,7 @@ TEST(DispatcherTests, IsNotNull)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE colInteger1 IS NOT NULL;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     std::vector<float> expectedResultsFloat;
     auto column = dynamic_cast<ColumnBase<float>*>(DispatcherObjs::GetInstance()
                                                        .database->GetTables()
@@ -12565,7 +12565,7 @@ TEST(DispatcherTests, IsNotNull)
 //	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colInteger1 FROM TableA
 // WHERE ((colInteger2 != 500) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
 //	auto resultPtr = parser.Parse();
-//	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+//	auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 //
 //	FAIL();
 //}
@@ -12575,7 +12575,7 @@ TEST(DispatcherTests, IsNotNull)
 //	GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database_, "SELECT colInteger1 FROM TableA
 // WHERE ((colInteger2 > colInteger1) AND (colInteger2 > 1000000)) OR ((colInteger1 >= 150) AND (colInteger1 < -1000000));");
 //	auto resultPtr = parser.Parse();
-//	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+//	auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 //
 //	FAIL();
 //}
@@ -12953,7 +12953,7 @@ TEST(DispatcherTests, OrderByTestSimple)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 FROM TableA ORDER BY colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -12989,7 +12989,7 @@ TEST(DispatcherTests, OrderByLimitOffsetTest)
                               "SELECT colInteger1 FROM TableA ORDER BY colInteger1 LIMIT 20 OFFSET "
                               "2040;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -13039,7 +13039,7 @@ TEST(DispatcherTests, OrderByTestMulticolumnMultitype)
                               "SELECT colInteger1, colDouble1 FROM TableA ORDER BY colInteger1 "
                               "ASC, colLong1 DESC, colFloat1 ASC, colDouble1 DESC;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto dataIn1 = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
                                                           .database->GetTables()
@@ -13170,7 +13170,7 @@ TEST(DispatcherTests, OrderByAliasTestMulticolumnMultitype)
                               "SELECT colInteger1, colDouble1 FROM TableA ORDER BY 1 "
                               "ASC, colLong1 DESC, colFloat1 ASC, 2 DESC;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto dataIn1 = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
                                                           .database->GetTables()
@@ -13301,7 +13301,7 @@ TEST(DispatcherTests, JoinSimpleTest)
                               "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = "
                               "colInteger3;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::cout
         << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size()
@@ -13364,7 +13364,7 @@ TEST(DispatcherTests, JoinWhereTest)
                               "SELECT colInteger1 FROM TableA JOIN TableB ON colInteger1 = "
                               "colInteger3 WHERE colFloat1 < 200;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::cout
         << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size()
@@ -13436,7 +13436,7 @@ TEST(DispatcherTests, JoinGroupByTest)
                               "SELECT colInteger1, COUNT(colInteger1) FROM TableA JOIN TableB ON "
                               "colInteger1 = colInteger3 GROUP BY colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::cout
         << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size()
@@ -13515,7 +13515,7 @@ TEST(DispatcherTests, JoinGroupByWhereTest)
                               "colInteger1 = colInteger3 WHERE colFloat1 < 200 GROUP BY "
                               "colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::cout
         << "Result size: " << result->payloads().at("TableA.colInteger1").intpayload().intdata().size()
@@ -13595,7 +13595,7 @@ TEST(DispatcherTests, JoinWhereStringTest)
                               "SELECT colString1 FROM TableA JOIN TableB ON colInteger1 = "
                               "colInteger3 WHERE colFloat1 < 200;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::cout << "Result size: "
               << result->payloads().at("TableA.colString1").stringpayload().stringdata().size()
@@ -13706,7 +13706,7 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
                                "SELECT [colA%^&*()-+], [colB%^&*()-+] from [tblA%^&*()-+];");
     resultPtr = parser3.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsColA;
     std::vector<float> expectedResultsColB;
@@ -13746,7 +13746,7 @@ TEST(DispatcherTests, CreateAlterDropTableWithDelimitedIdentifiers)
     GpuSqlCustomParser parser5(DispatcherObjs::GetInstance().database,
                                "SELECT [colB%^&*()-+], [colC%^&*()-+] from [tblA%^&*()-+];");
     resultPtr = parser5.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsColC;
 
@@ -13789,7 +13789,7 @@ TEST(DispatcherTests, CastFloatColToInt)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT CAST(colFloat1 AS INT) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -13826,7 +13826,7 @@ TEST(DispatcherTests, CastIntColToFloat)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT CAST(colInteger1 AS FLOAT) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -13864,7 +13864,7 @@ TEST(DispatcherTests, AliasWhereSimpleTest)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1 - 100 AS result FROM TableA WHERE result > 300;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<int32_t> expectedResultsInt;
 
@@ -13904,7 +13904,7 @@ TEST(DispatcherTests, AllColumnsWithDuplicatesTest)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT *, colInteger1, colFloat1, * FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     ASSERT_EQ(result->payloads().size(),
               DispatcherObjs::GetInstance().database->GetTables().at("TableA").GetColumns().size());
@@ -14009,7 +14009,7 @@ TEST(DispatcherTests, AllColumnsWithDuplicatesTest)
         break;
         case COLUMN_POINT:
         {
-            auto col = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
+            auto col = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(column.second.get());
             std::vector<std::string> expectedResults;
 
             for (int i = 0; i < col->GetBlockCount(); i++)
@@ -14031,7 +14031,7 @@ TEST(DispatcherTests, AllColumnsWithDuplicatesTest)
         break;
         case COLUMN_POLYGON:
         {
-            auto col = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
+            auto col = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(column.second.get());
             std::vector<std::string> expectedResults;
 
             for (int i = 0; i < col->GetBlockCount(); i++)
@@ -14087,7 +14087,7 @@ TEST(DispatcherTests, StringLeftWhereColConst)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colFloat1 FROM TableA WHERE LEFT(colString1, 4) = \"Word\";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -14136,7 +14136,7 @@ TEST(DispatcherTests, StringConcatLeftWhereColConst)
                               "SELECT colFloat1 FROM TableA WHERE CONCAT(\"Concat\", "
                               "LEFT(colString1, 4)) = \"ConcatWord\";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<float> expectedResultsFloat;
 
@@ -14183,7 +14183,7 @@ TEST(DispatcherTests, RetConst)
 
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database, "SELECT 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     const int32_t expectedSize = 2 * (1 << 11);
     auto& payloadsInt = result->payloads().at("5");
     ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedSize);
@@ -14200,7 +14200,7 @@ TEST(DispatcherTests, RetConstWithFilter)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT 5 FROM TableA WHERE 500 < colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     int32_t expectedSize = 0;
     for (int i = 0; i < 2; i++)
     {
@@ -14237,7 +14237,7 @@ TEST(DispatcherTests, RetConstWithColumn)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colInteger1, 5 FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     const int32_t expectedSize = 2 * (1 << 11);
     auto& payloadsInt = result->payloads().at("5");
     ASSERT_EQ(payloadsInt.intpayload().intdata_size(), expectedSize);
@@ -14254,7 +14254,7 @@ TEST(DispatcherTests, RetConstString)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT \"test\" FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     const int32_t expectedSize = 2 * (1 << 11);
     auto& payloadsStr = result->payloads().at("\"test\"");
     ASSERT_EQ(payloadsStr.stringpayload().stringdata_size(), expectedSize);
@@ -14272,7 +14272,7 @@ TEST(DispatcherTests, RetConstJoin)
                               "SELECT 5 FROM TableA JOIN TableB ON colInteger1 = "
                               "colInteger3;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
     auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
@@ -14326,7 +14326,7 @@ TEST(DispatcherTests, ReorderStringOrderBy)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colString1 FROM TableA ORDER BY colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto columnString = dynamic_cast<ColumnBase<std::string>*>(DispatcherObjs::GetInstance()
                                                                    .database->GetTables()
@@ -14376,12 +14376,12 @@ TEST(DispatcherTests, ReorderPolygonOrderBy)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPolygon1 FROM TableA ORDER BY colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::pair<std::string, int32_t>> expectedResultsPolygons;
 
     auto columnPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(DispatcherObjs::GetInstance()
                                                                         .database->GetTables()
                                                                         .at("TableA")
                                                                         .GetColumns()
@@ -14430,11 +14430,11 @@ TEST(DispatcherTests, ReorderPointOrderBy)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT colPoint1 FROM TableA ORDER BY colInteger1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     std::vector<std::pair<std::string, int32_t>> expectedResultsPoints;
 
-    auto columnPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(DispatcherObjs::GetInstance()
+    auto columnPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(DispatcherObjs::GetInstance()
                                                                               .database->GetTables()
                                                                               .at("TableA")
                                                                               .GetColumns()
@@ -14482,7 +14482,7 @@ TEST(DispatcherTests, AggregationCountAsteriskNoGroupBy)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COUNT(*) FROM TableA;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("COUNT(*)");
 
     ASSERT_EQ(payloads.int64payload().int64data_size(), 1);
@@ -14496,7 +14496,7 @@ TEST(DispatcherTests, AggregationCountAsteriskWhereNoGroupBy)
     GpuSqlCustomParser parser(DispatcherObjs::GetInstance().database,
                               "SELECT COUNT(*) FROM TableA WHERE colInteger1 > 512;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloads = result->payloads().at("COUNT(*)");
 
     int64_t outSize = 0;
@@ -14532,7 +14532,7 @@ TEST(DispatcherTests, AggregationCountAsterisJoinWhereNoGroupBy)
                               "SELECT COUNT(*) FROM TableA JOIN TableB ON colInteger1 = "
                               "colInteger3 WHERE colInteger1 > 512;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
     auto leftCol = dynamic_cast<ColumnBase<int32_t>*>(DispatcherObjs::GetInstance()
@@ -14612,7 +14612,7 @@ TEST(DispatcherTests, AlterTableAlterColumnIntToFloat)
 
     GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.col");
 
@@ -14663,7 +14663,7 @@ TEST(DispatcherTests, AlterTableAlterColumnPointToString)
 
     GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.col");
 
@@ -14716,7 +14716,7 @@ TEST(DispatcherTests, AlterTableAlterColumnPolygonToString)
 
     GpuSqlCustomParser parser4(database, "SELECT col from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.col");
 
@@ -14763,10 +14763,10 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
     for (int32_t i = 0; i < 7; i++)
     {
         resultPtr = parser2.Parse();
-        ColmnarDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(
+        QikkDB::Types::ComplexPolygon polygon = ComplexPolygonFactory::FromWkt(
             "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
             "80.11, 90 89.15, 112.12 110, 61 80.11))");
-        ColmnarDB::Types::ComplexPolygon emptyPolygon =
+        QikkDB::Types::ComplexPolygon emptyPolygon =
             ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
         expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
         expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
@@ -14783,7 +14783,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
 
     GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.colP");
 
@@ -14806,7 +14806,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
     GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
     resultPtr = parser6.Parse();
     auto resultString =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColString = resultString->payloads().at("testTable.colS");
 
@@ -14850,8 +14850,8 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
     for (int32_t i = 0; i < 7; i++)
     {
         resultPtr = parser2.Parse();
-        ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(11.5 1.3)");
-        ColmnarDB::Types::Point emptyPoint = ColmnarDB::Types::Point();
+        QikkDB::Types::Point point = PointFactory::FromWkt("POINT(11.5 1.3)");
+        QikkDB::Types::Point emptyPoint = QikkDB::Types::Point();
         expectedResultsCol.push_back(PointFactory::WktFromPoint(point, true));
         expectedResultsColString.push_back(PointFactory::WktFromPoint(emptyPoint, true));
     }
@@ -14867,7 +14867,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
 
     GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.colP");
 
@@ -14890,7 +14890,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPoint)
     GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
     resultPtr = parser6.Parse();
     auto resultString =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColString = resultString->payloads().at("testTable.colS");
 
@@ -14950,7 +14950,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToDouble)
 
     GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.colP");
 
@@ -14973,7 +14973,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToDouble)
     GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
     resultPtr = parser6.Parse();
     auto resultString =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColString = resultString->payloads().at("testTable.colS");
 
@@ -15030,7 +15030,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
 
     GpuSqlCustomParser parser4(database, "SELECT colP from testTable;");
     resultPtr = parser4.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.colP");
 
@@ -15053,7 +15053,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToInt)
     GpuSqlCustomParser parser6(database, "SELECT colS from testTable;");
     resultPtr = parser6.Parse();
     auto resultString =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColString = resultString->payloads().at("testTable.colS");
 
@@ -15105,7 +15105,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToBool)
 
     GpuSqlCustomParser parserSelect(database, "SELECT colP from testTable;");
     resultPtr = parserSelect.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsCol = result->payloads().at("testTable.colP");
 
@@ -15154,7 +15154,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopy)
     GpuSqlCustomParser parserSelect(database, "SELECT col from testTable;");
     resultPtr = parserSelect.Parse();
     auto resultInt =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColInt = resultInt->payloads().at("testTable.col");
     ASSERT_EQ(payloadsColInt.intpayload().intdata_size(), 22);
@@ -15237,7 +15237,7 @@ TEST(DispatcherTests, AlterTableAlterColumnBitmaskCopyWithInsertNull)
     GpuSqlCustomParser parserSelect(database, "SELECT col from testTable;");
     resultPtr = parserSelect.Parse();
     auto resultInt =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto blocksBeforeCast =
         dynamic_cast<ColumnBase<std::string>*>(table.GetColumns().at("col").get())->GetBlocksList();
@@ -15310,14 +15310,14 @@ TEST(DispatcherTests, ClusteredIndexPoint)
     {
         resultPtr = parser2.Parse();
         expectedResultInt.push_back(1);
-        ColmnarDB::Types::Point point = PointFactory::FromWkt("POINT(2.5 3.23)");
+        QikkDB::Types::Point point = PointFactory::FromWkt("POINT(2.5 3.23)");
         expectedResultPoint.push_back(PointFactory::WktFromPoint(point, true));
     }
 
     // SELECT COL INT
     GpuSqlCustomParser parserSelectFromA(database, "SELECT colA from testTable;");
     resultPtr = parserSelectFromA.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColInt = result->payloads().at("testTable.colA");
 
@@ -15331,7 +15331,7 @@ TEST(DispatcherTests, ClusteredIndexPoint)
     // SELECT COL POINT
     GpuSqlCustomParser parserSelectFromB(database, "SELECT colB from testTable;");
     resultPtr = parserSelectFromB.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColPoint = result->payloads().at("testTable.colB");
 
@@ -15370,7 +15370,7 @@ TEST(DispatcherTests, ClusteredIndexPolygon)
 
     std::vector<int32_t> expectedResultInt;
     std::vector<std::string> expectedResultPolygon;
-    ColmnarDB::Types::ComplexPolygon polygon =
+    QikkDB::Types::ComplexPolygon polygon =
         ComplexPolygonFactory::FromWkt("POLYGON((10 11, 11.11 "
                                        "12.13, 10 11),(21 30, 35.55 36, 30.11 20.26, 21 "
                                        "30),(61 80.11,90 "
@@ -15390,7 +15390,7 @@ TEST(DispatcherTests, ClusteredIndexPolygon)
     // SELECT COL INT
     GpuSqlCustomParser parserSelectFromA(database, "SELECT colA from testTable;");
     resultPtr = parserSelectFromA.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColInt = result->payloads().at("testTable.colA");
 
@@ -15409,14 +15409,14 @@ TEST(DispatcherTests, ClusteredIndexPolygon)
     // SELECT COL POLYGON
     GpuSqlCustomParser parserSelectFromB(database, "SELECT colB from testTable;");
     resultPtr = parserSelectFromB.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColPolygon = result->payloads().at("testTable.colB");
 
     ASSERT_EQ(payloadsColPolygon.stringpayload().stringdata_size(), expectedResultPolygon.size());
     auto& columnIntB = table.GetColumns().at("colB");
     auto& blocksB =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnIntB.get())->GetBlocksList();
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnIntB.get())->GetBlocksList();
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[0]->GetData()[0], true), expectedResultPolygon[0]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[0]->GetData()[1], true), expectedResultPolygon[1]);
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(blocksB[1]->GetData()[0], true), expectedResultPolygon[2]);
@@ -15465,7 +15465,7 @@ TEST(DispatcherTests, ClusteredIndexString)
     // SELECT COL INT
     GpuSqlCustomParser parserSelectFromA(database, "SELECT colA from testTable;");
     resultPtr = parserSelectFromA.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColInt = result->payloads().at("testTable.colA");
 
@@ -15484,7 +15484,7 @@ TEST(DispatcherTests, ClusteredIndexString)
     // SELECT COL STRING
     GpuSqlCustomParser parserSelectFromB(database, "SELECT colB from testTable;");
     resultPtr = parserSelectFromB.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto& payloadsColString = result->payloads().at("testTable.colB");
 
@@ -15621,7 +15621,7 @@ TEST(DispatcherTests, InsertInto)
     // Select right after inserting one row of data - insert into two of three columns
     GpuSqlCustomParser parserSelect(database, "SELECT colA, colB, Aa from testTable;");
     resultPtr = parserSelect.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto payloadsColA = result->payloads().at("testTable.colA");
     auto payloadsColB = result->payloads().at("testTable.colB");
     auto payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15666,7 +15666,7 @@ TEST(DispatcherTests, InsertInto)
 
     GpuSqlCustomParser parserSelect3(database, "SELECT colA, colB, Aa from testTable;");
     resultPtr = parserSelect3.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15709,7 +15709,7 @@ TEST(DispatcherTests, InsertInto)
 
     GpuSqlCustomParser parserSelect4(database, "SELECT colA, colB, Aa from testTable;");
     resultPtr = parserSelect4.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15759,7 +15759,7 @@ TEST(DispatcherTests, InsertInto)
 
     GpuSqlCustomParser parserSelect5(database, "SELECT colA, colB, Aa, colString from testTable;");
     resultPtr = parserSelect5.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15826,7 +15826,7 @@ TEST(DispatcherTests, InsertInto)
 
     GpuSqlCustomParser parserSelect6(database, "SELECT colA, colB, Aa, colString from testTable;");
     resultPtr = parserSelect6.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15887,7 +15887,7 @@ TEST(DispatcherTests, InsertIntoWithIndex)
     // Select right after inserting one row of data - insert into two of three columns
     GpuSqlCustomParser parserSelect(database, "SELECT colA, colB, Aa from testTable;");
     resultPtr = parserSelect.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto payloadsColA = result->payloads().at("testTable.colA");
     auto payloadsColB = result->payloads().at("testTable.colB");
     auto payloadsColAa = result->payloads().at("testTable.Aa");
@@ -15961,7 +15961,7 @@ TEST(DispatcherTests, InsertIntoWithIndex)
     // Select right after inserting one row of data - insert into two of three columns
     GpuSqlCustomParser parserSelect2(database, "SELECT colA, colB, Aa from testTable;");
     resultPtr = parserSelect2.Parse();
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     payloadsColAa = result->payloads().at("testTable.Aa");
@@ -16008,7 +16008,7 @@ TEST(DispatcherTests, WhereEvaluationWithString)
     GpuSqlCustomParser parserSelect(database, "SELECT colB FROM testTable WHERE colB = \"Peto\";");
     resultPtr = parserSelect.Parse();
 
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto payloadsColB = result->payloads().at("testTable.colB");
     ASSERT_EQ(payloadsColB.stringpayload().stringdata_size(), 1);
     ASSERT_EQ(payloadsColB.stringpayload().stringdata()[0], "Peto");
@@ -16016,7 +16016,7 @@ TEST(DispatcherTests, WhereEvaluationWithString)
     GpuSqlCustomParser parserSelect1(database, "SELECT colA FROM testTable WHERE colB = \"Peto\";");
     resultPtr = parserSelect1.Parse();
 
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto payloadsColA = result->payloads().at("testTable.colA");
     ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);
     ASSERT_EQ(payloadsColA.intpayload().intdata()[0], 1);
@@ -16025,7 +16025,7 @@ TEST(DispatcherTests, WhereEvaluationWithString)
                                      "SELECT colA, colB FROM testTable WHERE colB = \"Peto\";");
     resultPtr = parserSelect2.Parse();
 
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);
@@ -16036,7 +16036,7 @@ TEST(DispatcherTests, WhereEvaluationWithString)
     GpuSqlCustomParser parserSelect3(database, "SELECT * FROM testTable WHERE colB = \"Peto\";");
     resultPtr = parserSelect3.Parse();
 
-    result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     payloadsColA = result->payloads().at("testTable.colA");
     payloadsColB = result->payloads().at("testTable.colB");
     ASSERT_EQ(payloadsColA.intpayload().intdata_size(), 1);

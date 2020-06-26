@@ -16,7 +16,7 @@
 #include "Configuration.h"
 
 /// <summary>
-/// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class.
+/// Initializes a new instance of the class.
 /// </summary>
 /// <param name="fileName">Path to the CSV file.</param>
 /// <param name="header">True, if CSV file has a header. Default value is 'true'.</param>
@@ -133,13 +133,13 @@ void CSVDataImporter::ParseAndImport(int threadId,
         }
         else if (dataTypes_[i] == COLUMN_POINT)
         {
-            std::vector<ColmnarDB::Types::Point> v;
+            std::vector<QikkDB::Types::Point> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
         else if (dataTypes_[i] == COLUMN_POLYGON)
         {
-            std::vector<ColmnarDB::Types::ComplexPolygon> v;
+            std::vector<QikkDB::Types::ComplexPolygon> v;
             v.reserve(blockSize);
             data[headers_[i]] = std::move(v);
         }
@@ -272,12 +272,12 @@ void CSVDataImporter::ParseAndImport(int threadId,
                 std::any_cast<std::vector<double>&>(wrappedData).push_back(std::any_cast<double>(field));
                 break;
             case COLUMN_POINT:
-                std::any_cast<std::vector<ColmnarDB::Types::Point>&>(wrappedData)
-                    .push_back(std::any_cast<ColmnarDB::Types::Point>(field));
+                std::any_cast<std::vector<QikkDB::Types::Point>&>(wrappedData)
+                    .push_back(std::any_cast<QikkDB::Types::Point>(field));
                 break;
             case COLUMN_POLYGON:
-                std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>&>(wrappedData)
-                    .push_back(std::any_cast<ColmnarDB::Types::ComplexPolygon>(field));
+                std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>&>(wrappedData)
+                    .push_back(std::any_cast<QikkDB::Types::ComplexPolygon>(field));
                 break;
             case COLUMN_STRING:
                 std::any_cast<std::vector<std::string>&>(wrappedData).push_back(std::any_cast<std::string>(field));
@@ -324,10 +324,10 @@ void CSVDataImporter::ParseAndImport(int threadId,
                     std::any_cast<std::vector<double>&>(wrappedData).clear();
                     break;
                 case COLUMN_POINT:
-                    std::any_cast<std::vector<ColmnarDB::Types::Point>&>(wrappedData).clear();
+                    std::any_cast<std::vector<QikkDB::Types::Point>&>(wrappedData).clear();
                     break;
                 case COLUMN_POLYGON:
-                    std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>&>(wrappedData).clear();
+                    std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>&>(wrappedData).clear();
                     break;
                 case COLUMN_STRING:
                     std::any_cast<std::vector<std::string>&>(wrappedData).clear();

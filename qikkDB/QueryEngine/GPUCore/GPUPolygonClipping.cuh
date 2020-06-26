@@ -23,7 +23,7 @@ namespace PolygonFunctions
 {
 struct polyIntersect
 {
-    typedef ColmnarDB::Types::ComplexPolygon RetType;
+    typedef QikkDB::Types::ComplexPolygon RetType;
 
     __device__ __host__ void operator()(bool turnTable[2]) const
     {
@@ -34,7 +34,7 @@ struct polyIntersect
 
 struct polyUnion
 {
-    typedef ColmnarDB::Types::ComplexPolygon RetType;
+    typedef QikkDB::Types::ComplexPolygon RetType;
 
     __device__ __host__ void operator()(bool turnTable[2]) const
     {

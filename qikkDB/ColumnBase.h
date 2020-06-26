@@ -15,9 +15,9 @@
 namespace std
 {
 template <>
-struct hash<ColmnarDB::Types::Point>
+struct hash<QikkDB::Types::Point>
 {
-    size_t operator()(const ColmnarDB::Types::Point& x) const
+    size_t operator()(const QikkDB::Types::Point& x) const
     {
         static_assert(sizeof(size_t) == 8, "size_t is not 8 bytes");
         float latitude = x.geopoint().latitude();
@@ -29,9 +29,9 @@ struct hash<ColmnarDB::Types::Point>
 };
 
 template <>
-struct hash<ColmnarDB::Types::ComplexPolygon>
+struct hash<QikkDB::Types::ComplexPolygon>
 {
-    size_t operator()(const ColmnarDB::Types::ComplexPolygon& x) const
+    size_t operator()(const QikkDB::Types::ComplexPolygon& x) const
     {
         std::string wkt = ComplexPolygonFactory::WktFromPolygon(x);
         return std::hash<std::string>{}(wkt);
@@ -40,9 +40,9 @@ struct hash<ColmnarDB::Types::ComplexPolygon>
 
 
 template <>
-struct equal_to<ColmnarDB::Types::Point>
+struct equal_to<QikkDB::Types::Point>
 {
-    bool operator()(const ColmnarDB::Types::Point& lhs, const ColmnarDB::Types::Point& rhs) const
+    bool operator()(const QikkDB::Types::Point& lhs, const QikkDB::Types::Point& rhs) const
     {
         if (std::abs(lhs.geopoint().latitude() - rhs.geopoint().latitude()) >= 0.0001f ||
             std::abs(lhs.geopoint().longitude() - rhs.geopoint().longitude()) >= 0.0001f)
@@ -54,9 +54,9 @@ struct equal_to<ColmnarDB::Types::Point>
 };
 
 template <>
-struct equal_to<ColmnarDB::Types::ComplexPolygon>
+struct equal_to<QikkDB::Types::ComplexPolygon>
 {
-    bool operator()(const ColmnarDB::Types::ComplexPolygon& lhs, const ColmnarDB::Types::ComplexPolygon& rhs) const
+    bool operator()(const QikkDB::Types::ComplexPolygon& lhs, const QikkDB::Types::ComplexPolygon& rhs) const
     {
         if (lhs.polygons_size() != rhs.polygons_size())
         {
@@ -1168,19 +1168,19 @@ template <>
 void ColumnBase<std::string>::SetIsUnique(bool isUnique);
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique);
+void ColumnBase<QikkDB::Types::Point>::SetIsUnique(bool isUnique);
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique);
+void ColumnBase<QikkDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique);
 
 template <>
 void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn);
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn);
+void ColumnBase<QikkDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn);
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn);
+void ColumnBase<QikkDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn);
 
 template <>
 std::vector<int32_t> ColumnBase<int32_t>::NullArray(int32_t length);
@@ -1201,11 +1201,11 @@ template <>
 std::vector<std::string> ColumnBase<std::string>::NullArray(int32_t length);
 
 template <>
-std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int32_t length);
+std::vector<QikkDB::Types::Point> ColumnBase<QikkDB::Types::Point>::NullArray(int32_t length);
 
 template <>
-std::vector<ColmnarDB::Types::ComplexPolygon>
-ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length);
+std::vector<QikkDB::Types::ComplexPolygon>
+ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(int length);
 
 template <>
 void ColumnBase<int64_t>::setColumnStatistics();
@@ -1217,10 +1217,10 @@ template <>
 void ColumnBase<double>::setColumnStatistics();
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics();
+void ColumnBase<QikkDB::Types::Point>::setColumnStatistics();
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics();
+void ColumnBase<QikkDB::Types::ComplexPolygon>::setColumnStatistics();
 
 template <>
 void ColumnBase<std::string>::setColumnStatistics();
@@ -1229,5 +1229,5 @@ template <>
 void ColumnBase<int8_t>::setColumnStatistics();
 
 template class ColumnBase<std::string>;
-template class ColumnBase<ColmnarDB::Types::Point>;
-template class ColumnBase<ColmnarDB::Types::ComplexPolygon>;
+template class ColumnBase<QikkDB::Types::Point>;
+template class ColumnBase<QikkDB::Types::ComplexPolygon>;

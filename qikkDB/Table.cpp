@@ -83,11 +83,11 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                     castedColumn->InsertIntoHashmap(dataFloat[iterator]);
                 }
             }
-            else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+            else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::Point>))
             {
-                std::vector<ColmnarDB::Types::Point> dataPoint =
-                    std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData);
-                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(currentColumn);
+                std::vector<QikkDB::Types::Point> dataPoint =
+                    std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData);
+                auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataPoint[iterator], -1, isNullValue);
                 if (castedColumn->GetIsUnique())
@@ -95,11 +95,11 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                     castedColumn->InsertIntoHashmap(dataPoint[iterator]);
                 }
             }
-            else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+            else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
             {
-                std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon =
-                    std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData);
-                auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(currentColumn);
+                std::vector<QikkDB::Types::ComplexPolygon> dataPolygon =
+                    std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData);
+                auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(currentColumn);
                 castedColumn->InsertDataOnSpecificPosition(indexBlock, indexInBlock,
                                                            dataPolygon[iterator], -1, isNullValue);
                 if (castedColumn->GetIsUnique())
@@ -172,16 +172,16 @@ int32_t Table::GetDataSizeOfInsertedColumns(const std::unordered_map<std::string
         std::vector<std::string> dataIndexedColumn = std::any_cast<std::vector<std::string>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
-    else if (dataOfFirstColumn.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+    else if (dataOfFirstColumn.type() == typeid(std::vector<QikkDB::Types::Point>))
     {
-        std::vector<ColmnarDB::Types::Point> dataIndexedColumn =
-            std::any_cast<std::vector<ColmnarDB::Types::Point>>(dataOfFirstColumn);
+        std::vector<QikkDB::Types::Point> dataIndexedColumn =
+            std::any_cast<std::vector<QikkDB::Types::Point>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
-    else if (dataOfFirstColumn.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+    else if (dataOfFirstColumn.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
     {
-        std::vector<ColmnarDB::Types::ComplexPolygon> dataIndexedColumn =
-            std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(dataOfFirstColumn);
+        std::vector<QikkDB::Types::ComplexPolygon> dataIndexedColumn =
+            std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(dataOfFirstColumn);
         size = dataIndexedColumn.size();
     }
     else if (dataOfFirstColumn.type() == typeid(std::vector<int8_t>))
@@ -358,14 +358,14 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
 
                 case COLUMN_POINT:
                 {
-                    ColmnarDB::Types::Point duplicateData;
+                    QikkDB::Types::Point duplicateData;
                     auto castedColumn =
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.second.get());
-                    std::unordered_set<ColmnarDB::Types::Point> temp_hashmap = castedColumn->GetHashmapCopy();
+                        dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(column.second.get());
+                    std::unordered_set<QikkDB::Types::Point> temp_hashmap = castedColumn->GetHashmapCopy();
 
                     const auto& wrappedCurrentColumnData = data.at(column.first);
-                    std::vector<ColmnarDB::Types::Point> dataColumn =
-                        std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedCurrentColumnData);
+                    std::vector<QikkDB::Types::Point> dataColumn =
+                        std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedCurrentColumnData);
 
                     for (int i = 0; i < dataSize && !duplicateFound; i++)
                     {
@@ -394,15 +394,15 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
 
                 case COLUMN_POLYGON:
                 {
-                    ColmnarDB::Types::ComplexPolygon duplicateData;
+                    QikkDB::Types::ComplexPolygon duplicateData;
                     auto castedColumn =
-                        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.second.get());
-                    std::unordered_set<ColmnarDB::Types::ComplexPolygon> temp_hashmap =
+                        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(column.second.get());
+                    std::unordered_set<QikkDB::Types::ComplexPolygon> temp_hashmap =
                         castedColumn->GetHashmapCopy();
 
                     const auto& wrappedCurrentColumnData = data.at(column.first);
-                    std::vector<ColmnarDB::Types::ComplexPolygon> dataColumn =
-                        std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedCurrentColumnData);
+                    std::vector<QikkDB::Types::ComplexPolygon> dataColumn =
+                        std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedCurrentColumnData);
 
                     for (int i = 0; i < dataSize && !duplicateFound; i++)
                     {
@@ -744,11 +744,11 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
                 break;
 
             case COLUMN_POINT:
-                resultRow.push_back(ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0]);
+                resultRow.push_back(ColumnBase<QikkDB::Types::Point>::NullArray(1)[0]);
                 break;
 
             case COLUMN_POLYGON:
-                resultRow.push_back(ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0]);
+                resultRow.push_back(ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(1)[0]);
                 break;
             default:
                 throw std::runtime_error("Unsupported column type.");
@@ -1256,7 +1256,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
     case COLUMN_POINT:
     {
-        auto blocks = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(column.get())->GetBlocksList();
+        auto blocks = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(column.get())->GetBlocksList();
 
         for (int32_t i = 0; i < blocks.size(); i++)
         {
@@ -1268,7 +1268,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
     case COLUMN_POLYGON:
     {
         auto blocks =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(column.get())->GetBlocksList();
+            dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(column.get())->GetBlocksList();
 
         for (int32_t i = 0; i < blocks.size(); i++)
         {
@@ -1372,11 +1372,11 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
     case COLUMN_POINT:
     {
-        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(newColumn);
+        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(newColumn);
         for (int32_t i = 0; i < blocksSizes.size(); i++)
         {
             auto& block =
-                castedColumn->AddBlock(ColumnBase<ColmnarDB::Types::Point>::NullArray(blocksSizes[i]));
+                castedColumn->AddBlock(ColumnBase<QikkDB::Types::Point>::NullArray(blocksSizes[i]));
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
@@ -1388,11 +1388,11 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
     case COLUMN_POLYGON:
     {
-        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(newColumn);
+        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(newColumn);
         for (int32_t i = 0; i < blocksSizes.size(); i++)
         {
             auto& block = castedColumn->AddBlock(
-                ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(blocksSizes[i]));
+                ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(blocksSizes[i]));
 
             for (int32_t j = 0; j < blocksSizes[i]; j++)
             {
@@ -1589,7 +1589,7 @@ void Table::EraseColumn(const std::string& columnName)
 }
 
 /// <summary>
-/// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database
+/// Initializes a new instance of the class. Also gets from database
 /// the block size and initializes with this value the private variable blockSize. Finally, it initializes columnsMutex_.
 /// </summary>
 /// <param name="database">Pointer to the database which will contains the new table.</param>
@@ -1646,12 +1646,12 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     }
     else if (columnType == COLUMN_POLYGON)
     {
-        column = std::make_unique<ColumnBase<ColmnarDB::Types::ComplexPolygon>>(columnName, blockSize_,
+        column = std::make_unique<ColumnBase<QikkDB::Types::ComplexPolygon>>(columnName, blockSize_,
                                                                                 isNullable, isUnique);
     }
     else if (columnType == COLUMN_POINT)
     {
-        column = std::make_unique<ColumnBase<ColmnarDB::Types::Point>>(columnName, blockSize_,
+        column = std::make_unique<ColumnBase<QikkDB::Types::Point>>(columnName, blockSize_,
                                                                        isNullable, isUnique);
     }
     else if (columnType == COLUMN_INT8_T)
@@ -1770,28 +1770,28 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                             castedColumn->InsertIntoHashmap(std::any_cast<std::vector<std::string>>(wrappedData));
                         }
                     }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+                    else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
                     {
-                        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                             columns.find(columnName)->second.get());
-                        castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
+                        castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
                             castedColumn->InsertIntoHashmap(
-                                std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+                                std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData));
                         }
                     }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+                    else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::Point>))
                     {
-                        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+                        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
                             columns.find(columnName)->second.get());
-                        castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
+                        castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
                             castedColumn->InsertIntoHashmap(
-                                std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+                                std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData));
                         }
                     }
                     else if (wrappedData.type() == typeid(std::vector<int8_t>))
@@ -1859,28 +1859,28 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                             castedColumn->InsertIntoHashmap(std::any_cast<std::vector<std::string>>(wrappedData));
                         }
                     }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::ComplexPolygon>))
+                    else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
                     {
-                        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+                        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
                             columns.find(columnName)->second.get());
-                        castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData),
+                        castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData),
                                                  -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
                             castedColumn->InsertIntoHashmap(
-                                std::any_cast<std::vector<ColmnarDB::Types::ComplexPolygon>>(wrappedData));
+                                std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData));
                         }
                     }
-                    else if (wrappedData.type() == typeid(std::vector<ColmnarDB::Types::Point>))
+                    else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::Point>))
                     {
-                        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+                        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
                             columns.find(columnName)->second.get());
-                        castedColumn->InsertData(std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData),
+                        castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData),
                                                  -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
                             castedColumn->InsertIntoHashmap(
-                                std::any_cast<std::vector<ColmnarDB::Types::Point>>(wrappedData));
+                                std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData));
                         }
                     }
                     else if (wrappedData.type() == typeid(std::vector<int8_t>))

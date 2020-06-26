@@ -7,8 +7,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::m
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, float, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::min, double, double)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, int8_t)
 END_DISPATCH_TABLE
@@ -18,8 +18,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::m
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, float, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::max, double, double)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, int8_t)
 END_DISPATCH_TABLE
@@ -29,8 +29,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::s
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, float, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::sum, double, double)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, int8_t)
 END_DISPATCH_TABLE
@@ -40,8 +40,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::c
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, double)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, QikkDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::count, int64_t, int8_t)
 END_DISPATCH_TABLE
@@ -51,8 +51,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::a
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, int64_t, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, float, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Aggregation, AggregationFunctions::avg, double, double)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, int8_t)
 END_DISPATCH_TABLE
@@ -62,8 +62,8 @@ DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctio
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, float, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, double, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::min, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::min, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::min, QikkDB::Types::Point)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::min, QikkDB::Types::ComplexPolygon)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, std::string, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::min, int8_t)
 END_DISPATCH_TABLE
@@ -73,8 +73,8 @@ DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctio
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, float, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, double, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::max, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::max, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::max, QikkDB::Types::Point)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::max, QikkDB::Types::ComplexPolygon)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, std::string, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::max, int8_t)
 END_DISPATCH_TABLE
@@ -85,8 +85,8 @@ DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctio
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, float, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, double, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::sum, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::sum, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::sum, QikkDB::Types::Point)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::sum, QikkDB::Types::ComplexPolygon)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, std::string, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::sum, int8_t)
 END_DISPATCH_TABLE
@@ -140,8 +140,8 @@ DISPATCHER_GROUPBY_TYPE_WITH_RET(GpuSqlDispatcher::AggregationGroupBy,
                                  0,
                                  0,
                                  0)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::count, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::count, QikkDB::Types::Point)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::count, QikkDB::Types::ComplexPolygon)
 DISPATCHER_GROUPBY_TYPE_WITH_RET(GpuSqlDispatcher::AggregationGroupBy,
                                  AggregationFunctions::count,
                                  int64_t,
@@ -162,8 +162,8 @@ DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctio
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, int64_t, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, float, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, double, 1, 1, 1, 1, 0, 0, 0, 0)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, ColmnarDB::Types::Point)
-DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, QikkDB::Types::Point)
+DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, QikkDB::Types::ComplexPolygon)
 DISPATCHER_GROUPBY_TYPE(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, std::string, 1, 1, 1, 1, 0, 0, 0, 0)
 DISPATCHER_INVALID_TYPE(AggregationFunctions::avg, int8_t)
 END_DISPATCH_TABLE
@@ -185,8 +185,8 @@ DISPATCHER_ERR(Const, AggregationFunctions::min, std::vector<void*>)
 DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::min, double, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
-DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::min, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::min, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::min, int8_t)
 END_DISPATCH_TABLE
@@ -208,8 +208,8 @@ DISPATCHER_ERR(ColConst, AggregationFunctions::max, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::max, double, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
-DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::max, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::max, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::max, int8_t)
 END_DISPATCH_TABLE
@@ -231,8 +231,8 @@ DISPATCHER_ERR(ColConst, AggregationFunctions::sum, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::sum, double, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
-DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::sum, int8_t)
 END_DISPATCH_TABLE
@@ -255,8 +255,8 @@ DISPATCHER_ERR(ColConst, AggregationFunctions::count, std::vector<void*>, double
 DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::count, int64_t, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
-DISPATCHER_UNARY_ERROR(AggregationFunctions::count, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::count, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::count, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::count, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::count, int8_t)
 END_DISPATCH_TABLE
@@ -278,8 +278,8 @@ DISPATCHER_ERR(ColConst, AggregationFunctions::avg, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
 DISPATCHER_FUN(GpuSqlDispatcher::AggregationGroupBy, AggregationFunctions::avg, double, std::vector<void*>, double)
 DISPATCH_ENTRY_SEPARATOR
-DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, std::string)
 DISPATCHER_UNARY_ERROR(AggregationFunctions::avg, int8_t)
 END_DISPATCH_TABLE
@@ -290,8 +290,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::GroupBy, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::GroupBy, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::GroupBy, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::GroupBy, double)
-DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::GroupBy, std::string)
 DISPATCHER_UNARY_ERROR(int8_t)
 END_DISPATCH_TABLE
@@ -303,16 +303,16 @@ std::array<GpuSqlDispatcher::DispatchFunction, DataType::DATA_TYPE_SIZE + 1> Gpu
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, int64_t>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, float>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, QikkDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, QikkDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerConst<AggregationFunctions::none, int8_t>,
     &GpuSqlDispatcher::GroupByDone<int32_t>,
     &GpuSqlDispatcher::GroupByDone<int64_t>,
     &GpuSqlDispatcher::GroupByDone<float>,
     &GpuSqlDispatcher::GroupByDone<double>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, ColmnarDB::Types::Point>,
-    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, ColmnarDB::Types::ComplexPolygon>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, QikkDB::Types::Point>,
+    &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, QikkDB::Types::ComplexPolygon>,
     &GpuSqlDispatcher::GroupByDone<std::string>,
     &GpuSqlDispatcher::InvalidOperandTypesErrorHandlerCol<AggregationFunctions::none, int8_t>,
     &GpuSqlDispatcher::GroupByDone<std::vector<void*>>};

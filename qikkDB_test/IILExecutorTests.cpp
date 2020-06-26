@@ -13,7 +13,7 @@ TEST(IILExecutorTests, GtColumnConst)
 
 	GpuSqlCustomParser parser(database, "SELECT colInteger1 FROM TableA WHERE colInteger1 > 5;");
 	auto resultPtr = parser.parse();
-	auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+	auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 	std::vector<int32_t> expectedResult;
 

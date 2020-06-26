@@ -54,7 +54,7 @@ struct TableStruct_messages_2fQueryMessage_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryMessage_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class QueryMessage;
@@ -62,18 +62,18 @@ class QueryMessageDefaultTypeInternal;
 extern QueryMessageDefaultTypeInternal _QueryMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::NetworkClient::Message::QueryMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::QueryMessage>(Arena*);
+template<> ::QikkDB::NetworkClient::Message::QueryMessage* Arena::CreateMaybeMessage<::QikkDB::NetworkClient::Message::QueryMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
 // ===================================================================
 
 class QueryMessage :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.QueryMessage) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.NetworkClient.Message.QueryMessage) */ {
  public:
   QueryMessage();
   virtual ~QueryMessage();
@@ -153,7 +153,7 @@ class QueryMessage :
   void InternalSwap(QueryMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.NetworkClient.Message.QueryMessage";
+    return "QikkDB.NetworkClient.Message.QueryMessage";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -196,7 +196,7 @@ class QueryMessage :
   std::string* _internal_mutable_query();
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.QueryMessage)
+  // @@protoc_insertion_point(class_scope:QikkDB.NetworkClient.Message.QueryMessage)
  private:
   class _Internal;
 
@@ -221,15 +221,15 @@ inline void QueryMessage::clear_query() {
   query_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& QueryMessage::query() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.QueryMessage.Query)
   return _internal_query();
 }
 inline void QueryMessage::set_query(const std::string& value) {
   _internal_set_query(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.QueryMessage.Query)
 }
 inline std::string* QueryMessage::mutable_query() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.QueryMessage.Query)
   return _internal_mutable_query();
 }
 inline const std::string& QueryMessage::_internal_query() const {
@@ -243,26 +243,26 @@ inline void QueryMessage::set_query(std::string&& value) {
   
   query_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.QueryMessage.Query)
 }
 inline void QueryMessage::set_query(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   query_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.QueryMessage.Query)
 }
 inline void QueryMessage::set_query(const char* value, size_t size) {
   
   query_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.QueryMessage.Query)
 }
 inline std::string* QueryMessage::_internal_mutable_query() {
   
   return query_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* QueryMessage::release_query() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.QueryMessage.Query)
   
   return query_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -273,7 +273,7 @@ inline void QueryMessage::set_allocated_query(std::string* query) {
     
   }
   query_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), query);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryMessage.Query)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryMessage.Query)
 }
 
 #ifdef __GNUC__
@@ -284,7 +284,7 @@ inline void QueryMessage::set_allocated_query(std::string* query) {
 
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 // @@protoc_insertion_point(global_scope)
 

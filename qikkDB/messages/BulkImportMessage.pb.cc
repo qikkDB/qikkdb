@@ -14,7 +14,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class BulkImportMessageDefaultTypeInternal {
@@ -23,16 +23,16 @@ class BulkImportMessageDefaultTypeInternal {
 } _BulkImportMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 static void InitDefaultsscc_info_BulkImportMessage_messages_2fBulkImportMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_BulkImportMessage_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::BulkImportMessage();
+    void* ptr = &::QikkDB::NetworkClient::Message::_BulkImportMessage_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::BulkImportMessage();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::BulkImportMessage::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::BulkImportMessage::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_BulkImportMessage_messages_2fBulkImportMessage_2eproto =
@@ -44,34 +44,34 @@ static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_s
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fBulkImportMessage_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, tablename_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columnname_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, columntype_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, elemcount_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, nullmasklen_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::BulkImportMessage, datalength_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, tablename_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, columnname_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, columntype_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, elemcount_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, nullmasklen_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::BulkImportMessage, datalength_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::BulkImportMessage)},
+  { 0, -1, sizeof(::QikkDB::NetworkClient::Message::BulkImportMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_BulkImportMessage_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_BulkImportMessage_default_instance_),
 };
 
 const char descriptor_table_protodef_messages_2fBulkImportMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n messages/BulkImportMessage.proto\022\037Colm"
-  "narDB.NetworkClient.Message\032\037messages/CS"
-  "VImportMessage.proto\"\265\001\n\021BulkImportMessa"
-  "ge\022\021\n\tTableName\030\001 \001(\t\022\022\n\nColumnName\030\002 \001("
-  "\t\022=\n\nColumnType\030\003 \001(\0162).ColmnarDB.Networ"
-  "kClient.Message.DataType\022\021\n\tElemCount\030\004 "
-  "\001(\005\022\023\n\013nullMaskLen\030\005 \001(\005\022\022\n\ndataLength\030\006"
-  " \001(\005b\006proto3"
+  "\n messages/BulkImportMessage.proto\022\034Qikk"
+  "DB.NetworkClient.Message\032\037messages/CSVIm"
+  "portMessage.proto\"\262\001\n\021BulkImportMessage\022"
+  "\021\n\tTableName\030\001 \001(\t\022\022\n\nColumnName\030\002 \001(\t\022:"
+  "\n\nColumnType\030\003 \001(\0162&.QikkDB.NetworkClien"
+  "t.Message.DataType\022\021\n\tElemCount\030\004 \001(\005\022\023\n"
+  "\013nullMaskLen\030\005 \001(\005\022\022\n\ndataLength\030\006 \001(\005b\006"
+  "proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fBulkImportMessage_2eproto_deps[1] = {
   &::descriptor_table_messages_2fCSVImportMessage_2eproto,
@@ -82,7 +82,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fBulkImportMessage_2eproto_once;
 static bool descriptor_table_messages_2fBulkImportMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fBulkImportMessage_2eproto = {
-  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 292,
+  &descriptor_table_messages_2fBulkImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fBulkImportMessage_2eproto, "messages/BulkImportMessage.proto", 286,
   &descriptor_table_messages_2fBulkImportMessage_2eproto_once, descriptor_table_messages_2fBulkImportMessage_2eproto_sccs, descriptor_table_messages_2fBulkImportMessage_2eproto_deps, 1, 1,
   schemas, file_default_instances, TableStruct_messages_2fBulkImportMessage_2eproto::offsets,
   file_level_metadata_messages_2fBulkImportMessage_2eproto, 1, file_level_enum_descriptors_messages_2fBulkImportMessage_2eproto, file_level_service_descriptors_messages_2fBulkImportMessage_2eproto,
@@ -90,7 +90,7 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messag
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_messages_2fBulkImportMessage_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_messages_2fBulkImportMessage_2eproto), true);
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
@@ -105,7 +105,7 @@ class BulkImportMessage::_Internal {
 BulkImportMessage::BulkImportMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.BulkImportMessage)
 }
 BulkImportMessage::BulkImportMessage(const BulkImportMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
@@ -122,7 +122,7 @@ BulkImportMessage::BulkImportMessage(const BulkImportMessage& from)
   ::memcpy(&columntype_, &from.columntype_,
     static_cast<size_t>(reinterpret_cast<char*>(&datalength_) -
     reinterpret_cast<char*>(&columntype_)) + sizeof(datalength_));
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.BulkImportMessage)
 }
 
 void BulkImportMessage::SharedCtor() {
@@ -135,7 +135,7 @@ void BulkImportMessage::SharedCtor() {
 }
 
 BulkImportMessage::~BulkImportMessage() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.BulkImportMessage)
   SharedDtor();
 }
 
@@ -154,7 +154,7 @@ const BulkImportMessage& BulkImportMessage::default_instance() {
 
 
 void BulkImportMessage::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -177,23 +177,23 @@ const char* BulkImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESP
       // string TableName = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_tablename(), ptr, ctx, "ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_tablename(), ptr, ctx, "QikkDB.NetworkClient.Message.BulkImportMessage.TableName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // string ColumnName = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_columnname(), ptr, ctx, "ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_columnname(), ptr, ctx, "QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.DataType ColumnType = 3;
+      // .QikkDB.NetworkClient.Message.DataType ColumnType = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 24)) {
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
-          _internal_set_columntype(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
+          _internal_set_columntype(static_cast<::QikkDB::NetworkClient::Message::DataType>(val));
         } else goto handle_unusual;
         continue;
       // int32 ElemCount = 4;
@@ -239,7 +239,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* BulkImportMessage::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -248,7 +248,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_tablename().data(), static_cast<int>(this->_internal_tablename().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName");
+      "QikkDB.NetworkClient.Message.BulkImportMessage.TableName");
     target = stream->WriteStringMaybeAliased(
         1, this->_internal_tablename(), target);
   }
@@ -258,12 +258,12 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_columnname().data(), static_cast<int>(this->_internal_columnname().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName");
+      "QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName");
     target = stream->WriteStringMaybeAliased(
         2, this->_internal_columnname(), target);
   }
 
-  // .ColmnarDB.NetworkClient.Message.DataType ColumnType = 3;
+  // .QikkDB.NetworkClient.Message.DataType ColumnType = 3;
   if (this->columntype() != 0) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::WriteEnumToArray(
@@ -292,12 +292,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.BulkImportMessage)
   return target;
 }
 
 size_t BulkImportMessage::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -318,7 +318,7 @@ size_t BulkImportMessage::ByteSizeLong() const {
         this->_internal_columnname());
   }
 
-  // .ColmnarDB.NetworkClient.Message.DataType ColumnType = 3;
+  // .QikkDB.NetworkClient.Message.DataType ColumnType = 3;
   if (this->columntype() != 0) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::EnumSize(this->_internal_columntype());
@@ -355,22 +355,22 @@ size_t BulkImportMessage::ByteSizeLong() const {
 }
 
 void BulkImportMessage::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   GOOGLE_DCHECK_NE(&from, this);
   const BulkImportMessage* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<BulkImportMessage>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.BulkImportMessage)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.BulkImportMessage)
     MergeFrom(*source);
   }
 }
 
 void BulkImportMessage::MergeFrom(const BulkImportMessage& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -399,14 +399,14 @@ void BulkImportMessage::MergeFrom(const BulkImportMessage& from) {
 }
 
 void BulkImportMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void BulkImportMessage::CopyFrom(const BulkImportMessage& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.BulkImportMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -437,10 +437,10 @@ void BulkImportMessage::InternalSwap(BulkImportMessage* other) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::BulkImportMessage* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::BulkImportMessage >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::BulkImportMessage >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::BulkImportMessage* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::BulkImportMessage >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::BulkImportMessage >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

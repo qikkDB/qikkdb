@@ -12,8 +12,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, double)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, QikkDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::Ret, int8_t)
 END_DISPATCH_TABLE
@@ -45,13 +45,13 @@ GpuSqlDispatcher::DispatchFunction GpuSqlDispatcher::isNotNullFunction_ =
 
 template <>
 GpuSqlDispatcher::InstructionStatus
-GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName)
+GpuSqlDispatcher::LoadCol<QikkDB::Types::ComplexPolygon>(std::string& colName)
 {
     if (allocatedPointers_.find(colName + "_polyPoints") == allocatedPointers_.end() &&
         !colName.empty() && colName.front() != '$')
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug)
-            << "Load: " << colName << " " << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
+            << "Load: " << colName << " " << typeid(QikkDB::Types::ComplexPolygon).name() << '\n';
 
         std::string table;
         std::string column;
@@ -83,14 +83,14 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
             return InstructionStatus::LOAD_SKIPPED;
         }
 
-        auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        auto col = dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>*>(
             database_->GetTables().at(table).GetColumns().at(column).get());
 
 
         if (!usingJoin_)
         {
             auto block =
-                dynamic_cast<BlockBase<ColmnarDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex_]);
+                dynamic_cast<BlockBase<QikkDB::Types::ComplexPolygon>*>(col->GetBlocksList()[blockIndex_]);
             nullmask_t* nullMaskPtr = nullptr;
 
             if (block->GetNullBitmask())
@@ -124,7 +124,7 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
                 }
             }
             InsertComplexPolygon(database_->GetName(), colName,
-                                 std::vector<ColmnarDB::Types::ComplexPolygon>(block->GetData() + loadOffset_,
+                                 std::vector<QikkDB::Types::ComplexPolygon>(block->GetData() + loadOffset_,
                                                                                block->GetData() + loadOffset_ + loadSize_),
                                  loadSize_, false, nullMaskPtr);
             noLoad_ = false;
@@ -139,11 +139,11 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
                 joinCacheId += "_" + joinTable.first;
             }
 
-            std::vector<ColmnarDB::Types::ComplexPolygon> joinedPolygons;
+            std::vector<QikkDB::Types::ComplexPolygon> joinedPolygons;
             nullmask_t* nullMaskPtr = nullptr;
 
             int32_t outDataSize;
-            CPUJoinReorderer::reorderByJI<ColmnarDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
+            CPUJoinReorderer::reorderByJI<QikkDB::Types::ComplexPolygon>(joinedPolygons, outDataSize,
                                                                             *col, blockIndex_,
                                                                             joinIndices_->at(table),
                                                                             database_->GetBlockSize());
@@ -161,7 +161,7 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::ComplexPolygon>(
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<QikkDB::Types::ComplexPolygon>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
                             joinIndices_->at(table), database_->GetBlockSize());
                     }
@@ -181,12 +181,12 @@ GpuSqlDispatcher::LoadCol<ColmnarDB::Types::ComplexPolygon>(std::string& colName
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::Point>(std::string& colName)
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<QikkDB::Types::Point>(std::string& colName)
 {
     if (allocatedPointers_.find(colName) == allocatedPointers_.end() && !colName.empty() && colName.front() != '$')
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug)
-            << "Load: " << colName << " " << typeid(ColmnarDB::Types::Point).name() << '\n';
+            << "Load: " << colName << " " << typeid(QikkDB::Types::Point).name() << '\n';
 
         std::string table;
         std::string column;
@@ -218,15 +218,15 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
             return InstructionStatus::LOAD_SKIPPED;
         }
 
-        auto col = dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>*>(
+        auto col = dynamic_cast<const ColumnBase<QikkDB::Types::Point>*>(
             database_->GetTables().at(table).GetColumns().at(column).get());
 
         if (!usingJoin_)
         {
-            auto block = dynamic_cast<BlockBase<ColmnarDB::Types::Point>*>(col->GetBlocksList()[blockIndex_]);
+            auto block = dynamic_cast<BlockBase<QikkDB::Types::Point>*>(col->GetBlocksList()[blockIndex_]);
 
             std::vector<NativeGeoPoint> nativePoints;
-            std::transform(block->GetData() + loadOffset_, block->GetData() + loadOffset_ + loadSize_, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint {
+            std::transform(block->GetData() + loadOffset_, block->GetData() + loadOffset_ + loadSize_, std::back_inserter(nativePoints), [](const QikkDB::Types::Point& point) -> NativeGeoPoint {
                 return NativeGeoPoint{point.geopoint().latitude(), point.geopoint().longitude()};
             });
 
@@ -292,15 +292,15 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                 joinCacheId += "_" + joinTable.first;
             }
 
-            std::vector<ColmnarDB::Types::Point> joinedPoints;
+            std::vector<QikkDB::Types::Point> joinedPoints;
             nullmask_t* nullMaskPtr = nullptr;
             int32_t outDataSize;
-            CPUJoinReorderer::reorderByJI<ColmnarDB::Types::Point>(joinedPoints, outDataSize, *col,
+            CPUJoinReorderer::reorderByJI<QikkDB::Types::Point>(joinedPoints, outDataSize, *col,
                                                                    blockIndex_, joinIndices_->at(table),
                                                                    database_->GetBlockSize());
 
             std::vector<NativeGeoPoint> nativePoints;
-            std::transform(joinedPoints.data(), joinedPoints.data() + loadSize, std::back_inserter(nativePoints), [](const ColmnarDB::Types::Point& point) -> NativeGeoPoint {
+            std::transform(joinedPoints.data(), joinedPoints.data() + loadSize, std::back_inserter(nativePoints), [](const QikkDB::Types::Point& point) -> NativeGeoPoint {
                 return NativeGeoPoint{point.geopoint().latitude(), point.geopoint().longitude()};
             });
 
@@ -326,7 +326,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<ColmnarDB::Types::
                     if (!std::get<2>(cacheMaskEntry))
                     {
                         int32_t outMaskSize;
-                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<ColmnarDB::Types::Point>(
+                        CPUJoinReorderer::reorderNullMaskByJIPushToGPU<QikkDB::Types::Point>(
                             std::get<0>(cacheMaskEntry), outMaskSize, *col, blockIndex_,
                             joinIndices_->at(table), database_->GetBlockSize());
                     }
@@ -476,7 +476,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::LoadCol<std::string>(std::
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<QikkDB::Types::ComplexPolygon>()
 {
     if (usingGroupBy_)
     {
@@ -488,7 +488,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
-        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(col);
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<QikkDB::Types::ComplexPolygon>(col);
         if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
@@ -522,7 +522,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
         }
         else
         {
-            auto ACol = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(col);
+            auto ACol = FindCompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>(col);
 
 
             if (ACol.GpuNullMaskPtr)
@@ -546,7 +546,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
 
         if (outSize > 0)
         {
-            ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+            QikkDB::NetworkClient::Message::QueryResponsePayload payload;
             InsertIntoPayload(payload, outData, outSize, payloadType);
             MergePayloadToSelfResponse(alias, col, payload, nullMaskVector);
         }
@@ -555,7 +555,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::C
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<QikkDB::Types::Point>()
 {
     if (usingGroupBy_)
     {
@@ -567,7 +567,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
         PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
         auto alias = arguments_.Read<std::string>();
 
-        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<QikkDB::Types::Point>(colName);
         if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
@@ -630,7 +630,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<ColmnarDB::Types::P
 
         if (outSize > 0)
         {
-            ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+            QikkDB::NetworkClient::Message::QueryResponsePayload payload;
             InsertIntoPayload(payload, outData, outSize, payloadType);
             MergePayloadToSelfResponse(alias, colName, payload, nullMaskVector);
         }
@@ -766,7 +766,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol<std::string>()
 
     if (outSize > 0)
     {
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+        QikkDB::NetworkClient::Message::QueryResponsePayload payload;
         InsertIntoPayload(payload, outData, outSize, payloadType);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskVector);
     }
@@ -782,7 +782,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(std::string).name() << '\n';
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
     if (loadFlag != InstructionStatus::CONTINUE)
     {
@@ -805,16 +805,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<std::string>()
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<QikkDB::Types::Point>()
 {
     std::string cnst = arguments_.Read<std::string>();
     PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
-        << "RET: cnst" << typeid(ColmnarDB::Types::Point).name() << '\n';
+        << "RET: cnst" << typeid(QikkDB::Types::Point).name() << '\n';
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
     if (loadFlag != InstructionStatus::CONTINUE)
     {
@@ -837,16 +837,16 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types:
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst<QikkDB::Types::ComplexPolygon>()
 {
     std::string cnst = arguments_.Read<std::string>();
     PayloadType payloadType = static_cast<PayloadType>(arguments_.Read<int32_t>());
     std::string alias = arguments_.Read<std::string>();
 
     CudaLogBoost::getInstance(CudaLogBoost::debug)
-        << "RET: cnst" << typeid(ColmnarDB::Types::ComplexPolygon).name() << '\n';
+        << "RET: cnst" << typeid(QikkDB::Types::ComplexPolygon).name() << '\n';
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
     if (loadFlag != InstructionStatus::CONTINUE)
     {
@@ -1034,8 +1034,8 @@ void GpuSqlDispatcher::FillCompositeDataTypeRegister<std::string>(GpuSqlDispatch
 }
 
 template <>
-void GpuSqlDispatcher::FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(
-    GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon> column,
+void GpuSqlDispatcher::FillCompositeDataTypeRegister<QikkDB::Types::ComplexPolygon>(
+    GpuSqlDispatcher::CompositeDataType<QikkDB::Types::ComplexPolygon> column,
     const std::string& reg,
     int32_t size,
     bool useCache,
@@ -1061,8 +1061,8 @@ GpuSqlDispatcher::InsertConstCompositeDataType<std::string>(const std::string& s
 }
 
 template <>
-GpuSqlDispatcher::CompositeDataType<ColmnarDB::Types::ComplexPolygon>
-GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>(const std::string& str, size_t size)
+GpuSqlDispatcher::CompositeDataType<QikkDB::Types::ComplexPolygon>
+GpuSqlDispatcher::InsertConstCompositeDataType<QikkDB::Types::ComplexPolygon>(const std::string& str, size_t size)
 {
     std::string name = "constPolygon" + std::to_string(constPolygonCounter_);
     constPolygonCounter_++;
@@ -1073,7 +1073,7 @@ GpuSqlDispatcher::InsertConstCompositeDataType<ColmnarDB::Types::ComplexPolygon>
 GPUMemory::GPUPolygon
 GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
                                        const std::string& colName,
-                                       const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
+                                       const std::vector<QikkDB::Types::ComplexPolygon>& polygons,
                                        int32_t size,
                                        bool useCache,
                                        nullmask_t* nullMaskPtr)
@@ -1098,7 +1098,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
             polygon.polyIdx = std::get<0>(cache.GetColumn<int32_t>(databaseName, colName + "_polyIdx", blockIndex_,
                                                                    size, loadSize_, loadOffset_));
 
-            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+            FillCompositeDataTypeRegister<QikkDB::Types::ComplexPolygon>(polygon, colName, size,
                                                                             useCache, nullMaskPtr);
 
             return polygon;
@@ -1108,7 +1108,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
             GPUMemory::GPUPolygon polygon =
                 ComplexPolygonFactory::PrepareGPUPolygon(polygons, databaseName, colName,
                                                          blockIndex_, loadSize_, loadOffset_);
-            FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+            FillCompositeDataTypeRegister<QikkDB::Types::ComplexPolygon>(polygon, colName, size,
                                                                             useCache, nullMaskPtr);
             return polygon;
         }
@@ -1116,7 +1116,7 @@ GpuSqlDispatcher::InsertComplexPolygon(const std::string& databaseName,
     else
     {
         GPUMemory::GPUPolygon polygon = ComplexPolygonFactory::PrepareGPUPolygon(polygons);
-        FillCompositeDataTypeRegister<ColmnarDB::Types::ComplexPolygon>(polygon, colName, size,
+        FillCompositeDataTypeRegister<QikkDB::Types::ComplexPolygon>(polygon, colName, size,
                                                                         useCache, nullMaskPtr);
         return polygon;
     }

@@ -254,12 +254,12 @@ DatabaseGenerator::GenerateDatabase(const char* databaseName,
                 pointColumnCount++;
                 table.CreateColumn((std::string("colPoint") + std::to_string(pointColumnCount)).c_str(), COLUMN_POINT);
                 auto& columns = table.GetColumns();
-                auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(
+                auto& column = dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(
                     *columns.at((std::string("colPoint") + std::to_string(pointColumnCount)).c_str()));
 
                 for (int i = 0; i < blockCount; i++)
                 {
-                    std::vector<ColmnarDB::Types::Point> pointData;
+                    std::vector<QikkDB::Types::Point> pointData;
 
                     int k = 0;
                     while (k + 4 < blockSize)
@@ -318,12 +318,12 @@ DatabaseGenerator::GenerateDatabase(const char* databaseName,
                 table.CreateColumn((std::string("colPolygon") + std::to_string(polygonColumnCount)).c_str(),
                                    COLUMN_POLYGON);
                 auto& columns = table.GetColumns();
-                auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*columns.at(
+                auto& column = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(*columns.at(
                     (std::string("colPolygon") + std::to_string(polygonColumnCount)).c_str()));
 
                 for (int i = 0; i < blockCount; i++)
                 {
-                    std::vector<ColmnarDB::Types::ComplexPolygon> polygonData;
+                    std::vector<QikkDB::Types::ComplexPolygon> polygonData;
 
                     for (int k = 0; k < blockSize; k++)
                     {

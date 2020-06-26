@@ -237,24 +237,24 @@ bool CompressionGPU::compressDataAAFL<std::string>(std::string* const hostUncomp
 
 
 template <>
-bool CompressionGPU::compressDataAAFL<ColmnarDB::Types::ComplexPolygon>(
-    ColmnarDB::Types::ComplexPolygon* const hostUncompressed,
+bool CompressionGPU::compressDataAAFL<QikkDB::Types::ComplexPolygon>(
+    QikkDB::Types::ComplexPolygon* const hostUncompressed,
     int64_t uncompressedElementsCount,
-    std::vector<ColmnarDB::Types::ComplexPolygon>& hostCompressed,
+    std::vector<QikkDB::Types::ComplexPolygon>& hostCompressed,
     int64_t& compressedElementsCount,
-    ColmnarDB::Types::ComplexPolygon minValue,
-    ColmnarDB::Types::ComplexPolygon maxValue)
+    QikkDB::Types::ComplexPolygon minValue,
+    QikkDB::Types::ComplexPolygon maxValue)
 {
     return 0;
 }
 
 template <>
-bool CompressionGPU::compressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const hostUncompressed,
+bool CompressionGPU::compressDataAAFL<QikkDB::Types::Point>(QikkDB::Types::Point* const hostUncompressed,
                                                                int64_t uncompressedElementsCount,
-                                                               std::vector<ColmnarDB::Types::Point>& hostCompressed,
+                                                               std::vector<QikkDB::Types::Point>& hostCompressed,
                                                                int64_t& compressedElementsCount,
-                                                               ColmnarDB::Types::Point minValue,
-                                                               ColmnarDB::Types::Point maxValue)
+                                                               QikkDB::Types::Point minValue,
+                                                               QikkDB::Types::Point maxValue)
 {
     return 0;
 }
@@ -440,24 +440,24 @@ bool CompressionGPU::decompressDataAAFL<double>(double* const hostCompressed,
 }
 
 template <>
-bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::ComplexPolygon>(
-    ColmnarDB::Types::ComplexPolygon* const hostCompressed,
+bool CompressionGPU::decompressDataAAFL<QikkDB::Types::ComplexPolygon>(
+    QikkDB::Types::ComplexPolygon* const hostCompressed,
     int64_t compressedElementsCount,
-    std::vector<ColmnarDB::Types::ComplexPolygon>& hostUncompressed,
+    std::vector<QikkDB::Types::ComplexPolygon>& hostUncompressed,
     int64_t& uncompressedElementsCount,
-    ColmnarDB::Types::ComplexPolygon minValue,
-    ColmnarDB::Types::ComplexPolygon maxValue)
+    QikkDB::Types::ComplexPolygon minValue,
+    QikkDB::Types::ComplexPolygon maxValue)
 {
     return false;
 }
 
 template <>
-bool CompressionGPU::decompressDataAAFL<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const hostCompressed,
+bool CompressionGPU::decompressDataAAFL<QikkDB::Types::Point>(QikkDB::Types::Point* const hostCompressed,
                                                                  int64_t compressedElementsCount,
-                                                                 std::vector<ColmnarDB::Types::Point>& hostUncompressed,
+                                                                 std::vector<QikkDB::Types::Point>& hostUncompressed,
                                                                  int64_t& uncompressedElementsCount,
-                                                                 ColmnarDB::Types::Point minValue,
-                                                                 ColmnarDB::Types::Point maxValue)
+                                                                 QikkDB::Types::Point minValue,
+                                                                 QikkDB::Types::Point maxValue)
 {
     return false;
 }
@@ -599,26 +599,26 @@ bool CompressionGPU::decompressDataAAFLOnDevice<double>(double* const device_com
 }
 
 template <>
-bool CompressionGPU::decompressDataAAFLOnDevice<ColmnarDB::Types::ComplexPolygon>(
-    ColmnarDB::Types::ComplexPolygon* const device_compressed,
+bool CompressionGPU::decompressDataAAFLOnDevice<QikkDB::Types::ComplexPolygon>(
+    QikkDB::Types::ComplexPolygon* const device_compressed,
     int64_t data_size,
     int64_t compression_data_size,
     int64_t compression_blocks_count,
-    ColmnarDB::Types::ComplexPolygon* const device_uncompressed,
-    ColmnarDB::Types::ComplexPolygon minValue,
-    ColmnarDB::Types::ComplexPolygon maxValue)
+    QikkDB::Types::ComplexPolygon* const device_uncompressed,
+    QikkDB::Types::ComplexPolygon minValue,
+    QikkDB::Types::ComplexPolygon maxValue)
 {
     return false;
 }
 
 template <>
-bool CompressionGPU::decompressDataAAFLOnDevice<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* const device_compressed,
+bool CompressionGPU::decompressDataAAFLOnDevice<QikkDB::Types::Point>(QikkDB::Types::Point* const device_compressed,
                                                                          int64_t data_size,
                                                                          int64_t compression_data_size,
                                                                          int64_t compression_blocks_count,
-                                                                         ColmnarDB::Types::Point* const device_uncompressed,
-                                                                         ColmnarDB::Types::Point minValue,
-                                                                         ColmnarDB::Types::Point maxValue)
+                                                                         QikkDB::Types::Point* const device_uncompressed,
+                                                                         QikkDB::Types::Point minValue,
+                                                                         QikkDB::Types::Point maxValue)
 {
     return false;
 }

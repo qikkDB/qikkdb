@@ -23,7 +23,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetConst()
 
     CudaLogBoost::getInstance(CudaLogBoost::debug) << "RET: cnst" << typeid(T).name() << " " << cnst << '\n';
 
-    ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+    QikkDB::NetworkClient::Message::QueryResponsePayload payload;
     GpuSqlDispatcher::InstructionStatus loadFlag = LoadTableBlockInfo(loadedTableName_);
     if (loadFlag != InstructionStatus::CONTINUE)
     {
@@ -170,7 +170,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::RetCol()
 
     if (outSize > 0)
     {
-        ColmnarDB::NetworkClient::Message::QueryResponsePayload payload;
+        QikkDB::NetworkClient::Message::QueryResponsePayload payload;
         InsertIntoPayload(payload, outData, outSize, payloadType);
         MergePayloadToSelfResponse(alias, colName, payload, nullMaskVector);
     }

@@ -53,7 +53,7 @@ private:
 
 public:
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class filled with data.
+    /// Initializes a new instance of the class filled with data.
     /// </summary>
     /// <param name="data">Data which will fill up the block.</param>
     /// <param name="column">Column that will hold this new block.</param>
@@ -98,7 +98,7 @@ public:
         }
     }
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.BloclBase"/> class filled with data.
+    /// Initializes a new instance of the class filled with data.
     /// </summary>
     /// <param name="data">Data which will fill up the block.</param>
     /// <param name="dataSize">Compressed data size.</param>
@@ -155,7 +155,7 @@ public:
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.BlockBase"/> class without data.
+    /// Initializes a new instance of the class without data.
     /// </summary>
     /// <param name="column">Column that will hold this new empty block.</param>
     explicit BlockBase(ColumnBase<T>& column, bool saveNecessary = true, uint32_t index = UINT32_MAX)

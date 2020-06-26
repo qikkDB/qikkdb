@@ -44,15 +44,15 @@ std::vector<std::string> ColumnBase<std::string>::NullArray(int length)
 }
 
 template <>
-std::vector<ColmnarDB::Types::Point> ColumnBase<ColmnarDB::Types::Point>::NullArray(int length)
+std::vector<QikkDB::Types::Point> ColumnBase<QikkDB::Types::Point>::NullArray(int length)
 {
-    return std::vector<ColmnarDB::Types::Point>(length, ColmnarDB::Types::Point());
+    return std::vector<QikkDB::Types::Point>(length, QikkDB::Types::Point());
 }
 
 template <>
-std::vector<ColmnarDB::Types::ComplexPolygon> ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(int length)
+std::vector<QikkDB::Types::ComplexPolygon> ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(int length)
 {
-    return std::vector<ColmnarDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt(
+    return std::vector<QikkDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt(
                                                                      "POLYGON((0 0, 0 0))"));
 }
 
@@ -155,7 +155,7 @@ void ColumnBase<double>::setColumnStatistics()
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
+void ColumnBase<QikkDB::Types::Point>::setColumnStatistics()
 {
     min_ = PointFactory::FromWkt("POINT(0 0)");
     max_ = PointFactory::FromWkt("POINT(0 0)");
@@ -164,7 +164,7 @@ void ColumnBase<ColmnarDB::Types::Point>::setColumnStatistics()
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::setColumnStatistics()
+void ColumnBase<QikkDB::Types::ComplexPolygon>::setColumnStatistics()
 {
     min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
     max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
@@ -477,7 +477,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
     case COLUMN_POINT:
     {
-        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(destinationColumn);
+        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(destinationColumn);
 
         for (auto& block : blocks_)
         {
@@ -488,14 +488,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
-                std::vector<ColmnarDB::Types::Point> castedDataToCopy;
+                std::vector<QikkDB::Types::Point> castedDataToCopy;
                 std::unique_ptr<nullmask_t[]> newNullMask =
                     std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
                 std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    ColmnarDB::Types::Point data;
+                    QikkDB::Types::Point data;
                     try
                     {
                         data = PointFactory::FromWkt(dataToCopy[j]);
@@ -505,7 +505,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     }
                     catch (std::invalid_argument)
                     {
-                        data = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
+                        data = ColumnBase<QikkDB::Types::Point>::NullArray(1)[0];
 
                         NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
@@ -523,7 +523,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
     case COLUMN_POLYGON:
     {
-        auto castedColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(destinationColumn);
+        auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(destinationColumn);
 
         for (auto& block : blocks_)
         {
@@ -534,14 +534,14 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 
                 auto dataToCopy = block.second.front()->GetData();
                 auto blockSize = block.second.front()->GetSize();
-                std::vector<ColmnarDB::Types::ComplexPolygon> castedDataToCopy;
+                std::vector<QikkDB::Types::ComplexPolygon> castedDataToCopy;
                 std::unique_ptr<nullmask_t[]> newNullMask =
                     std::unique_ptr<nullmask_t[]>(new nullmask_t[NullValues::GetNullBitMaskSize(blockSize)]);
                 std::memset(newNullMask.get(), 0, NullValues::GetNullBitMaskSize(blockSize) * sizeof(nullmask_t));
 
                 for (int32_t j = 0; j < blockSize; j++)
                 {
-                    ColmnarDB::Types::ComplexPolygon data;
+                    QikkDB::Types::ComplexPolygon data;
                     try
                     {
                         data = ComplexPolygonFactory::FromWkt(dataToCopy[j]);
@@ -551,7 +551,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
                     }
                     catch (std::invalid_argument)
                     {
-                        data = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
+                        data = ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(1)[0];
 
                         NullValues::SetBitInBitMask(newNullMask.get(), j, static_cast<nullmask_t>(1U));
                     }
@@ -574,7 +574,7 @@ void ColumnBase<std::string>::CopyDataToColumn(IColumn* destinationColumn)
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn)
+void ColumnBase<QikkDB::Types::Point>::CopyDataToColumn(IColumn* destinationColumn)
 {
     auto toType = destinationColumn->GetColumnType();
 
@@ -620,7 +620,7 @@ void ColumnBase<ColmnarDB::Types::Point>::CopyDataToColumn(IColumn* destinationC
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn)
+void ColumnBase<QikkDB::Types::ComplexPolygon>::CopyDataToColumn(IColumn* destinationColumn)
 {
     auto toType = destinationColumn->GetColumnType();
 
@@ -729,7 +729,7 @@ void ColumnBase<std::string>::SetIsUnique(bool isUnique)
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
+void ColumnBase<QikkDB::Types::Point>::SetIsUnique(bool isUnique)
 {
     if (isUnique_ == isUnique)
     {
@@ -748,7 +748,7 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
                                                  ", column need to have NOT NULL constraint");
         }
 
-        ColmnarDB::Types::Point duplicateData;
+        QikkDB::Types::Point duplicateData;
         bool duplicateFound = false;
         for (auto const& blocksId : blocks_)
         {
@@ -793,7 +793,7 @@ void ColumnBase<ColmnarDB::Types::Point>::SetIsUnique(bool isUnique)
 }
 
 template <>
-void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
+void ColumnBase<QikkDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
 {
     if (isUnique_ == isUnique)
     {
@@ -812,7 +812,7 @@ void ColumnBase<ColmnarDB::Types::ComplexPolygon>::SetIsUnique(bool isUnique)
                                                  ", column need to have NOT NULL constraint");
         }
 
-        ColmnarDB::Types::ComplexPolygon duplicateData;
+        QikkDB::Types::ComplexPolygon duplicateData;
         bool duplicateFound = false;
         for (auto const& blocksId : blocks_)
         {

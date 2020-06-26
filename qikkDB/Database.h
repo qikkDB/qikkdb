@@ -79,7 +79,7 @@ private:
     /// <param name="dbName">Name of the database.</param>
     static void WriteBlockPolygonType(const Table& table,
                                       const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-                                      BlockBase<ColmnarDB::Types::ComplexPolygon>& block,
+                                      BlockBase<QikkDB::Types::ComplexPolygon>& block,
                                       const uint64_t fragmentPosition,
                                       const uint64_t dataPosition,
                                       const std::string dbName)
@@ -121,8 +121,8 @@ private:
                        "already persisted data on disk.";
             }
 
-            const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+            const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
+                dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>&>(*(column.second));
 
             std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
 
@@ -642,7 +642,7 @@ public:
     static constexpr const char* POLYGON_DEFAULT_VALUE = "POLYGON((0 0, 1 1, 2 2, 0 0))";
     static std::mutex dbMutex_;
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.Database"/> class.
+    /// Initializes a new instance of the class.
     /// </summary>
     /// <param name="databaseName">Database name.</param>
     /// <param name="blockSize">Block size of all blocks in this database.</param>
@@ -827,9 +827,9 @@ public:
 };
 
 template <>
-void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
+void Database::WriteBlockNumericTypes<QikkDB::Types::Point>(
     const Table& table,
     const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-    BlockBase<ColmnarDB::Types::Point>& block,
+    BlockBase<QikkDB::Types::Point>& block,
     const uint64_t blockPosition,
     const std::string dbName);

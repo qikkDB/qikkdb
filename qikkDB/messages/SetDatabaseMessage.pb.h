@@ -54,7 +54,7 @@ struct TableStruct_messages_2fSetDatabaseMessage_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fSetDatabaseMessage_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class SetDatabaseMessage;
@@ -62,18 +62,18 @@ class SetDatabaseMessageDefaultTypeInternal;
 extern SetDatabaseMessageDefaultTypeInternal _SetDatabaseMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::NetworkClient::Message::SetDatabaseMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::SetDatabaseMessage>(Arena*);
+template<> ::QikkDB::NetworkClient::Message::SetDatabaseMessage* Arena::CreateMaybeMessage<::QikkDB::NetworkClient::Message::SetDatabaseMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
 // ===================================================================
 
 class SetDatabaseMessage :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.SetDatabaseMessage) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.NetworkClient.Message.SetDatabaseMessage) */ {
  public:
   SetDatabaseMessage();
   virtual ~SetDatabaseMessage();
@@ -153,7 +153,7 @@ class SetDatabaseMessage :
   void InternalSwap(SetDatabaseMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.NetworkClient.Message.SetDatabaseMessage";
+    return "QikkDB.NetworkClient.Message.SetDatabaseMessage";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -196,7 +196,7 @@ class SetDatabaseMessage :
   std::string* _internal_mutable_databasename();
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.SetDatabaseMessage)
+  // @@protoc_insertion_point(class_scope:QikkDB.NetworkClient.Message.SetDatabaseMessage)
  private:
   class _Internal;
 
@@ -221,15 +221,15 @@ inline void SetDatabaseMessage::clear_databasename() {
   databasename_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& SetDatabaseMessage::databasename() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
   return _internal_databasename();
 }
 inline void SetDatabaseMessage::set_databasename(const std::string& value) {
   _internal_set_databasename(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
 }
 inline std::string* SetDatabaseMessage::mutable_databasename() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
   return _internal_mutable_databasename();
 }
 inline const std::string& SetDatabaseMessage::_internal_databasename() const {
@@ -243,26 +243,26 @@ inline void SetDatabaseMessage::set_databasename(std::string&& value) {
   
   databasename_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
 }
 inline void SetDatabaseMessage::set_databasename(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   databasename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
 }
 inline void SetDatabaseMessage::set_databasename(const char* value, size_t size) {
   
   databasename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
 }
 inline std::string* SetDatabaseMessage::_internal_mutable_databasename() {
   
   return databasename_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* SetDatabaseMessage::release_databasename() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
   
   return databasename_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -273,7 +273,7 @@ inline void SetDatabaseMessage::set_allocated_databasename(std::string* database
     
   }
   databasename_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), databasename);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.SetDatabaseMessage.DatabaseName)
 }
 
 #ifdef __GNUC__
@@ -284,7 +284,7 @@ inline void SetDatabaseMessage::set_allocated_databasename(std::string* database
 
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 // @@protoc_insertion_point(global_scope)
 

@@ -38,7 +38,7 @@ TEST(DispatcherNullTests, SelectNullWithWhere)
     }
     GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 = 1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
@@ -79,7 +79,7 @@ TEST(DispatcherNullTests, IsNullWithPattern)
     expectedMask.push_back(bitMaskPart);
     GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 IS NULL;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& nullBitMask = result->nullbitmasks().at("TestTable.Col1").nullmask();
@@ -118,7 +118,7 @@ TEST(DispatcherNullTests, IsNotNullWithPattern)
     }
     GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable WHERE Col1 IS NOT NULL;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
@@ -181,7 +181,7 @@ TEST(DispatcherNullTests, OrderByNullTest)
 
     GpuSqlCustomParser parser(database, "SELECT Col1 FROM TestTable ORDER BY Col1;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
     auto& payload = result->payloads().at("TestTable.Col1");
@@ -276,7 +276,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesNoFullBlockNullTest)
     GpuSqlCustomParser parser(database,
                               "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT 9 OFFSET 7;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
@@ -421,7 +421,7 @@ TEST(DispatcherNullTests, LimitOffsetNoClausesCrossBlockNullTest)
     GpuSqlCustomParser parser(database, "SELECT Col1, Col2, Col3, Col4 FROM TestTable LIMIT " +
                                             std::to_string(limit) + " OFFSET " + std::to_string(offset) + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
@@ -549,7 +549,7 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNotNullTables)
     GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA, TestTableS.ColB FROM TestTableR "
                                         "JOIN TestTableS ON ColJoinA = ColJoinB;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
 
     auto ColA = dynamic_cast<ColumnBase<int32_t>*>(
@@ -657,7 +657,7 @@ TEST(DispatcherNullTests, LimitOffsetClausesFullBlockNullTest)
     GpuSqlCustomParser parser(database,
                               "SELECT Col1, Col2, Col3, Col4 FROM TestTable WHERE ColA = 1 LIMIT 9 OFFSET 3;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto column = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTable").GetColumns().at("Col1").get());
 
@@ -777,7 +777,7 @@ ColJoinB) VALUES (null,") + std::to_string(j) + std::string(");")); parser.parse
 
     GpuSqlCustomParser parser(database_, "SELECT TestTableR.ColA FROM TestTableR JOIN TestTableS ON
 ColJoinA = ColJoinB WHERE TestTableR.ColA IS NOT NULL;"); auto resultPtr = parser.Parse(); auto
-result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto ColA =
 dynamic_cast<ColumnBase<int32_t>*>(database_->GetTables().at("TestTableR").GetColumns().at("ColA").get());
@@ -882,7 +882,7 @@ TEST(DispatcherNullTests, JoinNullTestJoinOnNullTables)
     GpuSqlCustomParser parser(database, "SELECT TestTableR.ColA, TestTableS.ColB FROM TestTableR "
                                         "JOIN TestTableS ON ColA = ColB;");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
 
     auto ColA = dynamic_cast<ColumnBase<int32_t>*>(
         database->GetTables().at("TestTableR").GetColumns().at("ColA").get());
@@ -963,7 +963,7 @@ TEST(DispatcherNullTests, GroupByNullKeySum)
                               "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1043,7 +1043,7 @@ TEST(DispatcherNullTests, GroupByNullKeyAvg)
                               "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1146,7 +1146,7 @@ TEST(DispatcherNullTests, GroupByNullValueSum)
                               "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1243,7 +1243,7 @@ TEST(DispatcherNullTests, GroupByNullValueAvg)
                               "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1333,7 +1333,7 @@ TEST(DispatcherNullTests, GroupByNullValueCount)
                               "SELECT colKeys, COUNT(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1413,7 +1413,7 @@ TEST(DispatcherNullTests, GroupByStringNullKeySum)
                               "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1512,7 +1512,7 @@ TEST(DispatcherNullTests, GroupByStringNullValueSum)
                               "SELECT colKeys, SUM(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("SUM(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1608,7 +1608,7 @@ TEST(DispatcherNullTests, GroupByStringNullValueAvg)
                               "SELECT colKeys, AVG(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("AVG(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1695,7 +1695,7 @@ TEST(DispatcherNullTests, GroupByStringNullValueCount)
                               "SELECT colKeys, COUNT(colVals) FROM TestTable GROUP BY colKeys;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeys"));
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("COUNT(colVals)"));
     auto& keysNullMaskResult = responseMessage->nullbitmasks().at("TestTable.colKeys").nullmask();
@@ -1776,7 +1776,7 @@ void TestGBMK(std::string aggregationOperation,
                                             "GROUP BY colKeysA, colKeysB;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysA"))
         << "colKeysA null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysB"))
@@ -1870,7 +1870,7 @@ void TestGBMKCount(std::vector<int32_t> keysA,
                                             "GROUP BY colKeysA, colKeysB;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysA"))
         << "colKeysA null mask does not exist";
     ASSERT_TRUE(responseMessage->nullbitmasks().contains("TestTable.colKeysB"))
@@ -1953,7 +1953,7 @@ void TestOrEqualNullMaskMerging(std::vector<int32_t> colA,
     GpuSqlCustomParser parser(database, "SELECT colC FROM TestTable WHERE colA = 0 OR colB = 0;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& colCResult = responseMessage->payloads().at("TestTable.colC");
 
     ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
@@ -1996,7 +1996,7 @@ void TestOrIsNullNullMaskMerging(std::vector<int32_t> colA,
                               "SELECT colC FROM TestTable WHERE colA IS NULL OR colB IS NULL;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& colCResult = responseMessage->payloads().at("TestTable.colC");
 
     ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());
@@ -2038,7 +2038,7 @@ void TestOrNotNullMaskMerging(std::vector<int32_t> colA,
     GpuSqlCustomParser parser(database, "SELECT colC FROM TestTable WHERE !colA OR !colB;");
     auto resultPtr = parser.Parse();
     auto responseMessage =
-        dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+        dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& colCResult = responseMessage->payloads().at("TestTable.colC");
 
     ASSERT_EQ(colCExpectedResult.size(), colCResult.intpayload().intdata_size());

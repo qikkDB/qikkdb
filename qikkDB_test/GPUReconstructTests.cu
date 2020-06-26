@@ -68,7 +68,7 @@ void TestReconstructPolyCol(std::vector<int8_t> mask, std::vector<std::string> p
 	GPUMemory::copyHostToDevice(maskDevice.get(), mask.data(), ELEMENT_COUNT);
 
 	// Convert WKT to protobuf format
-	std::vector<ColmnarDB::Types::ComplexPolygon> protobufVector;
+	std::vector<QikkDB::Types::ComplexPolygon> protobufVector;
 	for (auto& wkt : polygonsWkt)
 	{
 		protobufVector.emplace_back(ComplexPolygonFactory::FromWkt(wkt));

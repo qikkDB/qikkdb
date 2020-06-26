@@ -1,5 +1,5 @@
 syntax = "proto3";
-package ColmnarDB.NetworkClient.Message;
+package QikkDB.NetworkClient.Message;
 
 import "Types/ComplexPolygon.proto";
 import "Types/Point.proto";
@@ -25,11 +25,11 @@ message QueryResponseDoublePayload {
 }
 
 message QueryResponsePolygonPayload {
-    repeated ColmnarDB.Types.ComplexPolygon polygonData = 1;
+    repeated QikkDB.Types.ComplexPolygon polygonData = 1;
 }
 
 message QueryResponsePointPayload {
-    repeated ColmnarDB.Types.Point pointData = 1;
+    repeated QikkDB.Types.Point pointData = 1;
 }
 
 message QueryResponseStringPayload {

@@ -15,7 +15,7 @@
 /// <param name="polygons">Polygons to convert.</param>
 /// <returns>Tuple of array for the GPU.</returns>
 GPUMemory::GPUPolygon
-ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons)
+ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<QikkDB::Types::ComplexPolygon>& polygons)
 {
     // Points of polygons
     std::vector<NativeGeoPoint> polyPoints;
@@ -82,7 +82,7 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
 }
 
 GPUMemory::GPUPolygon
-ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::ComplexPolygon>& polygons,
+ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<QikkDB::Types::ComplexPolygon>& polygons,
                                          const std::string& databaseName,
                                          const std::string& columnName,
                                          size_t blockIndex,
@@ -143,9 +143,9 @@ ComplexPolygonFactory::PrepareGPUPolygon(const std::vector<ColmnarDB::Types::Com
 /// polygons also after a comma. Default value is set to 'false'.</param>
 /// <exception cref="FormatException">Format exception with a message that explains the reason why the
 /// exception have been thrown.</exception>
-ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
+QikkDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 {
-    ColmnarDB::Types::ComplexPolygon ret;
+    QikkDB::Types::ComplexPolygon ret;
 
     size_t replaceIdx = wkt.find(", ");
     while (replaceIdx != std::string::npos)
@@ -262,7 +262,7 @@ ColmnarDB::Types::ComplexPolygon ComplexPolygonFactory::FromWkt(std::string wkt)
 /// Method that converts class to a string representation.
 /// </summary>
 /// <returns>ComplexPolygon in format of well known text.</returns>
-std::string ComplexPolygonFactory::WktFromPolygon(const ColmnarDB::Types::ComplexPolygon& complexPolygon,
+std::string ComplexPolygonFactory::WktFromPolygon(const QikkDB::Types::ComplexPolygon& complexPolygon,
                                                   bool fixedPrecision)
 {
     std::ostringstream wktStream;

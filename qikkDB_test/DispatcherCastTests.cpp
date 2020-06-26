@@ -46,7 +46,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS INT) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colStringASINT)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.intpayload().intdata_size())
@@ -71,7 +71,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS FLOAT) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colStringASFLOAT)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.floatpayload().floatdata_size())
@@ -96,7 +96,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS GEO_POINT) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colStringASGEO_POINT)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
@@ -121,7 +121,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colString AS BOOL) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colStringASBOOL)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.intpayload().intdata_size())
@@ -138,14 +138,14 @@ protected:
         columns.insert(std::make_pair<std::string, DataType>("colPolygon", DataType::COLUMN_POLYGON));
         castDatabase->CreateTable(columns, tableName.c_str());
 
-        std::vector<ColmnarDB::Types::ComplexPolygon> polygons;
+        std::vector<QikkDB::Types::ComplexPolygon> polygons;
 
         std::transform(polygonWkts.data(), polygonWkts.data() + polygonWkts.size(), std::back_inserter(polygons),
-                       [](const std::string& polygonWkt) -> ColmnarDB::Types::ComplexPolygon {
+                       [](const std::string& polygonWkt) -> QikkDB::Types::ComplexPolygon {
                            return ComplexPolygonFactory::FromWkt(polygonWkt);
                        });
 
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
             castDatabase->GetTables().at(tableName).GetColumns().at("colPolygon").get())
             ->InsertData(polygons);
 
@@ -153,7 +153,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colPolygon AS STRING) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colPolygonASSTRING)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
@@ -170,14 +170,14 @@ protected:
         columns.insert(std::make_pair<std::string, DataType>("colPoint", DataType::COLUMN_POINT));
         castDatabase->CreateTable(columns, tableName.c_str());
 
-        std::vector<ColmnarDB::Types::Point> points;
+        std::vector<QikkDB::Types::Point> points;
 
         std::transform(pointWkts.data(), pointWkts.data() + pointWkts.size(), std::back_inserter(points),
-                       [](const std::string& pointWkt) -> ColmnarDB::Types::Point {
+                       [](const std::string& pointWkt) -> QikkDB::Types::Point {
                            return PointFactory::FromWkt(pointWkt);
                        });
 
-        reinterpret_cast<ColumnBase<ColmnarDB::Types::Point>*>(
+        reinterpret_cast<ColumnBase<QikkDB::Types::Point>*>(
             castDatabase->GetTables().at(tableName).GetColumns().at("colPoint").get())
             ->InsertData(points);
 
@@ -185,7 +185,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colPoint AS STRING) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colPointASSTRING)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
@@ -210,7 +210,7 @@ protected:
                                   "SELECT CAST(" + pointWkt + " AS STRING) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(" + pointWkt + "ASSTRING)");
 
         ASSERT_EQ(expectedResult, payloadCast.stringpayload().stringdata()[0]);
@@ -230,7 +230,7 @@ protected:
         GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colFloat AS STRING) FROM " + tableName + ";");
         auto resultPtr = parser.Parse();
         auto result =
-            dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+            dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
         auto& payloadCast = result->payloads().at("CAST(colFloatASSTRING)");
 
         ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())
@@ -363,7 +363,7 @@ TEST_F(DispatcherCastTests, IntToStringTest)
     // Execute the query_
     GpuSqlCustomParser parser(castDatabase, "SELECT CAST(colInt AS STRING) FROM " + tableName + ";");
     auto resultPtr = parser.Parse();
-    auto result = dynamic_cast<ColmnarDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
+    auto result = dynamic_cast<QikkDB::NetworkClient::Message::QueryResponseMessage*>(resultPtr.get());
     auto& payloadCast = result->payloads().at("CAST(colIntASSTRING)");
     std::vector<std::string> expectedResult = {"1", "-1", "10", "123456", "-1245732"};
     ASSERT_EQ(expectedResult.size(), payloadCast.stringpayload().stringdata_size())

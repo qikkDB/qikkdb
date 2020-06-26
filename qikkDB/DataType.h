@@ -66,9 +66,9 @@ constexpr DataType GetColumnType()
                 typename std::conditional<
                     std::is_same<T, double>::value, std::integral_constant<DataType, COLUMN_DOUBLE>,
                     typename std::conditional<
-                        std::is_same<T, ColmnarDB::Types::Point>::value, std::integral_constant<DataType, COLUMN_POINT>,
+                        std::is_same<T, QikkDB::Types::Point>::value, std::integral_constant<DataType, COLUMN_POINT>,
                         typename std::conditional<
-                            std::is_same<T, ColmnarDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
+                            std::is_same<T, QikkDB::Types::ComplexPolygon>::value, std::integral_constant<DataType, COLUMN_POLYGON>,
                             typename std::conditional<std::is_same<T, std::string>::value, std::integral_constant<DataType, COLUMN_STRING>,
                                                       typename std::conditional<std::is_same<T, bool>::value, std::integral_constant<DataType, COLUMN_INT8_T>,
                                                                                 typename std::conditional<std::is_same<T, int8_t>::value, std::integral_constant<DataType, COLUMN_INT8_T>, std::integral_constant<DataType, CONST_ERROR>>::type>::

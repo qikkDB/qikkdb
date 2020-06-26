@@ -94,21 +94,21 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
     {
     case COLUMN_POLYGON:
     {
-        auto& column = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
+        auto& column = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(
             *srcTable.GetColumns().at(columnName));
-        auto& dstColumn = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(
+        auto& dstColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(
             *dstTable.GetColumns().at(columnName));
-        const std::vector<BlockBase<ColmnarDB::Types::ComplexPolygon>*> blocks = column.GetBlocksList();
+        const std::vector<BlockBase<QikkDB::Types::ComplexPolygon>*> blocks = column.GetBlocksList();
         dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_POINT:
     {
         auto& column =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*srcTable.GetColumns().at(columnName));
+            dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*dstTable.GetColumns().at(columnName));
-        const std::vector<BlockBase<ColmnarDB::Types::Point>*> blocks = column.GetBlocksList();
+            dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*dstTable.GetColumns().at(columnName));
+        const std::vector<BlockBase<QikkDB::Types::Point>*> blocks = column.GetBlocksList();
         dstColumn.ResizeColumn(&column);
         break;
     }
@@ -318,8 +318,8 @@ void Database::PersistOnlyDbFile()
                 {
                 case COLUMN_POLYGON:
                 {
-                    const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
-                        dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+                    const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
+                        dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>&>(*(column.second));
 
                     columnsJSON["default_entry_value"] =
                         POLYGON_DEFAULT_VALUE; // we need to hardcode it due to Google Protobuffers
@@ -328,8 +328,8 @@ void Database::PersistOnlyDbFile()
 
                 case COLUMN_POINT:
                 {
-                    const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-                        dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+                    const ColumnBase<QikkDB::Types::Point>& colPoint =
+                        dynamic_cast<const ColumnBase<QikkDB::Types::Point>&>(*(column.second));
 
                     columnsJSON["default_entry_value"] =
                         PointFactory::WktFromPoint(colPoint.GetDefaultValue());
@@ -474,8 +474,8 @@ void Database::PersistOnlyModified(const std::string tableName)
         {
         case COLUMN_POLYGON:
         {
-            const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+            const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
+                dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>&>(*(column.second));
 
             std::string fileDataPath = colPolygon.GetFileDataPath();
             std::string fileAddressPath = colPolygon.GetFileAddressPath();
@@ -623,8 +623,8 @@ void Database::PersistOnlyModified(const std::string tableName)
 
         case COLUMN_POINT:
         {
-            const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-                dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+            const ColumnBase<QikkDB::Types::Point>& colPoint =
+                dynamic_cast<const ColumnBase<QikkDB::Types::Point>&>(*(column.second));
 
             std::string fileDataPath = column.second->GetFileDataPath();
             std::string fileAddressPath = column.second->GetFileAddressPath();
@@ -687,7 +687,7 @@ void Database::PersistOnlyModified(const std::string tableName)
                         colAddressFile.read(reinterpret_cast<char*>(&blockPosition), sizeof(uint64_t));
                     }
 
-                    WriteBlockNumericTypes<ColmnarDB::Types::Point>(table, column, *block, blockPosition, name_);
+                    WriteBlockNumericTypes<QikkDB::Types::Point>(table, column, *block, blockPosition, name_);
                 }
             }
 
@@ -1763,7 +1763,7 @@ void Database::LoadColumn(const std::string fileDbPath,
     {
         table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
         auto& columnPolygon =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
+            dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
         std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
         std::ifstream fragFile(fileFragmentPath, std::ios::binary);
 
@@ -1881,7 +1881,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     }
                 }
 
-                std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+                std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
 
                 // convert string data into complex polygons:
                 for (std::string dataStr : dataString)
@@ -1935,7 +1935,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         table.CreateColumn(columnName.c_str(), COLUMN_POINT, isNullable, isUnique);
 
         auto& columnPoint =
-            dynamic_cast<ColumnBase<ColmnarDB::Types::Point>&>(*table.GetColumns().at(columnName));
+            dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*table.GetColumns().at(columnName));
 
         columnPoint.SetFileAddressPath(fileAddressPath);
         columnPoint.SetFileDataPath(fileDataPath);
@@ -1976,7 +1976,7 @@ void Database::LoadColumn(const std::string fileDbPath,
 
                 auto& block = columnPoint.AddBlock(groupId, false, index);
                 block.SetIsCompressed(isCompressed);
-                std::vector<ColmnarDB::Types::Point> dataPoint;
+                std::vector<QikkDB::Types::Point> dataPoint;
 
                 if (dataLength > columnPoint.GetBlockSize())
                 {
@@ -1994,7 +1994,7 @@ void Database::LoadColumn(const std::string fileDbPath,
                     colFile.read(reinterpret_cast<char*>(&latitude), sizeof(float)); // read latitude
                     colFile.read(reinterpret_cast<char*>(&longitude), sizeof(float)); // read longitude
 
-                    ColmnarDB::Types::Point entryDataPoint = PointFactory::FromLatLon(latitude, longitude);
+                    QikkDB::Types::Point entryDataPoint = PointFactory::FromLatLon(latitude, longitude);
                     dataPoint.push_back(entryDataPoint);
                 }
 
@@ -2911,8 +2911,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
             {
                 uint32_t index = 0;
 
-                const ColumnBase<ColmnarDB::Types::ComplexPolygon>& colPolygon =
-                    dynamic_cast<const ColumnBase<ColmnarDB::Types::ComplexPolygon>&>(*(column.second));
+                const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
+                    dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>&>(*(column.second));
 
                 std::string fileFragmentPath = colPolygon.GetFileFragmentPath();
 
@@ -3097,8 +3097,8 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                 uint32_t index = 0;
                 uint64_t blockPosition = 0;
 
-                const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-                    dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+                const ColumnBase<QikkDB::Types::Point>& colPoint =
+                    dynamic_cast<const ColumnBase<QikkDB::Types::Point>&>(*(column.second));
 
                 for (const auto& block : colPoint.GetBlocksList())
                 {
@@ -3795,10 +3795,10 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 /// <param name="dbName">Name of the database.</param>
 /// and String block types.</param>
 template <>
-void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
+void Database::WriteBlockNumericTypes<QikkDB::Types::Point>(
     const Table& table,
     const std::pair<const std::string, std::unique_ptr<IColumn>>& column,
-    BlockBase<ColmnarDB::Types::Point>& block,
+    BlockBase<QikkDB::Types::Point>& block,
     const uint64_t blockPosition,
     const std::string dbName)
 {
@@ -3840,8 +3840,8 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
                    "already persisted data on disk.";
         }
 
-        const ColumnBase<ColmnarDB::Types::Point>& colPoint =
-            dynamic_cast<const ColumnBase<ColmnarDB::Types::Point>&>(*(column.second));
+        const ColumnBase<QikkDB::Types::Point>& colPoint =
+            dynamic_cast<const ColumnBase<QikkDB::Types::Point>&>(*(column.second));
 
         // persist block data into disk:
         BOOST_LOG_TRIVIAL(debug) << "Database: Saving block of Point data with index = " << index;
@@ -3895,7 +3895,7 @@ void Database::WriteBlockNumericTypes<ColmnarDB::Types::Point>(
     else
     {
         BOOST_LOG_TRIVIAL(error)
-            << "ERROR: Database: WriteBlockNumericTypes<ColmnarDB::Types::Point> - Could not "
+            << "ERROR: Database: WriteBlockNumericTypes<QikkDB::Types::Point> - Could not "
                "open file " +
                    std::string(Configuration::GetInstance().GetDatabaseDir() + dbName + SEPARATOR +
                                tableName + SEPARATOR + column.second->GetName() + COLUMN_DATA_EXTENSION) +

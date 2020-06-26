@@ -14,7 +14,7 @@
 #include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class CSVImportMessageDefaultTypeInternal {
@@ -23,16 +23,16 @@ class CSVImportMessageDefaultTypeInternal {
 } _CSVImportMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 static void InitDefaultsscc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_CSVImportMessage_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::CSVImportMessage();
+    void* ptr = &::QikkDB::NetworkClient::Message::_CSVImportMessage_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::CSVImportMessage();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::CSVImportMessage::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::CSVImportMessage::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_CSVImportMessage_messages_2fCSVImportMessage_2eproto =
@@ -44,38 +44,38 @@ static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_s
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fCSVImportMessage_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::CSVImportMessage, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, databasename_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, csvname_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, payload_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::CSVImportMessage, columntypes_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::CSVImportMessage, databasename_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::CSVImportMessage, csvname_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::CSVImportMessage, payload_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::CSVImportMessage, columntypes_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::CSVImportMessage)},
+  { 0, -1, sizeof(::QikkDB::NetworkClient::Message::CSVImportMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_CSVImportMessage_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_CSVImportMessage_default_instance_),
 };
 
 const char descriptor_table_protodef_messages_2fCSVImportMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\037messages/CSVImportMessage.proto\022\037Colmn"
-  "arDB.NetworkClient.Message\"\212\001\n\020CSVImport"
-  "Message\022\024\n\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName"
-  "\030\002 \001(\t\022\017\n\007Payload\030\003 \001(\t\022>\n\013ColumnTypes\030\004"
-  " \003(\0162).ColmnarDB.NetworkClient.Message.D"
-  "ataType*\324\002\n\010DataType\022\r\n\tCONST_INT\020\000\022\030\n\013C"
-  "ONST_ERROR\020\377\377\377\377\377\377\377\377\377\001\022\016\n\nCONST_LONG\020\001\022\017\n"
-  "\013CONST_FLOAT\020\002\022\020\n\014CONST_DOUBLE\020\003\022\017\n\013CONS"
-  "T_POINT\020\004\022\021\n\rCONST_POLYGON\020\005\022\020\n\014CONST_ST"
-  "RING\020\006\022\020\n\014CONST_INT8_T\020\007\022\016\n\nCOLUMN_INT\020\010"
-  "\022\017\n\013COLUMN_LONG\020\t\022\020\n\014COLUMN_FLOAT\020\n\022\021\n\rC"
-  "OLUMN_DOUBLE\020\013\022\020\n\014COLUMN_POINT\020\014\022\022\n\016COLU"
-  "MN_POLYGON\020\r\022\021\n\rCOLUMN_STRING\020\016\022\021\n\rCOLUM"
-  "N_INT8_T\020\017\022\022\n\016DATA_TYPE_SIZE\020\020b\006proto3"
+  "\n\037messages/CSVImportMessage.proto\022\034QikkD"
+  "B.NetworkClient.Message\"\207\001\n\020CSVImportMes"
+  "sage\022\024\n\014DatabaseName\030\001 \001(\t\022\017\n\007CSVName\030\002 "
+  "\001(\t\022\017\n\007Payload\030\003 \001(\t\022;\n\013ColumnTypes\030\004 \003("
+  "\0162&.QikkDB.NetworkClient.Message.DataTyp"
+  "e*\324\002\n\010DataType\022\r\n\tCONST_INT\020\000\022\030\n\013CONST_E"
+  "RROR\020\377\377\377\377\377\377\377\377\377\001\022\016\n\nCONST_LONG\020\001\022\017\n\013CONST"
+  "_FLOAT\020\002\022\020\n\014CONST_DOUBLE\020\003\022\017\n\013CONST_POIN"
+  "T\020\004\022\021\n\rCONST_POLYGON\020\005\022\020\n\014CONST_STRING\020\006"
+  "\022\020\n\014CONST_INT8_T\020\007\022\016\n\nCOLUMN_INT\020\010\022\017\n\013CO"
+  "LUMN_LONG\020\t\022\020\n\014COLUMN_FLOAT\020\n\022\021\n\rCOLUMN_"
+  "DOUBLE\020\013\022\020\n\014COLUMN_POINT\020\014\022\022\n\016COLUMN_POL"
+  "YGON\020\r\022\021\n\rCOLUMN_STRING\020\016\022\021\n\rCOLUMN_INT8"
+  "_T\020\017\022\022\n\016DATA_TYPE_SIZE\020\020b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fCSVImportMessage_2eproto_deps[1] = {
 };
@@ -85,7 +85,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fCSVImportMessage_2eproto_once;
 static bool descriptor_table_messages_2fCSVImportMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fCSVImportMessage_2eproto = {
-  &descriptor_table_messages_2fCSVImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fCSVImportMessage_2eproto, "messages/CSVImportMessage.proto", 558,
+  &descriptor_table_messages_2fCSVImportMessage_2eproto_initialized, descriptor_table_protodef_messages_2fCSVImportMessage_2eproto, "messages/CSVImportMessage.proto", 552,
   &descriptor_table_messages_2fCSVImportMessage_2eproto_once, descriptor_table_messages_2fCSVImportMessage_2eproto_sccs, descriptor_table_messages_2fCSVImportMessage_2eproto_deps, 1, 0,
   schemas, file_default_instances, TableStruct_messages_2fCSVImportMessage_2eproto::offsets,
   file_level_metadata_messages_2fCSVImportMessage_2eproto, 1, file_level_enum_descriptors_messages_2fCSVImportMessage_2eproto, file_level_service_descriptors_messages_2fCSVImportMessage_2eproto,
@@ -93,7 +93,7 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messag
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_messages_2fCSVImportMessage_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_messages_2fCSVImportMessage_2eproto), true);
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 const ::PROTOBUF_NAMESPACE_ID::EnumDescriptor* DataType_descriptor() {
@@ -138,7 +138,7 @@ class CSVImportMessage::_Internal {
 CSVImportMessage::CSVImportMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.CSVImportMessage)
 }
 CSVImportMessage::CSVImportMessage(const CSVImportMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
@@ -157,7 +157,7 @@ CSVImportMessage::CSVImportMessage(const CSVImportMessage& from)
   if (!from._internal_payload().empty()) {
     payload_.AssignWithDefault(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), from.payload_);
   }
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.CSVImportMessage)
 }
 
 void CSVImportMessage::SharedCtor() {
@@ -168,7 +168,7 @@ void CSVImportMessage::SharedCtor() {
 }
 
 CSVImportMessage::~CSVImportMessage() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.CSVImportMessage)
   SharedDtor();
 }
 
@@ -188,7 +188,7 @@ const CSVImportMessage& CSVImportMessage::default_instance() {
 
 
 void CSVImportMessage::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -210,25 +210,25 @@ const char* CSVImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPA
       // string DatabaseName = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_databasename(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_databasename(), ptr, ctx, "QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // string CSVName = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_csvname(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_csvname(), ptr, ctx, "QikkDB.NetworkClient.Message.CSVImportMessage.CSVName");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
       // string Payload = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
-          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_payload(), ptr, ctx, "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
+          ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_mutable_payload(), ptr, ctx, "QikkDB.NetworkClient.Message.CSVImportMessage.Payload");
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+      // repeated .QikkDB.NetworkClient.Message.DataType ColumnTypes = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
           ptr = ::PROTOBUF_NAMESPACE_ID::internal::PackedEnumParser(_internal_mutable_columntypes(), ptr, ctx);
@@ -236,7 +236,7 @@ const char* CSVImportMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPA
         } else if (static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 32) {
           ::PROTOBUF_NAMESPACE_ID::uint64 val = ::PROTOBUF_NAMESPACE_ID::internal::ReadVarint(&ptr);
           CHK_(ptr);
-          _internal_add_columntypes(static_cast<::ColmnarDB::NetworkClient::Message::DataType>(val));
+          _internal_add_columntypes(static_cast<::QikkDB::NetworkClient::Message::DataType>(val));
         } else goto handle_unusual;
         continue;
       default: {
@@ -261,7 +261,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* CSVImportMessage::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -270,7 +270,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_databasename().data(), static_cast<int>(this->_internal_databasename().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
+      "QikkDB.NetworkClient.Message.CSVImportMessage.DatabaseName");
     target = stream->WriteStringMaybeAliased(
         1, this->_internal_databasename(), target);
   }
@@ -280,7 +280,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_csvname().data(), static_cast<int>(this->_internal_csvname().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.CSVName");
+      "QikkDB.NetworkClient.Message.CSVImportMessage.CSVName");
     target = stream->WriteStringMaybeAliased(
         2, this->_internal_csvname(), target);
   }
@@ -290,12 +290,12 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       this->_internal_payload().data(), static_cast<int>(this->_internal_payload().length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.CSVImportMessage.Payload");
+      "QikkDB.NetworkClient.Message.CSVImportMessage.Payload");
     target = stream->WriteStringMaybeAliased(
         3, this->_internal_payload(), target);
   }
 
-  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  // repeated .QikkDB.NetworkClient.Message.DataType ColumnTypes = 4;
   {
     int byte_size = _columntypes_cached_byte_size_.load(std::memory_order_relaxed);
     if (byte_size > 0) {
@@ -308,19 +308,19 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.CSVImportMessage)
   return target;
 }
 
 size_t CSVImportMessage::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .ColmnarDB.NetworkClient.Message.DataType ColumnTypes = 4;
+  // repeated .QikkDB.NetworkClient.Message.DataType ColumnTypes = 4;
   {
     size_t data_size = 0;
     unsigned int count = static_cast<unsigned int>(this->_internal_columntypes_size());for (unsigned int i = 0; i < count; i++) {
@@ -369,22 +369,22 @@ size_t CSVImportMessage::ByteSizeLong() const {
 }
 
 void CSVImportMessage::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   GOOGLE_DCHECK_NE(&from, this);
   const CSVImportMessage* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<CSVImportMessage>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.CSVImportMessage)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.CSVImportMessage)
     MergeFrom(*source);
   }
 }
 
 void CSVImportMessage::MergeFrom(const CSVImportMessage& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -406,14 +406,14 @@ void CSVImportMessage::MergeFrom(const CSVImportMessage& from) {
 }
 
 void CSVImportMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void CSVImportMessage::CopyFrom(const CSVImportMessage& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.CSVImportMessage)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.CSVImportMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -443,10 +443,10 @@ void CSVImportMessage::InternalSwap(CSVImportMessage* other) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::CSVImportMessage* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::CSVImportMessage >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::CSVImportMessage >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::CSVImportMessage* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::CSVImportMessage >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::CSVImportMessage >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

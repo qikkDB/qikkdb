@@ -14,24 +14,24 @@ class DummyClientHandler : public IClientHandler
 {
     // Inherited via IClientHandler
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleInfoMessage(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::InfoMessage& infoMessage) override
+    HandleInfoMessage(ITCPWorker& worker, const QikkDB::NetworkClient::Message::InfoMessage& infoMessage) override
     {
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::QueryResponseMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::QueryResponseMessage>();
-        if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT)
+        std::unique_ptr<QikkDB::NetworkClient::Message::QueryResponseMessage> ret =
+            std::make_unique<QikkDB::NetworkClient::Message::QueryResponseMessage>();
+        if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::GET_NEXT_RESULT)
         {
-            ColmnarDB::NetworkClient::Message::QueryResponsePayload qrp;
+            QikkDB::NetworkClient::Message::QueryResponsePayload qrp;
             (*qrp.mutable_stringpayload()->add_stringdata()) = "test";
             ret->mutable_payloads()->insert({"test", qrp});
             ret->mutable_timing()->insert({"aaa", 2});
             ret->add_columnorder("test");
             return ret;
         }
-        else if (infoMessage.code() == ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
+        else if (infoMessage.code() == QikkDB::NetworkClient::Message::InfoMessage::HEARTBEAT)
         {
-            std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
-                std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-            ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+            std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
+                std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+            ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
             ret->set_message("");
             return ret;
         }
@@ -43,60 +43,60 @@ class DummyClientHandler : public IClientHandler
     }
     virtual std::unique_ptr<google::protobuf::Message>
     HandleQuery(ITCPWorker& worker,
-                const ColmnarDB::NetworkClient::Message::QueryMessage& queryMessage,
+                const QikkDB::NetworkClient::Message::QueryMessage& queryMessage,
                 std::function<void(std::unique_ptr<google::protobuf::Message>)> handler) override
     {
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
+        std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
+            std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+        ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::WAIT);
         ret->set_message("");
         return ret;
     }
     virtual std::unique_ptr<google::protobuf::Message>
-    HandleCSVImport(ITCPWorker& worker, const ColmnarDB::NetworkClient::Message::CSVImportMessage& csvImportMessage) override
+    HandleCSVImport(ITCPWorker& worker, const QikkDB::NetworkClient::Message::CSVImportMessage& csvImportMessage) override
     {
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
+            std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+        ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
         ret->set_message("");
         return ret;
     }
     virtual std::unique_ptr<google::protobuf::Message>
     HandleSetDatabase(ITCPWorker& worker,
-                      const ColmnarDB::NetworkClient::Message::SetDatabaseMessage& SetDatabaseMessage) override
+                      const QikkDB::NetworkClient::Message::SetDatabaseMessage& SetDatabaseMessage) override
     {
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
-        ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
+            std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
+        ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
         ret->set_message("");
         return ret;
     }
     virtual std::unique_ptr<google::protobuf::Message>
     HandleBulkImport(ITCPWorker& worker,
-                     const ColmnarDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
+                     const QikkDB::NetworkClient::Message::BulkImportMessage& bulkImportMessage,
                      const char* dataBuffer,
                      const char* nullMask) override
     {
-        std::unique_ptr<ColmnarDB::NetworkClient::Message::InfoMessage> ret =
-            std::make_unique<ColmnarDB::NetworkClient::Message::InfoMessage>();
+        std::unique_ptr<QikkDB::NetworkClient::Message::InfoMessage> ret =
+            std::make_unique<QikkDB::NetworkClient::Message::InfoMessage>();
         if (std::string(bulkImportMessage.columnname()) != "test" ||
             std::string(bulkImportMessage.tablename()) != "test" ||
-            bulkImportMessage.columntype() != ColmnarDB::NetworkClient::Message::DataType::COLUMN_INT ||
+            bulkImportMessage.columntype() != QikkDB::NetworkClient::Message::DataType::COLUMN_INT ||
             bulkImportMessage.elemcount() != 5)
         {
             printf("Something wrong.\n");
-            ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+            ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
         }
         else
         {
-            ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+            ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::OK);
             const int32_t* intData = reinterpret_cast<const int32_t*>(dataBuffer);
             for (int i = 0; i < 5; i++)
             {
                 if (intData[i] != i + 1)
                 {
                     printf("Data mismatch %d != %d.\n", intData[i], i + 1);
-                    ret->set_code(ColmnarDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
+                    ret->set_code(QikkDB::NetworkClient::Message::InfoMessage::QUERY_ERROR);
                     break;
                 }
             }
@@ -125,16 +125,16 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
     try
     {
         NetworkMessage networkMessage;
-        ColmnarDB::NetworkClient::Message::InfoMessage hello;
-        hello.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
+        QikkDB::NetworkClient::Message::InfoMessage hello;
+        hello.set_code(QikkDB::NetworkClient::Message::InfoMessage::CONN_ESTABLISH);
         hello.set_message("");
-        std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+        std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
         networkMessage.WriteToNetwork(hello, sock,
                                       [&sock, &promise, &networkMessage]() {
                                           networkMessage.ReadFromNetwork(
                                               sock,
                                               [&promise](google::protobuf::Any ret) {
-                                                  ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                                  QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                                   if (!ret.UnpackTo(&infoMessage))
                                                   {
                                                       promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -154,7 +154,7 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
             context.poll();
             context.restart();
         }
-        ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+        ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
     }
     catch (const std::exception& e)
     {
@@ -167,8 +167,8 @@ void connect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& contex
 void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-    infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::CONN_END);
+    QikkDB::NetworkClient::Message::InfoMessage infoMessage;
+    infoMessage.set_code(QikkDB::NetworkClient::Message::InfoMessage::CONN_END);
     infoMessage.set_message("");
     networkMessage.WriteToNetwork(infoMessage, sock, []() {}, []() {});
     context.poll();
@@ -178,15 +178,15 @@ void disconnect(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
 void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::QueryMessage query;
+    QikkDB::NetworkClient::Message::QueryMessage query;
     query.set_query(queryString);
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+    std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
     networkMessage.WriteToNetwork(query, sock,
                                   [&sock, &promise, &networkMessage]() {
                                       networkMessage.ReadFromNetwork(
                                           sock,
                                           [&promise](google::protobuf::Any ret) {
-                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                               if (!ret.UnpackTo(&infoMessage))
                                               {
                                                   promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -206,23 +206,23 @@ void query(boost::asio::ip::tcp::socket& sock, const char* queryString, boost::a
         context.poll();
         context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::WAIT);
+    ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::WAIT);
 }
 
-ColmnarDB::NetworkClient::Message::QueryResponseMessage
+QikkDB::NetworkClient::Message::QueryResponseMessage
 getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
-    infoMessage.set_code(ColmnarDB::NetworkClient::Message::InfoMessage_StatusCode_GET_NEXT_RESULT);
+    QikkDB::NetworkClient::Message::InfoMessage infoMessage;
+    infoMessage.set_code(QikkDB::NetworkClient::Message::InfoMessage_StatusCode_GET_NEXT_RESULT);
     infoMessage.set_message("");
-    std::promise<ColmnarDB::NetworkClient::Message::QueryResponseMessage> retPromise;
+    std::promise<QikkDB::NetworkClient::Message::QueryResponseMessage> retPromise;
     networkMessage.WriteToNetwork(infoMessage, sock,
                                   [&sock, &retPromise, &networkMessage]() {
                                       networkMessage.ReadFromNetwork(
                                           sock,
                                           [&retPromise](google::protobuf::Any response) {
-                                              ColmnarDB::NetworkClient::Message::QueryResponseMessage ret;
+                                              QikkDB::NetworkClient::Message::QueryResponseMessage ret;
                                               if (!response.UnpackTo(&ret))
                                               {
                                                   retPromise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -248,17 +248,17 @@ getNextQueryResult(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& 
 void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char* data, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::CSVImportMessage csvImport;
+    QikkDB::NetworkClient::Message::CSVImportMessage csvImport;
     csvImport.set_databasename(name);
     csvImport.set_payload(data);
     csvImport.set_csvname(name);
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+    std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
     networkMessage.WriteToNetwork(csvImport, sock,
                                   [&sock, &promise, &networkMessage]() {
                                       networkMessage.ReadFromNetwork(
                                           sock,
                                           [&sock, &promise](google::protobuf::Any ret) {
-                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                               if (!ret.UnpackTo(&infoMessage))
                                               {
                                                   promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -278,21 +278,21 @@ void importCSV(boost::asio::ip::tcp::socket& sock, const char* name, const char*
         context.poll();
         context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
 }
 
 void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::SetDatabaseMessage setDbMsg;
+    QikkDB::NetworkClient::Message::SetDatabaseMessage setDbMsg;
     setDbMsg.set_databasename(name);
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+    std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
     networkMessage.WriteToNetwork(setDbMsg, sock,
                                   [&sock, &promise, &networkMessage]() {
                                       networkMessage.ReadFromNetwork(
                                           sock,
                                           [&sock, &promise](google::protobuf::Any ret) {
-                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                               if (!ret.UnpackTo(&infoMessage))
                                               {
                                                   promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -312,20 +312,20 @@ void setDatabase(boost::asio::ip::tcp::socket& sock, const char* name, boost::as
         context.poll();
         context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
 }
 
 void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
+    QikkDB::NetworkClient::Message::BulkImportMessage bulkImportMessage;
     bulkImportMessage.set_tablename("test");
     bulkImportMessage.set_columnname("test");
-    bulkImportMessage.set_columntype(static_cast<ColmnarDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
+    bulkImportMessage.set_columntype(static_cast<QikkDB::NetworkClient::Message::DataType>(DataType::COLUMN_INT));
     bulkImportMessage.set_elemcount(5);
     bulkImportMessage.set_datalength(5 * sizeof(int32_t));
     int32_t dataBuff[] = {1, 2, 3, 4, 5};
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+    std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
     networkMessage.WriteToNetwork(
         bulkImportMessage, sock,
         [&sock, &promise, dataBuff, &networkMessage]() mutable {
@@ -334,7 +334,7 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
                                         networkMessage.ReadFromNetwork(
                                             sock,
                                             [&promise](google::protobuf::Any response) {
-                                                ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                                QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                                 if (!response.UnpackTo(&infoMessage))
                                                 {
                                                     promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -356,22 +356,22 @@ void bulkImport(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& con
         context.poll();
         context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
 }
 
 void heartbeat(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& context)
 {
     NetworkMessage networkMessage;
-    ColmnarDB::NetworkClient::Message::InfoMessage heartbeat;
-    heartbeat.set_code(ColmnarDB::NetworkClient::Message::InfoMessage::HEARTBEAT);
+    QikkDB::NetworkClient::Message::InfoMessage heartbeat;
+    heartbeat.set_code(QikkDB::NetworkClient::Message::InfoMessage::HEARTBEAT);
     heartbeat.set_message("");
-    std::promise<ColmnarDB::NetworkClient::Message::InfoMessage> promise;
+    std::promise<QikkDB::NetworkClient::Message::InfoMessage> promise;
     networkMessage.WriteToNetwork(heartbeat, sock,
                                   [&sock, &promise, &networkMessage]() {
                                       networkMessage.ReadFromNetwork(
                                           sock,
                                           [&promise](google::protobuf::Any ret) {
-                                              ColmnarDB::NetworkClient::Message::InfoMessage infoMessage;
+                                              QikkDB::NetworkClient::Message::InfoMessage infoMessage;
                                               if (!ret.UnpackTo(&infoMessage))
                                               {
                                                   promise.set_exception(std::make_exception_ptr(std::domain_error(
@@ -391,7 +391,7 @@ void heartbeat(boost::asio::ip::tcp::socket& sock, boost::asio::io_context& cont
         context.poll();
         context.restart();
     }
-    ASSERT_EQ(future.get().code(), ColmnarDB::NetworkClient::Message::InfoMessage::OK);
+    ASSERT_EQ(future.get().code(), QikkDB::NetworkClient::Message::InfoMessage::OK);
 }
 
 TEST(TCPServer, ServerMessageInfo)
@@ -470,7 +470,7 @@ TEST(TCPServer, ServerMessageQuery)
         auto sock = connectSocketToTestServer(context);
         ASSERT_NO_THROW(connect(sock, context));
         ASSERT_NO_THROW(query(sock, "test", context));
-        ColmnarDB::NetworkClient::Message::QueryResponseMessage resp;
+        QikkDB::NetworkClient::Message::QueryResponseMessage resp;
         ASSERT_NO_THROW(resp = getNextQueryResult(sock, context));
         ASSERT_EQ(resp.payloads().at("test").stringpayload().stringdata()[0], "test");
         ASSERT_EQ(resp.columnorder().Get(0), "test");

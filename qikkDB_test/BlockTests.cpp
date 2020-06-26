@@ -32,9 +32,9 @@ TEST(BlockTests, InsertDataVector)
     auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
     auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
     auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-    auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+    auto& blockPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->AddBlock();
     auto& blockPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
     auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
 
@@ -42,8 +42,8 @@ TEST(BlockTests, InsertDataVector)
     std::vector<int64_t> dataLong;
     std::vector<float> dataFloat;
     std::vector<double> dataDouble;
-    std::vector<ColmnarDB::Types::Point> dataPoint;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     std::vector<std::string> dataString;
 
     for (int i = 0; i < 1024; i++)
@@ -212,17 +212,17 @@ TEST(BlockTests, InsertDataInterval)
     auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
     auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
     auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-    auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+    auto& blockPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->AddBlock();
     auto& blockPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
     auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
     std::vector<int32_t> dataInt;
     std::vector<int64_t> dataLong;
     std::vector<float> dataFloat;
     std::vector<double> dataDouble;
-    std::vector<ColmnarDB::Types::Point> dataPoint;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     std::vector<std::string> dataString;
 
     for (int i = 0; i < blockSize; i++)
@@ -511,9 +511,9 @@ TEST(BlockTests, IsFull)
     auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
     auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
     auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-    auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+    auto& blockPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->AddBlock();
     auto& blockPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
     auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
     ASSERT_FALSE(blockInt.IsFull());
@@ -528,8 +528,8 @@ TEST(BlockTests, IsFull)
     std::vector<int64_t> dataLong;
     std::vector<float> dataFloat;
     std::vector<double> dataDouble;
-    std::vector<ColmnarDB::Types::Point> dataPoint;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     std::vector<std::string> dataString;
 
     for (int i = 0; i < database->GetBlockSize() / 2; i++)
@@ -603,9 +603,9 @@ TEST(BlockTests, EmptyBlockSpace)
     auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
     auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
     auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-    auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
+    auto& blockPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->AddBlock();
     auto& blockPolygon =
-        dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+        dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
     auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
     ASSERT_EQ(blockInt.EmptyBlockSpace(), database->GetBlockSize());
@@ -620,8 +620,8 @@ TEST(BlockTests, EmptyBlockSpace)
     std::vector<int64_t> dataLong;
     std::vector<float> dataFloat;
     std::vector<double> dataDouble;
-    std::vector<ColmnarDB::Types::Point> dataPoint;
-    std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+    std::vector<QikkDB::Types::Point> dataPoint;
+    std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
     std::vector<std::string> dataString;
 
     for (int i = 0; i < database->GetBlockSize() / 2; i++)
@@ -695,16 +695,16 @@ TEST(BlockTests, BlockStatistics)
 	auto& blockLong = dynamic_cast<ColumnBase<int64_t>*>(columnLong.get())->AddBlock();
 	auto& blockFloat = dynamic_cast<ColumnBase<float>*>(columnFloat.get())->AddBlock();
 	auto& blockDouble = dynamic_cast<ColumnBase<double>*>(columnDouble.get())->AddBlock();
-	auto& blockPoint = dynamic_cast<ColumnBase<ColmnarDB::Types::Point>*>(columnPoint.get())->AddBlock();
-	auto& blockPolygon = dynamic_cast<ColumnBase<ColmnarDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
+	auto& blockPoint = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->AddBlock();
+	auto& blockPolygon = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->AddBlock();
 	auto& blockString = dynamic_cast<ColumnBase<std::string>*>(columnString.get())->AddBlock();
 
 	std::vector<int32_t> dataInt;
 	std::vector<int64_t> dataLong;
 	std::vector<float> dataFloat;
 	std::vector<double> dataDouble;
-	std::vector<ColmnarDB::Types::Point> dataPoint;
-	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon;
+	std::vector<QikkDB::Types::Point> dataPoint;
+	std::vector<QikkDB::Types::ComplexPolygon> dataPolygon;
 	std::vector<std::string> dataString;
 
 	for (int i = 0; i < 2; i++)
@@ -769,8 +769,8 @@ TEST(BlockTests, BlockStatistics)
 	std::vector<int64_t> dataLong2;
 	std::vector<float> dataFloat2;
 	std::vector<double> dataDouble2;
-	std::vector<ColmnarDB::Types::Point> dataPoint2;
-	std::vector<ColmnarDB::Types::ComplexPolygon> dataPolygon2;
+	std::vector<QikkDB::Types::Point> dataPoint2;
+	std::vector<QikkDB::Types::ComplexPolygon> dataPolygon2;
 	std::vector<std::string> dataString2;
 
 	for (int i = 0; i < 2; i++)

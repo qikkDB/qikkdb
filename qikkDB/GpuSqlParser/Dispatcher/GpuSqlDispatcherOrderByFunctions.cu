@@ -13,8 +13,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, double)
-DISPATCHER_UNARY_ERROR(ColmnarDB::Types::Point)
-DISPATCHER_UNARY_ERROR(ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_ERROR(QikkDB::Types::Point)
+DISPATCHER_UNARY_ERROR(QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_ERROR(std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderBy, int8_t)
 END_DISPATCH_TABLE
@@ -25,8 +25,8 @@ DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int32_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int64_t)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, float)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, double)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, QikkDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, std::string)
 DISPATCHER_UNARY_FUNCTION(GpuSqlDispatcher::OrderByReconstruct, int8_t)
 END_DISPATCH_TABLE
@@ -107,7 +107,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<std:
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<QikkDB::Types::Point>()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -116,7 +116,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::Point>(colName);
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<QikkDB::Types::Point>(colName);
         if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
@@ -175,7 +175,7 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<QikkDB::Types::ComplexPolygon>()
 {
     auto colName = arguments_.Read<std::string>();
     bool isRetColumn = arguments_.Read<bool>();
@@ -184,13 +184,13 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::OrderByReconstructCol<Colm
     {
         CudaLogBoost::getInstance(CudaLogBoost::debug) << "Reordering column: " << colName << '\n';
 
-        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<ColmnarDB::Types::ComplexPolygon>(colName);
+        GpuSqlDispatcher::InstructionStatus loadFlag = LoadCol<QikkDB::Types::ComplexPolygon>(colName);
         if (loadFlag != InstructionStatus::CONTINUE)
         {
             return loadFlag;
         }
 
-        auto col = FindCompositeDataTypeAllocation<ColmnarDB::Types::ComplexPolygon>(colName);
+        auto col = FindCompositeDataTypeAllocation<QikkDB::Types::ComplexPolygon>(colName);
         size_t inSize = col.ElementCount;
         size_t inNullColSize = NullValues::GetNullBitMaskSize(inSize);
 

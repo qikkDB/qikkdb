@@ -55,7 +55,7 @@ struct TableStruct_messages_2fBulkImportMessage_2eproto {
   static const ::PROTOBUF_NAMESPACE_ID::uint32 offsets[];
 };
 extern const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fBulkImportMessage_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class BulkImportMessage;
@@ -63,18 +63,18 @@ class BulkImportMessageDefaultTypeInternal;
 extern BulkImportMessageDefaultTypeInternal _BulkImportMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> ::ColmnarDB::NetworkClient::Message::BulkImportMessage* Arena::CreateMaybeMessage<::ColmnarDB::NetworkClient::Message::BulkImportMessage>(Arena*);
+template<> ::QikkDB::NetworkClient::Message::BulkImportMessage* Arena::CreateMaybeMessage<::QikkDB::NetworkClient::Message::BulkImportMessage>(Arena*);
 PROTOBUF_NAMESPACE_CLOSE
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
 // ===================================================================
 
 class BulkImportMessage :
-    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:ColmnarDB.NetworkClient.Message.BulkImportMessage) */ {
+    public ::PROTOBUF_NAMESPACE_ID::Message /* @@protoc_insertion_point(class_definition:QikkDB.NetworkClient.Message.BulkImportMessage) */ {
  public:
   BulkImportMessage();
   virtual ~BulkImportMessage();
@@ -154,7 +154,7 @@ class BulkImportMessage :
   void InternalSwap(BulkImportMessage* other);
   friend class ::PROTOBUF_NAMESPACE_ID::internal::AnyMetadata;
   static ::PROTOBUF_NAMESPACE_ID::StringPiece FullMessageName() {
-    return "ColmnarDB.NetworkClient.Message.BulkImportMessage";
+    return "QikkDB.NetworkClient.Message.BulkImportMessage";
   }
   private:
   inline ::PROTOBUF_NAMESPACE_ID::Arena* GetArenaNoVirtual() const {
@@ -218,13 +218,13 @@ class BulkImportMessage :
   std::string* _internal_mutable_columnname();
   public:
 
-  // .ColmnarDB.NetworkClient.Message.DataType ColumnType = 3;
+  // .QikkDB.NetworkClient.Message.DataType ColumnType = 3;
   void clear_columntype();
-  ::ColmnarDB::NetworkClient::Message::DataType columntype() const;
-  void set_columntype(::ColmnarDB::NetworkClient::Message::DataType value);
+  ::QikkDB::NetworkClient::Message::DataType columntype() const;
+  void set_columntype(::QikkDB::NetworkClient::Message::DataType value);
   private:
-  ::ColmnarDB::NetworkClient::Message::DataType _internal_columntype() const;
-  void _internal_set_columntype(::ColmnarDB::NetworkClient::Message::DataType value);
+  ::QikkDB::NetworkClient::Message::DataType _internal_columntype() const;
+  void _internal_set_columntype(::QikkDB::NetworkClient::Message::DataType value);
   public:
 
   // int32 ElemCount = 4;
@@ -254,7 +254,7 @@ class BulkImportMessage :
   void _internal_set_datalength(::PROTOBUF_NAMESPACE_ID::int32 value);
   public:
 
-  // @@protoc_insertion_point(class_scope:ColmnarDB.NetworkClient.Message.BulkImportMessage)
+  // @@protoc_insertion_point(class_scope:QikkDB.NetworkClient.Message.BulkImportMessage)
  private:
   class _Internal;
 
@@ -284,15 +284,15 @@ inline void BulkImportMessage::clear_tablename() {
   tablename_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& BulkImportMessage::tablename() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
   return _internal_tablename();
 }
 inline void BulkImportMessage::set_tablename(const std::string& value) {
   _internal_set_tablename(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
 }
 inline std::string* BulkImportMessage::mutable_tablename() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
   return _internal_mutable_tablename();
 }
 inline const std::string& BulkImportMessage::_internal_tablename() const {
@@ -306,26 +306,26 @@ inline void BulkImportMessage::set_tablename(std::string&& value) {
   
   tablename_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
 }
 inline void BulkImportMessage::set_tablename(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   tablename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
 }
 inline void BulkImportMessage::set_tablename(const char* value, size_t size) {
   
   tablename_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
 }
 inline std::string* BulkImportMessage::_internal_mutable_tablename() {
   
   return tablename_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* BulkImportMessage::release_tablename() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
   
   return tablename_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -336,7 +336,7 @@ inline void BulkImportMessage::set_allocated_tablename(std::string* tablename) {
     
   }
   tablename_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), tablename);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.BulkImportMessage.TableName)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.BulkImportMessage.TableName)
 }
 
 // string ColumnName = 2;
@@ -344,15 +344,15 @@ inline void BulkImportMessage::clear_columnname() {
   columnname_.ClearToEmptyNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline const std::string& BulkImportMessage::columnname() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
   return _internal_columnname();
 }
 inline void BulkImportMessage::set_columnname(const std::string& value) {
   _internal_set_columnname(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
 }
 inline std::string* BulkImportMessage::mutable_columnname() {
-  // @@protoc_insertion_point(field_mutable:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_mutable:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
   return _internal_mutable_columnname();
 }
 inline const std::string& BulkImportMessage::_internal_columnname() const {
@@ -366,26 +366,26 @@ inline void BulkImportMessage::set_columnname(std::string&& value) {
   
   columnname_.SetNoArena(
     &::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::move(value));
-  // @@protoc_insertion_point(field_set_rvalue:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_set_rvalue:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
 }
 inline void BulkImportMessage::set_columnname(const char* value) {
   GOOGLE_DCHECK(value != nullptr);
   
   columnname_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), ::std::string(value));
-  // @@protoc_insertion_point(field_set_char:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_set_char:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
 }
 inline void BulkImportMessage::set_columnname(const char* value, size_t size) {
   
   columnname_.SetNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(),
       ::std::string(reinterpret_cast<const char*>(value), size));
-  // @@protoc_insertion_point(field_set_pointer:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_set_pointer:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
 }
 inline std::string* BulkImportMessage::_internal_mutable_columnname() {
   
   return columnname_.MutableNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
 inline std::string* BulkImportMessage::release_columnname() {
-  // @@protoc_insertion_point(field_release:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_release:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
   
   return columnname_.ReleaseNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited());
 }
@@ -396,27 +396,27 @@ inline void BulkImportMessage::set_allocated_columnname(std::string* columnname)
     
   }
   columnname_.SetAllocatedNoArena(&::PROTOBUF_NAMESPACE_ID::internal::GetEmptyStringAlreadyInited(), columnname);
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnName)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnName)
 }
 
-// .ColmnarDB.NetworkClient.Message.DataType ColumnType = 3;
+// .QikkDB.NetworkClient.Message.DataType ColumnType = 3;
 inline void BulkImportMessage::clear_columntype() {
   columntype_ = 0;
 }
-inline ::ColmnarDB::NetworkClient::Message::DataType BulkImportMessage::_internal_columntype() const {
-  return static_cast< ::ColmnarDB::NetworkClient::Message::DataType >(columntype_);
+inline ::QikkDB::NetworkClient::Message::DataType BulkImportMessage::_internal_columntype() const {
+  return static_cast< ::QikkDB::NetworkClient::Message::DataType >(columntype_);
 }
-inline ::ColmnarDB::NetworkClient::Message::DataType BulkImportMessage::columntype() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnType)
+inline ::QikkDB::NetworkClient::Message::DataType BulkImportMessage::columntype() const {
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnType)
   return _internal_columntype();
 }
-inline void BulkImportMessage::_internal_set_columntype(::ColmnarDB::NetworkClient::Message::DataType value) {
+inline void BulkImportMessage::_internal_set_columntype(::QikkDB::NetworkClient::Message::DataType value) {
   
   columntype_ = value;
 }
-inline void BulkImportMessage::set_columntype(::ColmnarDB::NetworkClient::Message::DataType value) {
+inline void BulkImportMessage::set_columntype(::QikkDB::NetworkClient::Message::DataType value) {
   _internal_set_columntype(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ColumnType)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.ColumnType)
 }
 
 // int32 ElemCount = 4;
@@ -427,7 +427,7 @@ inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::_internal_elemcount() c
   return elemcount_;
 }
 inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::elemcount() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.ElemCount)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.ElemCount)
   return _internal_elemcount();
 }
 inline void BulkImportMessage::_internal_set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value) {
@@ -436,7 +436,7 @@ inline void BulkImportMessage::_internal_set_elemcount(::PROTOBUF_NAMESPACE_ID::
 }
 inline void BulkImportMessage::set_elemcount(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_elemcount(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.ElemCount)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.ElemCount)
 }
 
 // int32 nullMaskLen = 5;
@@ -447,7 +447,7 @@ inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::_internal_nullmasklen()
   return nullmasklen_;
 }
 inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::nullmasklen() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
   return _internal_nullmasklen();
 }
 inline void BulkImportMessage::_internal_set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value) {
@@ -456,7 +456,7 @@ inline void BulkImportMessage::_internal_set_nullmasklen(::PROTOBUF_NAMESPACE_ID
 }
 inline void BulkImportMessage::set_nullmasklen(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_nullmasklen(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.nullMaskLen)
 }
 
 // int32 dataLength = 6;
@@ -467,7 +467,7 @@ inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::_internal_datalength() 
   return datalength_;
 }
 inline ::PROTOBUF_NAMESPACE_ID::int32 BulkImportMessage::datalength() const {
-  // @@protoc_insertion_point(field_get:ColmnarDB.NetworkClient.Message.BulkImportMessage.dataLength)
+  // @@protoc_insertion_point(field_get:QikkDB.NetworkClient.Message.BulkImportMessage.dataLength)
   return _internal_datalength();
 }
 inline void BulkImportMessage::_internal_set_datalength(::PROTOBUF_NAMESPACE_ID::int32 value) {
@@ -476,7 +476,7 @@ inline void BulkImportMessage::_internal_set_datalength(::PROTOBUF_NAMESPACE_ID:
 }
 inline void BulkImportMessage::set_datalength(::PROTOBUF_NAMESPACE_ID::int32 value) {
   _internal_set_datalength(value);
-  // @@protoc_insertion_point(field_set:ColmnarDB.NetworkClient.Message.BulkImportMessage.dataLength)
+  // @@protoc_insertion_point(field_set:QikkDB.NetworkClient.Message.BulkImportMessage.dataLength)
 }
 
 #ifdef __GNUC__
@@ -487,7 +487,7 @@ inline void BulkImportMessage::set_datalength(::PROTOBUF_NAMESPACE_ID::int32 val
 
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 
 // @@protoc_insertion_point(global_scope)
 

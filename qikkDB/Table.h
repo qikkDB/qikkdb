@@ -93,7 +93,7 @@ public:
     void EraseColumn(const std::string& columnName);
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.Table"/> class. Also gets from database
+    /// Initializes a new instance of the class. Also gets from database
     /// the block size and initializes with this value the private variable blockSize. Finally, it initializes columnsMutex_.
     /// </summary>
     /// <param name="database">Pointer to the database which will contains the new table.</param>

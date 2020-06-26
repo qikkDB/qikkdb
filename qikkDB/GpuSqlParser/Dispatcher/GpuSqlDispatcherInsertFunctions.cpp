@@ -12,20 +12,20 @@ DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int32_t)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int64_t)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, float)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, double)
-DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::Point)
-DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, ColmnarDB::Types::ComplexPolygon)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, QikkDB::Types::Point)
+DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, QikkDB::Types::ComplexPolygon)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, std::string)
 DISPATCHER_UNARY_FUNCTION_NO_COL(GpuSqlDispatcher::InsertInto, int8_t)
 END_DISPATCH_TABLE
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::Point>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<QikkDB::Types::Point>()
 {
     std::string column = arguments_.Read<std::string>();
     std::cout << "Column name: " << column << std::endl;
     bool hasValue = arguments_.Read<bool>();
 
-    ColmnarDB::Types::Point point;
+    QikkDB::Types::Point point;
 
     if (hasValue)
     {
@@ -35,9 +35,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
     }
     else
     {
-        point = ColumnBase<ColmnarDB::Types::Point>::NullArray(1)[0];
+        point = ColumnBase<QikkDB::Types::Point>::NullArray(1)[0];
     }
-    std::vector<ColmnarDB::Types::Point> pointVector({point});
+    std::vector<QikkDB::Types::Point> pointVector({point});
     std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, pointVector});
@@ -46,12 +46,12 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
 }
 
 template <>
-GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Types::ComplexPolygon>()
+GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<QikkDB::Types::ComplexPolygon>()
 {
     std::string column = arguments_.Read<std::string>();
     bool hasValue = arguments_.Read<bool>();
 
-    ColmnarDB::Types::ComplexPolygon polygon;
+    QikkDB::Types::ComplexPolygon polygon;
 
     if (hasValue)
     {
@@ -60,9 +60,9 @@ GpuSqlDispatcher::InstructionStatus GpuSqlDispatcher::InsertInto<ColmnarDB::Type
     }
     else
     {
-        polygon = ColumnBase<ColmnarDB::Types::ComplexPolygon>::NullArray(1)[0];
+        polygon = ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(1)[0];
     }
-    std::vector<ColmnarDB::Types::ComplexPolygon> polygonVector({polygon});
+    std::vector<QikkDB::Types::ComplexPolygon> polygonVector({polygon});
     std::vector<nullmask_t> nullMaskVector({static_cast<nullmask_t>(hasValue ? 0 : 1)});
 
     insertIntoData_->insertIntoData.insert({column, polygonVector});

@@ -629,9 +629,9 @@ public:
 
 /// Specialization for Point (not supported but need to be implemented)
 template <>
-void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::Point* outData,
+void GPUReconstruct::reconstructCol<QikkDB::Types::Point>(QikkDB::Types::Point* outData,
                                                              int32_t* outDataElementCount,
-                                                             ColmnarDB::Types::Point* ACol,
+                                                             QikkDB::Types::Point* ACol,
                                                              int8_t* inMask,
                                                              int32_t dataElementCount,
                                                              nullmask_t* outNullMask,
@@ -639,9 +639,9 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::Point>(ColmnarDB::Types::P
 
 /// Specialization for ComplexPolygon (not supported but need to be implemented)
 template <>
-void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon* outData,
+void GPUReconstruct::reconstructCol<QikkDB::Types::ComplexPolygon>(QikkDB::Types::ComplexPolygon* outData,
                                                                       int32_t* outDataElementCount,
-                                                                      ColmnarDB::Types::ComplexPolygon* ACol,
+                                                                      QikkDB::Types::ComplexPolygon* ACol,
                                                                       int8_t* inMask,
                                                                       int32_t dataElementCount,
                                                                       nullmask_t* outNullMask,
@@ -650,9 +650,9 @@ void GPUReconstruct::reconstructCol<ColmnarDB::Types::ComplexPolygon>(ColmnarDB:
 
 /// Specialization for Point (not supported but need to be implemented)
 template <>
-void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Types::Point** outCol,
+void GPUReconstruct::reconstructColKeep<QikkDB::Types::Point>(QikkDB::Types::Point** outCol,
                                                                  int32_t* outDataElementCount,
-                                                                 ColmnarDB::Types::Point* ACol,
+                                                                 QikkDB::Types::Point* ACol,
                                                                  int8_t* inMask,
                                                                  int32_t dataElementCount,
                                                                  nullmask_t** outNullMask,
@@ -660,9 +660,9 @@ void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::Point>(ColmnarDB::Type
 
 /// Specialization for ComplexPolygon (not supported but need to be implemented)
 template <>
-void GPUReconstruct::reconstructColKeep<ColmnarDB::Types::ComplexPolygon>(ColmnarDB::Types::ComplexPolygon** outCol,
+void GPUReconstruct::reconstructColKeep<QikkDB::Types::ComplexPolygon>(QikkDB::Types::ComplexPolygon** outCol,
                                                                           int32_t* outDataElementCount,
-                                                                          ColmnarDB::Types::ComplexPolygon* ACol,
+                                                                          QikkDB::Types::ComplexPolygon* ACol,
                                                                           int8_t* inMask,
                                                                           int32_t dataElementCount,
                                                                           nullmask_t** outNullMask,

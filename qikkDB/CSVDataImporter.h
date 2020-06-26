@@ -15,7 +15,7 @@ class CSVDataImporter
 {
 public:
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class. Imports data from string.
+    /// Initializes a new instance of the class. Imports data from string.
     /// </summary>
     /// <param name="inputString">Input string of data which will be imported.</param>
     /// <param name="tableName">Name of table into which data will be imported.</param>
@@ -35,7 +35,7 @@ public:
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="T:ColmnarDB.CSVDataImporter"/> class. Imports data from CSV file.
+    /// Initializes a new instance of the class. Imports data from CSV file.
     /// </summary>
     /// <param name="fileName">Path to the CSV file.</param>
     /// <param name="header">True, if CSV file has a header. Default value is 'true'.</param>

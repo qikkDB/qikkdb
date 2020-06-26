@@ -29,7 +29,7 @@ extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOB
 extern PROTOBUF_INTERNAL_EXPORT_messages_2fQueryResponseMessage_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Types_2fComplexPolygon_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_ComplexPolygon_Types_2fComplexPolygon_2eproto;
 extern PROTOBUF_INTERNAL_EXPORT_Types_2fPoint_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Point_Types_2fPoint_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 class QueryResponseIntPayloadDefaultTypeInternal {
@@ -71,14 +71,14 @@ class QueryNullmaskPayloadDefaultTypeInternal {
 class QueryResponsePayloadDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<QueryResponsePayload> _instance;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* intpayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* floatpayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload* int64payload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload* doublepayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload* pointpayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload* polygonpayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload* stringpayload_;
-  const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseIntPayload* intpayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload* floatpayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload* int64payload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload* doublepayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponsePointPayload* pointpayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload* polygonpayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseStringPayload* stringpayload_;
+  const ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload_;
 } _QueryResponsePayload_default_instance_;
 class QueryResponseMessage_PayloadsEntry_DoNotUseDefaultTypeInternal {
  public:
@@ -98,16 +98,16 @@ class QueryResponseMessageDefaultTypeInternal {
 } _QueryResponseMessage_default_instance_;
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 static void InitDefaultsscc_info_QueryNullmaskPayload_messages_2fQueryResponseMessage_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryNullmaskPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryNullmaskPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryNullmaskPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryNullmaskPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryNullmaskPayload_messages_2fQueryResponseMessage_2eproto =
@@ -117,11 +117,11 @@ static void InitDefaultsscc_info_QueryResponseDateTimePayload_messages_2fQueryRe
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDateTimePayload_messages_2fQueryResponseMessage_2eproto =
@@ -131,11 +131,11 @@ static void InitDefaultsscc_info_QueryResponseDoublePayload_messages_2fQueryResp
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseDoublePayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseDoublePayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseDoublePayload_messages_2fQueryResponseMessage_2eproto =
@@ -145,11 +145,11 @@ static void InitDefaultsscc_info_QueryResponseFloatPayload_messages_2fQueryRespo
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseFloatPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseFloatPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseFloatPayload_messages_2fQueryResponseMessage_2eproto =
@@ -159,11 +159,11 @@ static void InitDefaultsscc_info_QueryResponseInt64Payload_messages_2fQueryRespo
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseInt64Payload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseInt64Payload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseInt64Payload_messages_2fQueryResponseMessage_2eproto =
@@ -173,11 +173,11 @@ static void InitDefaultsscc_info_QueryResponseIntPayload_messages_2fQueryRespons
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseIntPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseIntPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseIntPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseIntPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseIntPayload_messages_2fQueryResponseMessage_2eproto =
@@ -187,11 +187,11 @@ static void InitDefaultsscc_info_QueryResponseMessage_messages_2fQueryResponseMe
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseMessage();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseMessage_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseMessage();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseMessage::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseMessage::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<3> scc_info_QueryResponseMessage_messages_2fQueryResponseMessage_2eproto =
@@ -204,10 +204,10 @@ static void InitDefaultsscc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse();
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponseMessage_NullBitMasksEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
@@ -218,10 +218,10 @@ static void InitDefaultsscc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_mes
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_PayloadsEntry_DoNotUse_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseMessage_PayloadsEntry_DoNotUse_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse();
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponseMessage_PayloadsEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
@@ -232,10 +232,10 @@ static void InitDefaultsscc_info_QueryResponseMessage_TimingEntry_DoNotUse_messa
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_TimingEntry_DoNotUse_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseMessage_TimingEntry_DoNotUse_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse();
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseMessage_TimingEntry_DoNotUse_messages_2fQueryResponseMessage_2eproto =
@@ -245,11 +245,11 @@ static void InitDefaultsscc_info_QueryResponsePayload_messages_2fQueryResponseMe
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponsePayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponsePayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponsePayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponsePayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<8> scc_info_QueryResponsePayload_messages_2fQueryResponseMessage_2eproto =
@@ -267,11 +267,11 @@ static void InitDefaultsscc_info_QueryResponsePointPayload_messages_2fQueryRespo
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponsePointPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponsePointPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponsePointPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponsePointPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePointPayload_messages_2fQueryResponseMessage_2eproto =
@@ -282,11 +282,11 @@ static void InitDefaultsscc_info_QueryResponsePolygonPayload_messages_2fQueryRes
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponsePolygonPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponsePolygonPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_QueryResponsePolygonPayload_messages_2fQueryResponseMessage_2eproto =
@@ -297,11 +297,11 @@ static void InitDefaultsscc_info_QueryResponseStringPayload_messages_2fQueryResp
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::NetworkClient::Message::_QueryResponseStringPayload_default_instance_;
-    new (ptr) ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload();
+    void* ptr = &::QikkDB::NetworkClient::Message::_QueryResponseStringPayload_default_instance_;
+    new (ptr) ::QikkDB::NetworkClient::Message::QueryResponseStringPayload();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::InitAsDefaultInstance();
+  ::QikkDB::NetworkClient::Message::QueryResponseStringPayload::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_QueryResponseStringPayload_messages_2fQueryResponseMessage_2eproto =
@@ -313,193 +313,192 @@ static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_s
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_messages_2fQueryResponseMessage_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseIntPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload, intdata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseIntPayload, intdata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseInt64Payload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload, int64data_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseInt64Payload, int64data_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload, datetimedata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload, datetimedata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseFloatPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload, floatdata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseFloatPayload, floatdata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseDoublePayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload, doubledata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseDoublePayload, doubledata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload, polygondata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload, polygondata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePointPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload, pointdata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePointPayload, pointdata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseStringPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload, stringdata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseStringPayload, stringdata_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryNullmaskPayload, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload, nullmask_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryNullmaskPayload, nullmask_),
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePayload, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePayload, _internal_metadata_),
   ~0u,  // no _extensions_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePayload, _oneof_case_[0]),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePayload, _oneof_case_[0]),
   ~0u,  // no _weak_field_map_
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, intpayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, floatpayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, int64payload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, doublepayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, pointpayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, polygonpayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, stringpayload_),
-  offsetof(::ColmnarDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, datetimepayload_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponsePayload, payload_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _has_bits_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _internal_metadata_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, intpayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, floatpayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, int64payload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, doublepayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, pointpayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, polygonpayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, stringpayload_),
+  offsetof(::QikkDB::NetworkClient::Message::QueryResponsePayloadDefaultTypeInternal, datetimepayload_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponsePayload, payload_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, key_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, value_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse, value_),
   0,
   1,
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, _has_bits_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, key_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, value_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse, value_),
   0,
   1,
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, _has_bits_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, _has_bits_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, key_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, value_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, key_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse, value_),
   0,
   1,
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, payloads_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, nullbitmasks_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, timing_),
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::NetworkClient::Message::QueryResponseMessage, columnorder_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage, payloads_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage, nullbitmasks_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage, timing_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::NetworkClient::Message::QueryResponseMessage, columnorder_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload)},
-  { 6, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload)},
-  { 12, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload)},
-  { 18, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload)},
-  { 24, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload)},
-  { 30, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload)},
-  { 36, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload)},
-  { 42, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload)},
-  { 48, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload)},
-  { 54, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponsePayload)},
-  { 68, 75, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse)},
-  { 77, 84, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse)},
-  { 86, 93, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse)},
-  { 95, -1, sizeof(::ColmnarDB::NetworkClient::Message::QueryResponseMessage)},
+  { 0, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseIntPayload)},
+  { 6, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseInt64Payload)},
+  { 12, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload)},
+  { 18, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseFloatPayload)},
+  { 24, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseDoublePayload)},
+  { 30, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload)},
+  { 36, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponsePointPayload)},
+  { 42, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseStringPayload)},
+  { 48, -1, sizeof(::QikkDB::NetworkClient::Message::QueryNullmaskPayload)},
+  { 54, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponsePayload)},
+  { 68, 75, sizeof(::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse)},
+  { 77, 84, sizeof(::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse)},
+  { 86, 93, sizeof(::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse)},
+  { 95, -1, sizeof(::QikkDB::NetworkClient::Message::QueryResponseMessage)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseIntPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseInt64Payload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseFloatPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseDoublePayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponsePolygonPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponsePointPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseStringPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryNullmaskPayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_PayloadsEntry_DoNotUse_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_TimingEntry_DoNotUse_default_instance_),
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::NetworkClient::Message::_QueryResponseMessage_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseIntPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseInt64Payload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseDateTimePayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseFloatPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseDoublePayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponsePolygonPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponsePointPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseStringPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryNullmaskPayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseMessage_PayloadsEntry_DoNotUse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseMessage_NullBitMasksEntry_DoNotUse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseMessage_TimingEntry_DoNotUse_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::NetworkClient::Message::_QueryResponseMessage_default_instance_),
 };
 
 const char descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n#messages/QueryResponseMessage.proto\022\037C"
-  "olmnarDB.NetworkClient.Message\032\032Types/Co"
-  "mplexPolygon.proto\032\021Types/Point.proto\"*\n"
-  "\027QueryResponseIntPayload\022\017\n\007intData\030\001 \003("
-  "\005\".\n\031QueryResponseInt64Payload\022\021\n\tint64D"
-  "ata\030\001 \003(\003\"4\n\034QueryResponseDateTimePayloa"
-  "d\022\024\n\014dateTimeData\030\001 \003(\003\".\n\031QueryResponse"
-  "FloatPayload\022\021\n\tfloatData\030\001 \003(\002\"0\n\032Query"
-  "ResponseDoublePayload\022\022\n\ndoubleData\030\001 \003("
-  "\001\"S\n\033QueryResponsePolygonPayload\0224\n\013poly"
-  "gonData\030\001 \003(\0132\037.ColmnarDB.Types.ComplexP"
-  "olygon\"F\n\031QueryResponsePointPayload\022)\n\tp"
-  "ointData\030\001 \003(\0132\026.ColmnarDB.Types.Point\"0"
-  "\n\032QueryResponseStringPayload\022\022\n\nstringDa"
-  "ta\030\001 \003(\t\"(\n\024QueryNullmaskPayload\022\020\n\010null"
-  "Mask\030\001 \003(\004\"\313\005\n\024QueryResponsePayload\022N\n\ni"
-  "ntPayload\030\002 \001(\01328.ColmnarDB.NetworkClien"
-  "t.Message.QueryResponseIntPayloadH\000\022R\n\014f"
-  "loatPayload\030\003 \001(\0132:.ColmnarDB.NetworkCli"
-  "ent.Message.QueryResponseFloatPayloadH\000\022"
-  "R\n\014int64Payload\030\004 \001(\0132:.ColmnarDB.Networ"
-  "kClient.Message.QueryResponseInt64Payloa"
-  "dH\000\022T\n\rdoublePayload\030\005 \001(\0132;.ColmnarDB.N"
-  "etworkClient.Message.QueryResponseDouble"
-  "PayloadH\000\022R\n\014pointPayload\030\006 \001(\0132:.Colmna"
-  "rDB.NetworkClient.Message.QueryResponseP"
-  "ointPayloadH\000\022V\n\016polygonPayload\030\007 \001(\0132<."
-  "ColmnarDB.NetworkClient.Message.QueryRes"
-  "ponsePolygonPayloadH\000\022T\n\rstringPayload\030\010"
-  " \001(\0132;.ColmnarDB.NetworkClient.Message.Q"
-  "ueryResponseStringPayloadH\000\022X\n\017dateTimeP"
-  "ayload\030\t \001(\0132=.ColmnarDB.NetworkClient.M"
-  "essage.QueryResponseDateTimePayloadH\000B\t\n"
-  "\007payload\"\267\004\n\024QueryResponseMessage\022U\n\010pay"
-  "loads\030\001 \003(\0132C.ColmnarDB.NetworkClient.Me"
-  "ssage.QueryResponseMessage.PayloadsEntry"
-  "\022]\n\014nullBitMasks\030\003 \003(\0132G.ColmnarDB.Netwo"
-  "rkClient.Message.QueryResponseMessage.Nu"
-  "llBitMasksEntry\022Q\n\006timing\030\002 \003(\0132A.Colmna"
-  "rDB.NetworkClient.Message.QueryResponseM"
-  "essage.TimingEntry\022\023\n\013columnOrder\030\004 \003(\t\032"
-  "f\n\rPayloadsEntry\022\013\n\003key\030\001 \001(\t\022D\n\005value\030\002"
-  " \001(\01325.ColmnarDB.NetworkClient.Message.Q"
-  "ueryResponsePayload:\0028\001\032j\n\021NullBitMasksE"
-  "ntry\022\013\n\003key\030\001 \001(\t\022D\n\005value\030\002 \001(\01325.Colmn"
-  "arDB.NetworkClient.Message.QueryNullmask"
-  "Payload:\0028\001\032-\n\013TimingEntry\022\013\n\003key\030\001 \001(\t\022"
-  "\r\n\005value\030\002 \001(\002:\0028\001b\006proto3"
+  "\n#messages/QueryResponseMessage.proto\022\034Q"
+  "ikkDB.NetworkClient.Message\032\032Types/Compl"
+  "exPolygon.proto\032\021Types/Point.proto\"*\n\027Qu"
+  "eryResponseIntPayload\022\017\n\007intData\030\001 \003(\005\"."
+  "\n\031QueryResponseInt64Payload\022\021\n\tint64Data"
+  "\030\001 \003(\003\"4\n\034QueryResponseDateTimePayload\022\024"
+  "\n\014dateTimeData\030\001 \003(\003\".\n\031QueryResponseFlo"
+  "atPayload\022\021\n\tfloatData\030\001 \003(\002\"0\n\032QueryRes"
+  "ponseDoublePayload\022\022\n\ndoubleData\030\001 \003(\001\"P"
+  "\n\033QueryResponsePolygonPayload\0221\n\013polygon"
+  "Data\030\001 \003(\0132\034.QikkDB.Types.ComplexPolygon"
+  "\"C\n\031QueryResponsePointPayload\022&\n\tpointDa"
+  "ta\030\001 \003(\0132\023.QikkDB.Types.Point\"0\n\032QueryRe"
+  "sponseStringPayload\022\022\n\nstringData\030\001 \003(\t\""
+  "(\n\024QueryNullmaskPayload\022\020\n\010nullMask\030\001 \003("
+  "\004\"\263\005\n\024QueryResponsePayload\022K\n\nintPayload"
+  "\030\002 \001(\01325.QikkDB.NetworkClient.Message.Qu"
+  "eryResponseIntPayloadH\000\022O\n\014floatPayload\030"
+  "\003 \001(\01327.QikkDB.NetworkClient.Message.Que"
+  "ryResponseFloatPayloadH\000\022O\n\014int64Payload"
+  "\030\004 \001(\01327.QikkDB.NetworkClient.Message.Qu"
+  "eryResponseInt64PayloadH\000\022Q\n\rdoublePaylo"
+  "ad\030\005 \001(\01328.QikkDB.NetworkClient.Message."
+  "QueryResponseDoublePayloadH\000\022O\n\014pointPay"
+  "load\030\006 \001(\01327.QikkDB.NetworkClient.Messag"
+  "e.QueryResponsePointPayloadH\000\022S\n\016polygon"
+  "Payload\030\007 \001(\01329.QikkDB.NetworkClient.Mes"
+  "sage.QueryResponsePolygonPayloadH\000\022Q\n\rst"
+  "ringPayload\030\010 \001(\01328.QikkDB.NetworkClient"
+  ".Message.QueryResponseStringPayloadH\000\022U\n"
+  "\017dateTimePayload\030\t \001(\0132:.QikkDB.NetworkC"
+  "lient.Message.QueryResponseDateTimePaylo"
+  "adH\000B\t\n\007payload\"\250\004\n\024QueryResponseMessage"
+  "\022R\n\010payloads\030\001 \003(\0132@.QikkDB.NetworkClien"
+  "t.Message.QueryResponseMessage.PayloadsE"
+  "ntry\022Z\n\014nullBitMasks\030\003 \003(\0132D.QikkDB.Netw"
+  "orkClient.Message.QueryResponseMessage.N"
+  "ullBitMasksEntry\022N\n\006timing\030\002 \003(\0132>.QikkD"
+  "B.NetworkClient.Message.QueryResponseMes"
+  "sage.TimingEntry\022\023\n\013columnOrder\030\004 \003(\t\032c\n"
+  "\rPayloadsEntry\022\013\n\003key\030\001 \001(\t\022A\n\005value\030\002 \001"
+  "(\01322.QikkDB.NetworkClient.Message.QueryR"
+  "esponsePayload:\0028\001\032g\n\021NullBitMasksEntry\022"
+  "\013\n\003key\030\001 \001(\t\022A\n\005value\030\002 \001(\01322.QikkDB.Net"
+  "workClient.Message.QueryNullmaskPayload:"
+  "\0028\001\032-\n\013TimingEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value"
+  "\030\002 \001(\002:\0028\001b\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_messages_2fQueryResponseMessage_2eproto_deps[2] = {
   &::descriptor_table_Types_2fComplexPolygon_2eproto,
@@ -524,7 +523,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_mes
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_messages_2fQueryResponseMessage_2eproto_once;
 static bool descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messages_2fQueryResponseMessage_2eproto = {
-  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1906,
+  &descriptor_table_messages_2fQueryResponseMessage_2eproto_initialized, descriptor_table_protodef_messages_2fQueryResponseMessage_2eproto, "messages/QueryResponseMessage.proto", 1858,
   &descriptor_table_messages_2fQueryResponseMessage_2eproto_once, descriptor_table_messages_2fQueryResponseMessage_2eproto_sccs, descriptor_table_messages_2fQueryResponseMessage_2eproto_deps, 14, 2,
   schemas, file_default_instances, TableStruct_messages_2fQueryResponseMessage_2eproto::offsets,
   file_level_metadata_messages_2fQueryResponseMessage_2eproto, 14, file_level_enum_descriptors_messages_2fQueryResponseMessage_2eproto, file_level_service_descriptors_messages_2fQueryResponseMessage_2eproto,
@@ -532,7 +531,7 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_messag
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_messages_2fQueryResponseMessage_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_messages_2fQueryResponseMessage_2eproto), true);
-namespace ColmnarDB {
+namespace QikkDB {
 namespace NetworkClient {
 namespace Message {
 
@@ -547,21 +546,21 @@ class QueryResponseIntPayload::_Internal {
 QueryResponseIntPayload::QueryResponseIntPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
 }
 QueryResponseIntPayload::QueryResponseIntPayload(const QueryResponseIntPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       intdata_(from.intdata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
 }
 
 void QueryResponseIntPayload::SharedCtor() {
 }
 
 QueryResponseIntPayload::~QueryResponseIntPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   SharedDtor();
 }
 
@@ -578,7 +577,7 @@ const QueryResponseIntPayload& QueryResponseIntPayload::default_instance() {
 
 
 void QueryResponseIntPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -626,7 +625,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseIntPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -643,12 +642,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   return target;
 }
 
 size_t QueryResponseIntPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -680,22 +679,22 @@ size_t QueryResponseIntPayload::ByteSizeLong() const {
 }
 
 void QueryResponseIntPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseIntPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseIntPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseIntPayload::MergeFrom(const QueryResponseIntPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -705,14 +704,14 @@ void QueryResponseIntPayload::MergeFrom(const QueryResponseIntPayload& from) {
 }
 
 void QueryResponseIntPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseIntPayload::CopyFrom(const QueryResponseIntPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseIntPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseIntPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -744,21 +743,21 @@ class QueryResponseInt64Payload::_Internal {
 QueryResponseInt64Payload::QueryResponseInt64Payload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
 }
 QueryResponseInt64Payload::QueryResponseInt64Payload(const QueryResponseInt64Payload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       int64data_(from.int64data_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
 }
 
 void QueryResponseInt64Payload::SharedCtor() {
 }
 
 QueryResponseInt64Payload::~QueryResponseInt64Payload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   SharedDtor();
 }
 
@@ -775,7 +774,7 @@ const QueryResponseInt64Payload& QueryResponseInt64Payload::default_instance() {
 
 
 void QueryResponseInt64Payload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -823,7 +822,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseInt64Payload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -840,12 +839,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   return target;
 }
 
 size_t QueryResponseInt64Payload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -877,22 +876,22 @@ size_t QueryResponseInt64Payload::ByteSizeLong() const {
 }
 
 void QueryResponseInt64Payload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseInt64Payload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseInt64Payload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseInt64Payload::MergeFrom(const QueryResponseInt64Payload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -902,14 +901,14 @@ void QueryResponseInt64Payload::MergeFrom(const QueryResponseInt64Payload& from)
 }
 
 void QueryResponseInt64Payload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseInt64Payload::CopyFrom(const QueryResponseInt64Payload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseInt64Payload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -941,21 +940,21 @@ class QueryResponseDateTimePayload::_Internal {
 QueryResponseDateTimePayload::QueryResponseDateTimePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
 }
 QueryResponseDateTimePayload::QueryResponseDateTimePayload(const QueryResponseDateTimePayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       datetimedata_(from.datetimedata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
 }
 
 void QueryResponseDateTimePayload::SharedCtor() {
 }
 
 QueryResponseDateTimePayload::~QueryResponseDateTimePayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   SharedDtor();
 }
 
@@ -972,7 +971,7 @@ const QueryResponseDateTimePayload& QueryResponseDateTimePayload::default_instan
 
 
 void QueryResponseDateTimePayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1020,7 +1019,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseDateTimePayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1037,12 +1036,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   return target;
 }
 
 size_t QueryResponseDateTimePayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1074,22 +1073,22 @@ size_t QueryResponseDateTimePayload::ByteSizeLong() const {
 }
 
 void QueryResponseDateTimePayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseDateTimePayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseDateTimePayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseDateTimePayload::MergeFrom(const QueryResponseDateTimePayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1099,14 +1098,14 @@ void QueryResponseDateTimePayload::MergeFrom(const QueryResponseDateTimePayload&
 }
 
 void QueryResponseDateTimePayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseDateTimePayload::CopyFrom(const QueryResponseDateTimePayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseDateTimePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1138,21 +1137,21 @@ class QueryResponseFloatPayload::_Internal {
 QueryResponseFloatPayload::QueryResponseFloatPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
 }
 QueryResponseFloatPayload::QueryResponseFloatPayload(const QueryResponseFloatPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       floatdata_(from.floatdata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
 }
 
 void QueryResponseFloatPayload::SharedCtor() {
 }
 
 QueryResponseFloatPayload::~QueryResponseFloatPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   SharedDtor();
 }
 
@@ -1169,7 +1168,7 @@ const QueryResponseFloatPayload& QueryResponseFloatPayload::default_instance() {
 
 
 void QueryResponseFloatPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1217,7 +1216,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseFloatPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1230,12 +1229,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   return target;
 }
 
 size_t QueryResponseFloatPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1267,22 +1266,22 @@ size_t QueryResponseFloatPayload::ByteSizeLong() const {
 }
 
 void QueryResponseFloatPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseFloatPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseFloatPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseFloatPayload::MergeFrom(const QueryResponseFloatPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1292,14 +1291,14 @@ void QueryResponseFloatPayload::MergeFrom(const QueryResponseFloatPayload& from)
 }
 
 void QueryResponseFloatPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseFloatPayload::CopyFrom(const QueryResponseFloatPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseFloatPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1331,21 +1330,21 @@ class QueryResponseDoublePayload::_Internal {
 QueryResponseDoublePayload::QueryResponseDoublePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
 }
 QueryResponseDoublePayload::QueryResponseDoublePayload(const QueryResponseDoublePayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       doubledata_(from.doubledata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
 }
 
 void QueryResponseDoublePayload::SharedCtor() {
 }
 
 QueryResponseDoublePayload::~QueryResponseDoublePayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   SharedDtor();
 }
 
@@ -1362,7 +1361,7 @@ const QueryResponseDoublePayload& QueryResponseDoublePayload::default_instance()
 
 
 void QueryResponseDoublePayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1410,7 +1409,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseDoublePayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -1423,12 +1422,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   return target;
 }
 
 size_t QueryResponseDoublePayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1460,22 +1459,22 @@ size_t QueryResponseDoublePayload::ByteSizeLong() const {
 }
 
 void QueryResponseDoublePayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseDoublePayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseDoublePayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseDoublePayload::MergeFrom(const QueryResponseDoublePayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1485,14 +1484,14 @@ void QueryResponseDoublePayload::MergeFrom(const QueryResponseDoublePayload& fro
 }
 
 void QueryResponseDoublePayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseDoublePayload::CopyFrom(const QueryResponseDoublePayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseDoublePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1527,14 +1526,14 @@ void QueryResponsePolygonPayload::clear_polygondata() {
 QueryResponsePolygonPayload::QueryResponsePolygonPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
 }
 QueryResponsePolygonPayload::QueryResponsePolygonPayload(const QueryResponsePolygonPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       polygondata_(from.polygondata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
 }
 
 void QueryResponsePolygonPayload::SharedCtor() {
@@ -1542,7 +1541,7 @@ void QueryResponsePolygonPayload::SharedCtor() {
 }
 
 QueryResponsePolygonPayload::~QueryResponsePolygonPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   SharedDtor();
 }
 
@@ -1559,7 +1558,7 @@ const QueryResponsePolygonPayload& QueryResponsePolygonPayload::default_instance
 
 
 void QueryResponsePolygonPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1575,7 +1574,7 @@ const char* QueryResponsePolygonPayload::_InternalParse(const char* ptr, ::PROTO
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
+      // repeated .QikkDB.Types.ComplexPolygon polygonData = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
           ptr -= 1;
@@ -1609,11 +1608,11 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePolygonPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
+  // repeated .QikkDB.Types.ComplexPolygon polygonData = 1;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->_internal_polygondata_size()); i < n; i++) {
     stream->EnsureSpace(&target);
@@ -1625,19 +1624,19 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   return target;
 }
 
 size_t QueryResponsePolygonPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .ColmnarDB.Types.ComplexPolygon polygonData = 1;
+  // repeated .QikkDB.Types.ComplexPolygon polygonData = 1;
   total_size += 1UL * this->_internal_polygondata_size();
   for (const auto& msg : this->polygondata_) {
     total_size +=
@@ -1654,22 +1653,22 @@ size_t QueryResponsePolygonPayload::ByteSizeLong() const {
 }
 
 void QueryResponsePolygonPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponsePolygonPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponsePolygonPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponsePolygonPayload::MergeFrom(const QueryResponsePolygonPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1679,14 +1678,14 @@ void QueryResponsePolygonPayload::MergeFrom(const QueryResponsePolygonPayload& f
 }
 
 void QueryResponsePolygonPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponsePolygonPayload::CopyFrom(const QueryResponsePolygonPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePolygonPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1721,14 +1720,14 @@ void QueryResponsePointPayload::clear_pointdata() {
 QueryResponsePointPayload::QueryResponsePointPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
 }
 QueryResponsePointPayload::QueryResponsePointPayload(const QueryResponsePointPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       pointdata_(from.pointdata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
 }
 
 void QueryResponsePointPayload::SharedCtor() {
@@ -1736,7 +1735,7 @@ void QueryResponsePointPayload::SharedCtor() {
 }
 
 QueryResponsePointPayload::~QueryResponsePointPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   SharedDtor();
 }
 
@@ -1753,7 +1752,7 @@ const QueryResponsePointPayload& QueryResponsePointPayload::default_instance() {
 
 
 void QueryResponsePointPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1769,7 +1768,7 @@ const char* QueryResponsePointPayload::_InternalParse(const char* ptr, ::PROTOBU
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // repeated .ColmnarDB.Types.Point pointData = 1;
+      // repeated .QikkDB.Types.Point pointData = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
           ptr -= 1;
@@ -1803,11 +1802,11 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePointPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // repeated .ColmnarDB.Types.Point pointData = 1;
+  // repeated .QikkDB.Types.Point pointData = 1;
   for (unsigned int i = 0,
       n = static_cast<unsigned int>(this->_internal_pointdata_size()); i < n; i++) {
     stream->EnsureSpace(&target);
@@ -1819,19 +1818,19 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   return target;
 }
 
 size_t QueryResponsePointPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // repeated .ColmnarDB.Types.Point pointData = 1;
+  // repeated .QikkDB.Types.Point pointData = 1;
   total_size += 1UL * this->_internal_pointdata_size();
   for (const auto& msg : this->pointdata_) {
     total_size +=
@@ -1848,22 +1847,22 @@ size_t QueryResponsePointPayload::ByteSizeLong() const {
 }
 
 void QueryResponsePointPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponsePointPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponsePointPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponsePointPayload::MergeFrom(const QueryResponsePointPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -1873,14 +1872,14 @@ void QueryResponsePointPayload::MergeFrom(const QueryResponsePointPayload& from)
 }
 
 void QueryResponsePointPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponsePointPayload::CopyFrom(const QueryResponsePointPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePointPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePointPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -1912,14 +1911,14 @@ class QueryResponseStringPayload::_Internal {
 QueryResponseStringPayload::QueryResponseStringPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
 }
 QueryResponseStringPayload::QueryResponseStringPayload(const QueryResponseStringPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       stringdata_(from.stringdata_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
 }
 
 void QueryResponseStringPayload::SharedCtor() {
@@ -1927,7 +1926,7 @@ void QueryResponseStringPayload::SharedCtor() {
 }
 
 QueryResponseStringPayload::~QueryResponseStringPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   SharedDtor();
 }
 
@@ -1944,7 +1943,7 @@ const QueryResponseStringPayload& QueryResponseStringPayload::default_instance()
 
 
 void QueryResponseStringPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -1966,7 +1965,7 @@ const char* QueryResponseStringPayload::_InternalParse(const char* ptr, ::PROTOB
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_stringdata(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
+            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_stringdata(), ptr, ctx, "QikkDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<10>(ptr));
@@ -1994,7 +1993,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseStringPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2004,7 +2003,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       s.data(), static_cast<int>(s.length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
+      "QikkDB.NetworkClient.Message.QueryResponseStringPayload.stringData");
     target = stream->WriteString(1, s, target);
   }
 
@@ -2012,12 +2011,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   return target;
 }
 
 size_t QueryResponseStringPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2042,22 +2041,22 @@ size_t QueryResponseStringPayload::ByteSizeLong() const {
 }
 
 void QueryResponseStringPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseStringPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseStringPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseStringPayload::MergeFrom(const QueryResponseStringPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2067,14 +2066,14 @@ void QueryResponseStringPayload::MergeFrom(const QueryResponseStringPayload& fro
 }
 
 void QueryResponseStringPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseStringPayload::CopyFrom(const QueryResponseStringPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseStringPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseStringPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2106,21 +2105,21 @@ class QueryNullmaskPayload::_Internal {
 QueryNullmaskPayload::QueryNullmaskPayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
 }
 QueryNullmaskPayload::QueryNullmaskPayload(const QueryNullmaskPayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr),
       nullmask_(from.nullmask_) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
 }
 
 void QueryNullmaskPayload::SharedCtor() {
 }
 
 QueryNullmaskPayload::~QueryNullmaskPayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   SharedDtor();
 }
 
@@ -2137,7 +2136,7 @@ const QueryNullmaskPayload& QueryNullmaskPayload::default_instance() {
 
 
 void QueryNullmaskPayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -2185,7 +2184,7 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryNullmaskPayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
@@ -2202,12 +2201,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   return target;
 }
 
 size_t QueryNullmaskPayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2239,22 +2238,22 @@ size_t QueryNullmaskPayload::ByteSizeLong() const {
 }
 
 void QueryNullmaskPayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryNullmaskPayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryNullmaskPayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
     MergeFrom(*source);
   }
 }
 
 void QueryNullmaskPayload::MergeFrom(const QueryNullmaskPayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2264,14 +2263,14 @@ void QueryNullmaskPayload::MergeFrom(const QueryNullmaskPayload& from) {
 }
 
 void QueryNullmaskPayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryNullmaskPayload::CopyFrom(const QueryNullmaskPayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryNullmaskPayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryNullmaskPayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2295,68 +2294,68 @@ void QueryNullmaskPayload::InternalSwap(QueryNullmaskPayload* other) {
 // ===================================================================
 
 void QueryResponsePayload::InitAsDefaultInstance() {
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.intpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.floatpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.int64payload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.doublepayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.pointpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.polygonpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.stringpayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::internal_default_instance());
-  ::ColmnarDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.datetimepayload_ = const_cast< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload*>(
-      ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.intpayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseIntPayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseIntPayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.floatpayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.int64payload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.doublepayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.pointpayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponsePointPayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponsePointPayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.polygonpayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.stringpayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseStringPayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseStringPayload::internal_default_instance());
+  ::QikkDB::NetworkClient::Message::_QueryResponsePayload_default_instance_.datetimepayload_ = const_cast< ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload*>(
+      ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload::internal_default_instance());
 }
 class QueryResponsePayload::_Internal {
  public:
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload& intpayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload& floatpayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload& int64payload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload& doublepayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload& pointpayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload& polygonpayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload& stringpayload(const QueryResponsePayload* msg);
-  static const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload& datetimepayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseIntPayload& intpayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload& floatpayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload& int64payload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload& doublepayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponsePointPayload& pointpayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload& polygonpayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseStringPayload& stringpayload(const QueryResponsePayload* msg);
+  static const ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload& datetimepayload(const QueryResponsePayload* msg);
 };
 
-const ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload&
+const ::QikkDB::NetworkClient::Message::QueryResponseIntPayload&
 QueryResponsePayload::_Internal::intpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.intpayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload&
+const ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload&
 QueryResponsePayload::_Internal::floatpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.floatpayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload&
+const ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload&
 QueryResponsePayload::_Internal::int64payload(const QueryResponsePayload* msg) {
   return *msg->payload_.int64payload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload&
+const ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload&
 QueryResponsePayload::_Internal::doublepayload(const QueryResponsePayload* msg) {
   return *msg->payload_.doublepayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload&
+const ::QikkDB::NetworkClient::Message::QueryResponsePointPayload&
 QueryResponsePayload::_Internal::pointpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.pointpayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload&
+const ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload&
 QueryResponsePayload::_Internal::polygonpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.polygonpayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload&
+const ::QikkDB::NetworkClient::Message::QueryResponseStringPayload&
 QueryResponsePayload::_Internal::stringpayload(const QueryResponsePayload* msg) {
   return *msg->payload_.stringpayload_;
 }
-const ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload&
+const ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload&
 QueryResponsePayload::_Internal::datetimepayload(const QueryResponsePayload* msg) {
   return *msg->payload_.datetimepayload_;
 }
-void QueryResponsePayload::set_allocated_intpayload(::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* intpayload) {
+void QueryResponsePayload::set_allocated_intpayload(::QikkDB::NetworkClient::Message::QueryResponseIntPayload* intpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (intpayload) {
@@ -2368,9 +2367,9 @@ void QueryResponsePayload::set_allocated_intpayload(::ColmnarDB::NetworkClient::
     set_has_intpayload();
     payload_.intpayload_ = intpayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.intPayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.intPayload)
 }
-void QueryResponsePayload::set_allocated_floatpayload(::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* floatpayload) {
+void QueryResponsePayload::set_allocated_floatpayload(::QikkDB::NetworkClient::Message::QueryResponseFloatPayload* floatpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (floatpayload) {
@@ -2382,9 +2381,9 @@ void QueryResponsePayload::set_allocated_floatpayload(::ColmnarDB::NetworkClient
     set_has_floatpayload();
     payload_.floatpayload_ = floatpayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.floatPayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.floatPayload)
 }
-void QueryResponsePayload::set_allocated_int64payload(::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload* int64payload) {
+void QueryResponsePayload::set_allocated_int64payload(::QikkDB::NetworkClient::Message::QueryResponseInt64Payload* int64payload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (int64payload) {
@@ -2396,9 +2395,9 @@ void QueryResponsePayload::set_allocated_int64payload(::ColmnarDB::NetworkClient
     set_has_int64payload();
     payload_.int64payload_ = int64payload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.int64Payload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.int64Payload)
 }
-void QueryResponsePayload::set_allocated_doublepayload(::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload* doublepayload) {
+void QueryResponsePayload::set_allocated_doublepayload(::QikkDB::NetworkClient::Message::QueryResponseDoublePayload* doublepayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (doublepayload) {
@@ -2410,9 +2409,9 @@ void QueryResponsePayload::set_allocated_doublepayload(::ColmnarDB::NetworkClien
     set_has_doublepayload();
     payload_.doublepayload_ = doublepayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.doublePayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.doublePayload)
 }
-void QueryResponsePayload::set_allocated_pointpayload(::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload* pointpayload) {
+void QueryResponsePayload::set_allocated_pointpayload(::QikkDB::NetworkClient::Message::QueryResponsePointPayload* pointpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (pointpayload) {
@@ -2424,9 +2423,9 @@ void QueryResponsePayload::set_allocated_pointpayload(::ColmnarDB::NetworkClient
     set_has_pointpayload();
     payload_.pointpayload_ = pointpayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.pointPayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.pointPayload)
 }
-void QueryResponsePayload::set_allocated_polygonpayload(::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload* polygonpayload) {
+void QueryResponsePayload::set_allocated_polygonpayload(::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload* polygonpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (polygonpayload) {
@@ -2438,9 +2437,9 @@ void QueryResponsePayload::set_allocated_polygonpayload(::ColmnarDB::NetworkClie
     set_has_polygonpayload();
     payload_.polygonpayload_ = polygonpayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.polygonPayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.polygonPayload)
 }
-void QueryResponsePayload::set_allocated_stringpayload(::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload* stringpayload) {
+void QueryResponsePayload::set_allocated_stringpayload(::QikkDB::NetworkClient::Message::QueryResponseStringPayload* stringpayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (stringpayload) {
@@ -2452,9 +2451,9 @@ void QueryResponsePayload::set_allocated_stringpayload(::ColmnarDB::NetworkClien
     set_has_stringpayload();
     payload_.stringpayload_ = stringpayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.stringPayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.stringPayload)
 }
-void QueryResponsePayload::set_allocated_datetimepayload(::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload) {
+void QueryResponsePayload::set_allocated_datetimepayload(::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload* datetimepayload) {
   ::PROTOBUF_NAMESPACE_ID::Arena* message_arena = GetArenaNoVirtual();
   clear_payload();
   if (datetimepayload) {
@@ -2466,12 +2465,12 @@ void QueryResponsePayload::set_allocated_datetimepayload(::ColmnarDB::NetworkCli
     set_has_datetimepayload();
     payload_.datetimepayload_ = datetimepayload;
   }
-  // @@protoc_insertion_point(field_set_allocated:ColmnarDB.NetworkClient.Message.QueryResponsePayload.dateTimePayload)
+  // @@protoc_insertion_point(field_set_allocated:QikkDB.NetworkClient.Message.QueryResponsePayload.dateTimePayload)
 }
 QueryResponsePayload::QueryResponsePayload()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponsePayload)
 }
 QueryResponsePayload::QueryResponsePayload(const QueryResponsePayload& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
@@ -2480,42 +2479,42 @@ QueryResponsePayload::QueryResponsePayload(const QueryResponsePayload& from)
   clear_has_payload();
   switch (from.payload_case()) {
     case kIntPayload: {
-      _internal_mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
+      _internal_mutable_intpayload()->::QikkDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
       break;
     }
     case kFloatPayload: {
-      _internal_mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
+      _internal_mutable_floatpayload()->::QikkDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
       break;
     }
     case kInt64Payload: {
-      _internal_mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
+      _internal_mutable_int64payload()->::QikkDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
       break;
     }
     case kDoublePayload: {
-      _internal_mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
+      _internal_mutable_doublepayload()->::QikkDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
       break;
     }
     case kPointPayload: {
-      _internal_mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
+      _internal_mutable_pointpayload()->::QikkDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
       break;
     }
     case kPolygonPayload: {
-      _internal_mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
+      _internal_mutable_polygonpayload()->::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
       break;
     }
     case kStringPayload: {
-      _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
+      _internal_mutable_stringpayload()->::QikkDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
       break;
     }
     case kDateTimePayload: {
-      _internal_mutable_datetimepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
+      _internal_mutable_datetimepayload()->::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
       break;
     }
   }
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponsePayload)
 }
 
 void QueryResponsePayload::SharedCtor() {
@@ -2524,7 +2523,7 @@ void QueryResponsePayload::SharedCtor() {
 }
 
 QueryResponsePayload::~QueryResponsePayload() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponsePayload)
   SharedDtor();
 }
 
@@ -2544,7 +2543,7 @@ const QueryResponsePayload& QueryResponsePayload::default_instance() {
 
 
 void QueryResponsePayload::clear_payload() {
-// @@protoc_insertion_point(one_of_clear_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(one_of_clear_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   switch (payload_case()) {
     case kIntPayload: {
       delete payload_.intpayload_;
@@ -2587,7 +2586,7 @@ void QueryResponsePayload::clear_payload() {
 
 
 void QueryResponsePayload::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -2603,56 +2602,56 @@ const char* QueryResponsePayload::_InternalParse(const char* ptr, ::PROTOBUF_NAM
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
+      // .QikkDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
       case 2:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 18)) {
           ptr = ctx->ParseMessage(_internal_mutable_intpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
+      // .QikkDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           ptr = ctx->ParseMessage(_internal_mutable_floatpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
+      // .QikkDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
       case 4:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 34)) {
           ptr = ctx->ParseMessage(_internal_mutable_int64payload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
+      // .QikkDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
       case 5:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 42)) {
           ptr = ctx->ParseMessage(_internal_mutable_doublepayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
+      // .QikkDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
       case 6:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 50)) {
           ptr = ctx->ParseMessage(_internal_mutable_pointpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
+      // .QikkDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
       case 7:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 58)) {
           ptr = ctx->ParseMessage(_internal_mutable_polygonpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
+      // .QikkDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
       case 8:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 66)) {
           ptr = ctx->ParseMessage(_internal_mutable_stringpayload(), ptr);
           CHK_(ptr);
         } else goto handle_unusual;
         continue;
-      // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+      // .QikkDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
       case 9:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 74)) {
           ptr = ctx->ParseMessage(_internal_mutable_datetimepayload(), ptr);
@@ -2681,11 +2680,11 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponsePayload::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
+  // .QikkDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
   if (_internal_has_intpayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2693,7 +2692,7 @@ failure:
         2, _Internal::intpayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
+  // .QikkDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
   if (_internal_has_floatpayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2701,7 +2700,7 @@ failure:
         3, _Internal::floatpayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
+  // .QikkDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
   if (_internal_has_int64payload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2709,7 +2708,7 @@ failure:
         4, _Internal::int64payload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
+  // .QikkDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
   if (_internal_has_doublepayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2717,7 +2716,7 @@ failure:
         5, _Internal::doublepayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
+  // .QikkDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
   if (_internal_has_pointpayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2725,7 +2724,7 @@ failure:
         6, _Internal::pointpayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
+  // .QikkDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
   if (_internal_has_polygonpayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2733,7 +2732,7 @@ failure:
         7, _Internal::polygonpayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
+  // .QikkDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
   if (_internal_has_stringpayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2741,7 +2740,7 @@ failure:
         8, _Internal::stringpayload(this), target, stream);
   }
 
-  // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+  // .QikkDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
   if (_internal_has_datetimepayload()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -2753,12 +2752,12 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponsePayload)
   return target;
 }
 
 size_t QueryResponsePayload::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2766,56 +2765,56 @@ size_t QueryResponsePayload::ByteSizeLong() const {
   (void) cached_has_bits;
 
   switch (payload_case()) {
-    // .ColmnarDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
+    // .QikkDB.NetworkClient.Message.QueryResponseIntPayload intPayload = 2;
     case kIntPayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.intpayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
+    // .QikkDB.NetworkClient.Message.QueryResponseFloatPayload floatPayload = 3;
     case kFloatPayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.floatpayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
+    // .QikkDB.NetworkClient.Message.QueryResponseInt64Payload int64Payload = 4;
     case kInt64Payload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.int64payload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
+    // .QikkDB.NetworkClient.Message.QueryResponseDoublePayload doublePayload = 5;
     case kDoublePayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.doublepayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
+    // .QikkDB.NetworkClient.Message.QueryResponsePointPayload pointPayload = 6;
     case kPointPayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.pointpayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
+    // .QikkDB.NetworkClient.Message.QueryResponsePolygonPayload polygonPayload = 7;
     case kPolygonPayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.polygonpayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
+    // .QikkDB.NetworkClient.Message.QueryResponseStringPayload stringPayload = 8;
     case kStringPayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
           *payload_.stringpayload_);
       break;
     }
-    // .ColmnarDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
+    // .QikkDB.NetworkClient.Message.QueryResponseDateTimePayload dateTimePayload = 9;
     case kDateTimePayload: {
       total_size += 1 +
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
@@ -2836,22 +2835,22 @@ size_t QueryResponsePayload::ByteSizeLong() const {
 }
 
 void QueryResponsePayload::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponsePayload* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponsePayload>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponsePayload)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponsePayload)
     MergeFrom(*source);
   }
 }
 
 void QueryResponsePayload::MergeFrom(const QueryResponsePayload& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -2859,35 +2858,35 @@ void QueryResponsePayload::MergeFrom(const QueryResponsePayload& from) {
 
   switch (from.payload_case()) {
     case kIntPayload: {
-      _internal_mutable_intpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
+      _internal_mutable_intpayload()->::QikkDB::NetworkClient::Message::QueryResponseIntPayload::MergeFrom(from._internal_intpayload());
       break;
     }
     case kFloatPayload: {
-      _internal_mutable_floatpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
+      _internal_mutable_floatpayload()->::QikkDB::NetworkClient::Message::QueryResponseFloatPayload::MergeFrom(from._internal_floatpayload());
       break;
     }
     case kInt64Payload: {
-      _internal_mutable_int64payload()->::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
+      _internal_mutable_int64payload()->::QikkDB::NetworkClient::Message::QueryResponseInt64Payload::MergeFrom(from._internal_int64payload());
       break;
     }
     case kDoublePayload: {
-      _internal_mutable_doublepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
+      _internal_mutable_doublepayload()->::QikkDB::NetworkClient::Message::QueryResponseDoublePayload::MergeFrom(from._internal_doublepayload());
       break;
     }
     case kPointPayload: {
-      _internal_mutable_pointpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
+      _internal_mutable_pointpayload()->::QikkDB::NetworkClient::Message::QueryResponsePointPayload::MergeFrom(from._internal_pointpayload());
       break;
     }
     case kPolygonPayload: {
-      _internal_mutable_polygonpayload()->::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
+      _internal_mutable_polygonpayload()->::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload::MergeFrom(from._internal_polygonpayload());
       break;
     }
     case kStringPayload: {
-      _internal_mutable_stringpayload()->::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
+      _internal_mutable_stringpayload()->::QikkDB::NetworkClient::Message::QueryResponseStringPayload::MergeFrom(from._internal_stringpayload());
       break;
     }
     case kDateTimePayload: {
-      _internal_mutable_datetimepayload()->::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
+      _internal_mutable_datetimepayload()->::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload::MergeFrom(from._internal_datetimepayload());
       break;
     }
     case PAYLOAD_NOT_SET: {
@@ -2897,14 +2896,14 @@ void QueryResponsePayload::MergeFrom(const QueryResponsePayload& from) {
 }
 
 void QueryResponsePayload::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponsePayload::CopyFrom(const QueryResponsePayload& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponsePayload)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponsePayload)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -2988,7 +2987,7 @@ class QueryResponseMessage::_Internal {
 QueryResponseMessage::QueryResponseMessage()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(constructor:QikkDB.NetworkClient.Message.QueryResponseMessage)
 }
 QueryResponseMessage::QueryResponseMessage(const QueryResponseMessage& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
@@ -2998,7 +2997,7 @@ QueryResponseMessage::QueryResponseMessage(const QueryResponseMessage& from)
   payloads_.MergeFrom(from.payloads_);
   timing_.MergeFrom(from.timing_);
   nullbitmasks_.MergeFrom(from.nullbitmasks_);
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.NetworkClient.Message.QueryResponseMessage)
 }
 
 void QueryResponseMessage::SharedCtor() {
@@ -3006,7 +3005,7 @@ void QueryResponseMessage::SharedCtor() {
 }
 
 QueryResponseMessage::~QueryResponseMessage() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(destructor:QikkDB.NetworkClient.Message.QueryResponseMessage)
   SharedDtor();
 }
 
@@ -3023,7 +3022,7 @@ const QueryResponseMessage& QueryResponseMessage::default_instance() {
 
 
 void QueryResponseMessage::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(message_clear_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -3042,7 +3041,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
+      // map<string, .QikkDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
           ptr -= 1;
@@ -3066,7 +3065,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<18>(ptr));
         } else goto handle_unusual;
         continue;
-      // map<string, .ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
+      // map<string, .QikkDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
       case 3:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 26)) {
           ptr -= 1;
@@ -3084,7 +3083,7 @@ const char* QueryResponseMessage::_InternalParse(const char* ptr, ::PROTOBUF_NAM
           ptr -= 1;
           do {
             ptr += 1;
-            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_columnorder(), ptr, ctx, "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+            ptr = ::PROTOBUF_NAMESPACE_ID::internal::InlineGreedyStringParserUTF8(_internal_add_columnorder(), ptr, ctx, "QikkDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
             CHK_(ptr);
             if (!ctx->DataAvailable(ptr)) break;
           } while (::PROTOBUF_NAMESPACE_ID::internal::ExpectTag<34>(ptr));
@@ -3112,13 +3111,13 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* QueryResponseMessage::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
+  // map<string, .QikkDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
   if (!this->_internal_payloads().empty()) {
-    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_pointer
+    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryResponsePayload >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
     typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
@@ -3127,7 +3126,7 @@ failure:
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
           p->first.data(), static_cast<int>(p->first.length()),
           ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.PayloadsEntry.key");
+          "QikkDB.NetworkClient.Message.QueryResponseMessage.PayloadsEntry.key");
       }
     };
 
@@ -3135,9 +3134,9 @@ failure:
         this->_internal_payloads().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
           new SortItem[this->_internal_payloads().size()]);
-      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::size_type size_type;
+      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryResponsePayload >::size_type size_type;
       size_type n = 0;
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
           it = this->_internal_payloads().begin();
           it != this->_internal_payloads().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
@@ -3148,7 +3147,7 @@ failure:
         Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
           it = this->_internal_payloads().begin();
           it != this->_internal_payloads().end(); ++it) {
         target = QueryResponseMessage_PayloadsEntry_DoNotUse::Funcs::InternalSerialize(1, it->first, it->second, target, stream);
@@ -3168,7 +3167,7 @@ failure:
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
           p->first.data(), static_cast<int>(p->first.length()),
           ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.TimingEntry.key");
+          "QikkDB.NetworkClient.Message.QueryResponseMessage.TimingEntry.key");
       }
     };
 
@@ -3198,9 +3197,9 @@ failure:
     }
   }
 
-  // map<string, .ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
+  // map<string, .QikkDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
   if (!this->_internal_nullbitmasks().empty()) {
-    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >::const_pointer
+    typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >::const_pointer
         ConstPtr;
     typedef ConstPtr SortItem;
     typedef ::PROTOBUF_NAMESPACE_ID::internal::CompareByDerefFirst<SortItem> Less;
@@ -3209,7 +3208,7 @@ failure:
         ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
           p->first.data(), static_cast<int>(p->first.length()),
           ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-          "ColmnarDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key");
+          "QikkDB.NetworkClient.Message.QueryResponseMessage.NullBitMasksEntry.key");
       }
     };
 
@@ -3217,9 +3216,9 @@ failure:
         this->_internal_nullbitmasks().size() > 1) {
       ::std::unique_ptr<SortItem[]> items(
           new SortItem[this->_internal_nullbitmasks().size()]);
-      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >::size_type size_type;
+      typedef ::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >::size_type size_type;
       size_type n = 0;
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
           it = this->_internal_nullbitmasks().begin();
           it != this->_internal_nullbitmasks().end(); ++it, ++n) {
         items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
@@ -3230,7 +3229,7 @@ failure:
         Utf8Check::Check(&(*items[static_cast<ptrdiff_t>(i)]));
       }
     } else {
-      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
+      for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
           it = this->_internal_nullbitmasks().begin();
           it != this->_internal_nullbitmasks().end(); ++it) {
         target = QueryResponseMessage_NullBitMasksEntry_DoNotUse::Funcs::InternalSerialize(3, it->first, it->second, target, stream);
@@ -3245,7 +3244,7 @@ failure:
     ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::VerifyUtf8String(
       s.data(), static_cast<int>(s.length()),
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::SERIALIZE,
-      "ColmnarDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
+      "QikkDB.NetworkClient.Message.QueryResponseMessage.columnOrder");
     target = stream->WriteString(4, s, target);
   }
 
@@ -3253,22 +3252,22 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.NetworkClient.Message.QueryResponseMessage)
   return target;
 }
 
 size_t QueryResponseMessage::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // map<string, .ColmnarDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
+  // map<string, .QikkDB.NetworkClient.Message.QueryResponsePayload> payloads = 1;
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_payloads_size());
-  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryResponsePayload >::const_iterator
       it = this->_internal_payloads().begin();
       it != this->_internal_payloads().end(); ++it) {
     total_size += QueryResponseMessage_PayloadsEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
@@ -3283,10 +3282,10 @@ size_t QueryResponseMessage::ByteSizeLong() const {
     total_size += QueryResponseMessage_TimingEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
   }
 
-  // map<string, .ColmnarDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
+  // map<string, .QikkDB.NetworkClient.Message.QueryNullmaskPayload> nullBitMasks = 3;
   total_size += 1 *
       ::PROTOBUF_NAMESPACE_ID::internal::FromIntSize(this->_internal_nullbitmasks_size());
-  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
+  for (::PROTOBUF_NAMESPACE_ID::Map< std::string, ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >::const_iterator
       it = this->_internal_nullbitmasks().begin();
       it != this->_internal_nullbitmasks().end(); ++it) {
     total_size += QueryResponseMessage_NullBitMasksEntry_DoNotUse::Funcs::ByteSizeLong(it->first, it->second);
@@ -3310,22 +3309,22 @@ size_t QueryResponseMessage::ByteSizeLong() const {
 }
 
 void QueryResponseMessage::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   GOOGLE_DCHECK_NE(&from, this);
   const QueryResponseMessage* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<QueryResponseMessage>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.NetworkClient.Message.QueryResponseMessage)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.NetworkClient.Message.QueryResponseMessage)
     MergeFrom(*source);
   }
 }
 
 void QueryResponseMessage::MergeFrom(const QueryResponseMessage& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
@@ -3338,14 +3337,14 @@ void QueryResponseMessage::MergeFrom(const QueryResponseMessage& from) {
 }
 
 void QueryResponseMessage::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void QueryResponseMessage::CopyFrom(const QueryResponseMessage& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.NetworkClient.Message.QueryResponseMessage)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.NetworkClient.Message.QueryResponseMessage)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -3372,49 +3371,49 @@ void QueryResponseMessage::InternalSwap(QueryResponseMessage* other) {
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace Message
 }  // namespace NetworkClient
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseIntPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseIntPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseIntPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseIntPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseInt64Payload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseInt64Payload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseDateTimePayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseDateTimePayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseFloatPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseFloatPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseDoublePayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseDoublePayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponsePolygonPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponsePolygonPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponsePointPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponsePointPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponsePointPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponsePointPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseStringPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseStringPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseStringPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseStringPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryNullmaskPayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryNullmaskPayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryNullmaskPayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponsePayload* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponsePayload >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponsePayload* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponsePayload >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponsePayload >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseMessage_PayloadsEntry_DoNotUse >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseMessage_NullBitMasksEntry_DoNotUse >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseMessage_TimingEntry_DoNotUse >(arena);
 }
-template<> PROTOBUF_NOINLINE ::ColmnarDB::NetworkClient::Message::QueryResponseMessage* Arena::CreateMaybeMessage< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::NetworkClient::Message::QueryResponseMessage >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::NetworkClient::Message::QueryResponseMessage* Arena::CreateMaybeMessage< ::QikkDB::NetworkClient::Message::QueryResponseMessage >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::NetworkClient::Message::QueryResponseMessage >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 

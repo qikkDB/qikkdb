@@ -15,23 +15,23 @@
 // @@protoc_insertion_point(includes)
 #include <google/protobuf/port_def.inc>
 extern PROTOBUF_INTERNAL_EXPORT_Types_2fComplexPolygon_2eproto ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<0> scc_info_GeoPoint_Types_2fComplexPolygon_2eproto;
-namespace ColmnarDB {
+namespace QikkDB {
 namespace Types {
 class PointDefaultTypeInternal {
  public:
   ::PROTOBUF_NAMESPACE_ID::internal::ExplicitlyConstructed<Point> _instance;
 } _Point_default_instance_;
 }  // namespace Types
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 static void InitDefaultsscc_info_Point_Types_2fPoint_2eproto() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
   {
-    void* ptr = &::ColmnarDB::Types::_Point_default_instance_;
-    new (ptr) ::ColmnarDB::Types::Point();
+    void* ptr = &::QikkDB::Types::_Point_default_instance_;
+    new (ptr) ::QikkDB::Types::Point();
     ::PROTOBUF_NAMESPACE_ID::internal::OnShutdownDestroyMessage(ptr);
   }
-  ::ColmnarDB::Types::Point::InitAsDefaultInstance();
+  ::QikkDB::Types::Point::InitAsDefaultInstance();
 }
 
 ::PROTOBUF_NAMESPACE_ID::internal::SCCInfo<1> scc_info_Point_Types_2fPoint_2eproto =
@@ -44,25 +44,24 @@ static constexpr ::PROTOBUF_NAMESPACE_ID::ServiceDescriptor const** file_level_s
 
 const ::PROTOBUF_NAMESPACE_ID::uint32 TableStruct_Types_2fPoint_2eproto::offsets[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
   ~0u,  // no _has_bits_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::Types::Point, _internal_metadata_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::Types::Point, _internal_metadata_),
   ~0u,  // no _extensions_
   ~0u,  // no _oneof_case_
   ~0u,  // no _weak_field_map_
-  PROTOBUF_FIELD_OFFSET(::ColmnarDB::Types::Point, geopoint_),
+  PROTOBUF_FIELD_OFFSET(::QikkDB::Types::Point, geopoint_),
 };
 static const ::PROTOBUF_NAMESPACE_ID::internal::MigrationSchema schemas[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::ColmnarDB::Types::Point)},
+  { 0, -1, sizeof(::QikkDB::Types::Point)},
 };
 
 static ::PROTOBUF_NAMESPACE_ID::Message const * const file_default_instances[] = {
-  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::ColmnarDB::Types::_Point_default_instance_),
+  reinterpret_cast<const ::PROTOBUF_NAMESPACE_ID::Message*>(&::QikkDB::Types::_Point_default_instance_),
 };
 
 const char descriptor_table_protodef_Types_2fPoint_2eproto[] PROTOBUF_SECTION_VARIABLE(protodesc_cold) =
-  "\n\021Types/Point.proto\022\017ColmnarDB.Types\032\032Ty"
-  "pes/ComplexPolygon.proto\"4\n\005Point\022+\n\010geo"
-  "Point\030\001 \001(\0132\031.ColmnarDB.Types.GeoPointb\006"
-  "proto3"
+  "\n\021Types/Point.proto\022\014QikkDB.Types\032\032Types"
+  "/ComplexPolygon.proto\"1\n\005Point\022(\n\010geoPoi"
+  "nt\030\001 \001(\0132\026.QikkDB.Types.GeoPointb\006proto3"
   ;
 static const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable*const descriptor_table_Types_2fPoint_2eproto_deps[1] = {
   &::descriptor_table_Types_2fComplexPolygon_2eproto,
@@ -73,7 +72,7 @@ static ::PROTOBUF_NAMESPACE_ID::internal::SCCInfoBase*const descriptor_table_Typ
 static ::PROTOBUF_NAMESPACE_ID::internal::once_flag descriptor_table_Types_2fPoint_2eproto_once;
 static bool descriptor_table_Types_2fPoint_2eproto_initialized = false;
 const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Types_2fPoint_2eproto = {
-  &descriptor_table_Types_2fPoint_2eproto_initialized, descriptor_table_protodef_Types_2fPoint_2eproto, "Types/Point.proto", 126,
+  &descriptor_table_Types_2fPoint_2eproto_initialized, descriptor_table_protodef_Types_2fPoint_2eproto, "Types/Point.proto", 120,
   &descriptor_table_Types_2fPoint_2eproto_once, descriptor_table_Types_2fPoint_2eproto_sccs, descriptor_table_Types_2fPoint_2eproto_deps, 1, 1,
   schemas, file_default_instances, TableStruct_Types_2fPoint_2eproto::offsets,
   file_level_metadata_Types_2fPoint_2eproto, 1, file_level_enum_descriptors_Types_2fPoint_2eproto, file_level_service_descriptors_Types_2fPoint_2eproto,
@@ -81,21 +80,21 @@ const ::PROTOBUF_NAMESPACE_ID::internal::DescriptorTable descriptor_table_Types_
 
 // Force running AddDescriptors() at dynamic initialization time.
 static bool dynamic_init_dummy_Types_2fPoint_2eproto = (  ::PROTOBUF_NAMESPACE_ID::internal::AddDescriptors(&descriptor_table_Types_2fPoint_2eproto), true);
-namespace ColmnarDB {
+namespace QikkDB {
 namespace Types {
 
 // ===================================================================
 
 void Point::InitAsDefaultInstance() {
-  ::ColmnarDB::Types::_Point_default_instance_._instance.get_mutable()->geopoint_ = const_cast< ::ColmnarDB::Types::GeoPoint*>(
-      ::ColmnarDB::Types::GeoPoint::internal_default_instance());
+  ::QikkDB::Types::_Point_default_instance_._instance.get_mutable()->geopoint_ = const_cast< ::QikkDB::Types::GeoPoint*>(
+      ::QikkDB::Types::GeoPoint::internal_default_instance());
 }
 class Point::_Internal {
  public:
-  static const ::ColmnarDB::Types::GeoPoint& geopoint(const Point* msg);
+  static const ::QikkDB::Types::GeoPoint& geopoint(const Point* msg);
 };
 
-const ::ColmnarDB::Types::GeoPoint&
+const ::QikkDB::Types::GeoPoint&
 Point::_Internal::geopoint(const Point* msg) {
   return *msg->geopoint_;
 }
@@ -108,18 +107,18 @@ void Point::clear_geopoint() {
 Point::Point()
   : ::PROTOBUF_NAMESPACE_ID::Message(), _internal_metadata_(nullptr) {
   SharedCtor();
-  // @@protoc_insertion_point(constructor:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(constructor:QikkDB.Types.Point)
 }
 Point::Point(const Point& from)
   : ::PROTOBUF_NAMESPACE_ID::Message(),
       _internal_metadata_(nullptr) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   if (from._internal_has_geopoint()) {
-    geopoint_ = new ::ColmnarDB::Types::GeoPoint(*from.geopoint_);
+    geopoint_ = new ::QikkDB::Types::GeoPoint(*from.geopoint_);
   } else {
     geopoint_ = nullptr;
   }
-  // @@protoc_insertion_point(copy_constructor:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(copy_constructor:QikkDB.Types.Point)
 }
 
 void Point::SharedCtor() {
@@ -128,7 +127,7 @@ void Point::SharedCtor() {
 }
 
 Point::~Point() {
-  // @@protoc_insertion_point(destructor:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(destructor:QikkDB.Types.Point)
   SharedDtor();
 }
 
@@ -146,7 +145,7 @@ const Point& Point::default_instance() {
 
 
 void Point::Clear() {
-// @@protoc_insertion_point(message_clear_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(message_clear_start:QikkDB.Types.Point)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
@@ -165,7 +164,7 @@ const char* Point::_InternalParse(const char* ptr, ::PROTOBUF_NAMESPACE_ID::inte
     ptr = ::PROTOBUF_NAMESPACE_ID::internal::ReadTag(ptr, &tag);
     CHK_(ptr);
     switch (tag >> 3) {
-      // .ColmnarDB.Types.GeoPoint geoPoint = 1;
+      // .QikkDB.Types.GeoPoint geoPoint = 1;
       case 1:
         if (PROTOBUF_PREDICT_TRUE(static_cast<::PROTOBUF_NAMESPACE_ID::uint8>(tag) == 10)) {
           ptr = ctx->ParseMessage(_internal_mutable_geopoint(), ptr);
@@ -194,11 +193,11 @@ failure:
 
 ::PROTOBUF_NAMESPACE_ID::uint8* Point::InternalSerializeWithCachedSizesToArray(
     ::PROTOBUF_NAMESPACE_ID::uint8* target, ::PROTOBUF_NAMESPACE_ID::io::EpsCopyOutputStream* stream) const {
-  // @@protoc_insertion_point(serialize_to_array_start:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(serialize_to_array_start:QikkDB.Types.Point)
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
-  // .ColmnarDB.Types.GeoPoint geoPoint = 1;
+  // .QikkDB.Types.GeoPoint geoPoint = 1;
   if (this->has_geopoint()) {
     stream->EnsureSpace(&target);
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::
@@ -210,19 +209,19 @@ failure:
     target = ::PROTOBUF_NAMESPACE_ID::internal::WireFormat::InternalSerializeUnknownFieldsToArray(
         _internal_metadata_.unknown_fields(), target, stream);
   }
-  // @@protoc_insertion_point(serialize_to_array_end:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(serialize_to_array_end:QikkDB.Types.Point)
   return target;
 }
 
 size_t Point::ByteSizeLong() const {
-// @@protoc_insertion_point(message_byte_size_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(message_byte_size_start:QikkDB.Types.Point)
   size_t total_size = 0;
 
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
-  // .ColmnarDB.Types.GeoPoint geoPoint = 1;
+  // .QikkDB.Types.GeoPoint geoPoint = 1;
   if (this->has_geopoint()) {
     total_size += 1 +
       ::PROTOBUF_NAMESPACE_ID::internal::WireFormatLite::MessageSize(
@@ -239,41 +238,41 @@ size_t Point::ByteSizeLong() const {
 }
 
 void Point::MergeFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_merge_from_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(generalized_merge_from_start:QikkDB.Types.Point)
   GOOGLE_DCHECK_NE(&from, this);
   const Point* source =
       ::PROTOBUF_NAMESPACE_ID::DynamicCastToGenerated<Point>(
           &from);
   if (source == nullptr) {
-  // @@protoc_insertion_point(generalized_merge_from_cast_fail:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(generalized_merge_from_cast_fail:QikkDB.Types.Point)
     ::PROTOBUF_NAMESPACE_ID::internal::ReflectionOps::Merge(from, this);
   } else {
-  // @@protoc_insertion_point(generalized_merge_from_cast_success:ColmnarDB.Types.Point)
+  // @@protoc_insertion_point(generalized_merge_from_cast_success:QikkDB.Types.Point)
     MergeFrom(*source);
   }
 }
 
 void Point::MergeFrom(const Point& from) {
-// @@protoc_insertion_point(class_specific_merge_from_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(class_specific_merge_from_start:QikkDB.Types.Point)
   GOOGLE_DCHECK_NE(&from, this);
   _internal_metadata_.MergeFrom(from._internal_metadata_);
   ::PROTOBUF_NAMESPACE_ID::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
   if (from.has_geopoint()) {
-    _internal_mutable_geopoint()->::ColmnarDB::Types::GeoPoint::MergeFrom(from._internal_geopoint());
+    _internal_mutable_geopoint()->::QikkDB::Types::GeoPoint::MergeFrom(from._internal_geopoint());
   }
 }
 
 void Point::CopyFrom(const ::PROTOBUF_NAMESPACE_ID::Message& from) {
-// @@protoc_insertion_point(generalized_copy_from_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(generalized_copy_from_start:QikkDB.Types.Point)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
 }
 
 void Point::CopyFrom(const Point& from) {
-// @@protoc_insertion_point(class_specific_copy_from_start:ColmnarDB.Types.Point)
+// @@protoc_insertion_point(class_specific_copy_from_start:QikkDB.Types.Point)
   if (&from == this) return;
   Clear();
   MergeFrom(from);
@@ -296,10 +295,10 @@ void Point::InternalSwap(Point* other) {
 
 // @@protoc_insertion_point(namespace_scope)
 }  // namespace Types
-}  // namespace ColmnarDB
+}  // namespace QikkDB
 PROTOBUF_NAMESPACE_OPEN
-template<> PROTOBUF_NOINLINE ::ColmnarDB::Types::Point* Arena::CreateMaybeMessage< ::ColmnarDB::Types::Point >(Arena* arena) {
-  return Arena::CreateInternal< ::ColmnarDB::Types::Point >(arena);
+template<> PROTOBUF_NOINLINE ::QikkDB::Types::Point* Arena::CreateMaybeMessage< ::QikkDB::Types::Point >(Arena* arena) {
+  return Arena::CreateInternal< ::QikkDB::Types::Point >(arena);
 }
 PROTOBUF_NAMESPACE_CLOSE
 
