@@ -46,7 +46,7 @@ RUN	mkdir build_qikkDB \
 RUN cd build_qikkDB && ninja
 
 # Build client console
-FROM microsoft/dotnet:2.2-sdk AS console-build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS console-build
 WORKDIR /src
 COPY ./QikkDB.ConsoleClient QikkDB.ConsoleClient/
 COPY ./QikkDB.NetworkClient QikkDB.NetworkClient/
