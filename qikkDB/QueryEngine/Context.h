@@ -30,7 +30,7 @@ private:
     static const int32_t DEFAULT_BLOCK_DIMENSION = 1024;
 
     // Number of opitimal threads per block queried for a specific GPU - currently bound to the context
-    std::vector<int32_t> queriedBlockDimensionList;
+    std::vector<int32_t> queriedBlockDimensionList_;
 
     // The found devices and their metadata
     int32_t deviceCount_;

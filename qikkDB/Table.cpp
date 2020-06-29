@@ -25,10 +25,10 @@ void Table::InsertValuesOnSpecificPosition(const std::unordered_map<std::string,
                                            const int32_t iterator,
                                            const std::unordered_map<std::string, std::vector<nullmask_t>>& nullMasks)
 {
-    for (const auto& column : columns)
+    for (const auto& column : columns_)
     {
         const std::string columnName = column.first;
-        auto currentColumn = (columns.find(columnName)->second.get());
+        auto currentColumn = (columns_.find(columnName)->second.get());
         if (data.find(columnName) != data.end())
         {
             nullmask_t isNullValue = static_cast<nullmask_t>(0U);
@@ -204,7 +204,7 @@ void Table::CheckUniqueConstraintInData(const std::unordered_map<std::string, st
     bool duplicateFound = false;
     std::string nameOfUniqueColumn;
 
-    for (const auto& column : columns)
+    for (const auto& column : columns_)
     {
         if (data.find(column.first) != data.end())
         {
@@ -523,7 +523,7 @@ void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, 
     bool nullValueFound = false;
     std::string nameOfColumn;
 
-    for (const auto& column : columns)
+    for (const auto& column : columns_)
     {
         if (nullMasks.find(column.first) != nullMasks.end())
         {
@@ -555,7 +555,7 @@ void Table::CheckNullableConstraintInData(const std::unordered_map<std::string, 
 
 bool Table::GetHasUniqueConstraints()
 {
-    for (const auto& column : columns)
+    for (const auto& column : columns_)
     {
         if (column.second.get()->GetIsUnique())
         {
@@ -567,7 +567,7 @@ bool Table::GetHasUniqueConstraints()
 
 bool Table::GetHasNotNullConstraints()
 {
-    for (const auto& column : columns)
+    for (const auto& column : columns_)
     {
         if (!column.second.get()->GetIsNullable())
         {
@@ -585,7 +585,7 @@ int32_t Table::GetDataRangeInSortingColumn()
 {
     int size = 0;
 
-    auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
+    auto firstSortingColumn = (columns_.find(sortingColumns_[0])->second.get());
     auto columnType = firstSortingColumn->GetColumnType();
 
     if (columnType == COLUMN_INT)
@@ -665,7 +665,7 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
     std::vector<std::any> resultRow;
     std::vector<uint8_t> maskOfRow;
 
-    for (auto column : sortingColumns)
+    for (auto column : sortingColumns_)
     {
         int8_t isNullValue = 0;
         if (nullMasks.find(column) != nullMasks.end())
@@ -717,7 +717,7 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
         }
         else
         {
-            switch (columns.at(column)->GetColumnType())
+            switch (columns_.at(column)->GetColumnType())
             {
             case COLUMN_INT:
                 resultRow.push_back(GetNullConstant<int32_t>());
@@ -771,7 +771,7 @@ std::tuple<int32_t, int32_t> Table::GetIndicesFromTotalIndex(const int32_t index
     int32_t blockIndex = 0;
     int32_t indexInBlock = index;
 
-    auto firstSortingColumn = (columns.find(sortingColumns[0])->second.get());
+    auto firstSortingColumn = (columns_.find(sortingColumns_[0])->second.get());
     auto columnType = firstSortingColumn->GetColumnType();
 
     int32_t positionDiff = positionToCompare ? 1 : 0;
@@ -874,9 +874,9 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
 
     int8_t isNullValue = 0;
 
-    for (auto sortingColumn : sortingColumns)
+    for (auto sortingColumn : sortingColumns_)
     {
-        auto currentSortingColumn = (columns.find(sortingColumn)->second.get());
+        auto currentSortingColumn = (columns_.find(sortingColumn)->second.get());
         auto columnType = currentSortingColumn->GetColumnType();
 
         if (columnType == COLUMN_INT)
@@ -957,7 +957,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
 
     std::tie(rowToCompare, maskOfCompareRow) = GetRowAndBitmaskOnIndex(index);
 
-    for (int i = 0; i < sortingColumns.size(); i++)
+    for (int i = 0; i < sortingColumns_.size(); i++)
     {
         int8_t insertBit = maskOfInsertRow[i];
         int8_t compareBit = maskOfCompareRow[i];
@@ -974,7 +974,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
 
         else if (insertBit == 0 && compareBit == 0)
         {
-            if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_INT)
+            if ((columns_.find(sortingColumns_[i])->second.get())->GetColumnType() == COLUMN_INT)
             {
                 if (std::any_cast<int32_t>(rowToInsert[i]) < std::any_cast<int32_t>(rowToCompare[i]))
                 {
@@ -987,7 +987,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
                 }
             }
 
-            else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_LONG)
+            else if ((columns_.find(sortingColumns_[i])->second.get())->GetColumnType() == COLUMN_LONG)
             {
                 if (std::any_cast<int64_t>(rowToInsert[i]) < std::any_cast<int64_t>(rowToCompare[i]))
                 {
@@ -1000,7 +1000,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
                 }
             }
 
-            else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_DOUBLE)
+            else if ((columns_.find(sortingColumns_[i])->second.get())->GetColumnType() == COLUMN_DOUBLE)
             {
                 if (std::any_cast<double>(rowToInsert[i]) < std::any_cast<double>(rowToCompare[i]))
                 {
@@ -1013,7 +1013,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
                 }
             }
 
-            else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_FLOAT)
+            else if ((columns_.find(sortingColumns_[i])->second.get())->GetColumnType() == COLUMN_FLOAT)
             {
                 if (std::any_cast<float>(rowToInsert[i]) < std::any_cast<float>(rowToCompare[i]))
                 {
@@ -1026,7 +1026,7 @@ Table::CompareRows(std::vector<std::any> rowToInsert, std::vector<uint8_t> maskO
                 }
             }
 
-            else if ((columns.find(sortingColumns[i])->second.get())->GetColumnType() == COLUMN_STRING)
+            else if ((columns_.find(sortingColumns_[i])->second.get())->GetColumnType() == COLUMN_STRING)
             {
                 if (std::any_cast<std::string>(rowToInsert[i]) < std::any_cast<std::string>(rowToCompare[i]))
                 {
@@ -1091,17 +1091,17 @@ std::tuple<int, int> Table::GetIndex(std::vector<std::any> rowToInsert, std::vec
 
 const std::shared_ptr<Database>& Table::GetDatabase() const
 {
-    return database;
+    return database_;
 }
 
 const std::string& Table::GetName() const
 {
-    return name;
+    return name_;
 }
 
 void Table::SetTableName(const std::string& newTableName)
 {
-    name = newTableName;
+    name_ = newTableName;
 }
 
 int Table::GetBlockSize() const
@@ -1120,9 +1120,9 @@ int32_t Table::GetBlockCount() const
 
     /* If there is at least one column in a table, return the block count of this column,
        because each column should have the same block counts */
-    if (!columns.empty())
+    if (!columns_.empty())
     {
-        blockCount = columns.begin()->second.get()->GetBlockCount();
+        blockCount = columns_.begin()->second.get()->GetBlockCount();
     }
 
     return blockCount;
@@ -1131,7 +1131,7 @@ int32_t Table::GetBlockCount() const
 int64_t Table::GetSize() const
 {
     int64_t size = 0;
-    for (auto& column : columns)
+    for (auto& column : columns_)
     {
         if (column.second->GetSize() > size)
         {
@@ -1143,24 +1143,24 @@ int64_t Table::GetSize() const
 
 const std::unordered_map<std::string, std::unique_ptr<IColumn>>& Table::GetColumns() const
 {
-    return columns;
+    return columns_;
 }
 
 const std::vector<std::string>& Table::GetSortingColumns()
 {
-    return sortingColumns;
+    return sortingColumns_;
 }
 
 void Table::SetSortingColumns(std::vector<std::string> columns)
 {
-    sortingColumns = columns;
+    sortingColumns_ = columns;
 }
 
 void Table::AddSortingColumn(const std::string& sortingColumn)
 {
-    if (std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn) == sortingColumns.end())
+    if (std::find(sortingColumns_.begin(), sortingColumns_.end(), sortingColumn) == sortingColumns_.end())
     {
-        sortingColumns.push_back(sortingColumn);
+        sortingColumns_.push_back(sortingColumn);
     }
     else
     {
@@ -1170,9 +1170,9 @@ void Table::AddSortingColumn(const std::string& sortingColumn)
 
 void Table::RemoveSortingColumn(const std::string& sortingColumn)
 {
-    if (std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn) != sortingColumns.end())
+    if (std::find(sortingColumns_.begin(), sortingColumns_.end(), sortingColumn) != sortingColumns_.end())
     {
-        sortingColumns.erase(std::find(sortingColumns.begin(), sortingColumns.end(), sortingColumn));
+        sortingColumns_.erase(std::find(sortingColumns_.begin(), sortingColumns_.end(), sortingColumn));
     }
     else
     {
@@ -1183,10 +1183,10 @@ void Table::RemoveSortingColumn(const std::string& sortingColumn)
 void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
 {
     std::unique_lock<std::mutex> lock(*columnsMutex_);
-    columns.at(oldColumnName)->SetColumnName(newColumnName);
-    auto handler = columns.extract(oldColumnName);
+    columns_.at(oldColumnName)->SetColumnName(newColumnName);
+    auto handler = columns_.extract(oldColumnName);
     handler.key() = newColumnName;
-    columns.insert(std::move(handler));
+    columns_.insert(std::move(handler));
 }
 
 /// <summary>
@@ -1196,7 +1196,7 @@ void Table::RenameColumn(std::string oldColumnName, std::string newColumnName)
 void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 {
     std::unique_lock<std::mutex> lock(*columnsMutex_);
-    auto iterator = columns.begin();
+    auto iterator = columns_.begin();
 
     if (iterator->second->GetName() == newColumnName)
     {
@@ -1305,7 +1305,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
     }
 
 
-    auto newColumn = columns.at(newColumnName).get();
+    auto newColumn = columns_.at(newColumnName).get();
     DataType newType = newColumn->GetColumnType();
 
     switch (newType)
@@ -1553,7 +1553,7 @@ std::unordered_set<ConstraintType> Table::GetConstraintsForColumn(const std::str
 {
     std::unordered_set<ConstraintType> columnConstraints;
 
-    if (std::find(sortingColumns.begin(), sortingColumns.end(), columnName) != sortingColumns.end())
+    if (std::find(sortingColumns_.begin(), sortingColumns_.end(), columnName) != sortingColumns_.end())
     {
         columnConstraints.insert(ConstraintType::CONSTRAINT_INDEX);
     }
@@ -1585,7 +1585,7 @@ void Table::SetSaveInterval(const int32_t newSaveInterval)
 void Table::EraseColumn(const std::string& columnName)
 {
     std::unique_lock<std::mutex> lock(*columnsMutex_);
-    columns.erase(columnName);
+    columns_.erase(columnName);
 }
 
 /// <summary>
@@ -1596,7 +1596,7 @@ void Table::EraseColumn(const std::string& columnName)
 /// <param name="name">Name of the newly created table.</param>
 /// <param name="blockSize">Table block size. If not specified, as the default value a database block size will be used.</param>
 Table::Table(const std::shared_ptr<Database>& database, const char* name, const int32_t blockSize)
-: database(database), name(name), columnsMutex_(std::make_unique<std::mutex>())
+: database_(database), name_(name), columnsMutex_(std::make_unique<std::mutex>())
 {
     if (blockSize == -1)
     {
@@ -1620,7 +1620,7 @@ Table::Table(const std::shared_ptr<Database>& database, const char* name, const 
 /// <param name="dataType">Data type of colum.n</param>
 void Table::CreateColumn(const char* columnName, DataType columnType, bool isNullable, bool isUnique)
 {
-    Context::getInstance().CheckColumnsLimit(columns.size() - 1);
+    Context::getInstance().CheckColumnsLimit(columns_.size() - 1);
 
     std::unique_ptr<IColumn> column;
 
@@ -1659,7 +1659,7 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
         column = std::make_unique<ColumnBase<int8_t>>(columnName, blockSize_, isNullable, isUnique);
     }
     std::unique_lock<std::mutex> lock(*columnsMutex_);
-    columns.insert(std::make_pair(columnName, std::move(column)));
+    columns_.insert(std::make_pair(columnName, std::move(column)));
 }
 
 #ifndef __CUDACC__
@@ -1687,7 +1687,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
     }
 
     // This block of code insert data according to set indices
-    if (!sortingColumns.empty())
+    if (!sortingColumns_.empty())
     {
         std::vector<std::any> rowToInsert;
         std::vector<uint8_t> maskOfRow;
@@ -1706,7 +1706,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
     }
     else
     {
-        for (const auto& column : columns)
+        for (const auto& column : columns_)
         {
             std::string columnName = column.first;
             if (data.find(columnName) != data.end())
@@ -1717,7 +1717,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     if (wrappedData.type() == typeid(std::vector<int32_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int32_t>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1728,7 +1728,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<int64_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int64_t>*>(columns_.find(columnName)->second.get());
 
                         castedColumn->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
@@ -1740,7 +1740,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<double>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<double>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<double>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1751,7 +1751,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<float>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<float>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<float>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1762,7 +1762,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<std::string>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<std::string>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1773,7 +1773,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
                     {
                         auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
-                            columns.find(columnName)->second.get());
+                            columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1785,7 +1785,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::Point>))
                     {
                         auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
-                            columns.find(columnName)->second.get());
+                            columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1797,7 +1797,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<int8_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int8_t>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData),
                                                  nullMasks.at(columnName), -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1811,7 +1811,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     if (wrappedData.type() == typeid(std::vector<int32_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int32_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int32_t>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<int32_t>>(wrappedData), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
@@ -1821,7 +1821,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<int64_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int64_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int64_t>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<int64_t>>(wrappedData), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
@@ -1831,7 +1831,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<double>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<double>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<double>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<double>>(wrappedData), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
@@ -1841,7 +1841,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<float>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<float>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<float>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<float>>(wrappedData), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
@@ -1851,7 +1851,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<std::string>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<std::string>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<std::string>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<std::string>>(wrappedData),
                                                  -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1862,7 +1862,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::ComplexPolygon>))
                     {
                         auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(
-                            columns.find(columnName)->second.get());
+                            columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::ComplexPolygon>>(wrappedData),
                                                  -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1874,7 +1874,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<QikkDB::Types::Point>))
                     {
                         auto castedColumn = dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(
-                            columns.find(columnName)->second.get());
+                            columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<QikkDB::Types::Point>>(wrappedData),
                                                  -1, compress);
                         if (castedColumn->GetIsUnique())
@@ -1886,7 +1886,7 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
                     else if (wrappedData.type() == typeid(std::vector<int8_t>))
                     {
                         auto castedColumn =
-                            dynamic_cast<ColumnBase<int8_t>*>(columns.find(columnName)->second.get());
+                            dynamic_cast<ColumnBase<int8_t>*>(columns_.find(columnName)->second.get());
                         castedColumn->InsertData(std::any_cast<std::vector<int8_t>>(wrappedData), -1, compress);
                         if (castedColumn->GetIsUnique())
                         {
@@ -1907,8 +1907,8 @@ void Table::InsertData(const std::unordered_map<std::string, std::any>& data,
 /// <returns>Return true, if table contains particular column. Returns false, if table does not contains particular column.</returns>
 bool Table::ContainsColumn(const char* column)
 {
-    auto search = columns.find(column);
-    if (search != columns.end())
+    auto search = columns_.find(column);
+    if (search != columns_.end())
     {
         return true;
     }

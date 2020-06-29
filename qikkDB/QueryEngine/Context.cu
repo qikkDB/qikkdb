@@ -65,7 +65,7 @@ void Context::Initialize()
         gpuCaches_.emplace_back(std::make_unique<GPUMemoryCache>(i, cacheSize));
 
         // Get the correct blockDim from the device - use always based on the bound device - optimal for kernels
-        queriedBlockDimensionList.push_back(deviceProp.maxThreadsPerBlock);
+        queriedBlockDimensionList_.push_back(deviceProp.maxThreadsPerBlock);
 
         // Print device info
         CudaLogBoost::getInstance(CudaLogBoost::info)
@@ -123,12 +123,12 @@ int32_t Context::calcGridDim(size_t dataElementCount)
 
 int32_t Context::getBlockDim() const
 {
-    return queriedBlockDimensionList[getBoundDeviceID()];
+    return queriedBlockDimensionList_[getBoundDeviceID()];
 }
 
 int32_t Context::getBlockDimPoly() const
 {
-    return queriedBlockDimensionList[getBoundDeviceID()] / 2;
+    return queriedBlockDimensionList_[getBoundDeviceID()] / 2;
 }
 
 int32_t Context::getBoundDeviceID() const

@@ -28,12 +28,12 @@ private:
         Equal
     };
 
-    const std::shared_ptr<Database>& database;
-    std::string name;
+    const std::shared_ptr<Database>& database_;
+    std::string name_;
     int32_t blockSize_;
-    std::unordered_map<std::string, std::unique_ptr<IColumn>> columns;
+    std::unordered_map<std::string, std::unique_ptr<IColumn>> columns_;
     std::unordered_map<std::string, std::pair<ConstraintType, std::vector<std::string>>> constraints_;
-    std::vector<std::string> sortingColumns;
+    std::vector<std::string> sortingColumns_;
     std::unique_ptr<std::mutex> columnsMutex_;
     // save interval in milliseconds, default value is from configuration file, but can be overriden via .db file:
     int32_t saveInterval_ = Configuration::GetInstance().GetDBSaveInterval();
