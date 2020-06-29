@@ -343,7 +343,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* ctx
         dispatcher_.AddLogicalNotFunction(operandType);
         returnDataType = DataType::COLUMN_INT8_T;
         break;
-    case GpuSqlLexer::ISNULL:
+    case GpuSqlLexer::NULL_T:
         reg = "$" + op + operand;
         if (operandType < DataType::COLUMN_INT)
         {
@@ -352,7 +352,7 @@ void GpuSqlListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* ctx
         dispatcher_.AddIsNullFunction();
         returnDataType = DataType::COLUMN_INT8_T;
         break;
-    case GpuSqlLexer::ISNOTNULL:
+    case GpuSqlLexer::NOT:
         reg = "$" + op + operand;
         if (operandType < DataType::COLUMN_INT)
         {
@@ -2002,7 +2002,7 @@ void GpuSqlListener::exitSqlInsertInto(GpuSqlParser::SqlInsertIntoContext* ctx)
         antlr4::misc::Interval interval(start, stop);
         std::string valueText = value->start->getInputStream()->getText(interval);
         values.push_back(valueText);
-        isValueNull.push_back(value->NULLLIT() != nullptr);
+        isValueNull.push_back(value->NULL_T() != nullptr);
     }
 
     if (columns.size() != values.size())

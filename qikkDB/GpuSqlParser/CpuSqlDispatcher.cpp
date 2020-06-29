@@ -175,10 +175,10 @@ void CpuSqlDispatcher::AddUnaryOperation(DataType type, size_t opType)
     case GpuSqlLexer::LOGICAL_NOT:
         cpuDispatcherFunctions_.push_back(logicalNotFunctions_[type]);
         break;
-    case GpuSqlLexer::ISNULL:
+    case GpuSqlLexer::NULL_T:
         cpuDispatcherFunctions_.push_back(nullFunction);
         break;
-    case GpuSqlLexer::ISNOTNULL:
+    case GpuSqlLexer::NOT:
         cpuDispatcherFunctions_.push_back(nullFunction);
         break;
     case GpuSqlLexer::MINUS:

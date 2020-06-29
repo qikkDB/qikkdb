@@ -12,7 +12,7 @@ ConstraintType GetConstraintType(const std::string& constraintTypeName)
 
     const std::unordered_map<std::string, ConstraintType> constraintTypes = {
         {"INDEX", ConstraintType::CONSTRAINT_INDEX},
-        {"NOT NULL", ConstraintType::CONSTRAINT_NOT_NULL},
+        {"NOTNULL", ConstraintType::CONSTRAINT_NOT_NULL},
         {"UNIQUE", ConstraintType::CONSTRAINT_UNIQUE}};
 
     if (constraintTypes.find(constraintTypeNameUpper) == constraintTypes.end())

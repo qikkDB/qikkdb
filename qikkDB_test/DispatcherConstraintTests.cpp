@@ -160,7 +160,7 @@ TEST(DispatcherConstraintTests, SetBlockSizePerTableTest)
     resultPtr = parser2.Parse();
 
     GpuSqlCustomParser parser3(DispatcherObjs::GetInstance().database,
-                               "CREATE TABLETableBlockSizeC 20 (colA INT);");
+                               "CREATE TABLE TableBlockSizeC 20 (colA INT);");
     resultPtr = parser3.Parse();
 
     ASSERT_TRUE(DispatcherObjs::GetInstance().database->GetTables().find("TableBlockSizeA") !=

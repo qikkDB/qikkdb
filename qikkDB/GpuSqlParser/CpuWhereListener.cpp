@@ -194,7 +194,7 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         reg = "$" + op + operand;
         returnDataType = DataType::COLUMN_INT8_T;
         break;
-    case GpuSqlLexer::ISNULL:
+    case GpuSqlLexer::NULL_T:
         reg = "$" + op + operand;
         if (operandType < DataType::COLUMN_INT)
         {
@@ -202,7 +202,7 @@ void CpuWhereListener::exitUnaryOperation(GpuSqlParser::UnaryOperationContext* c
         }
         returnDataType = DataType::COLUMN_INT8_T;
         break;
-    case GpuSqlLexer::ISNOTNULL:
+    case GpuSqlLexer::NOT:
         reg = "$" + op + operand;
         if (operandType < DataType::COLUMN_INT)
         {

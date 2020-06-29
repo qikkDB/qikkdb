@@ -21,32 +21,32 @@ statement:
 
 showStatement: ( showDatabases | showTables | showColumns | showConstraints );
 
-showDatabases: SHOWDB SEMICOL;
-showTables: SHOWTB ((FROM | IN) database)? SEMICOL;
+showDatabases: SHOW DATABASES SEMICOL;
+showTables: SHOW TABLES ((FROM | IN) database)? SEMICOL;
 showColumns:
-	SHOWCL (FROM | IN) table ((FROM | IN) database)? SEMICOL;
-showConstraints: SHOWCONSTRAINTS (FROM | IN) table ((FROM | IN) database)? SEMICOL;
+	SHOW COLUMNS (FROM | IN) table ((FROM | IN) database)? SEMICOL;
+showConstraints: SHOW CONSTRAINTS (FROM | IN) table ((FROM | IN) database)? SEMICOL;
 
-showQueryTypes: SHOWQTYPES sqlSelect;
+showQueryTypes: SHOW QUERY COLUMN TYPES sqlSelect;
 
 sqlSelect:
 	SELECT selectColumns FROM fromTables (joinClauses)? (
 		WHERE whereClause
-	)? (GROUPBY groupByColumns)? (ORDERBY orderByColumns)? (
+	)? (GROUP BY groupByColumns)? (ORDER BY orderByColumns)? (
 		LIMIT limit
 	)? (OFFSET offset)? SEMICOL;
-sqlCreateDb: CREATEDB database (blockSize)? SEMICOL;
-sqlDropDb: DROPDB database SEMICOL;
+sqlCreateDb: CREATE DATABASE database (blockSize)? SEMICOL;
+sqlDropDb: DROP DATABASE database SEMICOL;
 sqlCreateTable:
-	CREATETABLE table (blockSize)? LPAREN newTableEntries RPAREN SEMICOL;
-sqlDropTable: DROPTABLE table SEMICOL;
-sqlAlterTable: ALTERTABLE table alterTableEntries SEMICOL;
+	CREATE TABLE table (blockSize)? LPAREN newTableEntries RPAREN SEMICOL;
+sqlDropTable: DROP TABLE table SEMICOL;
+sqlAlterTable: ALTER TABLE table alterTableEntries SEMICOL;
 sqlAlterDatabase:
-	ALTERDATABASE database alterDatabaseEntries SEMICOL;
+	ALTER DATABASE database alterDatabaseEntries SEMICOL;
 sqlCreateIndex:
-	CREATEINDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
+	CREATE INDEX indexName ON table LPAREN indexColumns RPAREN SEMICOL;
 sqlInsertInto:
-	INSERTINTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
+	INSERT INTO table LPAREN insertIntoColumns RPAREN VALUES LPAREN insertIntoValues RPAREN SEMICOL;
 newTableEntries: ((newTableEntry (COMMA newTableEntry)*));
 newTableEntry: (newTableColumn | newTableConstraint);
 alterDatabaseEntries: (
@@ -56,7 +56,7 @@ alterDatabaseEntry: (
         renameDatabase
         | alterBlockSize
    );
-renameDatabase: (RENAMETO database);
+renameDatabase: (RENAME TO database);
 alterTableEntries: ((alterTableEntry (COMMA alterTableEntry)*));
 alterTableEntry: (
 		addColumn
@@ -69,15 +69,15 @@ alterTableEntry: (
 		| alterBlockSize
 	);
 addColumn: (ADD column datatype);
-dropColumn: (DROPCOLUMN column);
-alterColumn: (ALTERCOLUMN column datatype);
-renameColumn: (RENAMECOLUMN renameColumnFrom TO renameColumnTo);
-renameTable: (RENAMETO table);
+dropColumn: (DROP COLUMN column);
+alterColumn: (ALTER COLUMN column datatype);
+renameColumn: (RENAME COLUMN renameColumnFrom TO renameColumnTo);
+renameTable: (RENAME TO table);
 addConstraint: (
 		ADD constraint constraintName LPAREN constraintColumns RPAREN
 	);
 dropConstraint: (DROP constraint constraintName);
-alterBlockSize: (ALTER BLOCKSIZE blockSize);
+alterBlockSize: (ALTER BLOCK SIZE blockSize);
 renameColumnFrom: column;
 renameColumnTo: column;
 newTableColumn: (column datatype (constraint)?);
@@ -119,7 +119,7 @@ joinOperator: (
 		| NOTEQUALS
 		| NOTEQUALS_GT_LT
 	);
-joinType: (INNER | LEFT | RIGHT | FULLOUTER);
+joinType: (INNER | LEFT | RIGHT | FULL OUTER);
 fromTable: table (AS alias)?;
 columnId: (column) | (table DOT column);
 table: (ID | DELIMID);
@@ -135,19 +135,19 @@ columnValue: (
 		MINUS? INTLIT
 		| MINUS? FLOATLIT
 		| geometry
-		| NULLLIT
+		| NULL_T
 		| STRING
 		| DATETIMELIT
 		| BOOLEANLIT
 	);
-constraint: ( UNIQUE | INDEX | NOTNULL);
+constraint: ( UNIQUE | INDEX | NOT NULL_T);
 retpayload: datatype;
 
 expression:
 	op = LOGICAL_NOT expression														# unaryOperation
 	| op = MINUS expression															# unaryOperation
-	| expression op = ISNULL														# unaryOperation
-	| expression op = ISNOTNULL														# unaryOperation
+	| expression IS op = NULL_T														# unaryOperation
+	| expression IS op = NOT NULL_T												    # unaryOperation
 	| op = ABS LPAREN expression RPAREN												# unaryOperation
 	| op = SIN LPAREN expression RPAREN												# unaryOperation
 	| op = COS LPAREN expression RPAREN												# unaryOperation
