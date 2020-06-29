@@ -185,7 +185,6 @@ public:
         sum_ = sum;
 
         size_ += dataSize;
-        saveNecessary_ = true;
     }
 
     T GetMax()
@@ -256,7 +255,6 @@ public:
             bitMask_.reset();
             isNullable_ = isNullable;
         }
-        saveNecessary_ = true;
     }
 
     nullmask_t* GetNullBitmask()
@@ -297,6 +295,11 @@ public:
     void SetSaveNecessaryToFalse()
     {
         saveNecessary_ = false;
+    }
+
+	void SetSaveNecessaryToTrue()
+    {
+        saveNecessary_ = true;
     }
 
     void SetIsCompressed(const bool isCompressed)
@@ -386,7 +389,6 @@ public:
 
             // count statistics from whole block - setting nullmasks can change them
             setBlockStatistics(0, 0);
-            saveNecessary_ = true;
         }
     }
 
@@ -408,7 +410,6 @@ public:
             }
             // count statistics from whole block - setting nullmasks can change them
             setBlockStatistics(0, 0);
-            saveNecessary_ = true;
         }
     }
 
@@ -443,7 +444,6 @@ public:
             std::copy(dataCompressed.begin(), dataCompressed.end(), data_.get());
 
             isCompressed_ = true;
-            saveNecessary_ = true;
         }
     }
 
@@ -471,7 +471,6 @@ public:
             std::copy(dataDecompressed.begin(), dataDecompressed.end(), data_.get());
 
             isCompressed_ = false;
-            saveNecessary_ = true;
         }
     }
 

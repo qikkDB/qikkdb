@@ -1,5 +1,5 @@
-
 #pragma once
+
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -117,6 +117,8 @@ private:
     bool isUnique_;
 
 public:
+    static constexpr const char* POLYGON_DEFAULT_VALUE = "POLYGON((0 0, 1 1, 2 2, 0 0))";
+
     ColumnBase(const std::string& name, int blockSize, bool isNullable = false, bool isUnique = false)
     : name_(name), size_(0), blockSize_(blockSize), blocks_(), isNullable_(false), isUnique_(false),
       initAvgIsSet_(false)

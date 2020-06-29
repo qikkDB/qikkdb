@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <json/json.h>
 
+#include "ColumnBase.h"
 #include "Configuration.h"
 #include "Database.h"
 
@@ -321,8 +322,7 @@ void Database::PersistOnlyDbFile()
                     const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
                         dynamic_cast<const ColumnBase<QikkDB::Types::ComplexPolygon>&>(*(column.second));
 
-                    columnsJSON["default_entry_value"] =
-                        POLYGON_DEFAULT_VALUE; // we need to hardcode it due to Google Protobuffers
+                    columnsJSON["default_entry_value"] = ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE; // we need to hardcode it due to Google Protobuffers
                 }
                 break;
 
@@ -1764,7 +1764,7 @@ void Database::LoadColumn(const std::string fileDbPath,
         table.CreateColumn(columnName.c_str(), COLUMN_POLYGON, isNullable, isUnique);
         auto& columnPolygon =
             dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(*table.GetColumns().at(columnName));
-        std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
+        std::vector<uint32_t> fragBlockIndices; // position: fragment index, value: block index
         std::ifstream fragFile(fileFragmentPath, std::ios::binary);
 
         columnPolygon.SetFileAddressPath(fileAddressPath);
@@ -2043,7 +2043,7 @@ void Database::LoadColumn(const std::string fileDbPath,
     {
         table.CreateColumn(columnName.c_str(), COLUMN_STRING, isNullable, isUnique);
         auto& columnString = dynamic_cast<ColumnBase<std::string>&>(*table.GetColumns().at(columnName));
-        std::vector<int32_t> fragBlockIndices; // position: fragment index, value: block index
+        std::vector<uint32_t> fragBlockIndices; // position: fragment index, value: block index
         std::ifstream fragFile(fileFragmentPath, std::ios::binary);
 
         columnString.SetFileAddressPath(fileAddressPath);
@@ -2109,11 +2109,10 @@ void Database::LoadColumn(const std::string fileDbPath,
                 colFile.read(reinterpret_cast<char*>(&dataLength),
                              sizeof(uint64_t)); // read data length (number of entries)
 
-
                 auto& block = columnString.AddBlock(groupId, false, index);
                 std::vector<std::string> dataString;
 
-                // for each fragment, read data, if it belongs to the current block index:
+                // for each fragment, read data, if it belongs to the current block index add them:
                 for (int32_t fragIdx = 0; fragIdx < fragBlockIndices.size(); fragIdx++)
                 {
                     if (index == fragBlockIndices[fragIdx])
@@ -2126,7 +2125,6 @@ void Database::LoadColumn(const std::string fileDbPath,
                         {
                             if (readBytes + sizeof(int32_t) <= FRAGMENT_SIZE_BYTES)
                             {
-
                                 int32_t entryByteLength;
                                 fragFile.read(reinterpret_cast<char*>(&entryByteLength),
                                               sizeof(int32_t)); // read length of string entry data
@@ -2936,6 +2934,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int32_t groupId = block->GetGroupId();
                     size_t blockCurrentSize = block->GetSize();
                     int64_t dataByteSize = 0;
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write block index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write group id (binary index)
@@ -2972,6 +2971,14 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 
                             // transform protobuf message into WKT strings:
                             std::string wktPolygon = ComplexPolygonFactory::WktFromPolygon(data[i]);
+
+							/* if data are NULL, the creation of POLYGON results in just "POLYGON()" which
+                             * is not correct WKT and it would broke database, therefore we need to persist
+                             * some correct WKT and via nullBitMasks we know, it is ackhually NULL value: */
+                            if (wktPolygon == "POLYGON()")
+                            {
+                                wktPolygon = ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE;
+                            }
 
                             // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
                             dataByteSize += wktPolygon.length() + 1 + sizeof(int32_t);
@@ -3067,6 +3074,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                             << FRAGMENT_DATA_EXTENSION
                             << " file was not successful. Check if the process "
                                "have write access into the folder or file.";
+                        block->SetSaveNecessaryToTrue();
                     }
 
                     index += 1;
@@ -3084,6 +3092,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3108,6 +3117,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int32_t groupId = block->GetGroupId();
                     size_t blockCurrentSize = block->GetSize();
                     bool isCompressed = block->IsCompressed();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3168,6 +3178,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3203,6 +3214,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int32_t groupId = block->GetGroupId();
                     size_t blockCurrentSize = block->GetSize();
                     int64_t dataByteSize = 0;
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3334,6 +3346,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                             << FRAGMENT_DATA_EXTENSION
                             << " file was not successful. Check if the process "
                                "have write access into the folder or file.";
+                        block->SetSaveNecessaryToTrue();
                     }
 
                     index += 1;
@@ -3351,6 +3364,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3381,6 +3395,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int8_t max = block->GetMax();
                     float avg = block->GetAvg();
                     int8_t sum = block->GetSum();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3430,6 +3445,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3459,6 +3475,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int32_t max = block->GetMax();
                     float avg = block->GetAvg();
                     int32_t sum = block->GetSum();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3509,6 +3526,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3538,6 +3556,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     int64_t max = block->GetMax();
                     float avg = block->GetAvg();
                     int64_t sum = block->GetSum();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3587,6 +3606,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3615,6 +3635,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     float max = block->GetMax();
                     float avg = block->GetAvg();
                     float sum = block->GetSum();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3664,6 +3685,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3694,6 +3716,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                     double max = block->GetMax();
                     float avg = block->GetAvg();
                     double sum = block->GetSum();
+                    block->SetSaveNecessaryToFalse();
 
                     colDataFile.write(reinterpret_cast<char*>(&index), sizeof(uint32_t)); // write index
                     colDataFile.write(reinterpret_cast<char*>(&groupId), sizeof(int32_t)); // write groupId
@@ -3743,6 +3766,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                                "reason, this block of data and data of other blocks whose have not "
                                "been persisted yet, will not be persisted in order to protect "
                                "already persisted data on disk.";
+                        block->SetSaveNecessaryToTrue();
                         break;
                     }
                 }
@@ -3805,6 +3829,7 @@ void Database::WriteBlockNumericTypes<QikkDB::Types::Point>(
     int32_t blockSize = table.GetBlockSize();
     std::string fileDataPath = column.second->GetFileDataPath();
     const std::string tableName = table.GetName();
+    block.SetSaveNecessaryToFalse();
 
     // default data path if not specified by user:
     if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
@@ -3838,6 +3863,7 @@ void Database::WriteBlockNumericTypes<QikkDB::Types::Point>(
                    "not "
                    "been persisted yet, will not be persisted in order to protect "
                    "already persisted data on disk.";
+            block.SetSaveNecessaryToTrue();
         }
 
         const ColumnBase<QikkDB::Types::Point>& colPoint =
@@ -3903,6 +3929,7 @@ void Database::WriteBlockNumericTypes<QikkDB::Types::Point>(
             << COLUMN_DATA_EXTENSION
             << " file was not successful. Check if the process "
                "have write access into the folder or file.";
+        block.SetSaveNecessaryToTrue();
     }
 }
 

@@ -14767,7 +14767,7 @@ TEST(DispatcherTests, AlterTableAlterColumnStringToPolygon)
             "POLYGON((10 11, 11.11 12.13, 10 11), (21 30, 35.55 36, 30.11 20.26, 21 30), (61 "
             "80.11, 90 89.15, 112.12 110, 61 80.11))");
         QikkDB::Types::ComplexPolygon emptyPolygon =
-            ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+            ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
         expectedResultsCol.push_back(ComplexPolygonFactory::WktFromPolygon(polygon, true));
         expectedResultsColString.push_back(ComplexPolygonFactory::WktFromPolygon(emptyPolygon, true));
     }

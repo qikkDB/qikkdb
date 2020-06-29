@@ -52,8 +52,8 @@ std::vector<QikkDB::Types::Point> ColumnBase<QikkDB::Types::Point>::NullArray(in
 template <>
 std::vector<QikkDB::Types::ComplexPolygon> ColumnBase<QikkDB::Types::ComplexPolygon>::NullArray(int length)
 {
-    return std::vector<QikkDB::Types::ComplexPolygon>(length, ComplexPolygonFactory::FromWkt(
-                                                                     "POLYGON((0 0, 0 0))"));
+    return std::vector<QikkDB::Types::ComplexPolygon>(
+        length, ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE));
 }
 
 template <>
@@ -166,10 +166,10 @@ void ColumnBase<QikkDB::Types::Point>::setColumnStatistics()
 template <>
 void ColumnBase<QikkDB::Types::ComplexPolygon>::setColumnStatistics()
 {
-    min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
-    max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+    min_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
+    max_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
     avg_ = (float)0.0;
-    sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+    sum_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
 }
 
 template <>
@@ -614,7 +614,7 @@ void ColumnBase<QikkDB::Types::Point>::CopyDataToColumn(IColumn* destinationColu
     }
 
     else
-	{
+    {
         throw std::runtime_error("Attempt to execute unsupported column type conversion.");
     }
 }

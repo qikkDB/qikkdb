@@ -1299,7 +1299,8 @@ TEST(ColumnTests, InsertNull)
         ASSERT_TRUE(std::isnan(dataInFloatBlock[i]));
         ASSERT_TRUE(std::isnan(dataInDoubleBlock[i]));
         ASSERT_EQ("POINT(0 0)", PointFactory::WktFromPoint(dataInPointBlock[i]));
-        ASSERT_EQ("POLYGON((0 0, 0 0))", ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
+        ASSERT_EQ(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE,
+                  ComplexPolygonFactory::WktFromPolygon(dataInPolygonBlock[i]));
         ASSERT_EQ(" ", dataInStringBlock[i]);
     }
 }
@@ -1443,11 +1444,11 @@ ASSERT_EQ(PointFactory::WktFromPoint(dynamic_cast<ColumnBase<QikkDB::Types::Poin
 ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<QikkDB::Types::Point>*>(columnPoint.get())->GetAvg(), 0);
 
     ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMin()),
-"POLYGON((0 0, 0 0))");
+ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
 ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetMax()),
-"POLYGON((0 0, 0 0))");
+ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
 ASSERT_EQ(ComplexPolygonFactory::WktFromPolygon(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetSum()),
-"POLYGON((0 0, 0 0))");
+ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
 ASSERT_FLOAT_EQ(dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(columnPolygon.get())->GetAvg(),
 0);
 

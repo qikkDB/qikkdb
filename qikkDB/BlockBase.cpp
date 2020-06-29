@@ -3,6 +3,8 @@
 #include "ComplexPolygonFactory.h"
 #include "Types/ComplexPolygon.pb.h"
 #include "Types/Point.pb.h"
+#include "ColumnBase.h"
+
 #include <numeric>
 #include <algorithm>
 #include <cmath>
@@ -201,10 +203,10 @@ void BlockBase<QikkDB::Types::ComplexPolygon>::updateBlockStatistics(const QikkD
 {
     if (size_ == 0)
     {
-        min_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
-        max_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+        min_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
+        max_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
         avg_ = (float)0.0;
-        sum_ = ComplexPolygonFactory::FromWkt("POLYGON((0 0, 0 0))");
+        sum_ = ComplexPolygonFactory::FromWkt(ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE);
     }
 
     size_++;

@@ -87,6 +87,7 @@ private:
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
+        block.SetSaveNecessaryToFalse();
 
         // default data path if not specified by user:
         if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
@@ -106,10 +107,10 @@ private:
             uint32_t index = block.GetIndex();
 
             /* check if we did not get UINT32_MAX value in index - this value is reserved
-			to identify new block, which are just in memory and have never been persisted
-			into disk. If index reached this value, it means, the blockSize had been chosen
-			to too small value and we have reached our maximum number of blocks. No new
-			blocks will be persisted in order to at least save the current data.*/
+            to identify new block, which are just in memory and have never been persisted
+            into disk. If index reached this value, it means, the blockSize had been chosen
+            to too small value and we have reached our maximum number of blocks. No new
+            blocks will be persisted in order to at least save the current data.*/
             if (block.GetIndex() == UINT32_MAX)
             {
                 BOOST_LOG_TRIVIAL(error)
@@ -119,6 +120,7 @@ private:
                        "not "
                        "been persisted yet, will not be persisted in order to protect "
                        "already persisted data on disk.";
+                block.SetSaveNecessaryToTrue();
             }
 
             const ColumnBase<QikkDB::Types::ComplexPolygon>& colPolygon =
@@ -174,6 +176,14 @@ private:
                 {
                     // transform protobuf message into WKT strings:
                     std::string wktPolygon = ComplexPolygonFactory::WktFromPolygon(data[i]);
+
+                    /* if data are NULL, the creation of POLYGON results in just "POLYGON()" which
+                     * is not correct WKT and it would broke database, therefore we need to persist
+					 * some correct WKT and via nullBitMasks we know, it is ackhually NULL value: */
+                    if (wktPolygon == "POLYGON()")
+                    {
+                        wktPolygon = ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE;
+                    }
 
                     // +1 because '\0', +sizeof(int32_t) because each string is prefixed it's length
                     dataByteSize += wktPolygon.length() + 1 + sizeof(int32_t);
@@ -267,6 +277,7 @@ private:
                     << FRAGMENT_DATA_EXTENSION
                     << " file was not successful. Check if the process "
                        "have write access into the folder or file.";
+                block.SetSaveNecessaryToTrue();
             }
 
             /* check if we did not get UINT32_MAX value in index - this value is reserved
@@ -283,6 +294,7 @@ private:
                        "not "
                        "been persisted yet, will not be persisted in order to protect "
                        "already persisted data on disk.";
+                block.SetSaveNecessaryToTrue();
             }
 
             colDataFile.close();
@@ -298,6 +310,7 @@ private:
                 << FRAGMENT_DATA_EXTENSION
                 << " file was not successful. Check if the process "
                    "have write access into the folder or file.";
+            block.SetSaveNecessaryToTrue();
         }
     }
 
@@ -322,6 +335,7 @@ private:
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
+        block.SetSaveNecessaryToFalse();
 
         // default data path if not specified by user:
         if (fileDataPath.size() <= Configuration::GetInstance().GetDatabaseDir().size())
@@ -354,6 +368,7 @@ private:
                        "not "
                        "been persisted yet, will not be persisted in order to protect "
                        "already persisted data on disk.";
+                block.SetSaveNecessaryToTrue();
             }
 
             const ColumnBase<std::string>& colStr =
@@ -498,6 +513,7 @@ private:
                     << FRAGMENT_DATA_EXTENSION
                     << " file was not successful. Check if the process "
                        "have write access into the folder or file.";
+                block.SetSaveNecessaryToTrue();
             }
 
             colDataFile.close();
@@ -525,6 +541,7 @@ private:
         const int32_t blockSize = table.GetBlockSize();
         std::string fileDataPath = column.second->GetFileDataPath();
         const std::string tableName = table.GetName();
+        block.SetSaveNecessaryToFalse();
 
         // default data path if not specified by user:
         if (fileDataPath.size() == 0 || fileDataPath == Configuration::GetInstance().GetDatabaseDir())
@@ -557,6 +574,7 @@ private:
                        "not "
                        "been persisted yet, will not be persisted in order to protect "
                        "already persisted data on disk.";
+                block.SetSaveNecessaryToTrue();
             }
 
             const ColumnBase<T>& colInt = dynamic_cast<const ColumnBase<T>&>(*(column.second));
@@ -616,10 +634,11 @@ private:
                 << COLUMN_DATA_EXTENSION
                 << " file was not successful. Check if the process "
                    "have write access into the folder or file.";
+            block.SetSaveNecessaryToTrue();
         }
     }
 
-	/// <summary>
+    /// <summary>
     /// Deletes old persisted files and writes column into disk creating new files. There is no
     /// modification of already persisted files. Previous files are replaced. This is operation
     /// needs more RAM memory than saving only modified blocks of data.
@@ -639,7 +658,6 @@ public:
     static constexpr const char* COLUMN_ADDRESS_EXTENSION = ".adrs";
     static constexpr const char* FRAGMENT_DATA_EXTENSION = ".fragdata";
     static constexpr const int32_t FRAGMENT_SIZE_BYTES = 1048576;
-    static constexpr const char* POLYGON_DEFAULT_VALUE = "POLYGON((0 0, 1 1, 2 2, 0 0))";
     std::mutex dbMutex_;
     static std::mutex staticDbMutex_;
     /// <summary>

@@ -163,7 +163,7 @@ namespace QikkDB.ConsoleClient
             }
             catch
             {
-                throw new ParserException("Could not access file when getting encoding. Maybe the file is corrupted.");
+                throw new ParserException("Could not access file when getting encoding. Maybe the file is corrupted or opened by another program.");
             }
             return result;
         }
