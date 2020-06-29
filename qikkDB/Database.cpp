@@ -2975,7 +2975,7 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
 							/* if data are NULL, the creation of POLYGON results in just "POLYGON()" which
                              * is not correct WKT and it would broke database, therefore we need to persist
                              * some correct WKT and via nullBitMasks we know, it is ackhually NULL value: */
-                            if (wktPolygon == "POLYGON()")
+                            if (wktPolygon == ComplexPolygonFactory::WktFromPolygon(QikkDB::Types::ComplexPolygon()))
                             {
                                 wktPolygon = ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE;
                             }
