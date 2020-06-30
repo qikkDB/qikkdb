@@ -1494,12 +1494,12 @@ void Database::ChangeDatabaseBlockSize(const int32_t newBlockSize)
 
 		std::vector<std::string> tableNames;
 
-        for (auto& table : tables_)
+        for (const auto& table : tables_)
         {
             tableNames.push_back(table.first);
         }
 
-        for (std::string tableName : tableNames)
+        for (const std::string& tableName : tableNames)
         {
             ChangeTableBlockSize(tableName, newBlockSize);
         }
