@@ -74,10 +74,9 @@ To clone and build the project:
     
 
 # Building Console Client
-Run command:
+Run commands (starting from main project directory):
 
-dotnet build ./QikkDB.ConsoleClient/
-
-then go to directory ./build/debug/client and run command:
-
-dotnet ./QikkDB.ConsoleClient.dll
+    cd QikkDB.ConsoleClient
+    dotnet build
+    cd ../build/debug/client
+    dotnet ./QikkDB.ConsoleClient.dll
