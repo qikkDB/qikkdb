@@ -12,7 +12,7 @@ We support Windows and Linux operating systems.
 You can use an [installation script](https://docs.qikk.ly/installation-getting-started#linux-installation-script) or [dockerfile](https://docs.qikk.ly/installation-getting-started#linux-deployment-via-docker).
 
 ## Windows
-We provide [installation wizard](https://docs.qikk.ly/installation-getting-started#windows-installation-wizard) for Windows.
+We provide an [installation wizard](https://docs.qikk.ly/installation-getting-started#windows-installation-wizard) for Windows.
 
 # Using
 Learn how to [start a database](https://docs.qikk.ly/installation-getting-started#starting-database) and how to execute a [first query](https://docs.qikk.ly/installation-getting-started#first-query).
