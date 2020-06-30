@@ -54,7 +54,7 @@ bool GPUMemoryCache::Evict()
         }
 
         BOOST_LOG_TRIVIAL(debug) << "GPUMemoryCache: Device ID: " << deviceID_
-                                 << " Evict: " << queueItem.ref.key << " " << reinterpret_cast<int8_t*>(queueItem.ref.ptr) << " "
+                                 << " Evict: " << queueItem.ref.key << " " << queueItem.ref.ptr << " "
                                  << queueItem.ref.size;
         Context::getInstance().GetAllocatorForDevice(deviceID_).Deallocate(reinterpret_cast<int8_t*>(
                                                                                queueItem.ref.ptr));
