@@ -8,6 +8,16 @@
 			"columns" : 
 			[
 				{
+					"column_name" : "total_amount",
+					"column_type" : 10,
+					"default_entry_value" : "0.000000",
+					"file_path_address_file" : "../databases/trips@trips_sample@total_amount.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@total_amount.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
 					"column_name" : "cab_type",
 					"column_type" : 8,
 					"default_entry_value" : "0",
@@ -18,43 +28,11 @@
 					"unique" : false
 				},
 				{
-					"column_name" : "vendor_id",
-					"column_type" : 14,
-					"default_entry_value" : "",
-					"encoding" : "undefined",
-					"file_path_address_file" : "../databases/trips@trips_sample@vendor_id.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@vendor_id.data",
-					"file_path_string_data_file" : "../databases/trips@trips_sample@vendor_id.fragdata",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "tip_amount",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@tip_amount.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@tip_amount.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "pickup_datetime",
-					"column_type" : 9,
-					"default_entry_value" : "0",
-					"file_path_address_file" : "../databases/trips@trips_sample@pickup_datetime.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@pickup_datetime.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "passenger_count",
-					"column_type" : 8,
-					"default_entry_value" : "0",
-					"file_path_address_file" : "../databases/trips@trips_sample@passenger_count.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@passenger_count.data",
+					"column_name" : "pickup_coord",
+					"column_type" : 12,
+					"default_entry_value" : "POINT(0 0)",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_coord.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_coord.data",
 					"hidden" : false,
 					"nullable" : true,
 					"unique" : false
@@ -70,11 +48,21 @@
 					"unique" : false
 				},
 				{
-					"column_name" : "dropoff_datetime",
+					"column_name" : "passenger_count",
+					"column_type" : 8,
+					"default_entry_value" : "0",
+					"file_path_address_file" : "../databases/trips@trips_sample@passenger_count.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@passenger_count.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "pickup_datetime",
 					"column_type" : 9,
 					"default_entry_value" : "0",
-					"file_path_address_file" : "../databases/trips@trips_sample@dropoff_datetime.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@dropoff_datetime.data",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_datetime.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_datetime.data",
 					"hidden" : false,
 					"nullable" : true,
 					"unique" : false
@@ -98,134 +86,10 @@
 					"hidden" : false,
 					"nullable" : true,
 					"unique" : false
-				},
-				{
-					"column_name" : "pickup_coord",
-					"column_type" : 12,
-					"default_entry_value" : "POINT(0 0)",
-					"file_path_address_file" : "../databases/trips@trips_sample@pickup_coord.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@pickup_coord.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "rate_code",
-					"column_type" : 8,
-					"default_entry_value" : "0",
-					"file_path_address_file" : "../databases/trips@trips_sample@rate_code.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@rate_code.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "store_and_fwd_flag",
-					"column_type" : 14,
-					"default_entry_value" : "",
-					"encoding" : "undefined",
-					"file_path_address_file" : "../databases/trips@trips_sample@store_and_fwd_flag.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@store_and_fwd_flag.data",
-					"file_path_string_data_file" : "../databases/trips@trips_sample@store_and_fwd_flag.fragdata",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "dropoff_longitude",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@dropoff_longitude.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@dropoff_longitude.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "tolls_amount",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@tolls_amount.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@tolls_amount.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "dropoff_latitude",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@dropoff_latitude.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@dropoff_latitude.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "dropoff_coord",
-					"column_type" : 12,
-					"default_entry_value" : "POINT(0 0)",
-					"file_path_address_file" : "../databases/trips@trips_sample@dropoff_coord.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@dropoff_coord.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "payment_type",
-					"column_type" : 14,
-					"default_entry_value" : "",
-					"encoding" : "undefined",
-					"file_path_address_file" : "../databases/trips@trips_sample@payment_type.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@payment_type.data",
-					"file_path_string_data_file" : "../databases/trips@trips_sample@payment_type.fragdata",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "fare_amount",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@fare_amount.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@fare_amount.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "surcharge",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@surcharge.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@surcharge.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "mta_tax",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@mta_tax.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@mta_tax.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
-				},
-				{
-					"column_name" : "total_amount",
-					"column_type" : 10,
-					"default_entry_value" : "0.000000",
-					"file_path_address_file" : "../databases/trips@trips_sample@total_amount.adrs",
-					"file_path_data_file" : "../databases/trips@trips_sample@total_amount.data",
-					"hidden" : false,
-					"nullable" : true,
-					"unique" : false
 				}
 			],
 			"index_columns" : [],
-			"save_interval_ms" : 60000,
+			"save_interval_ms" : 300000,
 			"start_up_loading" : true,
 			"table_block_size" : 262144,
 			"table_name" : "trips_sample"
