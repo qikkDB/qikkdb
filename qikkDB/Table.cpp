@@ -670,8 +670,8 @@ Table::GetRowAndBitmaskOfInsertedData(const std::unordered_map<std::string, std:
         int8_t isNullValue = 0;
         if (nullMasks.find(column) != nullMasks.end())
         {
-            isNullValue = (NullValues::GetConcreteBitFromBitmask(nullMasks.at(column).data(), iterator) &&
-                           static_cast<uint8_t>(1U));
+            isNullValue = static_cast<int8_t>(
+                NullValues::GetConcreteBitFromBitmask(nullMasks.at(column).data(), iterator));
         }
 
         maskOfRow.push_back(isNullValue);
@@ -884,10 +884,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             auto castedColumn = dynamic_cast<ColumnBase<int32_t>*>(currentSortingColumn);
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-            isNullValue =
-                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock) &&
-                static_cast<uint8_t>(1U);
+            isNullValue = static_cast<int8_t>(NullValues::GetConcreteBitFromBitmask(
+                castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(), indexInBlock));
             maskOfRow.push_back(isNullValue);
         }
 
@@ -896,10 +894,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             auto castedColumn = dynamic_cast<ColumnBase<int64_t>*>(currentSortingColumn);
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-            isNullValue =
-                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock) &&
-                static_cast<uint8_t>(1U);
+            isNullValue = static_cast<int8_t>(NullValues::GetConcreteBitFromBitmask(
+                castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(), indexInBlock));
             maskOfRow.push_back(isNullValue);
         }
 
@@ -908,10 +904,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             auto castedColumn = dynamic_cast<ColumnBase<float>*>(currentSortingColumn);
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-            isNullValue =
-                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock) &&
-                static_cast<uint8_t>(1U);
+            isNullValue = static_cast<int8_t>(NullValues::GetConcreteBitFromBitmask(
+                castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(), indexInBlock));
             maskOfRow.push_back(isNullValue);
         }
 
@@ -920,10 +914,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             auto castedColumn = dynamic_cast<ColumnBase<double>*>(currentSortingColumn);
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-            isNullValue =
-                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock) &&
-                static_cast<uint8_t>(1U);
+            isNullValue = static_cast<int8_t>(NullValues::GetConcreteBitFromBitmask(
+                castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(), indexInBlock));
             maskOfRow.push_back(isNullValue);
         }
 
@@ -932,10 +924,8 @@ std::tuple<std::vector<std::any>, std::vector<int8_t>> Table::GetRowAndBitmaskOn
             auto castedColumn = dynamic_cast<ColumnBase<std::string>*>(currentSortingColumn);
             resultRow.push_back(castedColumn->GetBlocksList()[blockIndex]->GetData()[indexInBlock]);
 
-            isNullValue =
-                NullValues::GetConcreteBitFromBitmask(castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(),
-                                                      indexInBlock) &&
-                static_cast<uint8_t>(1U);
+            isNullValue = static_cast<int8_t>(NullValues::GetConcreteBitFromBitmask(
+                castedColumn->GetBlocksList()[blockIndex]->GetNullBitmask(), indexInBlock));
             maskOfRow.push_back(isNullValue);
         }
     }
@@ -1267,8 +1257,7 @@ void Table::InsertNullDataIntoNewColumn(std::string newColumnName)
 
     case COLUMN_POLYGON:
     {
-        auto blocks =
-            dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(column.get())->GetBlocksList();
+        auto blocks = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>*>(column.get())->GetBlocksList();
 
         for (int32_t i = 0; i < blocks.size(); i++)
         {
@@ -1647,12 +1636,11 @@ void Table::CreateColumn(const char* columnName, DataType columnType, bool isNul
     else if (columnType == COLUMN_POLYGON)
     {
         column = std::make_unique<ColumnBase<QikkDB::Types::ComplexPolygon>>(columnName, blockSize_,
-                                                                                isNullable, isUnique);
+                                                                             isNullable, isUnique);
     }
     else if (columnType == COLUMN_POINT)
     {
-        column = std::make_unique<ColumnBase<QikkDB::Types::Point>>(columnName, blockSize_,
-                                                                       isNullable, isUnique);
+        column = std::make_unique<ColumnBase<QikkDB::Types::Point>>(columnName, blockSize_, isNullable, isUnique);
     }
     else if (columnType == COLUMN_INT8_T)
     {
