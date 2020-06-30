@@ -1,0 +1,11 @@
+=================================================================
+==  NOTICE file for use with the Apache License, Version 2.0,  ==
+==  in this case for the qikkDB distribution.   	           ==
+=================================================================
+
+qikkDB GPU accelerated database
+Copyright 2020 Instarea
+
+This product includes software developed in Bratislava, Slovakia at Instarea (https://instarea.com/).
+
+Portions of this software were developed at the Faculty of Informatics and Information Technologies (FIIT) of the Slovak Technical University (STU) in Bratislava (https://www.fiit.stuba.sk).

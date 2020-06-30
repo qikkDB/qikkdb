@@ -492,7 +492,6 @@ public:
         {
             throw std::length_error("Attempted to insert data larger than remaining block size");
         }
-
         else if (index < size_)
         {
             std::move_backward(data_.get() + index, data_.get() + size_, data_.get() + size_ + 1);

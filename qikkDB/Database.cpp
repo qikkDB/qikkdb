@@ -95,18 +95,17 @@ void Database::CopyBlocksOfColumn(Table& srcTable, Table& dstTable, const std::s
     {
     case COLUMN_POLYGON:
     {
-        auto& column = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(
-            *srcTable.GetColumns().at(columnName));
-        auto& dstColumn = dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(
-            *dstTable.GetColumns().at(columnName));
+        auto& column =
+            dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(*srcTable.GetColumns().at(columnName));
+        auto& dstColumn =
+            dynamic_cast<ColumnBase<QikkDB::Types::ComplexPolygon>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<QikkDB::Types::ComplexPolygon>*> blocks = column.GetBlocksList();
         dstColumn.ResizeColumn(&column);
         break;
     }
     case COLUMN_POINT:
     {
-        auto& column =
-            dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*srcTable.GetColumns().at(columnName));
+        auto& column = dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*srcTable.GetColumns().at(columnName));
         auto& dstColumn =
             dynamic_cast<ColumnBase<QikkDB::Types::Point>&>(*dstTable.GetColumns().at(columnName));
         const std::vector<BlockBase<QikkDB::Types::Point>*> blocks = column.GetBlocksList();
@@ -1493,17 +1492,16 @@ void Database::ChangeDatabaseBlockSize(const int32_t newBlockSize)
     {
         blockSize_ = newBlockSize;
 
-        std::vector<std::thread> threads;
+		std::vector<std::string> tableNames;
 
         for (auto& table : tables_)
         {
-            threads.emplace_back(
-                [&](Database* db) { db->ChangeTableBlockSize(table.first.c_str(), newBlockSize); }, this);
+            tableNames.push_back(table.first);
         }
 
-        for (int32_t i = 0; i < threads.size(); i++)
+        for (std::string tableName : tableNames)
         {
-            threads[i].join();
+            ChangeTableBlockSize(tableName, newBlockSize);
         }
     }
 }
@@ -2972,10 +2970,11 @@ void Database::WriteColumn(const std::pair<const std::string, std::unique_ptr<IC
                             // transform protobuf message into WKT strings:
                             std::string wktPolygon = ComplexPolygonFactory::WktFromPolygon(data[i]);
 
-							/* if data are NULL, the creation of POLYGON results in just "POLYGON()" which
+                            /* if data are NULL, the creation of POLYGON results in just "POLYGON()" which
                              * is not correct WKT and it would broke database, therefore we need to persist
                              * some correct WKT and via nullBitMasks we know, it is ackhually NULL value: */
-                            if (wktPolygon == ComplexPolygonFactory::WktFromPolygon(QikkDB::Types::ComplexPolygon()))
+                            if (wktPolygon ==
+                                ComplexPolygonFactory::WktFromPolygon(QikkDB::Types::ComplexPolygon()))
                             {
                                 wktPolygon = ColumnBase<QikkDB::Types::ComplexPolygon>::POLYGON_DEFAULT_VALUE;
                             }
