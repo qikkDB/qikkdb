@@ -3,13 +3,14 @@
 UsingGPU: true
 # Use multiple GPUs if there are more than just one GPU available:
 UsingMultipleGPUs: true
-# Use compression of database files
-UsingCompression: false
 # Use clustered index when evaluating WHERE clause (skip filtered blocks)
 UsingWhereEvaluationSpeedup: false
 
 # Path to database files
 DatabaseFilesDir: ../databases/
+
+# Path to database files for automatized tests
+TestDatabaseFilesDir: ../test_databases/
 
 # Number of rows in one block
 BlockSize: 262144
@@ -19,13 +20,13 @@ GroupByBuckets: 262144
 GPUMemoryUsagePercent: 100
 # Percentage of allocated GPU memory used for caching columns
 GPUCachePercent: 75
-# How often to save database files
-DBSaveInterval: 1000
-
+# How often to save database files (ms)
+DBSaveInterval: 300000
 
 # == NETWORK SETTINGS ==
 ListenIP: 127.0.0.1
 ListenPort: 12345
+# Network client will disconnect if hearbeat not received in this time (ms):
 Timeout: 3600000
 
 # To edit configuration values, copy this file to "main_config"

@@ -1,0 +1,13 @@
+syntax = "proto3";
+package QikkDB.NetworkClient.Message;
+import "messages/CSVImportMessage.proto";
+
+
+message BulkImportMessage {
+    string TableName = 1;
+    string ColumnName = 2;
+    DataType ColumnType = 3;
+    int32 ElemCount = 4;
+    int32 nullMaskLen = 5;
+    int32 dataLength = 6;
+}

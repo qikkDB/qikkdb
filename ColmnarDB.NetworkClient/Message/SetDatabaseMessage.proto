@@ -1,6 +1,0 @@
-syntax = "proto3";
-package ColmnarDB.NetworkClient.Message;
-
-message SetDatabaseMessage {
-    string DatabaseName = 1;
-}

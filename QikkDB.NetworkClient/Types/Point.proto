@@ -1,0 +1,8 @@
+syntax = "proto3";
+package QikkDB.Types;
+
+import "Types/ComplexPolygon.proto";
+
+message Point {
+    GeoPoint geoPoint = 1;
+}

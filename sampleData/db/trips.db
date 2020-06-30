@@ -1,0 +1,98 @@
+{
+	"database_default_block_size" : 262144,
+	"database_name" : "trips",
+	"persistence_format_version" : 1,
+	"tables" : 
+	[
+		{
+			"columns" : 
+			[
+				{
+					"column_name" : "total_amount",
+					"column_type" : 10,
+					"default_entry_value" : "0.000000",
+					"file_path_address_file" : "../databases/trips@trips_sample@total_amount.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@total_amount.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "cab_type",
+					"column_type" : 8,
+					"default_entry_value" : "0",
+					"file_path_address_file" : "../databases/trips@trips_sample@cab_type.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@cab_type.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "pickup_coord",
+					"column_type" : 12,
+					"default_entry_value" : "POINT(0 0)",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_coord.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_coord.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "pickup_longitude",
+					"column_type" : 10,
+					"default_entry_value" : "0.000000",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_longitude.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_longitude.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "passenger_count",
+					"column_type" : 8,
+					"default_entry_value" : "0",
+					"file_path_address_file" : "../databases/trips@trips_sample@passenger_count.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@passenger_count.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "pickup_datetime",
+					"column_type" : 9,
+					"default_entry_value" : "0",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_datetime.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_datetime.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "trip_distance",
+					"column_type" : 10,
+					"default_entry_value" : "0.000000",
+					"file_path_address_file" : "../databases/trips@trips_sample@trip_distance.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@trip_distance.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				},
+				{
+					"column_name" : "pickup_latitude",
+					"column_type" : 10,
+					"default_entry_value" : "0.000000",
+					"file_path_address_file" : "../databases/trips@trips_sample@pickup_latitude.adrs",
+					"file_path_data_file" : "../databases/trips@trips_sample@pickup_latitude.data",
+					"hidden" : false,
+					"nullable" : true,
+					"unique" : false
+				}
+			],
+			"index_columns" : [],
+			"save_interval_ms" : 300000,
+			"start_up_loading" : true,
+			"table_block_size" : 262144,
+			"table_name" : "trips_sample"
+		}
+	]
+}

@@ -1,0 +1,29 @@
+version: '3.4'
+
+services:
+  qikkdb:
+    container_name: qikkdb_1
+    image: qikkdb
+    user: 0:0
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    ports:
+      - 12345:12345
+    volumes:
+      - ./build/test_databases:/test_databases
+      - ./build/databases:/databases
+      - ./build/configuration:/configuration/
+      - ./build/logs:/logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "3m"
+    restart: always
+    networks:
+      - be
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=All 
+networks:
+  be:
+    external: true

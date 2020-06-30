@@ -1,0 +1,84 @@
+# Build
+FROM nvidia/cuda:10.2-devel AS builder
+
+WORKDIR /build/qikkDB
+
+COPY . ./
+
+WORKDIR /build
+
+RUN mkdir /databases
+RUN mkdir /test_databases
+
+# Install needed packages in non-interactive mode
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get update && apt-get install -y build-essential \
+	ninja-build \
+	clang-7 \
+	clang++-7 \
+	curl \
+	wget \
+	git-all \
+	uuid-dev \
+	pkg-config \
+	python2.7-dev
+	
+# Install CMake 3.17
+RUN wget -qO- "https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz" | tar --strip-components=1 -xz -C /usr/local
+
+WORKDIR /build	
+	
+# Install boost
+RUN mkdir -p ./boost/src \
+	&& cd ./boost/src \
+    && curl -S -L https://dl.bintray.com/boostorg/release/1.69.0/source/boost_1_69_0.tar.gz | tar -xz \
+	&& cd boost_1_69_0 \
+	&& ./bootstrap.sh \
+	&& ./b2 install -j32 --prefix=/opt/boost_1.69
+	
+WORKDIR /build
+
+# Run CMake QikkDB
+RUN	mkdir build_qikkDB \
+	&& cd build_qikkDB \
+	&& cmake -GNinja -DCMAKE_CXX_COMPILER=clang++-7 -DCMAKE_C_COMPILER=clang-7 -DBOOST_ROOT=/opt/boost_1.69 -DCMAKE_CUDA_COMPILER=/usr/local/cuda/bin/nvcc -DCMAKE_BUILD_TYPE=Release ../qikkDB
+
+RUN cd build_qikkDB && ninja
+
+# Build client console
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS console-build
+WORKDIR /src
+COPY ./QikkDB.ConsoleClient QikkDB.ConsoleClient/
+COPY ./QikkDB.NetworkClient QikkDB.NetworkClient/
+RUN dotnet restore QikkDB.ConsoleClient/QikkDB.ConsoleClient.csproj
+WORKDIR /src/QikkDB.ConsoleClient
+RUN dotnet publish -c Release -r linux-x64 --self-contained true QikkDB.ConsoleClient.csproj -o /app
+
+# Application
+FROM nvidia/cuda:10.2-runtime
+
+WORKDIR /app
+
+# Copy .exe file from build into app
+COPY --from=builder /build/build_qikkDB/qikkDB/qikkDB .
+
+# Copy Boost built libraries
+COPY --from=builder /opt/boost_1.69 /opt/boost_1.69
+RUN ldconfig /opt/boost_1.69/lib
+
+# Copy configuration files into app
+COPY configuration /configuration
+
+RUN mkdir /databases
+COPY sampleData/db/. /databases
+
+RUN mkdir /sampleData
+COPY sampleData/csv/. /sampleData
+
+RUN mkdir /test_databases
+
+# Copy client console from console-build into app (without dotnet dependencies)
+RUN mkdir /client
+COPY --from=console-build /app ./client
+
+ENTRYPOINT ["./qikkDB"]

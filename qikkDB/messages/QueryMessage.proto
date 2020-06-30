@@ -1,0 +1,6 @@
+syntax = "proto3";
+package QikkDB.NetworkClient.Message;
+
+message QueryMessage {
+    string Query = 1;
+}

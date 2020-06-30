@@ -1,8 +1,0 @@
-syntax = "proto3";
-package ColmnarDB.Types;
-
-import "Types/ComplexPolygon.proto";
-
-message Point {
-    GeoPoint geoPoint = 1;
-}

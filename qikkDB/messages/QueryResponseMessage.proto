@@ -1,0 +1,61 @@
+syntax = "proto3";
+package QikkDB.NetworkClient.Message;
+
+import "Types/ComplexPolygon.proto";
+import "Types/Point.proto";
+
+message QueryResponseIntPayload {
+    repeated int32 intData = 1;
+}
+
+message QueryResponseInt64Payload {
+    repeated int64 int64Data = 1;
+}
+
+message QueryResponseDateTimePayload {
+    repeated int64 dateTimeData = 1;
+}
+
+message QueryResponseFloatPayload {
+    repeated float floatData = 1;
+}
+
+message QueryResponseDoublePayload {
+    repeated double doubleData = 1;
+}
+
+message QueryResponsePolygonPayload {
+    repeated QikkDB.Types.ComplexPolygon polygonData = 1;
+}
+
+message QueryResponsePointPayload {
+    repeated QikkDB.Types.Point pointData = 1;
+}
+
+message QueryResponseStringPayload {
+    repeated string stringData = 1;
+}
+
+message QueryNullmaskPayload {
+	repeated uint64 nullMask = 1;
+}
+
+message QueryResponsePayload {
+    oneof payload {
+        QueryResponseIntPayload intPayload = 2;
+        QueryResponseFloatPayload floatPayload = 3;
+        QueryResponseInt64Payload int64Payload = 4;
+        QueryResponseDoublePayload doublePayload = 5;
+        QueryResponsePointPayload pointPayload = 6;
+        QueryResponsePolygonPayload polygonPayload = 7;
+        QueryResponseStringPayload stringPayload = 8;
+        QueryResponseDateTimePayload dateTimePayload = 9;
+    }
+}
+
+message QueryResponseMessage {
+    map<string, QueryResponsePayload> payloads = 1;
+    map<string, QueryNullmaskPayload> nullBitMasks = 3;
+    map<string, float> timing = 2;
+	repeated string columnOrder = 4;
+}
