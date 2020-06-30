@@ -1,6 +1,6 @@
 # qikkDB
 
-GPU accelerated columnar database, delivering stellar performance for complex polygon operations and big data analytics. When you count your data in billions and want to see real-time results you need qikkDB.
+GPU accelerated columnar database, delivering stellar performance for complex polygon operations and big data analytics. When you count your data in billions and want to see real-time results you need qikkDB. See also the project [website](https://qikk.ly/) and [documentation](https://docs.qikk.ly/).
 
 # License
 This project is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
