@@ -1,6 +1,6 @@
 # qikkDB
 
-GPU accelerated columnar database, delivering stellar performance for complex polygon operations and big data analytics. When you count your data in billions and want to see real-time results you need qikkDB.
+GPU accelerated columnar database, delivering stellar performance for complex polygon operations and big data analytics. When you count your data in billions and want to see real-time results you need qikkDB. See also the project [website](https://qikk.ly/) and [documentation](https://docs.qikk.ly/).
 
 # License
 This project is licensed under the [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0).
@@ -74,10 +74,9 @@ To clone and build the project:
     
 
 # Building Console Client
-Run command:
+Run commands (starting from main project directory):
 
-dotnet build ./QikkDB.ConsoleClient/
-
-then go to directory ./build/debug/client and run command:
-
-dotnet ./QikkDB.ConsoleClient.dll
+    cd QikkDB.ConsoleClient
+    dotnet build
+    cd ../build/debug/client
+    dotnet ./QikkDB.ConsoleClient.dll
