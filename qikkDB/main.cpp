@@ -67,14 +67,24 @@ int main(int argc, char** argv)
         BOOST_LOG_TRIVIAL(info) << "Loading CSV from \"" << argv[1] << "\"";
         csvDataImporter.ImportTables(database);
     }
-    else // TCP server
+    else // DB core server
     {
-        BOOST_LOG_TRIVIAL(info)
-            << "Loading databases from: " << Configuration::GetInstance().GetDatabaseDir();
-        Database::LoadDatabasesFromDisk();
-        BOOST_LOG_TRIVIAL(info) << "All databases from "
-                                << Configuration::GetInstance().GetDatabaseDir() << " have been loaded.";
+        // Load all databases from disk
+        BOOST_LOG_TRIVIAL(info) << "Loading databases from: " << Configuration::GetInstance().GetDatabaseDir();
+        try
+        {
+            Database::LoadDatabasesFromDisk();
+            BOOST_LOG_TRIVIAL(info) << "All databases from "
+                                    << Configuration::GetInstance().GetDatabaseDir() << " have been loaded.";
+        }
+        catch (std::exception& e)
+        {
+            // Remove partially loaded databases from memory
+            Context::getInstance().GetLoadedDatabases().clear(); 
+            BOOST_LOG_TRIVIAL(error) << "ERROR: Databases could not be loaded. Reason: " << e.what();
+        }
 
+        // Start TCP server
         TCPServer<TCPClientHandler, ClientPoolWorker> tcpServer(
             Configuration::GetInstance().GetListenIP().c_str(), Configuration::GetInstance().GetListenPort());
         RegisterCtrlCHandler(&tcpServer);
